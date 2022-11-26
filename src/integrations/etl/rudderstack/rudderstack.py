@@ -1,6 +1,6 @@
 import sys
 import requests
-from etl import Etl
+from ..etl import Etl
 
 
 class RudderStack(Etl):

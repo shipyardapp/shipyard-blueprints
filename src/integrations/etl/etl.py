@@ -2,19 +2,19 @@ import logging
 from abc import ABC, abstractmethod
 
 
-# class EtlMeta(type):
-#     def __new__(cls, name, bases, body):
-#         # ensure that execute_sync is a method in the derived class
-#         if 'trigger_sync' not in body:
-#             logging.error("trigger_sync is a required method for this class")
-#             raise TypeError()
+class EtlMeta(type):
+    def __new__(cls, name, bases, body):
+        # ensure that execute_sync is a method in the derived class
+        if 'trigger_sync' not in body:
+            logging.error("trigger_sync is a required method for this class")
+            raise TypeError()
 
-#         if 'determine_sync_status' not in body:
-#             logging.error(
-#                 "verify_sync_status is a required method for this class")
-#             raise TypeError()
+        if 'determine_sync_status' not in body:
+            logging.error(
+                "verify_sync_status is a required method for this class")
+            raise TypeError()
 
-#         return super().__new__(cls, name, bases, body)
+        return super().__new__(cls, name, bases, body)
 
 
 # class Etl(metaclass=EtlMeta):
@@ -52,10 +52,10 @@ class Etl(ABC):
         self.vendor = vendor
         self.access_token = access_token
 
-    @abstractmethod
-    def trigger_sync(self):
-        pass
+    # @abstractmethod
+    # def trigger_sync(self):
+    #     pass
 
-    @abstractmethod
-    def determine_sync_status(self):
-        pass
+    # @abstractmethod
+    # def determine_sync_status(self):
+    #     pass
