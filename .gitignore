@@ -2,3 +2,4 @@ shipyard-census-blueprints
 test
 .vscode
 env
+.DS_Store
