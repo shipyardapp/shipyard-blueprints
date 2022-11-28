@@ -3,3 +3,4 @@ test
 .vscode
 env
 .DS_Store
+*.egg
