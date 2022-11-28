@@ -22,7 +22,7 @@ config = {
     # "install_requires": install_requires,
     "install_requires": ["requests", "shipyard-utils"],
     'py_modules': ['rudderstack'],
-    "name": "shipyard-rudderstack-blueprints",
+    "name": "shipyard-rudderstack",
     "version": "v0.1.0",
     "license": "Apache-2.0",
     "classifiers": [

@@ -1,0 +1,11 @@
+setup.py
+shipyard_rudderstack/__init__.py
+shipyard_rudderstack/check_sync_cli.py
+shipyard_rudderstack/etl.py
+shipyard_rudderstack/rudderstack.py
+shipyard_rudderstack/trigger_sync_cli.py
+shipyard_rudderstack.egg-info/PKG-INFO
+shipyard_rudderstack.egg-info/SOURCES.txt
+shipyard_rudderstack.egg-info/dependency_links.txt
+shipyard_rudderstack.egg-info/requires.txt
+shipyard_rudderstack.egg-info/top_level.txt

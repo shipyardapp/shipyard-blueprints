@@ -1,0 +1,18 @@
+Metadata-Version: 1.2
+Name: shipyard-rudderstack
+Version: 0.1.0
+Summary: Simplified data pipeline blueprints for working with Rudderstack.
+Home-page: https: // www.shipyardapp.com
+Author: Shipyard Team
+Author-email: tech@shipyardapp.com
+License: Apache-2.0
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: Intended Audience :: Other Audience
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Software Development
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Requires-Python: >=3.7

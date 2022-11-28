@@ -1,6 +1,7 @@
 import sys
 import requests
-from ...etl import Etl
+# from etl import Etl
+from .etl import Etl
 
 
 class RudderStack(Etl):
@@ -39,26 +40,26 @@ class RudderStack(Etl):
                 self.logger.warning(
                     "Sync job for for Source ID %s is already running", source_id)
 
-                sys.exit(self.EXIT_CODE_SYNC_ALREADY_RUNNING)
+                return self.EXIT_CODE_SYNC_ALREADY_RUNNING
 
             elif trigger_sync_response.status_code == 401:
                 self.logger.error(
                     "Trigger sync failed for Source %s due to invalid credentials", source_id)
-                sys.exit(self.EXIT_CODE_INVALID_CREDENTIALS)
+                return self.EXIT_CODE_INVALID_CREDENTIALS
 
             elif trigger_sync_response.status_code == 500:
                 self.logger.error(
                     "Trigger sync failed. Check if Source %s exists", source_id)
-                sys.exit(self.EXIT_CODE_SYNC_INVALID_SOURCE_ID)
+                return self.EXIT_CODE_SYNC_INVALID_SOURCE_ID
 
             else:
                 self.logger.error(
                     "Trigger sync failed. Error code: %s", trigger_sync_response.status_code)
-                sys.exit(self.EXIT_CODE_BAD_REQUEST)
+                return self.EXIT_CODE_BAD_REQUEST
         except Exception as error:
             self.logger.error(
                 "Source %s trigger sync failed to due to %s", source_id, error)
-            sys.exit(self.EXIT_CODE_UNKNOWN_ERROR)
+            return self.EXIT_CODE_UNKNOWN_ERROR
 
     def get_source_data(self, source_id: str) -> dict:
         """Helper function to get the source status response from Rudderstack
@@ -67,7 +68,8 @@ class RudderStack(Etl):
             source_id (str): The source id desired to check
 
         Returns:
-            dict: The JSON response from the API
+            dict: The JSON response from the API upon success
+            int: The exit code upon error
         """
         source_status_url = self.api_url + f"/{source_id}/status"
         source_status_json = {}
@@ -82,19 +84,19 @@ class RudderStack(Etl):
             elif source_status_response.status_code == 401:
                 self.logger.error(
                     "Invalid credentials. Please check access token")
-                sys.exit(self.EXIT_CODE_INVALID_CREDENTIALS)
+                return self.EXIT_CODE_INVALID_CREDENTIALS
             elif source_status_response.status_code in [404, 500]:
                 self.logger.error(
                     "Failed to  run status check. Invalid Source ID %s", source_id)
-                sys.exit(self.EXIT_CODE_SYNC_INVALID_SOURCE_ID)
+                return self.EXIT_CODE_SYNC_INVALID_SOURCE_ID
             else:
                 self.logger.error(
                     "Source status check failed. Reason: %s", source_status_response.text)
-                sys.exit(self.EXIT_CODE_BAD_REQUEST)
+                return self.EXIT_CODE_BAD_REQUEST
         except Exception as error:
             self.logger.exception(
                 "Source %s status check failed due to: %s", source_id, error)
-            sys.exit(self.EXIT_CODE_BAD_REQUEST)
+            return self.EXIT_CODE_BAD_REQUEST
         return source_status_json
 
     def determine_sync_status(self, source_data: dict, source_id: str) -> int:

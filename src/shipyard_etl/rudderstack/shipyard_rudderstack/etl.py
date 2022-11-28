@@ -40,13 +40,18 @@ class Etl(ABC):
     TIMEOUT = 30
 
     def __init__(self, vendor: str, access_token: str) -> None:
+        logging.basicConfig(level = logging.NOTSET,format= '%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+
+        
         _logger = logging.getLogger(f"{vendor} log")
+
         stream = logging.StreamHandler()
-        stream.setLevel(logging.WARNING)
-        stream.setLevel(logging.ERROR)
-        stream.setLevel(logging.INFO)
-        stream_format = logging.Formatter(
-            format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+        # stream.setLevel(logging.WARNING)
+        # stream.setLevel(logging.ERROR)
+        # stream.setLevel(logging.INFO)
+        # stream_format = logging.Formatter(
+        #     fmt='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+        # stream = stream.setFormatter(stream_format)
         _logger.addHandler(stream)
         self.logger = _logger
         self.vendor = vendor
