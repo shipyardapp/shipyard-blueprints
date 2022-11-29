@@ -24,7 +24,6 @@ class RudderStack(Etl):
         Args:
             source_id (str): The identifier tied to the sync to trigger
         """
-        # api_url = "https://api.rudderstack.com/v2/sources"
         trigger_sync_url = self.api_url + f"/{source_id}/start"
         # get response from API
         try:
@@ -100,12 +99,21 @@ class RudderStack(Etl):
 
 
     def determine_sync_status(self, source_data: dict, source_id: str) -> int:
+        """ Goes through the json of the sync to see what the proper exit code should be.
+        This is primarily to prevent unnecessary retries/exceptions in the Shipyard Application
+
+        Args:
+            source_data (dict): The json response from the sync
+            source_id (str): The Rudderstack Source ID
+
+        Returns:
+            int: The Exit Code
+        """
         if source_data['status'] == 'finished':
             if source_data.get("error"):
                 self.logger.error(
                     "Rudderstack reports that the most recent run for source %s errored with the following message: %s)", source_id, source_data['error'])
                 sys.exit(self.EXIT_CODE_FINAL_STATUS_ERRORED)
-
             else:
                 self.logger.info(
                     "Rudderstack reports that the most recent run for source %s finished without errors", source_id)
@@ -115,9 +123,6 @@ class RudderStack(Etl):
                 "Rudderstack reports that the most recent run for source %s is still processing", source_id)
             status_code = self.EXIT_CODE_FINAL_STATUS_INCOMPLETE
         else:
-
-            # self.logger.warn(
-            #     f"Sync for {source_id} is incomplete or unknown. Status {source_data['status']}")
             self.logger.warning(
                 "Sync for %s is incomplete or unkonwn. Status %s", source_id, source_data['status'])
             status_code = self.EXIT_CODE_UNKNOWN_STATUS

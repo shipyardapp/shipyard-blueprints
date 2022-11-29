@@ -2,22 +2,6 @@ import logging
 from abc import ABC, abstractmethod
 
 
-# class EtlMeta(type):
-#     def __new__(cls, name, bases, body):
-#         # ensure that execute_sync is a method in the derived class
-#         if 'trigger_sync' not in body:
-#             logging.error("trigger_sync is a required method for this class")
-#             raise TypeError()
-
-#         if 'determine_sync_status' not in body:
-#             logging.error(
-#                 "verify_sync_status is a required method for this class")
-#             raise TypeError()
-
-#         return super().__new__(cls, name, bases, body)
-
-
-# class Etl(metaclass=EtlMeta):
 class Etl(ABC):
     # Class level exit codes
     # general exit codes
@@ -40,17 +24,17 @@ class Etl(ABC):
     TIMEOUT = 30
 
     def __init__(self, access_token: str) -> None:
-        logging.basicConfig(level = logging.NOTSET,format= '%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
-        _logger = logging.getLogger("Shipyard log")
-        stream = logging.StreamHandler()
-        # stream.setLevel(logging.WARNING)
-        # stream.setLevel(logging.ERROR)
-        # stream.setLevel(logging.INFO)
-        # stream_format = logging.Formatter(
-        #     fmt='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
-        # stream = stream.setFormatter(stream_format)
-        _logger.addHandler(stream)
-        self.logger = _logger
+        logger = logging.getLogger("Shipyard")
+        logger.setLevel(logging.DEBUG)
+        # Add handler for stderr
+        console = logging.StreamHandler()
+        console.setLevel(logging.DEBUG)
+        # add specific format
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        console.setFormatter(formatter)
+        logger.addHandler(console)
+        self.logger = logger
         self.access_token = access_token
 
     @abstractmethod
