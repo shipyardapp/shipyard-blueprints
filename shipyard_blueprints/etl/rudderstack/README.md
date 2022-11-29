@@ -22,6 +22,10 @@ rudderstack.trigger_sync("<source-id>")
 source_response = rudderstack.get_source_data("<source-id>")
 print(source_response['status'])
 
+# Determine response status
+# Note: This is not recommended to be used for scripting. This is a utility function for the Shipyard application
+rudderstack.determine_sync_status(source_response, "<source-id>")
+
 ```
 
 
