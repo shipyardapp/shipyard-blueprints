@@ -1,6 +1,5 @@
 import sys
 import requests
-# from etl import Etl
 from .etl import Etl
 
 
@@ -11,8 +10,8 @@ class RudderStack(Etl):
         Etl (): The super class
     """
 
-    def __init__(self, vendor: str, access_token: str) -> None:
-        super().__init__(vendor, access_token)
+    def __init__(self, access_token: str) -> None:
+        super().__init__(access_token)
         self.api_headers = {
             "authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json"
@@ -98,6 +97,7 @@ class RudderStack(Etl):
                 "Source %s status check failed due to: %s", source_id, error)
             return self.EXIT_CODE_BAD_REQUEST
         return source_status_json
+
 
     def determine_sync_status(self, source_data: dict, source_id: str) -> int:
         if source_data['status'] == 'finished':

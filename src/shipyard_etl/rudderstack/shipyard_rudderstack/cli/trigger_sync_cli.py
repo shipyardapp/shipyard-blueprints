@@ -2,7 +2,7 @@ import argparse
 import sys
 import requests
 import shipyard_utils as shipyard
-from rudderstack import RudderStack
+from shipyard_rudderstack import RudderStack
 
 
 def get_args():
@@ -18,9 +18,9 @@ def main():
     access_token = args.access_token
     source_id = args.source_id
 
-    rudderstack = RudderStack(vendor= "RudderStack", access_token= access_token)
+    rudderstack = RudderStack(access_token= access_token)
     # execute trigger sync
-    rudderstack.trigger_sync(source_id, access_token)
+    rudderstack.trigger_sync(source_id)
     # create artifacts folder to save run id
     base_folder_name = shipyard.logs.determine_base_artifact_folder(
         'rudderstack')
