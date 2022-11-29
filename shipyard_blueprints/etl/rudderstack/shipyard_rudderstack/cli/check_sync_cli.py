@@ -1,7 +1,7 @@
 import sys
 import argparse
 import shipyard_utils as shipyard
-from ..rudderstack import RudderStack
+from shipyard_rudderstack import RudderStack
 
 
 def get_args():
