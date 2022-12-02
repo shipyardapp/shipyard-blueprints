@@ -1,8 +1,9 @@
 shipyard-census-blueprints
-test
+# test
 .vscode
 env
 .DS_Store
 *.egg-info/
 wespoulsen-artifacts*
 shipyard_logger.py
+dist/
