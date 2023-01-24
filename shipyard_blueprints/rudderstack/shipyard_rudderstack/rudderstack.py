@@ -3,7 +3,7 @@ import requests
 from templates.etl import Etl
 
 
-class RudderStack(Etl):
+class RudderStackClient(Etl):
     """ Class for connecting to RudderStack's API
 
     Args:

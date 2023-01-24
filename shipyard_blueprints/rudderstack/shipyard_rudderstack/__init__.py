@@ -1,1 +1,1 @@
-from .rudderstack import RudderStack
+from .rudderstack import RudderStackClient
