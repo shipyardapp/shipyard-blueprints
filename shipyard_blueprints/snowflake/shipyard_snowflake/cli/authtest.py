@@ -1,6 +1,5 @@
 import argparse
-# from shipyard_blueprints import SnowflakeClient
-from ..snowflake import SnowflakeClient
+from shipyard_blueprints import SnowflakeClient
 
 
 def get_args():
