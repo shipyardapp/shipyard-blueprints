@@ -1,3 +1,4 @@
 import shipyard_utils as utils
 from shipyard_blueprints.rudderstack.shipyard_rudderstack import RudderStackClient
 from shipyard_blueprints.snowflake.shipyard_snowflake import SnowflakeClient
+from shipyard_blueprints.census.shipyard_census import CensusClient

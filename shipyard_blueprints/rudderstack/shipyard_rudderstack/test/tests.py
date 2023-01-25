@@ -1,5 +1,4 @@
-# from shipyard_rudderstack import RudderStack
-from shipyard_blueprints import RudderStack
+from shipyard_rudderstack import RudderStackClient
 import unittest
 import os
 
@@ -9,14 +8,14 @@ source_id = os.environ['RUDDERSTACK_SOURCE']
 
 class IncorrectCredentials(unittest.TestCase):
     def test_credentials(self):
-        rd = RudderStack('bad_token')
+        rd = RudderStackClient('bad_token')
         resp = rd.trigger_sync(source_id)
         self.assertEqual(resp, rd.EXIT_CODE_INVALID_CREDENTIALS)
 
 
 class InvalidSource(unittest.TestCase):
     def test_source(self):
-        rd = RudderStack(token)
+        rd = RudderStackClient(token)
         resp = rd.trigger_sync("bad_source")
         self.assertEqual(resp, rd.EXIT_CODE_SYNC_INVALID_SOURCE_ID)
 
@@ -27,7 +26,7 @@ class GoodResponse(unittest.TestCase):
     """
 
     def test_response(self):
-        rd = RudderStack(token)
+        rd = RudderStackClient(token)
         response = rd.get_source_data(source_id)
         self.assertIsInstance(response, dict)
 
@@ -38,7 +37,7 @@ class BadResponse(unittest.TestCase):
     """
 
     def test_bad_response(self):
-        rd = RudderStack(token)
+        rd = RudderStackClient(token)
         response = rd.get_source_data("bad_source")
         self.assertIsInstance(response, int)
 

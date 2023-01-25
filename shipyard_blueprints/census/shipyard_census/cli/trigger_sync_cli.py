@@ -1,14 +1,12 @@
 import argparse
-import sys
-import requests
+from shipyard_blueprints import CensusClient
 import shipyard_utils as shipyard
-from shipyard_rudderstack import RudderStackClient
 
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--access-token', dest='access_token', required=True)
-    parser.add_argument('--source-id', dest='source_id', required=True)
+    parser.add_argument('--sync-id', dest='sync_id', required=True)
     args = parser.parse_args()
     return args
 
@@ -16,21 +14,21 @@ def get_args():
 def main():
     args = get_args()
     access_token = args.access_token
-    source_id = args.source_id
+    sync_id = args.sync_id
+    census = CensusClient(access_token)
+    trigger_sync = census.trigger_sync(sync_id)
+    sync_run_id = trigger_sync['data']['sync_run_id']
 
-    rudderstack = RudderStackClient(access_token=access_token)
-    # execute trigger sync
-    rudderstack.trigger_sync(source_id)
     # create artifacts folder to save run id
     base_folder_name = shipyard.logs.determine_base_artifact_folder(
-        'rudderstack')
+        'census')
     artifact_subfolder_paths = shipyard.logs.determine_artifact_subfolders(
         base_folder_name)
     shipyard.logs.create_artifacts_folders(artifact_subfolder_paths)
 
     # save sync run id as variable
     shipyard.logs.create_pickle_file(artifact_subfolder_paths,
-                                     'source_id', source_id)
+                                     'sync_run_id', sync_run_id)
 
 
 if __name__ == "__main__":

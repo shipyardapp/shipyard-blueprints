@@ -1,7 +1,7 @@
 import sys
 import argparse
 import shipyard_utils as shipyard
-from shipyard_rudderstack import RudderStack
+from shipyard_rudderstack import RudderStackClient
 
 
 def get_args():
@@ -29,7 +29,7 @@ def main():
         source_id = shipyard.logs.read_pickle_file(
             artifact_subfolder_paths, "source_id")
 
-    rudderstack = RudderStack(access_token=access_token)
+    rudderstack = RudderStackClient(access_token=access_token)
     # run check sync status
     sync_status_data = rudderstack.get_source_data(source_id)
     # save sync run data as json file

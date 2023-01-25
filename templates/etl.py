@@ -1,5 +1,5 @@
-import logging
 from abc import ABC, abstractmethod
+from .shipyard_logger import ShipyardLogger
 
 
 class Etl(ABC):
@@ -24,17 +24,7 @@ class Etl(ABC):
     TIMEOUT = 30
 
     def __init__(self, access_token: str) -> None:
-        logger = logging.getLogger("Shipyard")
-        logger.setLevel(logging.DEBUG)
-        # Add handler for stderr
-        console = logging.StreamHandler()
-        console.setLevel(logging.DEBUG)
-        # add specific format
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        console.setFormatter(formatter)
-        logger.addHandler(console)
-        self.logger = logger
+        self.logger = ShipyardLogger().logger
         self.access_token = access_token
 
     @abstractmethod
