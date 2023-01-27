@@ -28,7 +28,7 @@ class Etl(ABC):
         self.access_token = access_token
 
     @abstractmethod
-    def trigger_sync(self):
+    def trigger_sync(self, **kwargs):
         pass
 
     @abstractmethod
