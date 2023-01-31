@@ -3,3 +3,9 @@ from shipyard_blueprints.rudderstack.shipyard_rudderstack import RudderStackClie
 from shipyard_blueprints.snowflake.shipyard_snowflake import SnowflakeClient
 from shipyard_blueprints.census.shipyard_census import CensusClient
 from shipyard_blueprints.hightouch.shipyard_hightouch import HightouchClient
+from shipyard_blueprints.athena.shipyard_athena import AthenaClient
+from shipyard_blueprints.mysql.shipyard_mysql import MySqlClient
+from shipyard_blueprints.postgresql.shipyard_postgresql import PostgresqlClient
+from shipyard_blueprints.redshift.shipyard_redshift import RedshiftClient
+from shipyard_blueprints.sqlserver.shipyard_sqlserver import SqlServerClient
+from shipyard_blueprints.bigquery.shipyard_bigquery import BigQueryClient

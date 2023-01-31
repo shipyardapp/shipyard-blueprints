@@ -23,7 +23,7 @@ class Etl(ABC):
     # API TIMEOUT
     TIMEOUT = 30
 
-    def __init__(self, access_token: str) -> None:
+    def __init__(self, access_token: str, **kwargs) -> None:
         self.logger = ShipyardLogger().logger
         self.access_token = access_token
 
