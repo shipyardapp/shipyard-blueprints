@@ -17,3 +17,4 @@ from shipyard_blueprints.azureblob.shipyard_azureblob import AzureBlobClient
 from shipyard_blueprints.googlecloud.shipyard_googlecloud import GoogleCloudClient
 from shipyard_blueprints.ftp.shipyard_ftp import FtpClient
 from shipyard_blueprints.sftp.shipyard_sftp import SftpClient
+from shipyard_blueprints.box.shipyard_box import BoxClient
