@@ -13,3 +13,5 @@ from shipyard_blueprints.sqlserver.shipyard_sqlserver import SqlServerClient
 from shipyard_blueprints.bigquery.shipyard_bigquery import BigQueryClient
 # cloud storage
 from shipyard_blueprints.s3.shipyard_s3 import S3Client
+from shipyard_blueprints.azureblob.shipyard_azureblob import AzureBlobClient
+from shipyard_blueprints.googlecloud.shipyard_googlecloud import GoogleCloudClient

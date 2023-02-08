@@ -17,3 +17,10 @@ mysql-connector-python==8.0.21
 ## Google Big Query
 google-cloud-bigquery==3.4.0
 db-dtypes==1.0.4
+
+## Azure Blob Storage
+azure-storage-blob==12.3.2
+
+## Google Cloud Storage
+httplib2==0.15.0
+google-cloud-storage==2.7.0
