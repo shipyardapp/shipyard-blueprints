@@ -24,3 +24,6 @@ azure-storage-blob==12.3.2
 ## Google Cloud Storage
 httplib2==0.15.0
 google-cloud-storage==2.7.0
+
+## SFTP
+paramiko==2.11.0

@@ -15,3 +15,5 @@ from shipyard_blueprints.bigquery.shipyard_bigquery import BigQueryClient
 from shipyard_blueprints.s3.shipyard_s3 import S3Client
 from shipyard_blueprints.azureblob.shipyard_azureblob import AzureBlobClient
 from shipyard_blueprints.googlecloud.shipyard_googlecloud import GoogleCloudClient
+from shipyard_blueprints.ftp.shipyard_ftp import FtpClient
+from shipyard_blueprints.sftp.shipyard_sftp import SftpClient
