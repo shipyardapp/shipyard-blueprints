@@ -25,3 +25,5 @@ from shipyard_blueprints.dropbox.shipyard_dropbox import DropboxClient
 # Data Visualization
 from shipyard_blueprints.domo.shipyard_domo import DomoClient
 from shipyard_blueprints.tableau.shipyard_tableau import TableauClient
+from shipyard_blueprints.looker.shipyard_looker import LookerClient
+from shipyard_blueprints.mode.shipyard_mode import ModeClient
