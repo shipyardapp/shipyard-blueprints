@@ -21,3 +21,7 @@ from shipyard_blueprints.box.shipyard_box import BoxClient
 from shipyard_blueprints.googledrive.shipyard_googledrive import GoogleDriveClient
 from shipyard_blueprints.databricks.shipyard_databricks import DatabricksClient
 from shipyard_blueprints.dropbox.shipyard_dropbox import DropboxClient
+
+# Data Visualization
+from shipyard_blueprints.domo.shipyard_domo import DomoClient
+from shipyard_blueprints.tableau.shipyard_tableau import TableauClient

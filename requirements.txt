@@ -41,3 +41,9 @@ databricks-cli
 
 ## Dropbox
 dropbox==11.36.0
+
+## Domo
+pydomo
+
+## Tableau
+tableauserverclient
