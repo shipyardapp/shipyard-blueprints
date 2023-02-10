@@ -7,3 +7,4 @@ env
 wespoulsen-artifacts*
 shipyard_logger.py
 dist/
+settings.py

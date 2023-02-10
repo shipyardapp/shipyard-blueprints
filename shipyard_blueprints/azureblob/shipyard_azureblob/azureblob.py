@@ -21,3 +21,6 @@ class AzureBlobClient(CloudStorage):
 
     def download_files(self):
         pass
+
+    def remove_files(self):
+        pass

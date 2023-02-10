@@ -25,5 +25,5 @@ class FtpClient(CloudStorage):
     def upload_files(self):
         pass
 
-    def upload_files(self):
+    def download_files(self):
         pass

@@ -16,7 +16,7 @@ class BoxClient(CloudStorage):
             service_dict = json.loads(self.service_account, strict=False)
             auth = JWTAuth.from_settings_dictionary(service_dict)
         client = Client(auth)
-        client.user.get()
+        client.user().get()
         return client
 
     def upload_files(self):

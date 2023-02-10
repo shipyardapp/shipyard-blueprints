@@ -50,3 +50,7 @@ tableauserverclient
 
 ## Looker
 looker-sdk==22.20.0
+
+
+## Tests
+pytest
