@@ -8,3 +8,4 @@ wespoulsen-artifacts*
 shipyard_logger.py
 dist/
 settings.py
+rsa_id
