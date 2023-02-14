@@ -57,3 +57,6 @@ pytest
 
 ## AirTable
 pyairtable
+
+## Slack 
+slackclient==2.9.4

@@ -31,3 +31,9 @@ from shipyard_blueprints.mode.shipyard_mode import ModeClient
 # Spreadsheets
 from shipyard_blueprints.googlesheets.shipyard_googlesheets import GoogleSheetsClient
 from shipyard_blueprints.airtable.shipyard_airtable import AirtableClient
+
+# Messaging
+from shipyard_blueprints.slack.shipyard_slack import SlackClient
+
+# Notebooks
+from shipyard_blueprints.hex.shipyard_hex import HexClient
