@@ -1,15 +1,19 @@
+import os
+import re
+import json
+import csv
+import tempfile
+import argparse
+import socket
+import glob
+
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
-from templates.cloudstorage import CloudStorage
-import json
-import tempfile
-import os
+from templates.spreadsheets import Spreadsheets
 
 
-class GoogleDriveClient(CloudStorage):
-    SCOPES = ['https://www.googleapis.com/auth/drive']
-
+class GoogleSheetsClient(Spreadsheets):
     def __init__(self, service_account: str) -> None:
         self.service_account = service_account
         super().__init__(service_account=service_account)
@@ -27,20 +31,8 @@ class GoogleDriveClient(CloudStorage):
             os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = self.service_account
 
     def connect(self):
-        tmp_path = self._set_env_vars()
-        credentials = service_account.Credentials.from_service_account_file(
-            tmp_path, scopes=self.SCOPES)
-        service = build('drive', 'v3', credentials=credentials)
-        return service
-
-    def upload_files(self):
-        pass
-
-    def move_or_rename_files(self):
-        pass
-
-    def remove_files(self):
-        pass
-
-    def download_files(self):
-        pass
+        fd = self._set_env_vars()
+        creds = service_account.Credentials.from_service_account_file(fd)
+        service = build('sheets', 'v4', credentials=creds)
+        drive_service = build('drive', 'v3', credentials=creds)
+        return service, drive_service

@@ -27,3 +27,7 @@ from shipyard_blueprints.domo.shipyard_domo import DomoClient
 from shipyard_blueprints.tableau.shipyard_tableau import TableauClient
 from shipyard_blueprints.looker.shipyard_looker import LookerClient
 from shipyard_blueprints.mode.shipyard_mode import ModeClient
+
+# Spreadsheets
+from shipyard_blueprints.googlesheets.shipyard_googlesheets import GoogleSheetsClient
+from shipyard_blueprints.airtable.shipyard_airtable import AirtableClient
