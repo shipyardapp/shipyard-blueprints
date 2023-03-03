@@ -1,9 +1,8 @@
 from shipyard_blueprints import SnowflakeClient
 from settings import Snowflake as snow
 
-
-snowflake = SnowflakeClient(username=snow.USER, database=snow.DATABASE, pwd=snow.PWD,
-                            account=snow.ACCOUNT, warehouse=snow.WAREHOUSE, schema=snow.SCHEMA)
+snowflake = SnowflakeClient(
+    username=snow.USER, pwd=snow.PWD, account=snow.ACCOUNT)
 
 
 def test_connection():

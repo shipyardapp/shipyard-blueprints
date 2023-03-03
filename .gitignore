@@ -1,11 +1,9 @@
-shipyard-census-blueprints
 # test
 .vscode
 env
 .DS_Store
 *.egg-info/
 wespoulsen-artifacts*
-shipyard_logger.py
 dist/
 settings.py
 rsa_id
