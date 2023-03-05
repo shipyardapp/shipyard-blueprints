@@ -15,7 +15,7 @@ class SqlServerClient(Database):
 
     def connect(self):
         con_str = f'mssql+pymssql://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?{self.url_parameters}'
-        engine = create_engine(con_str)
+        engine = create_engine(con_str).connect()
         return engine
 
     def execute_query(self, query: str):

@@ -7,3 +7,5 @@ wespoulsen-artifacts*
 dist/
 settings.py
 rsa_id
+bpenv/
+.pytest_cache
