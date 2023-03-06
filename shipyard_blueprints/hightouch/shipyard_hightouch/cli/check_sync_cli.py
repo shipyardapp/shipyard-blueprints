@@ -1,7 +1,7 @@
 import argparse
 import sys
 import requests
-from shipyard_blueprints import utils
+from shipyard_blueprints import shipyard_utils
 from shipyard_blueprints import HightouchClient
 
 
@@ -19,26 +19,26 @@ def main():
     access_token = args.access_token
     sync_id = args.sync_id
     # create artifacts folder to save run id
-    base_folder_name = utils.logs.determine_base_artifact_folder(
+    base_folder_name = shipyard_utils.logs.determine_base_artifact_folder(
         'hightouch')
-    artifact_subfolder_paths = utils.logs.determine_artifact_subfolders(
+    artifact_subfolder_paths = shipyard_utils.logs.determine_artifact_subfolders(
         base_folder_name)
-    utils.logs.create_artifacts_folders(artifact_subfolder_paths)
+    shipyard_utils.logs.create_artifacts_folders(artifact_subfolder_paths)
 
     hightouch = HightouchClient(access_token)
     if args.sync_run_id:
         sync_run_id = args.sync_run_id
     else:
-        sync_run_id = utils.logs.read_pickle_file(
+        sync_run_id = shipyard_utils.logs.read_pickle_file(
             artifact_subfolder_paths, 'sync_run_id')
 
     sync_run_data = hightouch.get_sync_status(
         sync_id, sync_run_id)
     # save sync run data as json file
-    sync_run_data_file_name = utils.files.combine_folder_and_file_name(
+    sync_run_data_file_name = shipyard_utils.files.combine_folder_and_file_name(
         artifact_subfolder_paths['responses'],
         f'sync_run_{sync_run_id}_response.json')
-    utils.files.write_json_to_file(sync_run_data, sync_run_data_file_name)
+    shipyard_utils.files.write_json_to_file(sync_run_data, sync_run_data_file_name)
     # return final status
     exit_code_status = hightouch.determine_sync_status(sync_run_data)
     sys.exit(exit_code_status)

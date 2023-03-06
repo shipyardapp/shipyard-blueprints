@@ -1,5 +1,5 @@
 # import shipyard_utils as utils
-import utils
+from shipyard_blueprints import shipyard_utils
 # etl
 from shipyard_blueprints.rudderstack.shipyard_rudderstack import RudderStackClient
 from shipyard_blueprints.snowflake.shipyard_snowflake import SnowflakeClient
@@ -35,6 +35,7 @@ from shipyard_blueprints.airtable.shipyard_airtable import AirtableClient
 
 # Messaging
 from shipyard_blueprints.slack.shipyard_slack import SlackClient
+from shipyard_blueprints.email.shipyard_email import EmailClient
 
 # Notebooks
 from shipyard_blueprints.hex.shipyard_hex import HexClient

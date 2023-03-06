@@ -1,7 +1,7 @@
 import argparse
 import sys
 import requests
-from shipyard_blueprints import utils
+from shipyard_blueprints import shipyard_utils
 from shipyard_blueprints import HightouchClient
 
 
@@ -19,7 +19,7 @@ def main():
     args = get_args()
     access_token = args.access_token
     sync_id = args.sync_id
-    full_resync = utils.args.convert_to_boolean(args.full_resync)
+    full_resync = shipyard_utils.args.convert_to_boolean(args.full_resync)
 
     # execute trigger sync
     hightouch = HightouchClient(access_token)
@@ -28,14 +28,14 @@ def main():
     sync_run_id = trigger_sync['id']
 
     # create artifcats folder to save run id
-    base_folder_name = utils.logs.determine_base_artifact_folder(
+    base_folder_name = shipyard_utils.logs.determine_base_artifact_folder(
         'hightouch')
-    artifact_subfolder_paths = utils.logs.determine_artifact_subfolders(
+    artifact_subfolder_paths = shipyard_utils.logs.determine_artifact_subfolders(
         base_folder_name)
-    utils.logs.create_artifacts_folders(artifact_subfolder_paths)
+    shipyard_utils.logs.create_artifacts_folders(artifact_subfolder_paths)
 
     # save sync run id as variable
-    utils.logs.create_pickle_file(artifact_subfolder_paths,
+    shipyard_utils.logs.create_pickle_file(artifact_subfolder_paths,
                                   'sync_run_id', sync_run_id)
 
 

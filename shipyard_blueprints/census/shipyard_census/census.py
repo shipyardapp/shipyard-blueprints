@@ -2,7 +2,7 @@ import sys
 import argparse
 import requests
 from templates.etl import Etl
-import shipyard_utils as shipyard
+from shipyard_blueprints import shipyard_utils as shipyard
 
 
 class CensusClient(Etl):
