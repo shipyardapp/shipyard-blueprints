@@ -69,9 +69,9 @@ class EmailClient(Messaging):
 
     def _extract_file(self,message:str) -> str:
         pattern = r'\{\{[^\{\}]+\}\}'
-        res = re.search(pattern,message).string
+        res = re.search(pattern,message).group()
         file_pattern = re.compile(r'[{}]+')
-        return re.sub(file_pattern, '', message)
+        return re.sub(file_pattern, '', res)
 
     def create_message_object(self,sender_address:str, message:str, sender_name:str = None,
                               to:str = None, cc:str = None, bcc:str = None, subject:str = None) -> MIMEMultipart:
@@ -92,7 +92,8 @@ class EmailClient(Messaging):
             with open(file, 'r') as f:
                 content = f.read()
                 f.close()
-            message = f"{message} \n {content}"
+            pattern = r'\{\{[^\{\}]+\}\}'
+            message = f"{re.sub(pattern,'',message)} \n {content}"
         
         msg = MIMEMultipart()
         msg['Subject'] = subject
@@ -148,7 +149,7 @@ class EmailClient(Messaging):
                 self.logger.exception("Message could not be sent")
                 raise(e)  
 
-    def add_shipyard_link_to_message(self,msg:MIMEMultipart, shipyard_link:str)-> MIMEMultipart:
+    def add_shipyard_link_to_message(self,message:MIMEMultipart, shipyard_link:str)-> MIMEMultipart:
         """
         Create a "signature" at the bottom of the email that links back to Shipyard.
         """
