@@ -1,0 +1,2 @@
+pydomo
+requests==2.28.0

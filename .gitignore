@@ -1,0 +1,12 @@
+# test
+.vscode
+env
+.DS_Store
+*.egg-info/
+wespoulsen-artifacts*
+dist/
+settings.py
+rsa_id
+bpenv/
+.pytest_cache
+__pycache__
