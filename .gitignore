@@ -12,3 +12,5 @@ bpenv/
 __pycache__
 testenv
 sample.txt
+emailenv
+classenv

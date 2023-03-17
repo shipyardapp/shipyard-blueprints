@@ -1,0 +1,26 @@
+
+[project]
+name = "classes"
+version = "0.0.1"
+authors = [
+  { name="Shipyard Team", email="tech@shipyardapp.com" },
+]
+description = "Super classes for blueprints"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+     "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Other Audience",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Software Development",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.9"
+]
+
+[project.urls]
+"Homepage" = "https://www.shipyardapp.com"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "shipyard-email"
+version = "0.0.2"
+authors = [
+   "Shipyard Team <tech@shipyardapp.com>" 
+]
+description = "Simplified blueprints for building data pipelines with Email"
+readme = "README.md"
+packages = [{include = "shipyard_email"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+shipyard-utils = "0.1.4"
+"templates" = {path = "../../classes/", develop = true}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
