@@ -1,6 +1,5 @@
-
 [project]
-name = "classes"
+name = "templates"
 version = "0.0.1"
 authors = [
   { name="Shipyard Team", email="tech@shipyardapp.com" },

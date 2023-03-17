@@ -11,7 +11,7 @@ packages = [{include = "shipyard_email"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 shipyard-utils = "0.1.4"
-"templates" = {path = "../../classes/", develop = true}
+"templates" = {path = "../../templates/", develop = true}
 
 
 [build-system]
