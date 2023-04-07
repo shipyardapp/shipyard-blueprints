@@ -10,3 +10,8 @@ rsa_id
 bpenv/
 .pytest_cache
 __pycache__
+testenv
+sample.txt
+emailenv
+classenv
+sample.txt
