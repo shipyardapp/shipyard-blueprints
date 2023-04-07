@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from .shipyard_logger import ShipyardLogger
-from pandas import DataFrame
 
 
 class Database(ABC):

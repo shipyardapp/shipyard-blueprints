@@ -1,16 +1,14 @@
 [tool.poetry]
-name = "shipyard-email"
+name = "shipyard-blueprints"
 version = "0.1.0"
-description = "Simplified blueprints for building data pipelines with Email"
+description = "\"Meta package for all the Shipyard Blueprints\""
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache License 2.0"
 readme = "README.md"
-packages = [{include = "shipyard_email"}]
+packages = [{include = "shipyard_blueprints"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-shipyard-utils = {path = "../shipyard-utils"}
-templates = {path = "../../templates"}
 
 
 [build-system]

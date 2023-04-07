@@ -8,17 +8,12 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email import encoders
-# import shipyard_utils as shipyard
-from shipyard_blueprints import shipyard_utils as shipyard
+import shipyard_utils  as shipyard
 from templates.messaging import Messaging
 import sys
 
 class EmailClient(Messaging):
     EXIT_CODE_INVALID_METHOD = 200
-    # def __init__(self, smtp_host:str = None, smtp_port:str = None, 
-    #              sender_address:str = None, sender_name:str = None, 
-    #              to:str = None, cc:str = None, bcc:str = None, username:str = None,
-    #              password:str = None, subject:str = None, message:str = None) -> None:
     def __init__(self, smtp_host:str = None, smtp_port:str = None, username:str = None, password:str = None, send_method:str = 'tls') -> None:
         self.smtp_host = smtp_host
         self.smtp_port = smtp_port 

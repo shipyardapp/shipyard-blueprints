@@ -17,5 +17,5 @@
 #         "Programming Language :: Python :: 3",
 #         "Programming Language :: Python :: 3.9"])
 
-import setuptools
-setuptools.setup()
+# import setuptools
+# setuptools.setup()
