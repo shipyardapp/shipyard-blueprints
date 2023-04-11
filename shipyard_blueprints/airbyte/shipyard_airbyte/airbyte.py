@@ -1,4 +1,4 @@
-from templates.etl import Etl
+from shipyard_templates import Etl
 import requests
 import os
 import sys
@@ -10,14 +10,14 @@ class AirbyteClient(Etl):
         self.access_token = access_token
         super().__init__(access_token)
 
-    def trigger_sync(self, connection_id: str, check_status: bool = True) -> dict:
-        """
+    def _trigger_sync_response(self, connection_id: str) -> requests.Response:
+        """ Helper function that triggers an airbyte sync and returns the response
+
         Args:
             connection_id: The id in which to trigger the airbyte sync
-            check_status: flag to determine whether the function will check the status of the sync before exiting
 
-        Returns: The response from the post request 
-
+        Returns: The HTTP response from the post request
+            
         """
         url = 'https://api.airbyte.com/v1/jobs'
         payload = {
@@ -38,7 +38,18 @@ class AirbyteClient(Etl):
             self.logger.error(
                 f"Error occurred when attempting to trigger sync. Check to see that the connection id and api token are valid ")
             sys.exit(self.EXIT_CODE_BAD_REQUEST)
+        return response
 
+    def trigger_sync(self, connection_id: str, check_status: bool = True) -> dict:
+        """
+        Args:
+            connection_id: The id in which to trigger the airbyte sync
+            check_status: flag to determine whether the function will check the status of the sync before exiting
+
+        Returns: The response from the post request 
+
+        """
+        response = self._trigger_sync_response(connection_id)
         if not check_status:
             return response.json()
         else:
@@ -62,7 +73,6 @@ class AirbyteClient(Etl):
             'User-Agent': 'Shipyard User 1.0'
         }
         job_response = requests.get(job_url, headers=headers).json()
-        job_status = job_response['status']
         return job_response
 
     def determine_sync_status(self, job_response: dict) -> int:
@@ -74,7 +84,6 @@ class AirbyteClient(Etl):
         Returns: The exit code based off of the status
             
         """
-        # job_response = job_status.json()
         job_status = job_response['status']
         if job_status == 'pending':
             self.logger.info(

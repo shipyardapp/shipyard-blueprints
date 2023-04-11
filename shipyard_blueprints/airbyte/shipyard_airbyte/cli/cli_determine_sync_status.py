@@ -1,5 +1,5 @@
 from shipyard_airbyte import AirbyteClient
-import shipyard_utils as shipyard
+import shipyard_bp_utils as shipyard
 import argparse
 import sys
 
