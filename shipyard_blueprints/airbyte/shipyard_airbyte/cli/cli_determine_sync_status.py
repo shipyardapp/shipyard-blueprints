@@ -1,11 +1,14 @@
 from shipyard_airbyte import AirbyteClient
-import shipyard_utils as shipyard 
+import shipyard_utils as shipyard
 import argparse
+import sys
+
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--api-token', dest = 'api_token', required = True)
-    parser.add_argument('--job-id', dest = 'job_id', default = None ,required = False)
+    parser.add_argument('--api-token', dest='api_token', required=True)
+    parser.add_argument('--job-id', dest='job_id',
+                        default=None, required=False)
     args = parser.parse_args()
     return args
 
@@ -22,12 +25,13 @@ def main():
     shipyard.logs.create_artifacts_folders(artifact_subfolder_paths)
     # check if a job id was provided, otherwise look for it in the artifact folders
     if job_id is None:
-        response = shipyard.logs.read_pickle_file(artifact_subfolder_paths, 'sync_response')
-        job_id = response['job_id']
-    job_status = client.get_sync_status(job_id= job_id)
+        response = shipyard.logs.read_pickle_file(
+            artifact_subfolder_paths, 'sync_response')
+        job_id = response.json()['jobId']
+    job_status = client.get_sync_status(job_id=job_id)
     sync_status = client.determine_sync_status(job_status)
     sys.exit(sync_status)
-        
+
 
 if __name__ == "__main__":
     main()
