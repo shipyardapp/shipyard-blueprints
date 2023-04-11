@@ -10,8 +10,8 @@ packages = [{include = "shipyard_airbyte"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 requests = "^2.28.2"
-shipyard-utils = {path = "../shipyard-utils"}
-templates = {path = "../../templates"}
+shipyard-utils = {git = "https://github.com/shipyardapp/shipyard-blueprints.git", branch = "main", subdirectory = "shipyard_blueprints/shipyard-utils"}
+templates = {git = "https://github.com/shipyardapp/shipyard-blueprints.git", branch = "main", subdirectory = "templates"}
 pytest = "^7.2.2"
 
 
