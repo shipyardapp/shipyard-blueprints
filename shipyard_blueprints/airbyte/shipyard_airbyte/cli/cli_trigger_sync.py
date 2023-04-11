@@ -20,7 +20,7 @@ def main():
     api_token = args.api_token
     client = AirbyteClient(access_token=api_token)
     resp = client.trigger_sync(
-        connection_id=connection_id, check_status=check_status)
+        connection_id=connection_id)
     # create artifacts folder to save response
     base_folder_name = shipyard.logs.determine_base_artifact_folder(
         'airbyte')

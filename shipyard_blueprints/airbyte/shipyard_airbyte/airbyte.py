@@ -40,7 +40,7 @@ class AirbyteClient(Etl):
             sys.exit(self.EXIT_CODE_BAD_REQUEST)
         return response
 
-    def trigger_sync(self, connection_id: str, check_status: bool = True) -> dict:
+    def trigger_sync(self, connection_id: str) -> dict:
         """
         Args:
             connection_id: The id in which to trigger the airbyte sync
@@ -50,11 +50,7 @@ class AirbyteClient(Etl):
 
         """
         response = self._trigger_sync_response(connection_id)
-        if not check_status:
-            return response.json()
-        else:
-            job_response = self.get_sync_status(response.json()['jobId'])
-            self.determine_sync_status(job_response['status'])
+        return response.json()
 
     def get_sync_status(self, job_id: str) -> dict:
         """ Fetches the response from the provided job
