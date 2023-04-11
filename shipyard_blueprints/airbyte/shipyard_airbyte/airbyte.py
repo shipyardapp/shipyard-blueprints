@@ -5,6 +5,7 @@ import sys
 
 
 class AirbyteClient(Etl):
+
     def __init__(self, access_token: str) -> None:
         self.access_token = access_token
         super().__init__(access_token)
@@ -44,10 +45,15 @@ class AirbyteClient(Etl):
             job_response = self.get_sync_status(response.json()['jobId'])
             self.determine_sync_status(job_response['status'])
 
-    def _determine_status_helper(self, sync_response: dict):
-        pass
-
     def get_sync_status(self, job_id: str) -> dict:
+        """ Fetches the response from the provided job
+
+        Args:
+            job_id: The associated job for the desired sync
+
+        Returns: The HTTP response from the API
+            
+        """
         url = 'https://api.airbyte.com/v1/jobs'
         job_url = f"{url}/{job_id}"
         headers = {
@@ -59,7 +65,15 @@ class AirbyteClient(Etl):
         job_status = job_response['status']
         return job_response
 
-    def determine_sync_status(self, job_response: dict):
+    def determine_sync_status(self, job_response: dict) -> int:
+        """ Provides logging and handling based off of the status. Intended to be used by the Shipyard Application only
+
+        Args:
+            job_response: The response from the get_sync_status() 
+
+        Returns: The exit code based off of the status
+            
+        """
         # job_response = job_status.json()
         job_status = job_response['status']
         if job_status == 'pending':
