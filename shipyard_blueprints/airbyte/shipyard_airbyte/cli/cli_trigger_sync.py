@@ -7,7 +7,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--connection-id", dest='connection_id', required=True)
     parser.add_argument("--api-token", dest='api_token', required=True)
-    parser.add_argument('--check_status', dest='check_status',
+    parser.add_argument('--check-status', dest='check_status',
                         default=False, required=False)
     args = parser.parse_args()
     return args

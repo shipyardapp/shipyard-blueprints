@@ -27,7 +27,7 @@ def main():
     if job_id is None:
         response = shipyard.logs.read_pickle_file(
             artifact_subfolder_paths, 'sync_response')
-        job_id = response.json()['jobId']
+        job_id = response
     job_status = client.get_sync_status(job_id=job_id)
     sync_status = client.determine_sync_status(job_status)
     sys.exit(sync_status)
