@@ -7,8 +7,6 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--connection-id", dest='connection_id', required=True)
     parser.add_argument("--api-token", dest='api_token', required=True)
-    parser.add_argument('--check-status', dest='check_status',
-                        default=False, required=False)
     args = parser.parse_args()
     return args
 
@@ -16,7 +14,6 @@ def get_args():
 def main():
     args = get_args()
     connection_id = args.connection_id
-    check_status = args.check_status
     api_token = args.api_token
     client = AirbyteClient(access_token=api_token)
     resp = client.trigger_sync(
