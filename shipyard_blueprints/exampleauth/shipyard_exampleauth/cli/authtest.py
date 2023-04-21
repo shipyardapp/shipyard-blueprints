@@ -8,7 +8,6 @@ def get_args():
             'password': os.getenv('EXAMPLEAUTH_PASSWORD'),
             'confirmPassword': os.getenv('EXAMPLEAUTH_CONFIRM_PASSWORD'),
             }
-    print(args)
     return args
 
 
