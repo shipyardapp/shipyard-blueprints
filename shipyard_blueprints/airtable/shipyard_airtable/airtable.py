@@ -1,4 +1,4 @@
-from templates.spreadsheets import Spreadsheets
+from shipyard_templates import Spreadsheets
 from pyairtable import Table
 
 

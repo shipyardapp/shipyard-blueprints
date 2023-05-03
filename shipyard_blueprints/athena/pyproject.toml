@@ -1,18 +1,17 @@
 [tool.poetry]
-name = "shipyard-rudderstack"
+name = "shipyard-athena"
 version = "0.1.0"
-description = "A local client for connecting and working with Rudderstack"
+description = "A local client for connecting to and working with Amazon Athena"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
 readme = "README.md"
-packages = [{include = "shipyard_rudderstack"}]
+packages = [{include = "shipyard_athena"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-requests = "2.28.0"
+boto3 = "1.14.32"
+shipyard-templates = "^0.1.0"
 
-[tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = "^0.1.0"
 
 [build-system]
 requires = ["poetry-core"]
