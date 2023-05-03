@@ -1,18 +1,16 @@
 [tool.poetry]
-name = "shipyard-rudderstack"
+name = "shipyard-box"
 version = "0.1.0"
-description = "A local client for connecting and working with Rudderstack"
+description = "A local client for connecting to and working with Box"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
 readme = "README.md"
-packages = [{include = "shipyard_rudderstack"}]
+packages = [{include = "shipyard_box"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-requests = "2.28.0"
+boxsdk = {extras = ["jwt"], version = "2.9.0"}
 
-[tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = "^0.1.0"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,15 +1,18 @@
 [tool.poetry]
-name = "shipyard-rudderstack"
+name = "shipyard-snowflake"
 version = "0.1.0"
-description = "A local client for connecting and working with Rudderstack"
+description = "A local client for conecting and working with Snowflake"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
 readme = "README.md"
-packages = [{include = "shipyard_rudderstack"}]
+packages = [{include = "shipyard_snowflake"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-requests = "2.28.0"
+snowflake-sqlalchemy = "^1.4.7"
+dask = "2022.2.0"
+snowflake-connector-python = {extras = ["pandas"], version = "^3.0.3"}
+pandas = "1.5.3"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-bp-utils = "^0.1.0"

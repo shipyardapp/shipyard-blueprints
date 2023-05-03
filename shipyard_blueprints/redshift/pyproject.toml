@@ -1,18 +1,18 @@
 [tool.poetry]
-name = "shipyard-rudderstack"
+name = "shipyard-redshift"
 version = "0.1.0"
-description = "A local client for connecting and working with Rudderstack"
+description = "A local client for connecting and working with Redshift Databases"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
 readme = "README.md"
-packages = [{include = "shipyard_rudderstack"}]
+packages = [{include = "shipyard_redshift"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-requests = "2.28.0"
+pandas = "1.5.3"
+sqlalchemy-redshift = "^0.8.14"
+redshift-connector = "^2.0.910"
 
-[tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = "^0.1.0"
 
 [build-system]
 requires = ["poetry-core"]

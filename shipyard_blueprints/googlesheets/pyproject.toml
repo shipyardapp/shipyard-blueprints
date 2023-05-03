@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "shipyard-googlesheets"
+version = "0.1.0"
+description = "A local client for connecting and working with Google Sheets"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+packages = [{include = "shipyard_googlesheets"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+google-api-python-client = "2.7"
+google-auth-httplib2 = "0.1.0"
+google-auth-oauthlib = "1.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

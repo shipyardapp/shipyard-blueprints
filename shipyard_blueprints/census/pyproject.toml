@@ -1,18 +1,17 @@
 [tool.poetry]
-name = "shipyard-rudderstack"
+name = "shipyard-census"
 version = "0.1.0"
-description = "A local client for connecting and working with Rudderstack"
+description = "A local client for connecting and working with Census"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
 readme = "README.md"
-packages = [{include = "shipyard_rudderstack"}]
+packages = [{include = "shipyard_census"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+shipyard-templates = "^0.1.0"
 requests = "2.28.0"
 
-[tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = "^0.1.0"
 
 [build-system]
 requires = ["poetry-core"]
