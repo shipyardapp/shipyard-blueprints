@@ -69,8 +69,8 @@ class CoalesceClient(Etl):
             self.logger.info("Successfully triggered job")
 
         else:
-            self.logger.error(f"Error message: {response['error']['errorString']}")
-            self.logger.error(f"Error details: {response['error']['errorDetail']}")
+            self.logger.error(f"Error message: {response.json()['error']['errorString']}")
+            self.logger.error(f"Error details: {response.json()['error']['errorDetail']}")
 
         return response.json()
 
