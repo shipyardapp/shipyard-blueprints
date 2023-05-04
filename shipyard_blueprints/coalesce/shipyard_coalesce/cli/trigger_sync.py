@@ -16,7 +16,7 @@ def get_args():
     parser.add_argument('--snowflake-warehouse', dest = 'snowflake_warehouse', required = True)
     parser.add_argument('--parallelism', dest = 'parallelism', required= False, default = 16)
     parser.add_argument('--include-nodes-selector', dest = 'include_nodes', required = False, default = None)
-    parser.add_argument('--exclude-nodes-selector', dest - 'exclude_nodes', required = False, default = None)
+    parser.add_argument('--exclude-nodes-selector', dest = 'exclude_nodes', required = False, default = None)
 
     args = parser.parse_args()
     return args
@@ -29,6 +29,7 @@ def main():
     snowflake_username = args.snowflake_username
     snowflake_password = args.snowflake_password
     snowflake_role = args.snowflake_role
+    snowflake_warehouse = args.snowflake_warehouse
     parallelism = args.parallelism
     include_nodes = args.include_nodes
     exclude_nodes = args.exclude_nodes

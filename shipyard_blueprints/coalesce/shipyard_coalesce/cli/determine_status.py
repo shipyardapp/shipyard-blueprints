@@ -6,7 +6,7 @@ from shipyard_coalesce import CoalesceClient
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--access-token', dest = 'access_token', required = True)
-    parser.add_argument('--run-id', dest = 'job_id', required = False, default = None)
+    parser.add_argument('--run-id', dest = 'run_id', required = False, default = None)
     args = parser.parse_args()
     return args
 
