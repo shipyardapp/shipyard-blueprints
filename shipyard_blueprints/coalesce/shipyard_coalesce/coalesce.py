@@ -127,7 +127,7 @@ class CoalesceClient(Etl):
 
         elif response.status_code == 400:
             self.logger.error(
-                f"There was an error when attempting to fetch the status of the job. The message returned from the API is {response['error']['errorString']}"
+                f"There was an error when attempting to fetch the status of the job. The message returned from the API is {json['error']['errorString']}"
             )
             return self.EXIT_CODE_BAD_REQUEST
 
