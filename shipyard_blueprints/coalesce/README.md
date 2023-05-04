@@ -17,7 +17,6 @@ client = CoalesceClient(access_token = '<your_access_token>')
 ### Trigger syncs
 The following arguments are required for the `trigger_sync` function:
 - environment_id 
-- job_id
 - snowflake_username
 - snowflake_password
 - snowflake_role
@@ -27,9 +26,10 @@ The following arguments are optional:
 - include_nodes_selector
 - exclude_nodes_selector
 - parallelism
+- job_id
 
 ```python
-response = client.trigger_sync(environment_id = environment_id, job_id = job_id, snowflake_username = snowflake_username, snowflake_password = snowflake_password, snowflake_role = snowflake_role)
+response = client.trigger_sync(environment_id = environment_id, snowflake_username = snowflake_username, snowflake_password = snowflake_password, snowflake_role = snowflake_role)
 print(response)
 ```
 
