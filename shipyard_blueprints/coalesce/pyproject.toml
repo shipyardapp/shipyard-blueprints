@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "shipyard-coalesce"
+version = "0.1.2"
+description = "A local client for connecting and working with Coalesce"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+readme = "README.md"
+packages = [{include = "shipyard_coalesce"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "^2.28.0"
+
+
+[tool.poetry.group.dev.dependencies]
+shipyard-templates = {path = "../../shipyard-templates"}
+shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+black = "^23.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
