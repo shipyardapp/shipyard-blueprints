@@ -1,6 +1,5 @@
 import argparse
 
-from requests import get
 from shipyard_coalesce import CoalesceClient
 import shipyard_bp_utils as shipyard
 
