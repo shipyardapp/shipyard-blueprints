@@ -1,5 +1,6 @@
 import argparse
 import shipyard_bp_utils as shipyard
+import sys
 from shipyard_coalesce import CoalesceClient
 
 
@@ -30,7 +31,7 @@ def main():
         run_id = response["runCounter"]
     # fetch the status and return the exit code
     status = client.determine_sync_status(run_id)
-    return status
+    sys.exit(status)
 
 
 if __name__ == "__main__":
