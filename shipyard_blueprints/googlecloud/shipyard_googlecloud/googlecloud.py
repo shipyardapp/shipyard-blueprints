@@ -1,5 +1,5 @@
 from google.cloud import storage
-from templates.cloudstorage import CloudStorage
+from shipyard_templates import CloudStorage
 import json
 import os
 import tempfile

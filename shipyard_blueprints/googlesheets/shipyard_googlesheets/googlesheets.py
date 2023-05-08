@@ -10,7 +10,7 @@ import glob
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
-from templates.spreadsheets import Spreadsheets
+from shipyard_templates import Spreadsheets
 
 
 class GoogleSheetsClient(Spreadsheets):
