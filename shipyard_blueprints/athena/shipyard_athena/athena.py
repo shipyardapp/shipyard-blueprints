@@ -1,4 +1,4 @@
-from templates.database import Database
+from shipyard_templates import Database
 import boto3
 import sys
 
