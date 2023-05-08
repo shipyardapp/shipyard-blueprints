@@ -1,19 +1,18 @@
+import os
 from shipyard_blueprints import DomoClient
-import argparse
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--client-id", dest='client_id', required=True)
-    parser.add_argument('--secret-key', dest='secret_key', required=True)
-    args = parser.parse_args()
+    args = {}
+    args['client_id'] = os.getenv('DOMO_CLIENT_ID')
+    args['secret_key'] = os.getenv('DOMO_SECRET_KEY')
     return args
 
 
 def main():
     args = get_args()
-    client_id = args.client_id
-    secret_key = args.secret_key
+    client_id = args['client_id']
+    secret_key = args['secret_key']
     try:
         domo = DomoClient(client_id, secret_key)
         domo.logger.info("Successfully connected to Domo")
