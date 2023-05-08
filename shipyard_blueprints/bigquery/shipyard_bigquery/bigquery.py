@@ -1,7 +1,7 @@
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from google.api_core.exceptions import NotFound
-from templates.database import GoogleDatabase
+from shipyard_templates import GoogleDatabase
 import json
 import os
 import tempfile

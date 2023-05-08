@@ -1,4 +1,4 @@
-from templates.cloudstorage import CloudStorage
+from shipyard_templates import CloudStorage
 from azure.storage.blob import BlobServiceClient, ContainerClient
 from azure.core import exceptions
 
