@@ -1,18 +1,16 @@
+import os
 from shipyard_blueprints import BoxClient
-import argparse
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--service-account",
-                        dest='service_account', required=True, default=None)
-    args = parser.parse_args()
+    args = {}
+    args['application_credentials'] = os.getenv['BOX_APPLICATION_CREDENTIALS']
     return args
 
 
 def main():
     args = get_args()
-    service_account = args.service_account
+    service_account = args['application_credentials']
     box = BoxClient(service_account)
     try:
         box.connect()

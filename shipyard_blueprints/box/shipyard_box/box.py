@@ -1,4 +1,4 @@
-from templates.cloudstorage import CloudStorage
+from shipyard_templates import CloudStorage
 from boxsdk import Client, JWTAuth
 import os
 import json
