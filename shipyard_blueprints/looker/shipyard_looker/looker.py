@@ -1,6 +1,6 @@
 import looker_sdk
 from looker_sdk import api_settings
-from templates.datavisualization import DataVisualization
+from shipyard_templates import DataVisualization
 
 
 class ApiSettings(api_settings.ApiSettings):

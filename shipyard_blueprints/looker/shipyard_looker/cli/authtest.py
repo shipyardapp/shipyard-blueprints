@@ -1,22 +1,21 @@
 import argparse
+import os
 from shipyard_blueprints import LookerClient
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--base-url", dest='base_url', required=True)
-    parser.add_argument('--client-id', dest='client_id', required=True)
-    parser.add_argument('--client-secret', dest='client_secret', required=True)
-
-    args = parser.parse_args()
+    args = {}
+    args['client_id'] = os.environ.get('LOOKER_CLIENT_ID')
+    args['client_secret'] = os.environ.get('LOOKER_CLIENT_SECRET')
+    args['looker_url'] = os.environ.get('LOOKER_URL')
     return args
 
 
 def main():
     args = get_args()
-    base_url = args.base_url
-    client_id = client_id
-    client_secret = client_secret
+    client_id = args['client_id']
+    client_secret = args['client_secret']
+    base_url = args['looker_url']
     looker = LookerClient(base_url, client_id, client_secret)
     try:
         looker.connect()

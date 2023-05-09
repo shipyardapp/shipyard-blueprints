@@ -1,7 +1,7 @@
-from templates.datavisualization import DataVisualization
 import requests
 import json
 from requests.auth import HTTPBasicAuth
+from shipyard_templates import DataVisualization
 
 
 class ModeClient(DataVisualization):
