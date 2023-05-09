@@ -1,5 +1,5 @@
 import requests
-from templates.notebooks import Notebooks
+from shipyard_templates import Notebooks
 
 
 class HexClient(Notebooks):
@@ -10,8 +10,12 @@ class HexClient(Notebooks):
         self.api_headers = {"Authorization": f"Bearer {self.api_token}"}
         super().__init__()
 
-    # TODO - replace with the hextoolkit or the hex_api package
-    def connect(self):
+    def connect(self) -> int:
+        """ Connect to Hex
+
+        Returns:
+            int: HTTP status code
+        """
         response = requests.get(
-            url=f"{self.base_url}/project/{self.project_id}/run")
-        return response
+            url = f"https://app.hex.tech/api/v1/project/{self.projectId}/runs", headers= self.api_headers)
+        return response.status_code
