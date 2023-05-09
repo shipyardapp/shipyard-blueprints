@@ -1,6 +1,6 @@
 from slack import WebClient
 import os
-from templates.messaging import Messaging
+from shipyard_templates import Messaging
 
 
 class SlackClient(Messaging):
@@ -8,7 +8,6 @@ class SlackClient(Messaging):
 
     def __init__(self, slack_token: str) -> None:
         self.slack_token = slack_token
-        # os.environ['SLACK_BOT_TOKEN'] = slack_token
         super().__init__(slack_token=slack_token)
 
     def _set_environment_variabls(token: str):
