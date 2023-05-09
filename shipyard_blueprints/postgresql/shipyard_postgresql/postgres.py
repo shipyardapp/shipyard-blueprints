@@ -1,4 +1,4 @@
-from templates.database import Database
+from shipyard_templates import Database
 from sqlalchemy import create_engine
 
 

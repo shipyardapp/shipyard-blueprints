@@ -1,25 +1,24 @@
-import argparse
+import os
 from shipyard_blueprints import MySqlClient
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--host", dest='host', required=True)
-    parser.add_argument('--user', dest='user', required=True)
-    parser.add_argument('--password', dest='password', required=True)
-    parser.add_argument('--port', dest='port', required=False, default=3306)
-    parser.add_argument('--database', dest='database', required=True)
-    args = parser.parse_args()
+    args = {}
+    args['host'] = os.environ.get('MYSQL_HOST')
+    args['port'] = os.environ.get('MYSQL_PORT')
+    args['username'] = os.environ.get('MYSQL_USERNAME')
+    args['password'] = os.environ.get('MYSQL_PASSWORD')
+    args['database'] = os.environ.get('MYSQL_DATABASE')
     return args
 
 
 def main():
     args = get_args()
-    host = args.host
-    user = args.user
-    password = args.password
-    port = args.port
-    database = args.database
+    host = args['host']
+    user = args['username']
+    password = args['password']
+    port = args['port']
+    database = args['database']
     mysql = MySqlClient(user=user, pwd=password, host=host,
                         port=port, database=database)
     con = mysql.connect()

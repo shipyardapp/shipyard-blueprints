@@ -1,25 +1,24 @@
-import argparse
+import os
 from shipyard_blueprints import PostgresqlClient
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--host", dest='host', required=True)
-    parser.add_argument('--user', dest='user', required=True)
-    parser.add_argument('--password', dest='password', required=True)
-    parser.add_argument('--port', required=True, dest='port', default='5432')
-    parser.add_argument('--database', dest='database', required=True)
-    args = parser.parse_args()
+    args = {}
+    args['host'] = os.environ.get('POSTGRES_HOST')
+    args['username'] = os.environ.get('POSTGRES_USERNAME')
+    args['password'] = os.environ.get('POSTGRES_PASSWORD')
+    args['port'] = os.environ.get('POSTGRES_PORT')
+    args['database'] = os.environ.get('POSTGRES_DATABASE')
     return args
 
 
 def main():
     args = get_args()
-    host = args.host
-    user = args.user
-    pwd = args.password
-    port = args.port
-    database = args.database
+    host = args['host']
+    user = args['username']
+    pwd = args['password']
+    port = args['port']
+    database = args['database']
     postgres = PostgresqlClient(
         user=user, pwd=pwd, host=host, port=port, database=database)
     try:
