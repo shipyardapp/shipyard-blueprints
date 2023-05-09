@@ -1,4 +1,3 @@
-import argparse
 import os
 from shipyard_blueprints import RedshiftClient
 

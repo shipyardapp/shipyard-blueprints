@@ -1,6 +1,6 @@
 import sys
 import requests
-from templates.etl import Etl
+from shipyard_templates import Etl
 
 
 class RudderStackClient(Etl):
@@ -126,3 +126,13 @@ class RudderStackClient(Etl):
                 "Sync for %s is incomplete or unkonwn. Status %s", source_id, source_data['status'])
             status_code = self.EXIT_CODE_UNKNOWN_STATUS
         return status_code
+
+    def connect(self) -> int:
+        """ Connects to Rudderstack's API and triggers a sync
+
+        Returns:
+            int: The exit code
+        """
+        response = requests.get(self.api_url, headers=self.api_headers)
+        return response.status_code
+        
