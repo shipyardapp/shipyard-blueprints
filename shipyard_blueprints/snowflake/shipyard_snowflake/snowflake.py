@@ -1,6 +1,6 @@
-from templates.database import Database
 import snowflake.connector
 from snowflake.connector.errors import DatabaseError, ForbiddenError, ProgrammingError
+from shipyard_templates import Database
 
 
 class SnowflakeClient(Database):

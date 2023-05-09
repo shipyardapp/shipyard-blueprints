@@ -1,5 +1,5 @@
-from templates.datavisualization import DataVisualization
 import tableauserverclient as tsc
+from shipyard_templates import DataVisualization
 
 
 class TableauClient(DataVisualization):

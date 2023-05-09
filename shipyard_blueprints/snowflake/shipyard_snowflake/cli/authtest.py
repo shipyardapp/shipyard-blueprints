@@ -1,35 +1,23 @@
 import argparse
+import os
 from shipyard_blueprints import SnowflakeClient
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--user", required=True, dest='user')
-    parser.add_argument('--pwd', required=True, dest='pwd')
-    parser.add_argument('--account', required=False,
-                        default=None, dest='account')
-    parser.add_argument('--database', required=False,
-                        default=None, dest='database')
-    parser.add_argument('--schema', required=False,
-                        default=None, dest='schema')
-    parser.add_argument('--warehouse', required=False,
-                        default=None, dest='warehouse')
-
-    args = parser.parse_args()
+    args = {}
+    args['user'] = os.getenv('SNOWFLAKE_USERNAME')
+    args['password'] = os.getenv('SNOWFLAKE_PASSWORD')
+    args['account'] = os.getenv('SNOWFLAKE_ACCOUNT')
     return args
 
 
 def main():
     args = get_args()
-    user = args.user
-    pwd = args.pwd
-    account = args.account
-    database = args.database
-    schema = args.schema
-    warehouse = args.warehouse
+    user = args['user']
+    pwd = args['password']
+    account = args['account'] 
 
-    snowflake = SnowflakeClient(username=user, pwd=pwd, database=database,
-                                account=account, warehouse=warehouse, schema=schema)
+    snowflake = SnowflakeClient(username=user, pwd=pwd, account=account)
     conn = snowflake.connect()
     if conn == 1:
         return 1
