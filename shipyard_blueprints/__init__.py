@@ -5,6 +5,8 @@ from shipyard_blueprints.rudderstack.shipyard_rudderstack import RudderStackClie
 from shipyard_blueprints.snowflake.shipyard_snowflake import SnowflakeClient
 from shipyard_blueprints.census.shipyard_census import CensusClient
 from shipyard_blueprints.hightouch.shipyard_hightouch import HightouchClient
+from shipyard_blueprints.airbyte.shipyard_airbyte import AirbyteClient
+from shipyard_blueprints.coalesce.shipyard_coalesce import CoalesceClient
 # databases
 from shipyard_blueprints.athena.shipyard_athena import AthenaClient
 from shipyard_blueprints.mysql.shipyard_mysql import MySqlClient

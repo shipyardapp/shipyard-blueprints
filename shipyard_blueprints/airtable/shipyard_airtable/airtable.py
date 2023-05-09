@@ -1,13 +1,17 @@
+import requests
 from shipyard_templates import Spreadsheets
 from pyairtable import Table
 
 
 class AirtableClient(Spreadsheets):
-    def __init__(self, base_id: str, api_key: str, table_name: str) -> None:
+    def __init__(self, api_key: str, base_id: str = None, table_name:str=None) -> None:
         self.base_id = base_id
         self.api_key = api_key
         self.table_name = table_name
         super().__init__(api_key=api_key, base_id=base_id, table_name=table_name)
 
     def connect(self):
-        return Table(self.api_key, self.base_id, self.table_name)
+        url = "https://api.airtable.com/v0/meta/whoami"
+        headers = {'Authorization': f'Bearer {self.api_key}'}
+        response = requests.get(url, headers=headers)
+        return response.status_code
