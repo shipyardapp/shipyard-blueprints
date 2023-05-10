@@ -110,6 +110,7 @@ class AirbyteClient(Etl):
             
         """
         url = "https://api.airbyte.com/v1/sources"
-        headers = {'authorization': f'Bearer {self.access_token}'}
+        headers = {'authorization': f'Bearer {self.access_token}',
+                   'User-Agent': 'Shipyard User 1.0'}
         response = requests.get(url, headers=headers)
         return response.status_code
