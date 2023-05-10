@@ -1,8 +1,9 @@
 import sys
 import argparse
 import requests
-from templates.etl import Etl
-from shipyard_blueprints import shipyard_utils as shipyard
+import shipyard_bp_utils as shipyard
+from shipyard_templates import Etl
+
 
 
 class CensusClient(Etl):
@@ -122,3 +123,13 @@ class CensusClient(Etl):
             self.logger.error(
                 f"An unknown error has occurred - API response: {sync_trigger_json}")
             sys.exit(self.EXIT_CODE_UNKNOWN_ERROR)
+
+    def connect(self) -> int:
+        """ Sends a GET request to Census API to check if connection is successful
+        Returns:
+            int: HTTP status code
+        """
+        self.logger.info("Connecting to Census API")
+        url = "https://app.getcensus.com/api/v1/sources"
+        response = requests.get(url, headers=self.api_headers)
+        return response.status_code

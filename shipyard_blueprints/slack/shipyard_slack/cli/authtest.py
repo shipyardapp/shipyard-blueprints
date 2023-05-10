@@ -1,17 +1,16 @@
-import argparse
+import os
 from shipyard_blueprints import SlackClient
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--slack-token", dest='slack_token', required=True)
-    args = parser.parse_args()
+    args = {}
+    args['slack_token'] = os.getenv['SLACK_TOKEN']
     return args
 
 
 def main():
     args = get_args()
-    slack_token = args.slack_token
+    slack_token = args['slack_token']
     slack = SlackClient(slack_token)
     try:
         conn = slack.connect()

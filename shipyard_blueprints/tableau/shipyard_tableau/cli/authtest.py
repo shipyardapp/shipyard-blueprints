@@ -1,23 +1,25 @@
-import argparse
+import os
 from shipyard_tableau import TableauClient
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--username", dest='username', required=True)
-    parser.add_argument('--password', dest='password', required=True)
-    parser.add_argument('--site-id', dest='site_id', required=True, default='')
-    parser.add_argument("--server-url", dest='server_url', required=True)
-    args = parser.parse_args()
+    args = {}
+    args['username'] = os.getenv['TABLEAU_USERNAME']
+    args['password'] = os.getenv['TABLEAU_PASSWORD']
+    args['server_url'] = os.getenv['TABLEAU_SERVER_URL']
+    args['project_id'] = os.getenv['TABLEAU_PROJECT_NAME']
+    args['site'] = os.getenv['TABLEAU_SITE_ID']
+
     return args
 
 
 def main():
     args = get_args()
-    username = args.username
-    password = args.password
-    site = args.site_id
-    server_url = args.server_url
+    username = args['username']
+    password = args['password']
+    site = args['site']
+    server_url = args['server_url']
+    project = args['project_id']
     tableau = TableauClient(username, password, server_url, site)
     try:
         conn = tableau.connect()

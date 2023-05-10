@@ -1,18 +1,20 @@
-import argparse
+import os
 from shipyard_blueprints import GoogleCloudClient
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--service-account",
-                        dest='service_account', required=True)
-    args = parser.parse_args()
+    args = {}
+    args['service_account'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--service-account",
+    #                     dest='service_account', required=True)
+    # args = parser.parse_args()
     return args
 
 
 def main():
     args = get_args()
-    service_account = args.service_account
+    service_account = args['service_account']
     client = GoogleCloudClient(service_account=service_account)
     try:
         client.connect()

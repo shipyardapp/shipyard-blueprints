@@ -1,21 +1,21 @@
+import os
 from shipyard_blueprints import ModeClient
-import argparse
+
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--token-id", dest='token_id', required=True)
-    parser.add_argument('--token-secret', dest='token_secret', required=True)
-    parser.add_argument('--account', dest='account', required=True)
-    args = parser.parse_args()
+    args = {}
+    args['token_id'] = os.environ.get('MODE_TOKEN_ID')
+    args['token_secret'] = os.environ.get('MODE_TOKEN_PASSWORD')
+    args['account'] = os.environ.get('MODE_WORKSPACE_NAME') 
     return args
 
 
 def main():
     args = get_args()
-    token_id = args.token_id
-    token_secret = args.token_secret
-    account = args.account
+    token_id = args['token_id']
+    token_secret = args['token_secret']
+    account = args['account']
     mode = ModeClient(token_id, token_secret, account)
     try:
         response = mode.connect()

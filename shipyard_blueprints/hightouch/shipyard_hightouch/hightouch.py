@@ -1,6 +1,6 @@
-from templates.etl import Etl
 import requests
 import sys
+from shipyard_templates import Etl
 
 
 class HightouchClient(Etl):
@@ -144,3 +144,14 @@ class HightouchClient(Etl):
         except Exception as e:
             self.logger.error(f"Sync trigger request failed due to: {e}")
             sys.exit(self.EXIT_CODE_UNKNOWN_ERROR)
+
+    def connect(self) -> int:
+        """ Connect to hightouch api
+
+        Returns:
+            int: HTTP status code
+        """
+        url = 'https://api.hightouch.com/api/v1/sources'
+        response = requests.get(url, headers=self.api_headers)
+        return response.status_code
+        

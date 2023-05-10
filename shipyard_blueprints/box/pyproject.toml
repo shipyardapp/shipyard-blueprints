@@ -11,6 +11,8 @@ packages = [{include = "shipyard_box"}]
 python = "^3.9"
 boxsdk = {extras = ["jwt"], version = "2.9.0"}
 
+[tool.poetry.group.dev.dependencies]
+shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]

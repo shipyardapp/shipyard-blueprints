@@ -1,19 +1,17 @@
 import argparse
+import os
 from shipyard_blueprints import AzureBlobClient
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--connection-string",
-                        dest="connection_string", required=True)
-    args = parser.parse_args()
+    args = {}
+    args['connection_string'] = os.environ.get('AZURE_STORAGE_CONNECTION_STRING')
     return args
 
 
 def main():
     args = get_args()
-    conn_str = args.connection_string
-
+    conn_str = args['connection_string']
     azure = AzureBlobClient(connection_string=conn_str)
     try:
         conn = azure.connect()

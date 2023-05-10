@@ -136,3 +136,17 @@ class CoalesceClient(Etl):
                 "Error occurred when attempting to authenticate, please ensure that the token provided is valid"
             )
             return self.EXIT_CODE_INVALID_CREDENTIALS
+
+    def connect(self):
+        """ 
+        Connects to the Coalesce API and returns the response
+        """
+        url = "https://app.coalescesoftware.io/scheduler/runStatus?runCounter=1"
+        headers = {
+            "accept": "application/json",
+            "Authorization": f"Bearer {self.access_token}",
+        }
+        response = requests.get(url=url, headers=headers)
+        return response.status_code
+
+

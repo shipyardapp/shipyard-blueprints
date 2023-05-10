@@ -1,25 +1,24 @@
-import argparse
+import os
 from shipyard_blueprints import SqlServerClient
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--host", dest='host', required=True)
-    parser.add_argument('--user', dest='user', required=True)
-    parser.add_argument('--password', dest='password', required=True)
-    parser.add_argument('--port', required=True, dest='port', default='5432')
-    parser.add_argument('--database', dest='database', required=True)
-    args = parser.parse_args()
+    args = {}
+    args['user'] = os.getenv('MSSQL_USERNAME')
+    args['password'] = os.getenv('MSSQL_PASSWORD')
+    args['host'] = os.getenv('MSSQL_HOST')
+    args['database'] = os.getenv('MSSQL_DATABASE')
+    args['port'] = os.getenv('MSSQL_PORT')
     return args
 
 
 def main():
     args = get_args()
-    host = args.host
-    user = args.user
-    pwd = args.password
-    port = args.port
-    database = args.database
+    host = args['host']
+    user = args['user']
+    pwd = args['password']
+    port = args['port']
+    database = args['database']
     sqlserver = SqlServerClient(
         user=user, pwd=pwd, host=host, port=port, database=database)
     try:

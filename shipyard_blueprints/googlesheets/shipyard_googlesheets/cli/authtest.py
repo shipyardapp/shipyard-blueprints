@@ -1,18 +1,16 @@
+import os
 from shipyard_blueprints import GoogleSheetsClient
-import argparse
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--service-account",
-                        dest='service_account', required=True)
-    args = parser.parse_args()
+    args = {}
+    args['service_account'] = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
     return args
 
 
 def main():
     args = get_args()
-    service_account = args.service_account
+    service_account = args['service_account']
     client = GoogleSheetsClient(service_account)
     try:
         service, drive = client.connect()

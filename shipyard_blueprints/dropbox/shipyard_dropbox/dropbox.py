@@ -1,4 +1,4 @@
-from templates.cloudstorage import CloudStorage
+from shipyard_templates import CloudStorage
 from dropbox import Dropbox
 
 class DropboxClient(CloudStorage):

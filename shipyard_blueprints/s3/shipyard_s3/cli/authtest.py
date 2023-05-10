@@ -1,24 +1,24 @@
 from shipyard_blueprints import S3Client
 import argparse
+import os
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--aws-access-key-id",
-                        dest='aws_access_key', required=True)
-    parser.add_argument("--aws-secret-access-key",
-                        dest='aws_secret_key', required=True)
-    parser.add_argument('--region', dest='region',
-                        required=False, default='us-east-2')
-    args = parser.parse_args()
+    args = {}
+    args['aws_access_key'] = os.environ.get('AWS_ACCESS_KEY_ID')
+    args['aws_secret_key'] = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    try:
+        args['region'] = os.environ.get('AWS_REGION')
+    except Exception as e:
+        args['aws_default_region'] = 'us-east-2'
     return args
 
 
 def main():
     args = get_args()
-    aws_access_key = args.aws_access_key
-    aws_secret = args.aws_secret_key
-    aws_region = args.region
+    aws_access_key = args['aws_access_key']
+    aws_secret = args['aws_secret_key']
+    aws_region = args['region']
 
     s3 = S3Client(aws_access_key=aws_access_key,
                   aws_secret_access_key=aws_secret, region=aws_region)

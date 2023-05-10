@@ -8,8 +8,8 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email import encoders
-import shipyard_utils  as shipyard
-from templates.messaging import Messaging
+import shipyard_bp_utils  as shipyard
+from shipyard_templates import Messaging
 import sys
 
 class EmailClient(Messaging):

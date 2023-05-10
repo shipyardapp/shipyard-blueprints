@@ -1,25 +1,23 @@
+import os
 from shipyard_blueprints import AirtableClient
-import argparse
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--api-key", dest='api_key', required=True)
-    parser.add_argument('--base-id', dest='base_id', required=True)
-    parser.add_argument('--table-name', dest='table_name', required=True)
-    args = parser.parse_args()
+    args = {}
+    args['api_key'] = os.environ['AIRTABLE_API_KEY']
     return args
 
 
 def main():
     args = get_args()
-    api_key = args.api_key
-    base_id = args.base_id
-    table = args.table_name
-    airtable = AirtableClient(base_id, api_key, table)
+    api_key = args['api_key']
+    airtable = AirtableClient(api_key=api_key)
     try:
         conn = airtable.connect()
-        return 0
+        if conn == 200:
+            return 0
+        else :
+            return 1
     except Exception as e:
         return 1
 

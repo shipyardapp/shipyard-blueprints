@@ -12,7 +12,8 @@ python = "^3.9"
 slackclient = "2.9.4"
 
 [tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = "^0.1.0"
+shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]

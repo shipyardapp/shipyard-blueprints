@@ -1,18 +1,17 @@
+import os
 from shipyard_blueprints import DatabricksClient
-import argparse
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--access-token", dest = "access_token", required = True)
-    parser.add_argument("--instance-url", dest = "instance_url", required = True)
-    args = parser.parse_args()
+    args = {}
+    args['access_token'] = os.getenv('DATABRICKS_ACCESS_TOKEN')
+    args['instance_url'] = os.getenv('DATABRICKS_INSTANCE_URL')
     return args 
 
 
 def main():
     args = get_args()
-    token = args.access_token
-    url = args.instance_url
+    token = args['access_token']
+    url = args['instance_url']
     databricks_client = DatabricksClient(url, token)
     try:
         databricks_client.connect()

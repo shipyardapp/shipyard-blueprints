@@ -1,4 +1,4 @@
-from templates.datavisualization import DataVisualization
+from shipyard_templates import DataVisualization
 from pydomo import Domo
 
 

@@ -1,23 +1,22 @@
+import os
 from shipyard_blueprints import FtpClient
-import argparse
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--host", dest='host', required=True)
-    parser.add_argument("--port", dest='port', default=21, required=True)
-    parser.add_argument("--user", dest='user', required=True)
-    parser.add_argument("--pwd", dest="pwd", required=True)
-    args = parser.parse_args()
+    args = {}
+    args['host']  = os.getenv("FTP_HOST")
+    args['port'] = os.getenv("FTP_PORT")
+    args['username'] = os.getenv("FTP_USERNAME")
+    args['password'] = os.getenv("FTP_PASSWORD")
     return args
 
 
 def main():
     args = get_args()
-    host = args.host
-    port = int(args.port)
-    user = args.user
-    pwd = args.pwd
+    host = args['host']
+    port = args['port']
+    user = args['username']
+    pwd = args['password']
     ftp = FtpClient(host, user, pwd, port)
     try:
         ftp.connect()

@@ -1,5 +1,5 @@
 import paramiko
-from templates.cloudstorage import CloudStorage
+from shipyard_templates import CloudStorage
 
 
 class SftpClient(CloudStorage):

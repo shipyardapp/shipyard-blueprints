@@ -12,6 +12,8 @@ python = "^3.9"
 azure-storage-blob = "12.3.2"
 shipyard-templates = "^0.1.0"
 
+[tool.poetry.group.dev.dependencies]
+shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]

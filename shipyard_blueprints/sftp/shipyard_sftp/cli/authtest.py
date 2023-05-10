@@ -1,25 +1,24 @@
+import os
 from shipyard_blueprints import SftpClient
-import argparse
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--host", dest='host', required=True)
-    parser.add_argument("--port", dest='port', default='21', required=True)
-    parser.add_argument('--username', dest='username', required=False)
-    parser.add_argument("--password", dest='password', required=False)
-    parser.add_argument('--key', dest='key', default=None, required=False)
-    args = parser.parse_args()
+    args = {}
+    args['host'] = os.environ.get('SFTP_HOST')
+    args['port'] = os.environ.get('SFTP_PORT')
+    args['username'] = os.environ.get('SFTP_USERNAME')
+    args['password'] = os.environ.get('SFTP_PASSWORD')
+    args['key'] = os.environ.get('SFTP_RSA_KEY_FILE')
     return args
 
 
 def main():
     args = get_args()
-    host = args.host
-    port = args.port
-    username = args.username
-    password = args.password
-    key = args.key
+    host = args['host']
+    port = args['port']
+    username = args['username']
+    password = args['password']
+    key = args['key']
     sftp = SftpClient(host, port, key, username, password)
     try:
         sftp.connect()

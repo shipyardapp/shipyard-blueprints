@@ -12,7 +12,8 @@ python = "^3.9"
 paramiko = "2.11.0"
 
 [tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = "^0.1.0"
+shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]

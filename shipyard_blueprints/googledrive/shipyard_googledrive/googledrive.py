@@ -1,7 +1,7 @@
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
-from templates.cloudstorage import CloudStorage
+from shipyard_templates import CloudStorage
 import json
 import tempfile
 import os

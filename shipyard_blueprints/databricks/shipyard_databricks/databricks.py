@@ -1,4 +1,4 @@
-from templates.cloudstorage import CloudStorage
+from shipyard_templates import CloudStorage
 import databricks_cli
 from databricks_cli.sdk.api_client import ApiClient
 

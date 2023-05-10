@@ -14,7 +14,8 @@ SQLAlchemy = "2.0.0"
 mysql-connector-python = "8.0.21"
 
 [tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = "^0.1.0"
+shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]

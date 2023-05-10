@@ -1,25 +1,27 @@
-import argparse
+import os
 from shipyard_blueprints import RedshiftClient
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--host", dest='host', required=True)
-    parser.add_argument('--user', dest='user', required=True)
-    parser.add_argument('--password', dest='password', required=True)
-    parser.add_argument('--port', required=True, dest='port', default='5432')
-    parser.add_argument('--database', dest='database', required=True)
-    args = parser.parse_args()
+    args = {}
+    args['host'] = os.environ.get('REDSHIFT_HOST')
+    args['user'] = os.environ.get('REDSHIFT_USERNAME')
+    try:
+        args['port'] = os.environ.get('REDSHIFT_PORT')
+    except Exception as e:
+        args['port'] = '5432'
+    args['password'] = os.environ.get('REDSHIFT_PASSWORD')
+    args['database'] = os.environ.get('REDSHIFT_DATABASE')
     return args
 
 
 def main():
     args = get_args()
-    host = args.host
-    user = args.user
-    pwd = args.password
-    port = args.port
-    database = args.database
+    host = args['host']
+    user = args['user']
+    pwd = args['pwd']
+    port = args['port']
+    database = args['database']
     redshift = RedshiftClient(
         user=user, pwd=pwd, host=host, port=port, database=database)
     try:

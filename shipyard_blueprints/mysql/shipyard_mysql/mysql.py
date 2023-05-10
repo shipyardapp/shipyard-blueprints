@@ -1,6 +1,6 @@
-from templates.database import Database
-from sqlalchemy import create_engine, text
 import sys
+from sqlalchemy import create_engine, text
+from shipyard_templates import Database
 
 
 class MySqlClient(Database):

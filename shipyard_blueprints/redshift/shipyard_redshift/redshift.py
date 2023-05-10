@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, text
-from templates.database import Database
+from sqlalchemy.engine.url import URL
+from shipyard_templates import Database
 
 
 class RedshiftClient(Database):
@@ -14,7 +15,7 @@ class RedshiftClient(Database):
                          port=port, url_params=url_params)
 
     def connect(self):
-        con_str = f'postgresql://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?{self.url_parameters}'
+        con_str = URL.create(drivername= 'redshift+redshift_connector', host = self.host, password= self.password, username= self.user, port = self.port, database= self.database)
         engine = create_engine(con_str)
         return engine
 

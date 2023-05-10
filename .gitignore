@@ -15,3 +15,6 @@ sample.txt
 emailenv
 classenv
 sample.txt
+
+.env
+old_requirements.txt

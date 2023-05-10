@@ -102,3 +102,15 @@ class AirbyteClient(Etl):
         elif job_status == 'cancelled':
             self.logger.info('Airbyte job was cancelled')
             return self.EXIT_CODE_SYNC_CANCELLED
+
+    def connect(self):
+        """ Connects to the Airbyte API
+
+        Returns: The HTTP response from the API
+            
+        """
+        url = "https://api.airbyte.com/v1/sources"
+        headers = {'authorization': f'Bearer {self.access_token}',
+                   'User-Agent': 'Shipyard User 1.0'}
+        response = requests.get(url, headers=headers)
+        return response.status_code
