@@ -1,5 +1,5 @@
 from .cloudstorage import CloudStorage
-from .database import Database
+from .database import Database, GoogleDatabase
 from .datavisualization import DataVisualization
 from .etl import Etl    
 from .messaging import Messaging

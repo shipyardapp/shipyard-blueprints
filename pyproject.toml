@@ -21,7 +21,7 @@ pandas = "1.5.3"
 
 
 [tool.poetry.group.athena.dependencies]
-boto3 = "^1.14.32"
+boto3 = "^1.26"
 
 
 [tool.poetry.group.azureblob.dependencies]
@@ -30,8 +30,8 @@ azure-storage-blob = "^12.3.2"
 
 [tool.poetry.group.bigquery.dependencies]
 pandas = "1.5.3"
-google-cloud-bigquery = "3.4.0"
-db-dtypes = "1.0.4"
+google-cloud-bigquery = "^3.10.0"
+db-dtypes = "^1.1.1"
 
 
 
@@ -82,6 +82,75 @@ google-auth-httplib2 = "0.1.0"
 [tool.poetry.group.dev.dependencies]
 python-dotenv = "^1.0.0"
 shipyard-templates = "^0.1.0"
+shipyard-bp-utils = {path = "shipyard_blueprints/shipyard-bp-utils"}
+
+
+[tool.poetry.group.hex.dependencies]
+requests = "2.28.0"
+
+
+[tool.poetry.group.hightouch.dependencies]
+requests = "2.28.0"
+
+
+[tool.poetry.group.looker.dependencies]
+looker-sdk = "22.20.0"
+
+
+[tool.poetry.group.mode.dependencies]
+requests = "2.28.0"
+
+
+[tool.poetry.group.mysql.dependencies]
+pandas = "1.5.3"
+mysql-connector-python = "8.0.21"
+sqlalchemy = "^1.4.48"
+
+
+[tool.poetry.group.postgresql.dependencies]
+pandas = "1.5.3"
+psycopg2-binary = "^2.9.6"
+sqlalchemy = "^1.4.48"
+
+
+[tool.poetry.group.redshift.dependencies]
+pandas = "1.5.3"
+redshift-connector = "^2.0.910"
+sqlalchemy-redshift = "^0.8.14"
+
+
+[tool.poetry.group.rudderstack.dependencies]
+requests = "2.28.0"
+
+
+[tool.poetry.group.s3.dependencies]
+boto3 = "^1.26"
+
+
+[tool.poetry.group.sftp.dependencies]
+paramiko = "2.11.0"
+
+
+[tool.poetry.group.slack.dependencies]
+slackclient = "2.9.4"
+
+
+[tool.poetry.group.snowflake.dependencies]
+snowflake-sqlalchemy = "^1.4.7"
+dask = "2022.2.0"
+pandas = "1.5.3"
+snowflake-connector-python = {version = "^3.0.3", extras = ["pandas"]}
+
+
+[tool.poetry.group.sqlserver.dependencies]
+sqlalchemy = "1.4.48"
+pymssql = "2.2.7"
+pandas = "1.5.3"
+
+
+[tool.poetry.group.tableau.dependencies]
+requests = "2.28.0"
+tableauserverclient = "0.25"
 
 [build-system]
 requires = ["poetry-core"]
