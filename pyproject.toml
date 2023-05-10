@@ -11,6 +11,78 @@ packages = [{include = "shipyard_blueprints"}]
 python = "^3.9"
 
 
+[tool.poetry.group.airbyte.dependencies]
+requests = "2.28.0"
+
+
+[tool.poetry.group.airtable.dependencies]
+pyairtable = "^1.4.0"
+pandas = "1.5.3"
+
+
+[tool.poetry.group.athena.dependencies]
+boto3 = "^1.14.32"
+
+
+[tool.poetry.group.azureblob.dependencies]
+azure-storage-blob = "^12.3.2"
+
+
+[tool.poetry.group.bigquery.dependencies]
+pandas = "1.5.3"
+google-cloud-bigquery = "3.4.0"
+db-dtypes = "1.0.4"
+
+
+
+[tool.poetry.group.box.dependencies]
+boxsdk = {version = "2.9.0", extras = ["jwt"]}
+
+
+[tool.poetry.group.census.dependencies]
+requests = "2.28.0"
+
+
+[tool.poetry.group.coalesce.dependencies]
+requests = "2.28.0"
+
+
+[tool.poetry.group.databricks.dependencies]
+databricks-cli = "^0.17.6"
+
+
+[tool.poetry.group.domo.dependencies]
+requests = "2.28.0"
+pydomo = "^0.3.0.9"
+
+
+[tool.poetry.group.dropbox.dependencies]
+dropbox = "11.36.0"
+
+
+[tool.poetry.group.fivetran.dependencies]
+pytz = "2023.3"
+
+
+[tool.poetry.group.googlecloud.dependencies]
+google-cloud-storage = "2.7.0"
+httplib2 = "0.15.0"
+
+
+[tool.poetry.group.googledrive.dependencies]
+google-api-python-client = "2.7"
+google-auth-httplib2 = "0.1.0"
+
+
+[tool.poetry.group.googlesheets.dependencies]
+google-api-python-client = "2.7"
+google-auth-httplib2 = "0.1.0"
+
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.0"
+shipyard-templates = "^0.1.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -1,5 +1,4 @@
-# import shipyard_utils as utils
-from shipyard_blueprints import shipyard_utils
+import shipyard_templates
 # etl
 from shipyard_blueprints.rudderstack.shipyard_rudderstack import RudderStackClient
 from shipyard_blueprints.snowflake.shipyard_snowflake import SnowflakeClient

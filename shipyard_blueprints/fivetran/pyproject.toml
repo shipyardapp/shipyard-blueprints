@@ -9,7 +9,7 @@ packages = [{include = "shipyard_fivetran"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pytz = "2021.1"
+pytz = "2023.3"
 
 
 [build-system]
