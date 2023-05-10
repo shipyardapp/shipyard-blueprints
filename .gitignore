@@ -17,3 +17,4 @@ classenv
 sample.txt
 
 .env
+old_requirements.txt

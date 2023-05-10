@@ -11,6 +11,9 @@ packages = [{include = "shipyard_looker"}]
 python = "^3.9"
 looker-sdk = "22.20.0"
 
+[tool.poetry.group.dev.dependencies]
+shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]

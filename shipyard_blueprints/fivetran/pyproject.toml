@@ -12,6 +12,11 @@ python = "^3.9"
 pytz = "2023.3"
 
 
+[tool.poetry.group.dev.dependencies]
+shipyard-templates = {path = "../../shipyard-templates"}
+shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

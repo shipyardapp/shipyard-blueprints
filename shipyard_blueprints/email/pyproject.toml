@@ -9,9 +9,10 @@ packages = [{include = "shipyard_email"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-shipyard-utils = {path = "../shipyard-utils"}
-templates = {path = "../../templates"}
 
+[tool.poetry.group.dev.dependencies]
+shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]

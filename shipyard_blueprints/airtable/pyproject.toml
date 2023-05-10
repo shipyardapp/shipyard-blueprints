@@ -14,7 +14,7 @@ pandas = "^1.5.3"
 
 
 [tool.poetry.group.dev.dependencies]
-shipyard-templates = "^0.1.0"
+shipyard-templates = {path = "../../shipyard-templates"}
 shipyard-bp-utils = {path = "../shipyard-bp-utils"}
 
 [build-system]

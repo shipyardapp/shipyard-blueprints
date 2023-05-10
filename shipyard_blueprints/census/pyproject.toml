@@ -9,9 +9,11 @@ packages = [{include = "shipyard_census"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-shipyard-templates = "^0.1.0"
 requests = "2.28.0"
 
+[tool.poetry.group.dev.dependencies]
+shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]
