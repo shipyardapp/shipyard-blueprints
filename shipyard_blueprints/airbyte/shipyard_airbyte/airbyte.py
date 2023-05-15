@@ -34,6 +34,10 @@ class AirbyteClient(Etl):
             response = requests.post(url, json=payload, headers=headers)
             if response.status_code == 200:
                 self.logger.info("Airbyte sync successfully triggered")
+            else:
+                self.logger.warn("Airbyte sync could not be triggerd")
+                self.logger.warn(f"Response from the Airbyte API: {response.text}")
+                sys.exit(self.EXIT_CODE_SYNC_REFRESH_ERROR)
         except Exception as e:
             self.logger.error(
                 f"Error occurred when attempting to trigger sync. Check to see that the connection id and api token are valid ")
