@@ -6,3 +6,4 @@ from .messaging import Messaging
 from .notebooks import Notebooks
 from .shipyard_logger import ShipyardLogger
 from .spreadsheets import Spreadsheets
+from .projectmanagement import ProjectManagement
