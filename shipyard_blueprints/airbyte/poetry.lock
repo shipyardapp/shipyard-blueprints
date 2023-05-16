@@ -133,7 +133,7 @@ testing = ["argcomplete", "attrs (>=19.2.0)", "hypothesis (>=3.56)", "mock", "no
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 files = [
@@ -170,7 +170,7 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<5)"]
 name = "shipyard-bp-utils"
 version = "0.1.0"
 description = "Utility functions for blueprints"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "^3.9"
 files = []
@@ -187,7 +187,7 @@ url = "../shipyard-bp-utils"
 name = "shipyard-templates"
 version = "0.1.1"
 description = "Super classes for blueprint development"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "^3.9"
 files = []
@@ -201,7 +201,7 @@ url = "../../shipyard-templates"
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 files = [
@@ -241,4 +241,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f5f50c4f88e9097184e016d568a8879dfa18485ae150ca6d098fae7b479c332e"
+content-hash = "89682233c852232ea3c008a916aa52d104491a2b7dc14bd9e3ad23097b94e618"
