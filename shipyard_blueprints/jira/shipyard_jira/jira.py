@@ -79,7 +79,7 @@ class JiraClient(ProjectManagement):
                 headers=headers,
                 auth=HTTPBasicAuth(self.email_address, self.access_token))
         if response.status_code == 204:
-            logging.info('Successfully completed request with no response')
+            logging.info('Successfully completed request. Response has no content as expected')
             return {}
 
         response_details = response.json()
@@ -118,8 +118,8 @@ class JiraClient(ProjectManagement):
                     logging.warning(
                         "Please verify that the issue type is spelled correctly and that it's included in the list of "
                         "valid issue types for this project")
-        if not err_msgs and not errors:
-            logging.error(f'Error: {status_code}: {error_details}')
+
+        raise Exception(f'Error: {status_code}: {error_details}')
 
     def create_ticket(self,
                       project_key: str,
@@ -145,10 +145,10 @@ class JiraClient(ProjectManagement):
             logging.info('Retrieving accountId for assignee...')
             try:
                 assignee = self.retrieve_account_id_by_email(assignee)
-            except Exception:
+            except Exception as error:
                 logging.error('Assignee not found. Please verify that the email address is correct.')
                 logging.error('Ticket creation failed')
-                return {}
+                raise Exception(error)
 
         logging.info('Creating Jira Ticket...')
         payload = {
@@ -165,8 +165,9 @@ class JiraClient(ProjectManagement):
             response = self._request('issue',
                                      method='POST',
                                      data=payload)
-        except Exception:
+        except Exception as error:
             logging.error('Fail to create Jira ticket')
+            raise Exception(error)
         else:
             logging.info('Jira ticket created successfully')
             return response
@@ -216,12 +217,14 @@ class JiraClient(ProjectManagement):
                 **kwargs
             }
         }
+        logging.info(data)
         try:
             response = self._request(f'issue/{ticket_key}',
                                      method='PUT',
                                      data=data)
-        except Exception:
+        except Exception as error:
             logging.error('Fail to update Jira ticket')
+            raise Exception(error)
         else:
             logging.info('Jira ticket updated successfully')
             return response
@@ -237,7 +240,7 @@ class JiraClient(ProjectManagement):
         response = self._request(f'issue/{ticket_id}')
         if response:
             logging.info(f'Jira Ticket {ticket_id} retrieved successfully')
-            logging.info(response)
+            logging.debug(response)
             return response
 
     def find_user_by_email_address(self,
@@ -265,7 +268,7 @@ class JiraClient(ProjectManagement):
         try:
             user_details = self.find_user_by_email_address(email)
         except Exception as error:
-            logging.error(error)
+            raise Exception(error)
         else:
             logging.info("Retrieving user's accountId...")
             account_id = user_details.get('accountId')
@@ -290,8 +293,9 @@ class JiraClient(ProjectManagement):
                                      data={
                                          'body': comment
                                      })
-        except Exception:
+        except Exception as error:
             logging.error('Fail to add comment to Jira ticket')
+            raise Exception(error)
         else:
             logging.info('Comment added successfully')
             return response
@@ -313,8 +317,7 @@ class JiraClient(ProjectManagement):
             try:
                 assignee_id = self.retrieve_account_id_by_email(assignee)
             except Exception as error:
-                logging.error(error)
-                return {}
+                raise Exception(error)
         else:
             assignee_id = assignee
         try:
@@ -323,8 +326,9 @@ class JiraClient(ProjectManagement):
                                      data={
                                          'accountId': assignee_id
                                      })
-        except Exception:
+        except Exception as error:
             logging.error('Fail to assign Jira ticket')
+            raise Exception(error)
         else:
             logging.info('Jira ticket assigned successfully')
             return response

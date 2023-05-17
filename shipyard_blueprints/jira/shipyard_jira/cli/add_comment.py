@@ -23,7 +23,8 @@ def main():
 
     try:
         jira.add_comment(ticket_key=args.ticket_key, comment=args.comment)
-    except Exception:
+    except Exception as error:
+        jira.logger.error(error)
         sys.exit(1)
     else:
         sys.exit(0)
