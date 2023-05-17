@@ -49,7 +49,8 @@ def main():
     else:
         try:
             jira.create_ticket(**create_ticket_args)
-        except Exception:
+        except Exception as error:
+            jira.logger.error(error)
             sys.exit(1)
         else:
             sys.exit(0)

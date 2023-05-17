@@ -1,4 +1,11 @@
-# Create an API token
+# Shipyard Jira
+Shipyard Jira is a Python library that provides a convenient interface for interacting with the Jira issue tracking system. It simplifies the process of managing Jira issues, allowing users to create, update, and query issues programmatically.
+
+## Installation
+```bash
+pip install shipyard-jira
+```
+## Create an API token
 Create an API token from your Atlassian account:
 
 **STEP 1.** Log in to https://id.atlassian.com/manage-profile/security/api-tokens.
