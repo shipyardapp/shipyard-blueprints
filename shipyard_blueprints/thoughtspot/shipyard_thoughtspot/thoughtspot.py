@@ -1,10 +1,13 @@
 import requests
 import pandas as pd
 import typing
+import sys
 from shipyard_templates import DataVisualization
+from requests import Response
 
 
 class ThoughtSpotClient(DataVisualization):
+    EXIT_CODE_LIVE_REPORT_ERROR = 200
     def __init__(self, token) -> None:
         self.token = token
         super().__init__(token=self.token)
@@ -17,7 +20,17 @@ class ThoughtSpotClient(DataVisualization):
         runtime_filter: str = None,
         runtime_sort: str = None,
         file_name: str = None,
-    ):
+    ) -> None:
+        """
+
+        Args:
+            metadata_identifier: the id of the associated metadata
+            visualization_identifiers: a list of associated visualizations to include. If left blank, then all will be included
+            file_format: Option of csv, png, pdf, or xlsx
+            runtime_filter: A column filter to sort the data
+            runtime_sort:  A column sort to sort the output
+            file_name: The name of the output file 
+        """
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/report/liveboard"
         headers = {
             "Content-Type": "application/json",
@@ -28,12 +41,16 @@ class ThoughtSpotClient(DataVisualization):
             "file_format": str(file_format).upper(),
         }
         if runtime_filter:
+            self.logger.info(f"Applying specified filter {runtime_filter}")
             payload["runtime_filter"] = runtime_filter
         if runtime_sort:
             payload["runtime_sort"] = runtime_sort
-
+            self.logger.info(f"Applying specified sort {runtime_sort}")
+            sys.exit(self.EXIT_CODE_LIVE_REPORT_ERROR)
         file_path = f"{file_name}.{file_format}"
         response = requests.post(url, headers=headers, json=payload)
+        if response.status_code != 200:
+            self.logger.error(f"There was an error in the request. Message from the API is: {response.json()}")
         with open(file_path, "wb") as f:
             f.write(response.content)
             f.close()
@@ -46,7 +63,19 @@ class ThoughtSpotClient(DataVisualization):
         runtime_filter: dict = None,
         runtime_sort: dict = None,
         file_name: str = "export",
-    ):
+    ) -> Response :
+        """
+
+        Args:
+            metadata_identifier: The id for the associated answer report
+            file_format: The desired output file format (csv, png, pdf, xlsx)
+            runtime_filter: Column filter to be applied
+            runtime_sort:  Column sort to be applied
+            file_name: Name of the exported file (default is export)
+
+        Returns:  The HTTP response from the api call
+            
+        """
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/report/answer"
         headers = {
             "Content-Type": "application/json",
@@ -57,8 +86,10 @@ class ThoughtSpotClient(DataVisualization):
             "file_format": str(file_format).upper(),
         }
         if runtime_filter:
+            self.logger.info(f"Applying specified filter {runtime_filter}")
             payload["runtime_filter"] = runtime_filter
         if runtime_sort:
+            self.logger.info(f"Applying specified sort {runtime_sort}")
             payload["runtime_sort"] = runtime_sort
 
         file_path = f"{file_name}.{file_format}"
@@ -109,6 +140,14 @@ class ThoughtSpotClient(DataVisualization):
     #     return json
 
     def get_metadata(self, metadata_identifier: list) -> list[dict[any, any]]:
+        """
+
+        Args:
+            metadata_identifier: The associated id(s) of the metadata
+
+        Returns: The json response from the api
+            
+        """
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/metadata/tml/export"
         headers = {
             "Accept": "application/json",
@@ -129,6 +168,17 @@ class ThoughtSpotClient(DataVisualization):
         num_rows: int = None,
         file_format: str = "csv",
     ) -> dict[any, any]:
+        """
+
+        Args:
+            query: Natural language query to fetch results. Example is [Home Goals] by [Home Team]
+            table_identifier: The associated id of the desired table
+            num_rows: Total number of rows to return
+            file_format: Desired output format (csv or json) where the default is CSV
+
+        Returns:
+            
+        """
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/searchdata"
         headers = {
             "Accept": "application/json",

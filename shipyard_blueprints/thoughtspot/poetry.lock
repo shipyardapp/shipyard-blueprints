@@ -177,13 +177,13 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<5)"]
 
 [[package]]
 name = "shipyard-templates"
-version = "0.1.1"
+version = "0.1.2"
 description = "Super classes for blueprint development"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "^3.9"
 files = []
-develop = false
+develop = true
 
 [package.source]
 type = "directory"
@@ -221,4 +221,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "467818447adf3f9ce8519eebc8a31453d8d0cd5df2d8ba6f43f2eedb0b48de76"
+content-hash = "a6b19cac3cb0b3fbc6bf953901f0dd0ceba67c9b15b58dc18175af78668aa3f4"

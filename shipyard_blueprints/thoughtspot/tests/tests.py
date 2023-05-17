@@ -34,8 +34,19 @@ def test_export_live_report(format="png"):
     response = client.get_live_report(
         metadata_identifier="ac732138-d3e9-4dab-9ffb-74b85cbca7b9",
         file_format=format,
-        file_name="live_report",
+        file_name="live_report"
     )
+    return response
+
+def test_export_live_report_pdf(format = 'pdf'):
+    token = os.getenv("THOUGHTSPOT_TOKEN")
+    client = ThoughtSpotClient(token)
+    response = client.get_live_report(
+        metadata_identifier="ac732138-d3e9-4dab-9ffb-74b85cbca7b9",
+        file_format=format,
+        file_name="live_report"
+    )
+    return response
 
 
 def test_metadata_export():
@@ -56,8 +67,8 @@ def test_search_data():
 
 
 if __name__ == "__main__":
-    # conn = test_connection()
-    # resp = test_export_answer_report()
-    # resp = test_export_live_report()
-    # resp = test_metadata_export()
-    resp = test_search_data()
+    conn = test_connection()
+    resp_answer = test_export_answer_report()
+    resp_live = test_export_live_report()
+    resp_meta = test_metadata_export()
+    resp_search = test_search_data()
