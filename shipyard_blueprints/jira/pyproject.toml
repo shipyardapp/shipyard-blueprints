@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-jira"
-version = "0.1.2"
+version = "0.1.3"
 description = "A local client for connecting and working with Jira"
 authors = ["JR <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"
@@ -9,11 +9,11 @@ packages = [{include = "shipyard_jira"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 requests = "^2.30.0"
+shipyard-templates = "^0.1.2"
 
 
 [tool.poetry.group.dev.dependencies]
 shipyard-bp-utils = {path = "../shipyard-bp-utils"}
-shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]

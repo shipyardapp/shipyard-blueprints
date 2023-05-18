@@ -37,8 +37,6 @@ def main():
         args_dict['summary'] = [{'set': args_dict['summary']}]
     if args_dict['description']:
         args_dict['description'] = [{'set': args_dict['description']}]
-    if args_dict['issue_type']:
-        args_dict['issue_type'] = [{'set': args_dict['issue_type']}]
     if args_dict['assignee']:
         args_dict['assignee'] = [{'set': args_dict['assignee']}]
     if args_dict['labels']:
