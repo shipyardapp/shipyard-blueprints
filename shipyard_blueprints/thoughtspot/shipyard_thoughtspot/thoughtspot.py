@@ -3,6 +3,7 @@ import pandas as pd
 import typing
 import sys
 
+from copy import deepcopy
 from shipyard_templates import DataVisualization
 from requests import Response
 
@@ -14,6 +15,10 @@ class ThoughtSpotClient(DataVisualization):
 
     def __init__(self, token) -> None:
         self.token = token
+        self.headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.token}",
+        }
         super().__init__(token=self.token)
 
     def get_live_report(
@@ -36,10 +41,6 @@ class ThoughtSpotClient(DataVisualization):
             file_name: The name of the output file
         """
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/report/liveboard"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.token}",
-        }
         payload = {
             "metadata_identifier": metadata_identifier,
             "file_format": str(file_format).upper(),
@@ -48,15 +49,15 @@ class ThoughtSpotClient(DataVisualization):
             self.logger.info(f"Applying specified filter {runtime_filter}")
             payload["runtime_filter"] = runtime_filter
         if runtime_sort:
-            payload["runtime_sort"] = runtime_sort
             self.logger.info(f"Applying specified sort {runtime_sort}")
+            payload["runtime_sort"] = runtime_sort
         if visualization_identifiers:
             self.logger.info(
                 f"Apply specified visualizations {visualization_identifiers}"
             )
             payload["visualization_identifiers"] = visualization_identifiers
         file_path = f"{file_name}.{file_format}"
-        response = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, headers=self.headers, json=payload)
         if response.status_code != 200:
             self.logger.error(
                 f"There was an error in the request. Message from the API is: {response.json()}"
@@ -88,10 +89,6 @@ class ThoughtSpotClient(DataVisualization):
 
         """
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/report/answer"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.token}",
-        }
         payload = {
             "metadata_identifier": metadata_identifier,
             "file_format": str(file_format).upper(),
@@ -104,7 +101,7 @@ class ThoughtSpotClient(DataVisualization):
             payload["runtime_sort"] = runtime_sort
 
         file_path = f"{file_name}.{file_format}"
-        response = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, headers=self.headers, json=payload)
         if response.status_code != 200:
             self.logger.error(
                 f"There was an error in the request. Message from the API is: {response.json()}"
@@ -161,13 +158,11 @@ class ThoughtSpotClient(DataVisualization):
 
         """
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/searchdata"
-        headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.token}",
-        }
+        headers = deepcopy(self.headers)
+        headers['Accept'] = 'application/json'
         payload = {"query_string": query, "logical_table_identifier": table_identifier}
         if num_rows:
+            self.logger.info(f"Grabbing {num_rows} rows")
             payload["record_size"] = num_rows
         response = requests.post(url, headers=headers, json=payload)
         if response.status_code == 200:
@@ -188,11 +183,8 @@ class ThoughtSpotClient(DataVisualization):
 
     def connect(self, username: str, password: str):
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/auth/session/login"
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": f"Bearer {self.token}",
-        }
+        headers = deepcopy(self.headers)
+        headers['Accept'] = 'application/json'
         payload = {"username": username, "password": password}
         response = requests.post(url, headers=headers, json=payload)
         return response
