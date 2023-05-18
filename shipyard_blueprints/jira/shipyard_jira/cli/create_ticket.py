@@ -1,6 +1,6 @@
 import argparse
 import sys
-import logging
+
 from shipyard_jira import JiraClient
 
 
@@ -42,7 +42,7 @@ def main():
         try:
             jira.create_subtask(**create_ticket_args)
         except Exception as e:
-            logging.error(e)
+            jira.logger.error(e)
             sys.exit(1)
         else:
             sys.exit(0)

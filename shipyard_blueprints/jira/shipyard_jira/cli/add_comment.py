@@ -1,6 +1,6 @@
 import argparse
-import shipyard_bp_utils as shipyard
 import sys
+
 from shipyard_jira import JiraClient
 
 
