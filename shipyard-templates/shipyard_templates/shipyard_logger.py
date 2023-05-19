@@ -6,7 +6,7 @@ class ShipyardLogger():
     def __init__(self) -> None:
         self.LOGDATA = False
 
-        self.logger = ShipyardLogger().logger
+        self.logger = logging.getLogger("Shipyard")
         self.logger.setLevel(logging.DEBUG)
         # Add handler for stderr
         console = logging.StreamHandler()
