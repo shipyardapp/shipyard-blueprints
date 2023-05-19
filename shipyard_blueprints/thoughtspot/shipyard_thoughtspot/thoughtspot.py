@@ -6,12 +6,15 @@ import sys
 from copy import deepcopy
 from shipyard_templates import DataVisualization
 from requests import Response
+from ast import literal_eval
 
 
 class ThoughtSpotClient(DataVisualization):
     EXIT_CODE_LIVE_REPORT_ERROR = 200
     EXIT_CODE_ANSWER_REPORT_ERROR = 201
     EXIT_CODE_BAD_REQUEST = 202
+    EXIT_CODE_INVALID_FILTER = 203
+    EXIT_CODE_INVALID_SORT = 204
 
     def __init__(self, token) -> None:
         self.token = token
@@ -27,8 +30,8 @@ class ThoughtSpotClient(DataVisualization):
         visualization_identifiers: list = None,
         file_format: str = "csv",
         file_name: str = "liveboard",
-        runtime_filter: str = None,
-        runtime_sort: str = None,
+        runtime_filter: dict = None,
+        runtime_sort: dict = None,
     ) -> Response:
         """
 
@@ -47,10 +50,20 @@ class ThoughtSpotClient(DataVisualization):
         }
         if runtime_filter:
             self.logger.info(f"Applying specified filter {runtime_filter}")
-            payload["runtime_filter"] = runtime_filter
+            try:
+                filt = literal_eval(runtime_filter)
+                payload["runtime_filter"] = filt
+            except Exception as e:
+                self.logger.error(f"Could not parse filter {runtime_filter}")
+                return self.EXIT_CODE_INVALID_FILTER
         if runtime_sort:
             self.logger.info(f"Applying specified sort {runtime_sort}")
-            payload["runtime_sort"] = runtime_sort
+            try:
+                sorter = literal_eval(runtime_sort)
+                payload["runtime_sort"] = sorter
+            except Exception as e:
+                self.logger.error(f"Could not parse sort {runtime_sort}")
+                return self.EXIT_CODE_INVALID_SORT
         if visualization_identifiers:
             self.logger.info(
                 f"Apply specified visualizations {visualization_identifiers}"
@@ -62,9 +75,14 @@ class ThoughtSpotClient(DataVisualization):
             self.logger.error(
                 f"There was an error in the request. Message from the API is: {response.json()}"
             )
+            return self.EXIT_CODE_LIVE_REPORT_ERROR
         with open(file_path, "wb") as f:
             f.write(response.content)
             f.close()
+
+        if file_format == "csv":
+            df_cleaned = pd.read_csv(file_path, skiprows=4)
+            df_cleaned.to_csv(file_path, index=False)
         self.logger.info(f"Live report saved to {file_path}")
         return response
 
@@ -95,10 +113,21 @@ class ThoughtSpotClient(DataVisualization):
         }
         if runtime_filter:
             self.logger.info(f"Applying specified filter {runtime_filter}")
-            payload["runtime_filter"] = runtime_filter
+            try:
+                filt = literal_eval(runtime_filter)
+                payload["runtime_filter"] = filt
+            except Exception as e:
+                self.logger.error(f"Invalid filter {runtime_filter}")
+                return self.EXIT_CODE_INVALID_FILTER
+
         if runtime_sort:
             self.logger.info(f"Applying specified sort {runtime_sort}")
-            payload["runtime_sort"] = runtime_sort
+            try:
+                sorter = literal_eval(runtime_sort)
+                payload["runtime_sort"] = sorter
+            except Exception as e:
+                self.logger.error(f"Could not parse sort {runtime_sort}")
+                return self.EXIT_CODE_INVALID_SORT
 
         file_path = f"{file_name}.{file_format}"
         response = requests.post(url, headers=self.headers, json=payload)

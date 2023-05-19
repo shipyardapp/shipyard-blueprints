@@ -28,7 +28,6 @@ def get_args():
 def main():
     args = get_args()
     args_dict = {
-        "token": args.token,
         "metadata_identifier": args.metadata_identifier,
         "file_format": args.file_format,
         "runtime_filter": None if args.runtime_filter == "" else args.runtime_filter,
