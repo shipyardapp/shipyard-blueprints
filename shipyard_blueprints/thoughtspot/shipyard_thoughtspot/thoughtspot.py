@@ -110,33 +110,13 @@ class ThoughtSpotClient(DataVisualization):
         with open(file_path, "wb") as f:
             f.write(response.content)
             f.close()
+        # get rid of the first two rows
+        df_cleaned = pd.read_csv(file_path, skiprows=2)
+        df_cleaned.to_csv(file_path, index=False)
 
         self.logger.info(f"Answer report saved to {file_path}")
 
         return response
-
-    # NOTE will delete after approval of PR
-    # def get_metadata(self, metadata_identifier: str) -> list[dict[any, any]]:
-    #     """
-
-    #     Args:
-    #         metadata_identifier: The associated id(s) of the metadata
-
-    #     Returns: The json response from the api
-
-    #     """
-    #     url = "https://my2.thoughtspot.cloud/api/rest/2.0/metadata/tml/export"
-    #     headers = {
-    #         "Accept": "application/json",
-    #         "Authorization": f"Bearer {self.token}",
-    #         "Content-Type": "application/json",
-    #     }
-    #     inner_payload = []
-    #     for identifier in metadata_identifier:
-    #         inner_payload.append({"identifier": identifier})
-    #     payload = {"metadata": inner_payload}
-    #     response = requests.post(url, headers=headers, json=payload)
-    #     return response.json()
 
     def search_data(
         self,
@@ -159,7 +139,7 @@ class ThoughtSpotClient(DataVisualization):
         """
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/searchdata"
         headers = deepcopy(self.headers)
-        headers['Accept'] = 'application/json'
+        headers["Accept"] = "application/json"
         payload = {"query_string": query, "logical_table_identifier": table_identifier}
         if num_rows:
             self.logger.info(f"Grabbing {num_rows} rows")
@@ -184,7 +164,7 @@ class ThoughtSpotClient(DataVisualization):
     def connect(self, username: str, password: str):
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/auth/session/login"
         headers = deepcopy(self.headers)
-        headers['Accept'] = 'application/json'
+        headers["Accept"] = "application/json"
         payload = {"username": username, "password": password}
         response = requests.post(url, headers=headers, json=payload)
         return response

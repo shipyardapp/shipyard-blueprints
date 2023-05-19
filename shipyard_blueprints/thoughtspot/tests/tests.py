@@ -50,11 +50,11 @@ def test_export_live_report_pdf(format="pdf"):
     return response
 
 
-def test_metadata_export():
-    token = os.getenv("THOUGHTSPOT_TOKEN")
-    client = ThoughtSpotClient(token)
-    response = client.get_metadata(["b95b0bce-b036-4a0e-9af0-ba00621f9696"])
-    # response = client.get_metadata("b95b0bce-b036-4a0e-9af0-ba00621f9696")
+# def test_metadata_export():
+#     token = os.getenv("THOUGHTSPOT_TOKEN")
+#     client = ThoughtSpotClient(token)
+#     response = client.get_metadata(["b95b0bce-b036-4a0e-9af0-ba00621f9696"])
+#     # response = client.get_metadata("b95b0bce-b036-4a0e-9af0-ba00621f9696")
 
 
 def test_search_data():
@@ -69,8 +69,6 @@ def test_search_data():
 
 
 if __name__ == "__main__":
-    # conn = test_connection()
-    # resp_answer = test_export_answer_report()
-    # resp_live = test_export_live_report()
-    resp_meta = test_metadata_export()
-    # resp_search = print(test_search_data())
+    resp_answer = test_export_answer_report()
+    resp_live = test_export_live_report()
+    resp_search = print(test_search_data())
