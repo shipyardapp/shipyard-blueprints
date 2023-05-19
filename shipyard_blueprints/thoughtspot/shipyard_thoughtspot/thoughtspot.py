@@ -6,12 +6,15 @@ import sys
 from copy import deepcopy
 from shipyard_templates import DataVisualization
 from requests import Response
+from ast import literal_eval
 
 
 class ThoughtSpotClient(DataVisualization):
     EXIT_CODE_LIVE_REPORT_ERROR = 200
     EXIT_CODE_ANSWER_REPORT_ERROR = 201
     EXIT_CODE_BAD_REQUEST = 202
+    EXIT_CODE_INVALID_FILTER = 203
+    EXIT_CODE_INVALID_SORT = 204
 
     def __init__(self, token) -> None:
         self.token = token
@@ -27,8 +30,8 @@ class ThoughtSpotClient(DataVisualization):
         visualization_identifiers: list = None,
         file_format: str = "csv",
         file_name: str = "liveboard",
-        runtime_filter: str = None,
-        runtime_sort: str = None,
+        runtime_filter: dict = None,
+        runtime_sort: dict = None,
     ) -> Response:
         """
 
@@ -36,8 +39,8 @@ class ThoughtSpotClient(DataVisualization):
             metadata_identifier: the id of the associated metadata
             visualization_identifiers: a list of associated visualizations to include. If left blank, then all will be included
             file_format: Option of csv, png, pdf, or xlsx
-            runtime_filter: A column condition to filter the data
-            runtime_sort:  A column sort to sort the output
+            runtime_filter: A column condition to filter the data. Example: {"col1": "column_name", "operator": "EQ", "val1": 2}
+            runtime_sort:  A column sort to sort the output. Example: {"col1": "column_name", "asc1" : "true", "col2": "column_name", "asc2": "false"}
             file_name: The name of the output file
         """
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/report/liveboard"
@@ -47,10 +50,20 @@ class ThoughtSpotClient(DataVisualization):
         }
         if runtime_filter:
             self.logger.info(f"Applying specified filter {runtime_filter}")
-            payload["runtime_filter"] = runtime_filter
+            try:
+                filt = literal_eval(runtime_filter)
+                payload["runtime_filter"] = filt
+            except Exception as e:
+                self.logger.error(f"Could not parse filter {runtime_filter}")
+                return self.EXIT_CODE_INVALID_FILTER
         if runtime_sort:
             self.logger.info(f"Applying specified sort {runtime_sort}")
-            payload["runtime_sort"] = runtime_sort
+            try:
+                sorter = literal_eval(runtime_sort)
+                payload["runtime_sort"] = sorter
+            except Exception as e:
+                self.logger.error(f"Could not parse sort {runtime_sort}")
+                return self.EXIT_CODE_INVALID_SORT
         if visualization_identifiers:
             self.logger.info(
                 f"Apply specified visualizations {visualization_identifiers}"
@@ -62,9 +75,14 @@ class ThoughtSpotClient(DataVisualization):
             self.logger.error(
                 f"There was an error in the request. Message from the API is: {response.json()}"
             )
+            return self.EXIT_CODE_LIVE_REPORT_ERROR
         with open(file_path, "wb") as f:
             f.write(response.content)
             f.close()
+
+        if file_format == "csv":
+            df_cleaned = pd.read_csv(file_path, skiprows=4)
+            df_cleaned.to_csv(file_path, index=False)
         self.logger.info(f"Live report saved to {file_path}")
         return response
 
@@ -81,8 +99,8 @@ class ThoughtSpotClient(DataVisualization):
         Args:
             metadata_identifier: The id for the associated answer report
             file_format: The desired output file format (csv, png, pdf, xlsx)
-            runtime_filter: Column filter to be applied
-            runtime_sort:  Column sort to be applied
+            runtime_filter: A column condition to filter the data. Example: {"col1": "column_name", "operator": "EQ", "val1": 2}
+            runtime_sort:  A column sort to sort the output. Example: {"col1": "column_name", "asc1" : "true", "col2": "column_name", "asc2": "false"}
             file_name: Name of the exported file (default is export)
 
         Returns:  The HTTP response from the api call
@@ -95,10 +113,21 @@ class ThoughtSpotClient(DataVisualization):
         }
         if runtime_filter:
             self.logger.info(f"Applying specified filter {runtime_filter}")
-            payload["runtime_filter"] = runtime_filter
+            try:
+                filt = literal_eval(runtime_filter)
+                payload["runtime_filter"] = filt
+            except Exception as e:
+                self.logger.error(f"Invalid filter {runtime_filter}")
+                return self.EXIT_CODE_INVALID_FILTER
+
         if runtime_sort:
             self.logger.info(f"Applying specified sort {runtime_sort}")
-            payload["runtime_sort"] = runtime_sort
+            try:
+                sorter = literal_eval(runtime_sort)
+                payload["runtime_sort"] = sorter
+            except Exception as e:
+                self.logger.error(f"Could not parse sort {runtime_sort}")
+                return self.EXIT_CODE_INVALID_SORT
 
         file_path = f"{file_name}.{file_format}"
         response = requests.post(url, headers=self.headers, json=payload)
@@ -162,10 +191,7 @@ class ThoughtSpotClient(DataVisualization):
             self.logger.error(f"Response code is {response.status_code}")
             self.logger.error(f"Response from API is {response.json()}")
 
-    def connect(self, username: str, password: str):
-        url = "https://my2.thoughtspot.cloud/api/rest/2.0/auth/session/login"
-        headers = deepcopy(self.headers)
-        headers["Accept"] = "application/json"
-        payload = {"username": username, "password": password}
-        response = requests.post(url, headers=headers, json=payload)
+    def connect(self) -> Response:
+        url = "https://my2.thoughtspot.cloud/api/rest/2.0/auth/session/user"
+        response = requests.post(url, headers=self.headers)
         return response
