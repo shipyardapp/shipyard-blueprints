@@ -39,8 +39,8 @@ class ThoughtSpotClient(DataVisualization):
             metadata_identifier: the id of the associated metadata
             visualization_identifiers: a list of associated visualizations to include. If left blank, then all will be included
             file_format: Option of csv, png, pdf, or xlsx
-            runtime_filter: A column condition to filter the data
-            runtime_sort:  A column sort to sort the output
+            runtime_filter: A column condition to filter the data. Example: {"col1": "column_name", "operator": "EQ", "val1": 2}
+            runtime_sort:  A column sort to sort the output. Example: {"col1": "column_name", "asc1" : "true", "col2": "column_name", "asc2": "false"}
             file_name: The name of the output file
         """
         url = "https://my2.thoughtspot.cloud/api/rest/2.0/report/liveboard"
@@ -99,8 +99,8 @@ class ThoughtSpotClient(DataVisualization):
         Args:
             metadata_identifier: The id for the associated answer report
             file_format: The desired output file format (csv, png, pdf, xlsx)
-            runtime_filter: Column filter to be applied
-            runtime_sort:  Column sort to be applied
+            runtime_filter: A column condition to filter the data. Example: {"col1": "column_name", "operator": "EQ", "val1": 2}
+            runtime_sort:  A column sort to sort the output. Example: {"col1": "column_name", "asc1" : "true", "col2": "column_name", "asc2": "false"}
             file_name: Name of the exported file (default is export)
 
         Returns:  The HTTP response from the api call
