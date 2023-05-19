@@ -10,7 +10,7 @@ def get_args():
 
 def main():
     args = get_args()
-    token = args.token
+    token = args["token"]
     tc = ThoughtSpotClient(token=token)
     try:
         resp = tc.connect()
