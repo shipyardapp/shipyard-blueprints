@@ -111,8 +111,9 @@ class ThoughtSpotClient(DataVisualization):
             f.write(response.content)
             f.close()
         # get rid of the first two rows
-        df_cleaned = pd.read_csv(file_path, skiprows=2)
-        df_cleaned.to_csv(file_path, index=False)
+        if file_format == "csv":
+            df_cleaned = pd.read_csv(file_path, skiprows=2)
+            df_cleaned.to_csv(file_path, index=False)
 
         self.logger.info(f"Answer report saved to {file_path}")
 
