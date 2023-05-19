@@ -191,10 +191,7 @@ class ThoughtSpotClient(DataVisualization):
             self.logger.error(f"Response code is {response.status_code}")
             self.logger.error(f"Response from API is {response.json()}")
 
-    def connect(self, username: str, password: str):
-        url = "https://my2.thoughtspot.cloud/api/rest/2.0/auth/session/login"
-        headers = deepcopy(self.headers)
-        headers["Accept"] = "application/json"
-        payload = {"username": username, "password": password}
-        response = requests.post(url, headers=headers, json=payload)
+    def connect(self) -> Response:
+        url = "https://my2.thoughtspot.cloud/api/rest/2.0/auth/session/user"
+        response = requests.post(url, headers=self.headers)
         return response
