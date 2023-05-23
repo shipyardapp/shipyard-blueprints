@@ -1,4 +1,5 @@
 import argparse
+import sys
 from shipyard_thoughtspot import ThoughtSpotClient
 
 
@@ -32,7 +33,7 @@ def main():
     except Exception as e:
         client.logger.error("There was an error in exporting the query results")
         client.logger.error(e)
-        return client.EXIT_CODE_BAD_REQUEST
+        sys.exit(client.EXIT_CODE_BAD_REQUEST)
 
 
 if __name__ == "__main__":

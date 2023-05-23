@@ -1,4 +1,5 @@
 import argparse
+import sys
 from shipyard_thoughtspot import ThoughtSpotClient
 
 
@@ -38,6 +39,10 @@ def main():
     try:
         client.logger.info(f"Attempting to export answer report")
         response = client.get_answer_report(**args_dict)
+        if response == client.EXIT_CODE_INVALID_SORT:
+            sys.exit(client.EXIT_CODE_INVALID_SORT)
+        if response == client.EXIT_CODE_INVALID_FILTER:
+            sys.exit(client.EXIT_CODE_INVALID_FILTER)
         if response.status_code == 200:
             client.logger.info(
                 f"Successfully exported answer report to {args.file_name}.{args.file_format}"
