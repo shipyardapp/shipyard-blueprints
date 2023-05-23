@@ -1,4 +1,5 @@
 import argparse
+import sys
 from shipyard_thoughtspot import ThoughtSpotClient
 
 
@@ -37,6 +38,15 @@ def main():
     client = ThoughtSpotClient(token=args.token)
     try:
         response = client.get_live_report(**args_dict)
+        if response == client.EXIT_CODE_INVALID_FILTER:
+            sys.exit(client.EXIT_CODE_INVALID_FILTER)
+
+        if response == client.EXIT_CODE_INVALID_SORT:
+            sys.exit(client.EXIT_CODE_INVALID_SORT)
+
+        if response == client.EXIT_CODE_LIVE_REPORT_ERROR:
+            sys.exit(client.EXIT_CODE_LIVE_REPORT_ERROR)
+
         if response.status_code == 200:
             client.logger.info(
                 f"Successfully exported live report to {args.file_name}.{args.file_format}"
@@ -44,7 +54,7 @@ def main():
     except Exception as e:
         client.logger.error("There was an error in exporting the live report")
         client.logger.error(e)
-        return client.EXIT_CODE_LIVE_REPORT_ERROR
+        sys.exit(client.EXIT_CODE_LIVE_REPORT_ERROR)
 
 
 if __name__ == "__main__":
