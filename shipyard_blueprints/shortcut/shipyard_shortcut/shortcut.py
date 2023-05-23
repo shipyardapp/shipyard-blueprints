@@ -213,3 +213,29 @@ class ShortcutClient(ProjectManagement):
         else:
             self.logger.info('Comment successfully added to story')
 
+    def add_task(self,story_id: int,
+                 task_name: str
+                 ) -> dict:
+        """
+        Adds a task to a story in Shortcut
+
+        :param story_id: The ID of the story to add a task to
+        :param task_name: The name of the task to add
+        :return: The task response details
+        """
+        self.logger.info('Attempting to add a task to a story...')
+        try:
+            response = self._request(f'stories/{story_id}/tasks',
+                                     method='POST',
+                                     data={'description': task_name})
+        except Exception as error:
+            if error.response.status_code == 404:
+                self.logger.error(f'Failed to retrieve story: {error}')
+                raise TicketNotFound from error
+            else:
+                self.logger.error(f'Failed to add task to story: {error}')
+                raise Exception(error) from error
+            raise error
+        else:
+            self.logger.info('Task successfully added to story')
+            return response
