@@ -20,13 +20,11 @@ class ShortcutClient(ProjectManagement):
                  verbose=False,
                  **kwargs) -> None:
         super().__init__(access_token, **kwargs)
-        self.__access_token = access_token
         self.logger.setLevel(DEBUG if verbose else INFO)
 
         self.logger.info('Establishing Shortcut Client...')
         self.base_url = "https://api.app.shortcut.com/api/v3/"
         self.access_token = access_token
-        self.logger.info('Shortcut Client successfully established')
 
     def _request(self,
                  endpoint: str,
@@ -34,7 +32,7 @@ class ShortcutClient(ProjectManagement):
                  data: dict = None
                  ) -> dict:
         """
-        A helper function for making requests to the Jira API
+        A helper function for making requests to the Shortcut API
 
         :param endpoint: The endpoint to make the request to
         :param method: The HTTP method to use

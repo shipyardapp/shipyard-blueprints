@@ -8,8 +8,8 @@ packages = [{include = "shipyard_shortcut"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-requests = "^2.30.0"
-# shipyard-templates = "^0.1.2"
+requests = "2.28.0"
+shipyard-templates = "^0.1.4"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-templates = {path = "../../shipyard-templates", develop = true}
