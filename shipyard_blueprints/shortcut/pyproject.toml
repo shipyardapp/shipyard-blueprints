@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-shortcut"
-version = "0.1.0"
+version = "0.1.1"
 description = "A local client for connecting and working with the shortcut app"
 authors = ["JR <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"
