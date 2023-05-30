@@ -134,6 +134,7 @@ class ShortcutClient(ProjectManagement):
             response = self._request('stories', method='POST', data=data)
         except Exception as error:
             self.logger.error(f'Failed to create story: {error}')
+            raise error
         else:
             self.logger.info('Story successfully created')
             return response

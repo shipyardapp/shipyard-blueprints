@@ -45,7 +45,7 @@ shortcut.create_ticket(<project_id>, <ticket_type>, <title>, <description>, <wor
 * **Note:** If --labels or --tasks are provided, they should be comma-separated values.
 
 ## Authentication
-Step 1: Go to https://app.shortcut.com/shipyardapp/settings/account/api-tokens to generate an API token.
+Step 1: Go to https://app.shortcut.com/<workspace_name>/settings/account/api-tokens to generate an API token.
 Step 2: Give the token a memorable name and click "Generate Token".
 ## Finding the Workflow State ID in Shortcut:
 1. **Navigate to the Shortcut Board:** Go to the Shortcut board where you want to find the workflow state ID.
