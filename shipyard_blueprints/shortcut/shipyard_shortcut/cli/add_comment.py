@@ -10,13 +10,12 @@ def get_args():
     parser.add_argument("--access-token", dest="access_token", required=True)
     parser.add_argument("--story-id", dest="story_id", required=True)
     parser.add_argument("--comment", dest="comment", required=True)
-    parser.add_argument("--verbose", dest="verbose", default=False, action="store_true")
     return parser.parse_args()
 
 
 def main():
     args = get_args()
-    shortcut = ShortcutClient(access_token=args.access_token, verbose=args.verbose)
+    shortcut = ShortcutClient(access_token=args.access_token)
 
     try:
         shortcut.add_comment(story_id=args.story_id, comment=args.comment)

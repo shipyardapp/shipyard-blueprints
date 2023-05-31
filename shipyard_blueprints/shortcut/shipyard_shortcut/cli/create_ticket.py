@@ -15,7 +15,6 @@ def get_args():
     parser.add_argument('--labels', dest='labels', required=False, default=None)
     parser.add_argument('--deadline', dest='deadline', required=False, default=None)
     parser.add_argument('--tasks', dest='tasks', required=False, default=None)
-    parser.add_argument("--verbose", dest="verbose", default=False, action="store_true")
 
     return parser.parse_args()
 
@@ -23,9 +22,8 @@ def get_args():
 def main():
     args = get_args()
     args_dict = vars(args)
-    shortcut = ShortcutClient(access_token=args.access_token, verbose=args.verbose)
+    shortcut = ShortcutClient(access_token=args.access_token)
     args_dict.pop('access_token')
-    args_dict.pop('verbose')
 
     if args_dict['labels']:
         labels = args_dict['labels'].split(',')
