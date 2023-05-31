@@ -8,24 +8,21 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--access-token", dest="access_token", required=True)
     parser.add_argument('--story-id', dest='story_id', required=True)
-    parser.add_argument('--story-name', dest='story_name', required=False, default=None)
+    parser.add_argument('--story-name', dest='name', required=False, default=None)
     parser.add_argument('--workflow-state-id', dest='workflow_state_id', required=False, default=None)
     parser.add_argument('--description', dest='description', required=False, default=None)
-    parser.add_argument('--story-type', dest='story_type', choices=['feature', 'bug', 'chore'], required=True)
+    parser.add_argument('--story-type', dest='story_type', choices=['feature', 'bug', 'chore',''], required=False)
     parser.add_argument('--labels', dest='labels', required=False, default=None)
     parser.add_argument('--deadline', dest='deadline', required=False, default=None)
     parser.add_argument('--tasks', dest='tasks', required=False, default=None)
-    parser.add_argument('--verbose', dest='verbose', default=False, action='store_true')
     return parser.parse_args()
 
 
 def main():
     args = get_args()
     args_dict = vars(args)
-    shortcut = ShortcutClient(access_token=args.access_token, verbose=args.verbose)
+    shortcut = ShortcutClient(access_token=args.access_token)
     args_dict.pop('access_token')
-    args_dict.pop('verbose')
-
     tasks = None
     if args_dict['labels']:
         labels = args_dict['labels'].split(',')
