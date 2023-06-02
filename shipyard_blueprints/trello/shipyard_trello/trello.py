@@ -142,7 +142,7 @@ class TrelloClient(ProjectManagement):
         Updates a Trello card on a specific board and list.
 
         :param card_id: The ID of the Trello card you wish to update
-        :param board_id: The ID of the Trello board you wish to move the card to
+        :param board_id: The ID of the Trello board ID
         :param list_name: The name of the Trello list you wish to move the card to
         :param card_name: The updated card name
         :param description: The description of the Trello card
@@ -250,4 +250,4 @@ class TrelloClient(ProjectManagement):
                     self.logger.info(f'List {list_name} retrieved successfully!')
                     return board_list
             self.logger.error(f'List {list_name} not found! Please check spelling and try again.')
-            return None
+            raise Exception(f'List {list_name} not found! Please check spelling and try again.')
