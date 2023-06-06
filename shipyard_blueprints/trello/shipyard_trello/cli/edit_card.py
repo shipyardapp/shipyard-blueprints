@@ -1,16 +1,16 @@
 import argparse
 import sys
-from trello import TrelloClient
+from shipyard_trello import TrelloClient
 
 
 def get_args():
     parser = argparse.ArgumentParser(description='Update a Trello card.')
-    parser.add_argument('--access_token', required=True, help='Your Trello access token.')
-    parser.add_argument('--api_key', required=True, help='Your Trello API key.')
-    parser.add_argument('--card_id', required=True, help='The ID of the Trello card you wish to update.')
-    parser.add_argument('--board_id', help='The ID of the Trello board you wish to move the card to.')
-    parser.add_argument('--list_name', help='The name of the Trello list you wish to move the card to.')
-    parser.add_argument('--card_name', help='The updated card name.')
+    parser.add_argument('--access-token', required=True, help='Your Trello access token.')
+    parser.add_argument('--api-key', required=True, help='Your Trello API key.')
+    parser.add_argument('--card-id', required=True, help='The ID of the Trello card you wish to update.')
+    parser.add_argument('--board-id', help='The ID of the Trello board you wish to move the card to.')
+    parser.add_argument('--list-name', help='The name of the Trello list you wish to move the card to.')
+    parser.add_argument('--card-name', help='The updated card name.')
     parser.add_argument('--description', help='The description of the Trello card.')
     parser.add_argument('--due_date', help='The due date of the Trello card.')
     return parser.parse_args()
