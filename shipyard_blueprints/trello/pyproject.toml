@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-trello"
-version = "0.1.1a0"
+version = "0.1.1"
 description = "A local client for connecting a working with Trello."
 authors = ["JR <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"
