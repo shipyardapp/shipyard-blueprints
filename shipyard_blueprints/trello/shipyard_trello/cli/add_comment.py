@@ -1,13 +1,13 @@
 import argparse
 import sys
-from trello import TrelloClient
+from shipyard_trello import TrelloClient
 
 
 def get_args():
     parser = argparse.ArgumentParser(description='Add comment to a Trello card')
-    parser.add_argument('--access_token', required=True, help='Access token for Trello API')
-    parser.add_argument('--api_key', required=True, help='API Key for Trello API')
-    parser.add_argument('--card_id', required=True, help='ID of the Trello card')
+    parser.add_argument('--access-token', required=True, help='Access token for Trello API')
+    parser.add_argument('--api-key', required=True, help='API Key for Trello API')
+    parser.add_argument('--card-id', required=True, help='ID of the Trello card')
     parser.add_argument('--comment', required=True, help='Comment to add to the card')
 
     return parser.parse_args()

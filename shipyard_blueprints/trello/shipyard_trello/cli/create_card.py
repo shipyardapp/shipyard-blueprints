@@ -1,6 +1,6 @@
 import argparse
 import sys
-from trello import TrelloClient
+from shipyard_trello import TrelloClient
 
 
 def get_args():

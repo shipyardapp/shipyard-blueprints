@@ -1,1 +1,1 @@
-from .trello import TrelloClient, TicketNotFound
+from .trello import TrelloClient
