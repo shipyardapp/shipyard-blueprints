@@ -8,7 +8,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--access-token', required=True, help='Access token for ClickUp API')
     parser.add_argument('--task-id', required=True, help='ID of the ClickUp task')
-    parser.add_argument('--name', required=True, help='Name of the task')
+    parser.add_argument('--name',  help='Name of the task')
     parser.add_argument('--description')
     parser.add_argument('--tags')
     parser.add_argument('--due-date')
