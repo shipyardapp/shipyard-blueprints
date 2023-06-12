@@ -53,7 +53,7 @@ def main():
         "approval_status": approval_status,
         "due_on": None if due_on == '' else due_on,
         "workspace": workspace_id,
-        "projects": None if project_id == '' else [project_id],
+        "projects": [] if project_id == '' else [project_id],
         "assignee": None if args.assignee == '' else args.assignee,
         "notes": None if args.notes == '' else args.notes
     }
