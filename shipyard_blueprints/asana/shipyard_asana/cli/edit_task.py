@@ -13,7 +13,7 @@ def get_args():
     parser.add_argument('--ticket-id', type = str, required = True, dest = 'ticket_id')
     parser.add_argument('--name', type = str, dest = 'name', required = False, default = '')
     parser.add_argument('--resource-subtype', type = str, dest = 'resource_subtype', required = False, default = 'default_task', choices = {'default_task', 'milestone','section','approval'})
-    parser.add_argument('--approval_status', type = str, dest = 'approval_status', required = False, default = 'pending', choices = {'pending','approved','rejected','changes_requested'})
+    parser.add_argument('--approval-status', type = str, dest = 'approval_status', required = False, default = 'pending', choices = {'pending','approved','rejected','changes_requested'})
     parser.add_argument("--assignee", type = str, dest = 'assignee', required = False, default = '')
     parser.add_argument('--due-on', type = str, dest = 'due_on', required = False, default = '')
     parser.add_argument('--notes', type = str, dest = 'notes', required = False, default = '')
