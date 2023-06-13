@@ -198,7 +198,7 @@ rsa = ["oauthlib[signedtoken] (>=3.0.0)"]
 [[package]]
 name = "sanity-loader"
 version = "0.1.0"
-description = ""
+description = "A collection of helper clients and scripts for Shipyard Development"
 category = "dev"
 optional = false
 python-versions = "^3.9"
@@ -213,7 +213,7 @@ requests = "2.31"
 type = "git"
 url = "https://github.com/shipyardapp/sanity-loader.git"
 reference = "HEAD"
-resolved_reference = "00d68abf06dfb6a88afd42d5f7574da378d6d5e9"
+resolved_reference = "5e3560883d93b03857d9f336d174bcef40861579"
 
 [[package]]
 name = "shipyard-templates"
