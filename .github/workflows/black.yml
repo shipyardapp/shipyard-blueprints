@@ -1,0 +1,48 @@
+name: Black Autoformatting
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Format code with black
+        run: |
+          pip install black
+          git fetch origin
+          MODIFIED_PYTHON_FILES=$(git diff --name-only --diff-filter=d FETCH_HEAD | grep '.py$')
+          if [ ! -z "$MODIFIED_PYTHON_FILES" ]; then
+            black $MODIFIED_PYTHON_FILES
+          fi
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Check for changes
+        id: git_diff_check
+        run: |
+          git diff-index --quiet HEAD || echo "::set-output name=changes_detected::true"
+
+      - name: Commit and push changes
+        if: steps.git_diff_check.outputs.changes_detected
+        run: |
+          git add .
+          git commit -m "Format code with black"
+          git push origin HEAD:${{ github.ref }}
+
+      - name: No changes
+        if: ${{ !steps.git_diff_check.outputs.changes_detected }}
+        run: echo "No changes detected"

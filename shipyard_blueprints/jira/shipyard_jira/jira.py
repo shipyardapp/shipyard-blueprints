@@ -19,8 +19,7 @@ class JiraClient(ProjectManagement):
         )
         logging.info('Establishing Jira Client...')
 
-        if domain.endswith('/'):
-            domain = domain[:-1]
+        domain = domain.removesuffix('/')
         if domain.startswith("http://"):
             domain = domain.replace("http://", "")
             domain = f"https://{domain}"
