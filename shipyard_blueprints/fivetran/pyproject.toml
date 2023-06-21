@@ -11,6 +11,7 @@ packages = [{include = "shipyard_fivetran"}]
 python = "^3.9"
 pytz = "2023.3"
 requests = "2.31.0"
+shipyard-templates = "0.1.6"
 
 
 [tool.poetry.group.dev.dependencies]
