@@ -40,8 +40,7 @@ def main():
         sync_status_data, sync_run_data_file_name)
 
     # get sync status exit code and exit
-    exit_code_status = rudderstack.determine_sync_status(
-        sync_status_data, source_id)
+    exit_code_status = rudderstack.determine_sync_status(sync_status_data)
     sys.exit(exit_code_status)
 
 

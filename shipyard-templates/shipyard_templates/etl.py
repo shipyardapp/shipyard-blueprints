@@ -34,5 +34,5 @@ class Etl(ABC):
         pass
 
     @abstractmethod
-    def determine_sync_status(self):
+    def determine_sync_status(self, **kwargs):
         pass

@@ -7,8 +7,7 @@ Simplified data pipeline blueprints for working with Rudderstack.
 -  `get_source_data`
 
 
-### Example 
-
+### Example
 
 ```python
 from shipyard_rudderstack import RudderStack
@@ -24,7 +23,7 @@ print(source_response['status'])
 
 # Determine response status
 # Note: This is not recommended to be used for scripting. This is a utility function for the Shipyard application
-rudderstack.determine_sync_status(source_response, "<source-id>")
+rudderstack.determine_sync_status(source_response)
 
 ```
 
