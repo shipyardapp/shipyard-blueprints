@@ -20,19 +20,32 @@ jobs:
         run: |
           MODIFIED_PYTHON_FILES=$(git diff --name-only --diff-filter=d FETCH_HEAD | find -name '*.py')
           if [ -z "$MODIFIED_PYTHON_FILES" ]; then
-            echo "::set-output name=no_changes::true"
+            echo "no_changes=true" >> $GITHUB_ENV
           else
-            echo "::set-output name=no_changes::false"
+            echo "no_changes=false" >> $GITHUB_ENV
           fi
         shell: bash
 
-      - name: Format code with black
+      - name: Install black
+        run: |
+          pip install black
+
+      - name: Check code formatting with black
+        id: check_code_formatting
         run: |
           if [[ "${{ steps.check_files.outputs.no_changes }}" == "false" ]]; then
-            pip install black
-            black $MODIFIED_PYTHON_FILES
+            black --check $MODIFIED_PYTHON_FILES
+            echo "code_formatted=true" >> $GITHUB_ENV
           else
-            echo "No modified Python files detected. Skipping formatting."
+            echo "No modified Python files detected. Skipping formatting check."
+            echo "code_formatted=false" >> $GITHUB_ENV
+          fi
+
+      - name: Fail if code is not properly formatted
+        run: |
+          if [[ "${{ env.code_formatted }}" == "false" ]]; then
+            echo "Code is not properly formatted. Failing the pipeline."
+            exit 1
           fi
 
       - name: Setup Git
@@ -43,7 +56,7 @@ jobs:
       - name: Check for changes
         id: git_diff_check
         run: |
-          git diff-index --quiet HEAD || echo "::set-output name=changes_detected::true"
+          git diff-index --quiet HEAD || echo "changes_detected=true" >> $GITHUB_ENV
 
       - name: Commit and push changes
         if: steps.git_diff_check.outputs.changes_detected
