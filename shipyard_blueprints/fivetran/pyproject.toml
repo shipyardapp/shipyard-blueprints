@@ -1,21 +1,21 @@
 [tool.poetry]
 name = "shipyard-fivetran"
-version = "0.1.0"
+version = "0.1.1a0"
 description = "A local client for connecting and working with Fivetran"
-authors = ["wrp801 <wespoulsen@gmail.com>"]
+authors = ["JR <johnathan.rodriguez@shipyardapp.com>" ,"wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
-readme = "README.md"
+#readme = "README.md"
 packages = [{include = "shipyard_fivetran"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 pytz = "2023.3"
+requests = "2.31.0"
 
 
 [tool.poetry.group.dev.dependencies]
 shipyard-templates = {path = "../../shipyard-templates"}
 shipyard-bp-utils = {path = "../shipyard-bp-utils"}
-
 
 [build-system]
 requires = ["poetry-core"]
