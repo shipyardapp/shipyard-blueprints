@@ -10,7 +10,7 @@ def get_args():
     try:
         args['region'] = os.environ.get('AWS_REGION')
     except Exception as e:
-        args['aws_default_region'] = 'us-east-2'
+        args['region'] = 'us-east-2'
     return args
 
 
