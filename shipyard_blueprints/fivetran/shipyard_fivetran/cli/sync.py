@@ -23,8 +23,8 @@ def get_args():
     parser.add_argument(
         "--interval",
         type=int,
-        default=30,
-        help="Interval in seconds to check for sync completion (optional, default: 30)",
+        default=1,
+        help="Interval in minutes to check for sync completion (optional, default: 1)",
     )
 
     return parser.parse_args()
@@ -45,7 +45,7 @@ def main():
             args.connector_id,
             force=force_sync,
             wait_for_completion=wait_for_completion,
-            poke_interval=poke_interval,
+            poke_interval=poke_interval * 60,
         )
     except ExitCodeException as e:
         fivetran_client.logger.error(e)
