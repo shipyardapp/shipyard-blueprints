@@ -7,9 +7,9 @@ from shipyard_templates import ExitCodeException
 
 def get_args():
     parser = argparse.ArgumentParser(description="Trigger a sync using FivetranClient")
-    parser.add_argument("access_token", type=str, help="Fivetran API access token")
-    parser.add_argument("api_secret", type=str, help="Fivetran API secret")
-    parser.add_argument("connector_id", type=str, help="ID of the connector")
+    parser.add_argument("--api-key", type=str, help="Fivetran API access token")
+    parser.add_argument("--api-secret", type=str, help="Fivetran API secret")
+    parser.add_argument("--connector-id", type=str, help="ID of the connector")
     parser.add_argument(
         "--force",
         default="TRUE",
@@ -38,7 +38,7 @@ def main():
     force_sync = force_sync.upper() == "TRUE"
     poke_interval = args.interval
 
-    fivetran_client = FivetranClient(args.access_token, args.api_secret)
+    fivetran_client = FivetranClient(access_token=args.api_key, api_secret=args.api_secret)
 
     try:
         fivetran_client.trigger_sync(

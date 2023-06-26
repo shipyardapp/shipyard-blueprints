@@ -9,9 +9,9 @@ def get_args():
     parser = argparse.ArgumentParser(
         description="Update a connector using FivetranClient"
     )
-    parser.add_argument("access_token", type=str, help="Fivetran API access token")
-    parser.add_argument("api_secret", type=str, help="Fivetran API secret")
-    parser.add_argument("connector_id", type=str, help="ID of the connector")
+    parser.add_argument("--api-key", type=str, help="Fivetran API access token")
+    parser.add_argument("--api-secret", type=str, help="Fivetran API secret")
+    parser.add_argument("--connector-id", type=str, help="ID of the connector")
     parser.add_argument(
         "--schedule-type",
         choices=["manual", "auto"],
@@ -41,7 +41,7 @@ def main():
         args_dict["pause"] = args_dict["pause"].upper() == "TRUE"
     if args_dict.get("historical_sync"):
         args_dict["historical_sync"] = args_dict["historical_sync"].upper() == "TRUE"
-    access_token = args_dict.pop("access_token")
+    access_token = args_dict.pop("api_key")
     api_secret = args_dict.pop("api_secret")
     connector_id = args_dict.pop("connector_id")
 
