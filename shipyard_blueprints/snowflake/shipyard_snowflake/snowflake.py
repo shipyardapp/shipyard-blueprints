@@ -3,13 +3,14 @@ import os
 import pandas as pd
 import psutil
 from dask import dataframe as dd
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric import dsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization.ssh import serialize_ssh_public_key
-from shipyard_templates import Database, ExitCodeError
+from shipyard_templates import Database, ExitCodeError, ExitCodeException
+from snowflake.connector import pandas_tools as pt
 
 
 class SnowflakeClient(Database):
@@ -171,15 +172,23 @@ class SnowflakeClient(Database):
             df = pd.read_csv(file, dtypes = pandas_dtypes)
         else:
             # if it doesn't fit in memory, then compress it using GZIP and then try to PUT the file in snowflake
-            pass
-            
+            df = pd.read_csv(file, dtypes = pandas_dtypes)
+        success, nchunks, nrows, output = pt.write_pandas(conn = conn, df = df, table_name = table_name)
+
+    def execute_query(self, conn: snowflake.connector.SnowflakeConnection, query: str):
+        try:
+            cursor = conn.cursor()
+            cursor.execute(query)
+            self.logger.info("Successfully executed query in Snowflake")
+            return cursor
+        except Exception as e:
+            self.logger.error("Could not execute the provided query in Snowflake")
+            raise ExitCodeException(e, self.EXIT_CODE_INVALID_QUERY)
 
 
+
+    def fetch(self, conn:snowflake.connector.SnowflakeConnection, query: str) -> pd.DataFrame:
+        cursor = self.execute_query(conn,query)
+        results = cursor.fetchall()
+        return pd.DataFrame(results, columns = [desc[0] for desc in cursor.description])
         
-
-
-    def execute_query(self, query: str):
-        pass
-
-    def fetch(self, query: str):
-        pass
