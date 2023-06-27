@@ -24,15 +24,15 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def execute_query(self, query: str):
+    def execute_query(self, query: str, **kwargs):
         pass
 
     @abstractmethod
-    def fetch_query_results(self, query: str):
+    def fetch(self, query: str, **kwargs):
         pass
 
     @abstractmethod
-    def upload_csv_to_table(self, file: str):
+    def upload(self, file: str, table_name:str, **kwargs):
         pass
 
 
@@ -63,9 +63,9 @@ class GoogleDatabase():
         pass
 
     @abstractmethod
-    def fetch_query_results(self, query: str):
+    def fetch(self, query: str):
         pass
 
     @abstractmethod
-    def upload_csv_to_table(self, file: str):
+    def upload(self, file: str, table_name:str):
         pass
