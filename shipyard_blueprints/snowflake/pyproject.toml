@@ -9,14 +9,12 @@ packages = [{include = "shipyard_snowflake"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-snowflake-sqlalchemy = "^1.4.7"
-dask = "2022.2.0"
-snowflake-connector-python = {extras = ["pandas"], version = "^3.0.3"}
+snowflake-connector-python = "3.0.4"
 pandas = "1.5.3"
-
+dask = "2022.2.0"
 [tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = {path = "../shipyard-bp-utils"}
-shipyard-templates = {path = "../../shipyard-templates"}
+shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
+shipyard-templates = {path = "../../shipyard-templates", develop = true}
 
 [build-system]
 requires = ["poetry-core"]
