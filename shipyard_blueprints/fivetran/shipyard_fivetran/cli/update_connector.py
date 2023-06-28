@@ -25,10 +25,8 @@ def get_args():
         help="Perform a historical sync (optional)",
     )
     parser.add_argument(
-        '--custom-update',
-        dest='custom_update',
-        default='None',
-        required=False)
+        "--custom-update", dest="custom_update", default="None", required=False
+    )
 
     return parser.parse_args()
 
@@ -45,7 +43,7 @@ def main():
         args_dict["historical_sync"] = args_dict["historical_sync"].upper() == "TRUE"
     if args_dict.get("custom_update"):
         additional_update = args_dict.pop("custom_update")
-        args_dict = {**args_dict,**additional_update}
+        args_dict = {**args_dict, **additional_update}
 
     access_token = args_dict.pop("api_key")
     api_secret = args_dict.pop("api_secret")

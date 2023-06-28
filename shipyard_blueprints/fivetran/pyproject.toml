@@ -12,6 +12,7 @@ python = "^3.9"
 pytz = "2023.3"
 requests = "2.31.0"
 shipyard-templates = "0.1.6"
+shipyard-utils = "0.1.4"
 
 
 [tool.poetry.group.dev.dependencies]
