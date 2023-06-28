@@ -32,7 +32,7 @@ class RudderStackClient(Etl):
                 trigger_sync_url, headers=self.api_headers, timeout=self.TIMEOUT
             )
             if trigger_sync_response.status_code in {200, 204, 201}:
-                self.logger.info("Trigger sync for Source ID %s successful ", source_id)
+                self.logger.info(f"Trigger sync for Source ID {source_id} successful")
             elif trigger_sync_response.status_code == 409:
                 raise ExitCodeException(
                     f"Sync job for Source ID {source_id} is already running",
@@ -121,13 +121,13 @@ class RudderStackClient(Etl):
                 )
             else:
                 self.logger.info(
-                    "Rudderstack reports that the most recent run for source %s finished without errors",
-                    source_id,
-                )
+                    f"Rudderstack reports that the most recent run for source {source_id} finished without errors",
+
+                    )
         elif sync_status == "processing":
             self.logger.info(
-                "Rudderstack reports that the most recent run for source %s is still processing",
-                source_id,
+                f"Rudderstack reports that the most recent run for source {source_id} is still processing",
+
             )
         else:
             raise ExitCodeException(
@@ -145,16 +145,3 @@ class RudderStackClient(Etl):
         """
         response = requests.get(self.api_url, headers=self.api_headers)
         return response.status_code
-
-
-def main():
-    source_id = "2B1ogB7rbYePOzWAejkXPudfryX"
-
-    client = RudderStackClient(access_token=os.environ.get("RUDDERSTACK_ACCESS_TOKEN"))
-    client.trigger_sync(source_id)
-    sync_status = client.determine_sync_status(source_id)
-    print(sync_status)
-
-
-if __name__ == "__main__":
-    main()
