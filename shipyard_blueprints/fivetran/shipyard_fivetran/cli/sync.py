@@ -1,8 +1,23 @@
 import argparse
 import sys
+import os
+import shipyard_utils as shipyard
 
 from shipyard_fivetran import FivetranClient
 from shipyard_templates import ExitCodeException
+
+
+def create_pickle(connector_id):
+    base_folder_name = shipyard.logs.determine_base_artifact_folder("fivetran")
+    artifact_subfolder_paths = shipyard.logs.determine_artifact_subfolders(
+        base_folder_name
+    )
+    shipyard.logs.create_artifacts_folders(artifact_subfolder_paths)
+
+    # save sync run id as variable
+    shipyard.logs.create_pickle_file(
+        artifact_subfolder_paths, "connector_id", connector_id
+    )
 
 
 def get_args():
@@ -22,7 +37,6 @@ def get_args():
     )
     parser.add_argument(
         "--interval",
-        type=int,
         default=1,
         help="Interval in minutes to check for sync completion (optional, default: 1)",
     )
@@ -38,7 +52,16 @@ def main():
     force_sync = force_sync.upper() == "TRUE"
     poke_interval = args.interval
 
-    fivetran_client = FivetranClient(access_token=args.api_key, api_secret=args.api_secret)
+    fivetran_client = FivetranClient(
+        access_token=args.api_key, api_secret=args.api_secret
+    )
+    if (
+        poke_interval == ""
+        and not wait_for_completion
+        and int(os.environ.get("SHIPYARD_FLEET_DOWNSTREAM_COUNT")) > 0
+    ):
+        # This function is to support the legacy check status functionality
+        create_pickle(args.connector_id)
 
     try:
         fivetran_client.trigger_sync(
