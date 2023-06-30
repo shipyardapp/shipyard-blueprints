@@ -1,135 +1,165 @@
-import sys
-import argparse
-import requests
-import shipyard_bp_utils as shipyard
-from shipyard_templates import Etl
-
+from shipyard_templates import Etl, ExitCodeException
+from requests import request
 
 
 class CensusClient(Etl):
     def __init__(self, access_token: str) -> None:
+        """
+        Initialize the CensusClient with an access token.
+
+        Args:
+            access_token (str): The access token for the Census API.
+        """
         self.access_token = access_token
-        self.api_headers = {'Content-Type': 'application/json'}
+        self.api_headers = {"Content-Type": "application/json"}
         super().__init__(access_token)
 
-    def get_sync_status(self, sync_run_id):
+    def _request(self, endpoint: str, method: str = "GET") -> dict:
         """
-        This function returns information on a specific sync run.
-        see https://docs.getcensus.com/basics/api/sync-runs#get-sync_runs-id
+        Send a request to the Census API.
+
+        Args:
+            endpoint (str): The API endpoint.
+            method (str, optional): The HTTP method. Defaults to 'GET'.
+
+        Returns:
+            dict: The JSON response from the API.
+
+        Raises:
+            ExitCodeException: If the request fails or returns an error status code.
         """
-        sync_post_api = f"https://bearer:{self.access_token}@app.getcensus.com/api/v1/sync_runs/{sync_run_id}"
-        check_sync_response = {}
+        base_url = f"https://bearer:{self.access_token}@app.getcensus.com/api/v1/"
+        url = base_url + endpoint
+        self.logger.debug(f"Attempting to make request to {endpoint}")
 
         try:
-            check_sync_response = requests.get(sync_post_api)
-            # check if successful, if not return an error message
-            if check_sync_response.status_code == requests.codes.ok:
-                sync_run_json = check_sync_response.json()
-            else:
-                self.logger.error(
-                    f"Sync check failed. Reason: {check_sync_response.text}")
-                if "Access denied" in check_sync_response.text:
-                    self.logger.info(
-                        'Check to make sure that your access token doesn\'t have any typos and includes "secret-token:"')
-                    sys.exit(self.EXIT_CODE_INVALID_CREDENTIALS)
-                sys.exit(self.EXIT_CODE_BAD_REQUEST)
-        except Exception as e:
-            self.logger.exception(f"Check Sync Run {sync_run_id} failed")
-            sys.exit(self.EXIT_CODE_BAD_REQUEST)
+            response = request(method, url, headers=self.api_headers)
+        except Exception as error:
+            self.logger.exception(f"Request to {url} failed")
+            raise ExitCodeException(error, self.EXIT_CODE_UNKNOWN_ERROR) from error
 
-        if sync_run_json['status'] == 'success':
-            self.logger.info("Successfully managed to check sync")
-            return sync_run_json['data']
-
+        if response.ok:
+            self.logger.info("Request successful")
+            return response.json()
         else:
-            self.logger.error(
-                f"Sync run {sync_run_id} was unsuccessful. Reason: {sync_run_json['data']['error_message']}")
-            sys.exit(self.EXIT_CODE_SYNC_CHECK_ERROR)
+            self.logger.debug(f"Request failed with status code {response.status_code}")
+            if response.status_code == 401:
+                raise ExitCodeException(
+                    response.text, self.EXIT_CODE_INVALID_CREDENTIALS
+                )
+            elif response.status_code == 404:
+                raise ExitCodeException(response.text, self.EXIT_CODE_BAD_REQUEST)
+            elif response.status_code == 409:
+                raise ExitCodeException(
+                    response.text, self.EXIT_CODE_SYNC_ALREADY_RUNNING
+                )
+            else:
+                raise ExitCodeException(response.text, self.EXIT_CODE_UNKNOWN_ERROR)
+
+    def get_sync_status(self, sync_run_id: str) -> dict:
+        """
+        Get information about a specific sync run.
+
+        Args:
+            sync_run_id (str): The ID of the sync run.
+
+        Returns:
+            dict: The sync run information.
+
+        Raises:
+            ExitCodeException: If the request fails or returns an error status code.
+        """
+        try:
+            response = self._request(f"sync_runs/{sync_run_id}")
+        except ExitCodeException as error:
+            self.logger.exception(f"Check Sync Run {sync_run_id} failed")
+            raise ExitCodeException(error.message, error.exit_code) from error
+        else:
+            return response.get("data")
 
     def determine_sync_status(self, sync_run_data: dict) -> int:
         """
-        Analyses sync run data to determine status and print sync run information
+        Analyze sync run data to determine the status and print sync run information.
+
+        Args:
+            sync_run_data (dict): The sync run data.
+
         Returns:
-            status_code: Exit Status code detailing sync status
+            int: The exit status code detailing the sync status.
         """
-        status = sync_run_data['status']
-        sync_id = sync_run_data['sync_id']
-        sync_run_id = sync_run_data['id']
-        status_code = self.EXIT_CODE_FINAL_STATUS_COMPLETED
-        if status == 'completed':
+        status = sync_run_data["status"]
+        sync_id = sync_run_data["sync_id"]
+        sync_run_id = sync_run_data["id"]
+        if status == "completed":
             self.logger.info(
-                f"Sync run {sync_run_id} for {sync_id} completed successfully, Completed at: {sync_run_data['completed_at']}")
-        elif status == 'working':
+                f"Sync run {sync_run_id} for {sync_id} completed successfully, Completed at: {sync_run_data['completed_at']}"
+            )
+        elif status == "failed":
+            error_code = sync_run_data["error_code"]
+            error_message = sync_run_data["error_message"]
+            raise ExitCodeException(
+                f"Sync run:{sync_run_id} for {sync_id} failed. {error_code} {error_message}",
+                self.EXIT_CODE_FINAL_STATUS_ERRORED,
+            )
+
+        elif status == "working":
+            self.logger.info(f"Sync run {sync_run_id} for {sync_id} still running.")
             self.logger.info(
-                f"Sync run {sync_run_id} for {sync_id} still running.")
-            self.logger.info(
-                f"Curent records processed: {sync_run_data['records_processed']}")
-            status_code = self.EXIT_CODE_SYNC_ALREADY_RUNNING
+                f"Current records processed: {sync_run_data['records_processed']}"
+            )
 
-        elif status == 'failed':
-            error_code = sync_run_data['error_code']
-            error_message = sync_run_data['error_message']
-            self.logger.error(
-                f"Sync run:{sync_run_id} for {sync_id} failed. {error_code} {error_message}")
-            status_code = self.EXIT_CODE_FINAL_STATUS_ERRORED
-
-        else:
-            self.logger.error(
-                f"An unknown error has occurred with Run:{sync_run_id} with Sync Id {sync_id}")
-            self.logger.info(f"Unknown Sync status: {status}")
-            status_code = self.EXIT_CODE_UNKNOWN_ERROR
-
-        return status_code
+        return status
 
     def trigger_sync(self, sync_id: str) -> dict:
         """
-        Executes a Census Sync
+        Execute a Census Sync.
+
+        Args:
+            sync_id (str): The ID of the sync to trigger.
+
+        Returns:
+            dict: The response from the Census API.
+
+        Raises:
+            ExitCodeException: If the request fails or returns an error status code.
         """
-
-        sync_post_api = f"https://bearer:{self.access_token}@app.getcensus.com/api/v1/syncs/{sync_id}/trigger"
-        sync_trigger_json = {}
         try:
-            sync_trigger_response = requests.post(
-                sync_post_api, headers=self.api_headers)
+            response = self._request(f"/syncs/{sync_id}/trigger", method="POST")
 
-            if sync_trigger_response.status_code == requests.codes.ok:
-                sync_trigger_json = sync_trigger_response.json()
-
-            elif sync_trigger_response.status_code == 404:
+        except ExitCodeException as error:
+            self.logger.error(f"Sync trigger request failed due to: {error}")
+            raise ExitCodeException(error.message, error.exit_code) from error
+        else:
+            response_status = response.get("status")
+            if response_status == "success":
+                self.logger.info("Successfully triggered sync")
+            elif response_status == "error":
                 self.logger.error(
-                    f"Sync request failed. Check if sync ID {sync_id} is valid?")
-                sys.exit(self.EXIT_CODE_BAD_REQUEST)
+                    f"Encountered an error - Census says: {response['message']}"
+                )
             else:
                 self.logger.error(
-                    f"Sync request failed. Reason: {sync_trigger_response.text}")
-                if "Access denied" in sync_trigger_response.text:
-                    self.logger.error(
-                        'Check to make sure that your access token does not have any typos and includes "secret-token:"')
-                    sys.exit(self.EXIT_CODE_INVALID_CREDENTIALS)
-                sys.exit(self.EXIT_CODE_BAD_REQUEST)
-        except Exception as e:
-            self.logger.error(f"Sync trigger request failed due to: {e}")
-            sys.exit(self.EXIT_CODE_BAD_REQUEST)
-
-        if sync_trigger_json['status'] == 'success':
-            self.logger.info("Successfully triggered sync")
-            return sync_trigger_response.json()
-
-        if sync_trigger_json['status'] == 'error':
-            self.logger.error(
-                f"Encountered an error - Census says: {sync_trigger_json['message']}")
-            sys.exit(self.EXIT_CODE_SYNC_REFRESH_ERROR)
-        else:
-            self.logger.error(
-                f"An unknown error has occurred - API response: {sync_trigger_json}")
-            sys.exit(self.EXIT_CODE_UNKNOWN_ERROR)
+                    f"An unknown error has occurred - API response: {response}"
+                )
+            return response
 
     def connect(self) -> int:
-        """ Sends a GET request to Census API to check if connection is successful
-        Returns:
-            int: HTTP status code
         """
-        self.logger.info("Connecting to Census API")
-        url = "https://app.getcensus.com/api/v1/sources"
-        response = requests.get(url, headers=self.api_headers)
-        return response.status_code
+        Send a GET request to the Census API to check if the connection is successful.
+
+        Returns:
+            int: The exit code.
+
+        Raises:
+            ExitCodeException: If the request fails or returns an error status code.
+        """
+        self.logger.info("Verifying Access Token by getting Census Syncs")
+
+        try:
+            self._request("syncs")
+        except ExitCodeException as error:
+            self.logger.error(f"Verification failed due to {error}")
+            return 1
+        else:
+            self.logger.info("Successfully received a response from Census")
+            return 0
