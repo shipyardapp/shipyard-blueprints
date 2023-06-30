@@ -2,8 +2,9 @@ import snowflake.connector
 import os
 import pandas as pd
 import psutil
+import datetime
 from dask import dataframe as dd
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric import dsa
@@ -11,6 +12,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization.ssh import serialize_ssh_public_key
 from shipyard_templates import Database, ExitCodeError, ExitCodeException
 from snowflake.connector import pandas_tools as pt
+from copy import deepcopy
 
 
 class SnowflakeClient(Database):
@@ -106,7 +108,7 @@ class SnowflakeClient(Database):
                     f"Could not authenticate to account {self.account} for user {self.username}")
                 return 1  # failed connection
 
-    def map_snowflake_to_pandas(self, snowflake_data_types:List[List]) -> Dict[str, str] | None:
+    def map_snowflake_to_pandas(self, snowflake_data_types:List[List]) -> Union[Dict, None]:
         """ Helper function to map a snowflake data type to the associated pandas data type
 
         Args:
@@ -149,9 +151,6 @@ class SnowflakeClient(Database):
             try:
                 converted = snowflake_to_pandas[str(dtype).upper()]
                 if converted is None:
-                    # self.logger.error(
-                    #     f"The datatype {field} is not a recognized snowflake datatype")
-                    # sys.exit(errors.EXIT_CODE_INVALID_DATA_TYPES)
                     raise ExitCodeError(f"Invalid datatypes: the datatype {field} is not a recognized snowflake datatype",
                                         self.EXIT_CODE_INVALID_CREDENTIALS)
                 pandas_dtypes[field] = converted
@@ -160,31 +159,85 @@ class SnowflakeClient(Database):
                                     self.EXIT_CODE_INVALID_CREDENTIALS)
         return pandas_dtypes
 
-    def upload(self, conn:snowflake.connector.SnowflakeConnection, file: str, table_name:str, datatypes:List[List]|None = None):
-        if datatypes:
-            # handle datatypes 
-            pandas_dtypes = self.map_snowflake_to_pandas(datatypes)
+    def get_pandas_dates(self,pandas_datatypes: dict) -> tuple:
+        dates = []
+        new_dict = deepcopy(pandas_datatypes)
+        for k, v in pandas_datatypes.items():
+            if v in ["datetime64[ns]", "datetime64"]:
+                dates.append(k)
+                del new_dict[k]
+        return (dates, new_dict) if dates else (None, new_dict)
+
+
+    def read_file(self, file:str, snowflake_dtypes:Union[List,None] = None, file_type:str = 'csv') -> pd.DataFrame:
+        """ Helper function to read in a file to a pandas dataframe. This will be build out in the future to allow for more file types like parquet, arrow, tsv, etc.
+        Args:
+            file (str): The file to be read in as a dataframe
+            pandas_dtypes (Union[Dict,None]): The optional dictionary of pandas data types to be used when reading in the file. Defaults to None
+            file_type (str): The type of file to be read in. Defaults to 'csv'
+
+        Returns:
+            pd.DataFrame: The dataframe output of the file
+        """
+        if snowflake_dtypes:
+            self.logger.info("Mapping snowflake data types to pandas data types")
+            pandas_dtypes = self.map_snowflake_to_pandas(snowflake_dtypes)
+            dates, pandas_dtypes = self.get_pandas_dates(pandas_dtypes) # get the dates to be parsed
+
         else:
             pandas_dtypes = None
-        # check to see if the file fits in memory, if not load parallely with dask
         if self._file_fits_in_memory(file):
-            # if it fits in memory, then write it using pandas
-            df = pd.read_csv(file, dtypes = pandas_dtypes)
+            # if it fits in memory 
+            if file_type == 'csv': # alwys true for now, will be augmented in the future
+                if dates:
+                    df = pd.read_csv(file, dtype = pandas_dtypes, parse_dates = dates,date_parser = lambda x: pd.to_datetime(x).tz_localize('UTC'))
+                else:
+                    df = pd.read_csv(file, dtype = pandas_dtypes)
         else:
-            # if it doesn't fit in memory, then compress it using GZIP and then try to PUT the file in snowflake
-            df = pd.read_csv(file, dtypes = pandas_dtypes)
-        success, nchunks, nrows, output = pt.write_pandas(conn = conn, df = df, table_name = table_name)
+            # if the file is larger than memory
+            if dates:
+                df = dd.read_csv(file, dtype = pandas_dtypes, parse_dates = dates, date_parser = lambda x: pd.to_datetime(x).tz_localize('UTC'))
+            else:
+                df = dd.read_csv("file", dtype = pandas_dtypes)
+        return df
 
-    def execute_query(self, conn: snowflake.connector.SnowflakeConnection, query: str):
+    def upload(self, conn:snowflake.connector.SnowflakeConnection, df: pd.DataFrame, table_name:str, if_exists:str = 'replace'):
+        """ Uploads a pandas dataframe to a snowflake table
+
+        Args:
+            conn (snowflake.connector.SnowflakeConnection): The snowflake connection object
+            df (pd.DataFrame): The dataframe to be uploaded
+            table_name (str): The name of the Snowflake Table to, if it doesn't exist, it will be created
+            insert_method (str): The method to use when inserting the data into the table. Options are replace or append Defaults to 'replace'
+
+        Returns:
+            _type_: A tuple of the success of the upload, the number of chunks, the number of rows, and the output
+        """
+        if if_exists not in ['replace', 'append']:
+            raise ExitCodeException(f"Invalid insert method: {if_exists} is not a valid insert method. Choose between 'replace' or 'append'", self.EXIT_CODE_INVALID_ARGUMENTS)
+        
+
+        if if_exists == 'replace':
+            self.logger.info("Uploading data to Snowflake via replace")
+            self.execute_query(conn, f"DROP TABLE IF EXISTS {table_name}")
+            success, nchunks, nrows, output = pt.write_pandas(conn = conn, df = df, table_name = table_name, auto_create_table= True)
+            self.logger.info("Successfully uploaded data to Snowflake")
+            return success, nchunks, nrows, output
+        else:
+            self.logger.info("Uploading data to Snowflake via append")
+            success, nchunks, nrows, output = pt.write_pandas(conn = conn, df = df, table_name = table_name)
+            self.logger.info("Successfully uploaded data to Snowflake")
+            return success, nchunks, nrows, output
+
+    def execute_query(self, conn: snowflake.connector.SnowflakeConnection, query: str) -> snowflake.connector.cursor.SnowflakeCursor:
         try:
             cursor = conn.cursor()
             cursor.execute(query)
-            self.logger.info("Successfully executed query in Snowflake")
+            self.logger.info(f"Successfully executed query: {query} in Snowflake")
             return cursor
         except Exception as e:
             self.logger.error("Could not execute the provided query in Snowflake")
             raise ExitCodeException(e, self.EXIT_CODE_INVALID_QUERY)
-
 
 
     def fetch(self, conn:snowflake.connector.SnowflakeConnection, query: str) -> pd.DataFrame:

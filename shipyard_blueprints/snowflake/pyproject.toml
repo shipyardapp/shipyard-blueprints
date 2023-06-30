@@ -9,9 +9,10 @@ packages = [{include = "shipyard_snowflake"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-snowflake-connector-python = "3.0.4"
 pandas = "1.5.3"
 dask = "2022.2.0"
+psutil = "^5.9.5"
+snowflake-connector-python = {version = "^3.0.4", extras = ["pandas"]}
 [tool.poetry.group.dev.dependencies]
 shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
 shipyard-templates = {path = "../../shipyard-templates", develop = true}
