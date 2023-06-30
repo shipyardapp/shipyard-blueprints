@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-rudderstack"
-version = "0.1.0"
+version = "0.1.1a0"
 description = "A local client for connecting and working with Rudderstack"
 authors = ["JR <johnathan.rodriguez@shipy>", "wrp801 <wespoulsen@gmail.com>"]
 readme = "README.md"
@@ -13,7 +13,8 @@ shipyard-templates = "0.1.7"
 shipyard-utils = "0.1.4"
 
 [tool.poetry.group.dev.dependencies]
-shipyard-templates = { path = "../../shipyard-templates" }
+shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
+shipyard-templates = {path = "../../shipyard-templates", develop = true}
 
 [build-system]
 requires = ["poetry-core"]
