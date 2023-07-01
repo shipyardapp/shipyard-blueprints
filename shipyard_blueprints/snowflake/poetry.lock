@@ -733,7 +733,7 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 name = "shipyard-bp-utils"
 version = "0.1.0"
 description = "Utility functions for blueprints"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "^3.9"
 files = []
@@ -889,4 +889,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "2fdafe251c20b7f5803885474c391943507e981b70199a530755e70e947ee00c"
+content-hash = "d1bdfc881c3f43380ee330488689a1c8b6421e86d8e88f6b04059eeef4de1f79"
