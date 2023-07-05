@@ -750,7 +750,7 @@ url = "../shipyard-bp-utils"
 name = "shipyard-templates"
 version = "0.1.6"
 description = "Super classes for blueprint development"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "^3.9"
 files = []
@@ -889,4 +889,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d1bdfc881c3f43380ee330488689a1c8b6421e86d8e88f6b04059eeef4de1f79"
+content-hash = "f7c328079c559044e7348402a5d4353f97789907582dcac39015c7989714e04a"

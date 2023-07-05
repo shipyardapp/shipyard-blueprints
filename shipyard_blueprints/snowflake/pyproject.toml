@@ -14,6 +14,7 @@ dask = "2022.2.0"
 psutil = "^5.9.5"
 snowflake-connector-python = {version = "^3.0.4", extras = ["pandas"]}
 shipyard-bp-utils = "^0.1.0"
+shipyard-templates = "0.1.6"
 [tool.poetry.group.dev.dependencies]
 shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
 shipyard-templates = {path = "../../shipyard-templates", develop = true}
