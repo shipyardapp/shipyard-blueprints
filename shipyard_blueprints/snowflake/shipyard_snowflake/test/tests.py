@@ -68,10 +68,3 @@ def rsa_test():
     conn = rsa_client.connect()
     df = rsa_client.fetch(conn, "SELECT * FROM NEW_DATATYPES")
     print(df.head())
-
-
-if __name__ == "__main__":
-    # upload_test()
-    # upload_dtypes_test()
-    # fetch_test()
-    rsa_test()
