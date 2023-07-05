@@ -125,18 +125,6 @@ files = [
 six = ">=1.5"
 
 [[package]]
-name = "pytz"
-version = "2023.3"
-description = "World timezone definitions, modern and historical"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pytz-2023.3-py2.py3-none-any.whl", hash = "sha256:a151b3abb88eda1d4e34a9814df37de2a80e301e68ba0fd856fb9b46bfbbbffb"},
-    {file = "pytz-2023.3.tar.gz", hash = "sha256:1d8ce29db189191fb55338ee6d0387d82ab59f3d00eac103412d64e0ebd0c588"},
-]
-
-[[package]]
 name = "requests"
 version = "2.31.0"
 description = "Python HTTP for Humans."
@@ -159,25 +147,8 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
-name = "shipyard-bp-utils"
-version = "0.1.0"
-description = "Utility functions for blueprints"
-category = "dev"
-optional = false
-python-versions = "^3.9"
-files = []
-develop = false
-
-[package.dependencies]
-python-dateutil = "^2.8.2"
-
-[package.source]
-type = "directory"
-url = "../shipyard-bp-utils"
-
-[[package]]
 name = "shipyard-templates"
-version = "0.1.6"
+version = "0.1.7"
 description = "Super classes for blueprint development"
 category = "main"
 optional = false
@@ -237,4 +208,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "4d02da654d81cda4c8c1f3eccd282011853a3f4593a9d1dc047f014681484a7d"
+content-hash = "b695687c760168aee6813809891cf259afe1370525e91b10ed596c8e486843aa"
