@@ -748,17 +748,15 @@ url = "../shipyard-bp-utils"
 
 [[package]]
 name = "shipyard-templates"
-version = "0.1.6"
+version = "0.2.0"
 description = "Super classes for blueprint development"
 category = "main"
 optional = false
-python-versions = "^3.9"
-files = []
-develop = true
-
-[package.source]
-type = "directory"
-url = "../../shipyard-templates"
+python-versions = ">=3.9,<4.0"
+files = [
+    {file = "shipyard_templates-0.2.0-py3-none-any.whl", hash = "sha256:a58fb4ca637251a82b467002bab81a3e9d67dd66a30df43badc40ccbd5eb9c9e"},
+    {file = "shipyard_templates-0.2.0.tar.gz", hash = "sha256:9485deda463416bab825a78fca5054f5c6a336c49e6b944e666ab7a5849296fd"},
+]
 
 [[package]]
 name = "six"
@@ -889,4 +887,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f7c328079c559044e7348402a5d4353f97789907582dcac39015c7989714e04a"
+content-hash = "2d91f6e31c2b12febdcb36f257644a0c4cdc1e9f576fd5252b9a81e683f697c4"
