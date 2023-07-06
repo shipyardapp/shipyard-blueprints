@@ -153,7 +153,7 @@ def main():
                 insert_method = "append"
             df = ss.read_file(file_match, snowflake_data_types)
             success, nchunks, nrows, output = client.upload(
-                conn, df, table_name=args.table_name, if_exists=args.insert_method
+                conn, df, table_name=args.table_name, if_exists=insert_method
             )
             client.logger.info(f"Uploaded {nrows} rows to {args.table_name}")
     else:
