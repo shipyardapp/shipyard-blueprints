@@ -33,6 +33,8 @@ def main():
     }
     client = SnowflakeClient(**client_args)
     conn = client.connect()
+    if conn == 1:
+        sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
     try:
         client.execute_query(conn=conn, query=args.query)
     except ExitCodeException as e:

@@ -111,6 +111,9 @@ def main():
         )
         sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
     conn = client.connect()  # establish connection to snowflake
+    # for authtests, connection returns 1 if unsuccessful
+    if conn == 1:
+        sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
     if args.snowflake_data_types:
         snowflake_data_types = ast.literal_eval(args.snowflake_data_types)
     else:

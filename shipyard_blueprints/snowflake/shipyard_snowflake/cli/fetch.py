@@ -59,6 +59,8 @@ def main():
     client = SnowflakeClient(**client_args)
     try:
         conn = client.connect()
+        if conn == 1:
+            sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
     except ExitCodeException as e:
         if client_args["password"] != "":
             client.logger.error(
