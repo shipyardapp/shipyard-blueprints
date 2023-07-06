@@ -72,6 +72,7 @@ class SnowflakeClient(Database):
                 self.logger.error(
                     f"Could not authenticate to Snowflake for user {self.username} with credentials in {self.rsa_key}"
                 )
+                self.logger.exception(e)
                 return 1
         else:
             try:
@@ -90,6 +91,7 @@ class SnowflakeClient(Database):
                 self.logger.error(
                     f"Could not authenticate to account {self.account} for user {self.username}"
                 )
+                self.logger.exception(e)
                 return 1  # failed connection
 
     def upload(
