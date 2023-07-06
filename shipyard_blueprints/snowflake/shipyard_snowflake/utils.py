@@ -50,7 +50,7 @@ def _decode_rsa(rsa_key: str):
         with open(rsa_key, "rb") as key:
             p_key = serialization.load_pem_private_key(
                 key.read(),
-                password=os.environ["PRIVATE_KEY_PASSPHRASE"].encode(),
+                password=os.environ["SNOWFLAKE_PRIVATE_KEY_PASSPHRASE"].encode(),
                 backend=default_backend(),
             )
         pkb = p_key.private_bytes(

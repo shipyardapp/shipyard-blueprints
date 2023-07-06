@@ -12,12 +12,20 @@ from shipyard_bp_utils import files as shipyard
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--username", dest="username", required=False)
-    parser.add_argument("--password", dest="password", required=False)
-    parser.add_argument("--private-key-path", dest="private_key_path", required=False)
+    parser.add_argument("--password", dest="password", required=False, default="")
+    parser.add_argument(
+        "--private-key-path", dest="private_key_path", required=False, default=""
+    )
+    parser.add_argument(
+        "--private-key-passphrase",
+        dest="private_key_passphrase",
+        required=False,
+        default="",
+    )
     parser.add_argument("--account", dest="account", required=True)
-    parser.add_argument("--warehouse", dest="warehouse", required=False)
-    parser.add_argument("--database", dest="database", required=False)
-    parser.add_argument("--schema", dest="schema", default=None, required=False)
+    parser.add_argument("--warehouse", dest="warehouse", required=False, default="")
+    parser.add_argument("--database", dest="database", required=False, default="")
+    parser.add_argument("--schema", dest="schema", required=False, default="")
     parser.add_argument(
         "--source-file-name-match-type",
         dest="source_file_name_match_type",
@@ -92,17 +100,26 @@ def upload_multiple(
 
 def main():
     args = get_args()
-    client = SnowflakeClient(
-        username=args.username,
-        pwd=args.password,
-        account=args.account,
-        rsa_key=args.private_key_path,
-        warehouse=args.warehouse,
-        schema=args.schema,
-        database=args.database,
-        role=args.user_role,
+    client_args = {
+        "username": args.username,
+        "pwd": None if args.password == "" else args.password,
+        "account": None if args.account == "" else args.account,
+        "warehouse": args.warehouse,
+        "schema": None if args.schema == "" else args.schema,
+        "database": args.database,
+        "rsa_key": None if args.private_key_path == "" else args.private_key_path,
+        "role": None if args.user_role == "" else args.user_role,
+    }
+    client = SnowflakeClient(**client_args)
+    private_key_passphrase = (
+        None if args.private_key_passphrase == "" else args.private_key_passphrase
     )
 
+    if client.rsa_key and not private_key_passphrase:
+        client.logger.error(
+            "Error: A private key passphrase must be provided if using a private key"
+        )
+        sys.exit(client.EXIT_CODE_INVALID_ARGUMENTS)
     if (not client.username and not client.pwd) and (
         not client.username and not client.rsa_key
     ):
@@ -110,11 +127,12 @@ def main():
             "Error: Either a username and password must be provided, or a username and private key file"
         )
         sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
+
     conn = client.connect()  # establish connection to snowflake
     # for authtests, connection returns 1 if unsuccessful
     if conn == 1:
         sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
-    if args.snowflake_data_types:
+    if args.snowflake_data_types != "":
         snowflake_data_types = ast.literal_eval(args.snowflake_data_types)
     else:
         snowflake_data_types = None
