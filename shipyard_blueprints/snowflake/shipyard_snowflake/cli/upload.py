@@ -146,6 +146,16 @@ def main():
         client.logger.info(
             f"{len(matching_file_names)} files found. Preparing to upload..."
         )
+        for i, file_match in enumerate(matching_file_names, start=1):
+            client.logger.info(f"Uploading file {i} of {len(matching_file_names)}")
+            insert_method = args.insert_method
+            if insert_method == "replace" and i > 1:
+                insert_method = "append"
+            df = ss.read_file(file_match, snowflake_data_types)
+            success, nchunks, nrows, output = client.upload(
+                conn, df, table_name=args.table_name, if_exists=args.insert_method
+            )
+            client.logger.info(f"Uploaded {nrows} rows to {args.table_name}")
     else:
         fp = shipyard.combine_folder_and_file_name(
             args.source_folder_name, args.source_file_name
