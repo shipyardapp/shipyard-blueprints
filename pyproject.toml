@@ -81,8 +81,8 @@ google-auth-httplib2 = "0.1.0"
 
 [tool.poetry.group.dev.dependencies]
 python-dotenv = "^1.0.0"
-shipyard-templates = {path = "shipyard-templates"}
-shipyard-bp-utils = {path = "shipyard_blueprints/shipyard-bp-utils"}
+shipyard-templates = {path = "shipyard-templates", develop = true}
+shipyard-bp-utils = {path = "shipyard_blueprints/shipyard-bp-utils", develop = true}
 pytest = "^7.3.1"
 
 

@@ -10,6 +10,7 @@ packages = [{include = "shipyard_s3"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 boto3 = "1.26.59"
+shipyard-templates = "^0.2.0"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-bp-utils = {path = "../shipyard-bp-utils"}
