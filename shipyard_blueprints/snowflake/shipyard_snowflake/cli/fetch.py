@@ -36,8 +36,7 @@ def get_args():
         "--file-header", dest="file_header", default="True", required=False
     )
     parser.add_argument("--user-role", dest="user_role", required=False, default="")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -74,23 +73,18 @@ def main():
         sys.exit(client.EXIT_CODE_INVALID_ARGUMENTS)
     try:
         conn = client.connect()
-        if conn == 1:
-            sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
     except ExitCodeException as e:
-        if client_args["password"] != "":
-            client.logger.error(
-                f"Ensure the password is correct for user {client_args['username']}"
-            )
-        if client_args["rsa_key"] != "":
-            client.logger.error(
-                f"Ensure the private key is correct for user {client_args['username']}"
-            )
+        client.logger.error(e.message)
         sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
+
     df = client.fetch(conn, args.query)
+    if df.empty:
+        client.logger.error("No results returned from query")
+        sys.exit(client.EXIT_CODE_NO_RESULTS)
     try:
         df.to_csv(destination_full_path, index=False, header=file_header)
-        client.logger.info(f"Successfuly wrote file to {destination_full_path}")
-    except ExitCodeException as e:
+        client.logger.info(f"Successfully wrote file to {destination_full_path}")
+    except Exception as e:
         client.logger.error(f"Error writing file to {destination_full_path}")
         client.logger.error(e)
         sys.exit(client.EXIT_CODE_NO_RESULTS)

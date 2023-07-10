@@ -23,8 +23,7 @@ def get_args():
     parser.add_argument("--schema", dest="schema", required=False, default="")
     parser.add_argument("--query", dest="query", required=True)
     parser.add_argument("--user-role", dest="user_role", required=False, default="")
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -48,14 +47,12 @@ def main():
             "Private key passphrase is required when using a private key"
         )
         sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
-    conn = client.connect()
-    if conn == 1:
-        sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
     try:
+        conn = client.connect()
         client.execute_query(conn=conn, query=args.query)
     except ExitCodeException as e:
         client.logger.error(e)
-        sys.exit(client.EXIT_CODE_INVALID_QUERY)
+        sys.exit(e.exit_code)
 
 
 if __name__ == "__main__":

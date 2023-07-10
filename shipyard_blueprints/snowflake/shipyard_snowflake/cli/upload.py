@@ -57,9 +57,7 @@ def get_args():
         default="",
     )
     parser.add_argument("--user-role", dest="user_role", required=False, default="")
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
 def upload_multiple(
@@ -120,18 +118,19 @@ def main():
             "Error: A private key passphrase must be provided if using a private key"
         )
         sys.exit(client.EXIT_CODE_INVALID_ARGUMENTS)
-    if (not client.username and not client.pwd) and (
-        not client.username and not client.rsa_key
-    ):
+    if not client.pwd and not client.rsa_key:
         client.logger.error(
             "Error: Either a username and password must be provided, or a username and private key file"
         )
         sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
 
-    conn = client.connect()  # establish connection to snowflake
+    try:
+        conn = client.connect()  # establish connection to snowflake
     # for authtests, connection returns 1 if unsuccessful
-    if conn == 1:
+    except ExitCodeException as e:
+        client.logger.error(e.message)
         sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
+
     if args.snowflake_data_types != "":
         snowflake_data_types = ast.literal_eval(args.snowflake_data_types)
     else:

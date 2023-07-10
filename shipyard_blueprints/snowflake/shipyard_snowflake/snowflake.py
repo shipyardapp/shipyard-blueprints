@@ -2,7 +2,7 @@ import snowflake.connector
 import pandas as pd
 from dask import dataframe as dd
 from typing import Dict, List, Optional, Tuple, Union
-from shipyard_templates import Database, ExitCodeError, ExitCodeException
+from shipyard_templates import Database, ExitCodeException
 from snowflake.connector import pandas_tools as pt
 from .utils import (
     _decode_rsa,
@@ -66,14 +66,13 @@ class SnowflakeClient(Database):
                     schema=self.schema,
                     role=self.role,
                 )
-                self.logger.info(f"Successfully connected to Snowflake")
+                self.logger.info("Successfully connected to Snowflake")
                 return con
             except Exception as e:
-                self.logger.error(
-                    f"Could not authenticate to Snowflake for user {self.username} with credentials in {self.rsa_key}"
+                raise ExitCodeException(
+                    message=f"Could not authenticate to Snowflake for user {self.username} with credentials in {self.rsa_key}",
+                    exit_code=self.EXIT_CODE_INVALID_CREDENTIALS,
                 )
-                self.logger.exception(e)
-                return 1
         else:
             try:
                 con = snowflake.connector.connect(
@@ -85,14 +84,13 @@ class SnowflakeClient(Database):
                     schema=self.schema,
                     role=self.role,
                 )
-                self.logger.info(f"Successfully connected to snowflake")
+                self.logger.info("Successfully connected to snowflake")
                 return con
             except Exception as e:
-                self.logger.error(
-                    f"Could not authenticate to account {self.account} for user {self.username}"
+                raise ExitCodeException(
+                    f"Could not authenticate to Snowflake due to {e}",
+                    self.EXIT_CODE_INVALID_CREDENTIALS,
                 )
-                self.logger.exception(e)
-                return 1  # failed connection
 
     def upload(
         self,
@@ -107,7 +105,7 @@ class SnowflakeClient(Database):
             conn (snowflake.connector.SnowflakeConnection): The snowflake connection object
             df (pd.DataFrame): The dataframe to be uploaded
             table_name (str): The name of the Snowflake Table to, if it doesn't exist, it will be created
-            insert_method (str): The method to use when inserting the data into the table. Options are replace or append Defaults to 'replace'
+            if_exists (str): The method to use when inserting the data into the table. Options are replace or append Defaults to 'replace'
 
         Returns:
             _type_: A tuple of the success of the upload, the number of chunks, the number of rows, and the output
@@ -124,15 +122,13 @@ class SnowflakeClient(Database):
             success, nchunks, nrows, output = pt.write_pandas(
                 conn=conn, df=df, table_name=table_name, auto_create_table=True
             )
-            self.logger.info("Successfully uploaded data to Snowflake")
-            return success, nchunks, nrows, output
         else:
             self.logger.info("Uploading data to Snowflake via append")
             success, nchunks, nrows, output = pt.write_pandas(
                 conn=conn, df=df, table_name=table_name
             )
-            self.logger.info("Successfully uploaded data to Snowflake")
-            return success, nchunks, nrows, output
+        self.logger.info("Successfully uploaded data to Snowflake")
+        return success, nchunks, nrows, output
 
     def execute_query(
         self, conn: snowflake.connector.SnowflakeConnection, query: str

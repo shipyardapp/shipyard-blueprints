@@ -1,6 +1,7 @@
 import argparse
 import os
 from shipyard_blueprints import SnowflakeClient
+from shipyard_templates import ExitCodeException
 
 
 def get_args():
@@ -18,11 +19,13 @@ def main():
     account = args["account"]
 
     snowflake = SnowflakeClient(username=user, pwd=pwd, account=account)
-    conn = snowflake.connect()
-    if conn == 1:
-        return 1
-    else:
+    try:
+        conn = snowflake.connect()
+        snowflake.logger.info("Successfully connected to Snowflake")
         return 0
+    except ExitCodeException as e:
+        snowflake.logger.error("Could not connect to Snowflake")
+        return 1
 
 
 if __name__ == "__main__":
