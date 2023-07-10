@@ -36,7 +36,7 @@ def main():
     args = get_args()
 
     args_dict = vars(args)
-    if args_dict["schedule_type"]=='None':
+    if args_dict["schedule_type"] == "None":
         args_dict.pop("schedule_type")
     # Remove arguments with empty string values
     args_dict = {k: v for k, v in args_dict.items() if v is not None and v != ""}
@@ -46,8 +46,8 @@ def main():
         args_dict["historical_sync"] = args_dict["historical_sync"].upper() == "TRUE"
     if args_dict.get("custom_update"):
         additional_update = args_dict.pop("custom_update")
-        additional_update= json.loads(additional_update)
-        args_dict["additional_details"]=additional_update
+        additional_update = json.loads(additional_update)
+        args_dict["additional_details"] = additional_update
 
     access_token = args_dict.pop("api_key")
     api_secret = args_dict.pop("api_secret")
