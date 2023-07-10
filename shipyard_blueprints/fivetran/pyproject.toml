@@ -16,8 +16,8 @@ shipyard-utils = "0.1.4"
 
 
 [tool.poetry.group.dev.dependencies]
-shipyard-templates = {path = "../../shipyard-templates"}
-shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+shipyard-bp-utils = {path = "../shipyard-bp-utils",develop=true}
+shipyard-templates = {path = "../../shipyard-templates",develop=true}
 
 [build-system]
 requires = ["poetry-core"]
