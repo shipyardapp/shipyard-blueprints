@@ -19,3 +19,6 @@ sample.txt
 .env
 old_requirements.txt
 load.py
+
+# ignore all csv files
+*.csv
