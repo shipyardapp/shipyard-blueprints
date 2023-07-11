@@ -4,7 +4,7 @@ import boto3
 
 class S3Client(CloudStorage):
 
-    def __init__(self, aws_access_key: str, aws_secret_access_key: str, region: str) -> None:
+    def __init__(self, aws_access_key: str, aws_secret_access_key: str, region: str = None) -> None:
         self.aws_access_key = aws_access_key
         self.aws_secret_access_key = aws_secret_access_key
         self.region = region
@@ -12,11 +12,7 @@ class S3Client(CloudStorage):
                          aws_secret_access_key=aws_secret_access_key, region=region)
 
     def connect(self):
-        client = boto3.Session(
-            aws_access_key_id=self.aws_access_key,
-            aws_secret_access_key=self.aws_secret_access_key,
-            region_name=self.region
-        ).resource('s3')
+        client= boto3.client('s3', region_name=self.region, aws_access_key_id=self.aws_access_key, aws_secret_access_key=self.aws_secret_access_key,config = None)
         self.logger.info("Successfully connected to S3")
         return client
 

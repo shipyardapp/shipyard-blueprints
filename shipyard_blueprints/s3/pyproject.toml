@@ -13,8 +13,9 @@ boto3 = "1.26.59"
 shipyard-templates = "^0.2.0"
 
 [tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = {path = "../shipyard-bp-utils"}
-shipyard-templates = {path = "../../shipyard-templates"}
+shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
+shipyard-templates = {path = "../../shipyard-templates", develop = true}
+pytest = "^7.4.0"
 
 [build-system]
 requires = ["poetry-core"]
