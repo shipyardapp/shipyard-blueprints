@@ -6,9 +6,9 @@ import tempfile
 
 
 class GoogleCloudClient(CloudStorage):
-    def __init__(self, service_account: str) -> None:
+    def __init__(self, service_account:str) -> None:
         self.service_account = service_account
-        super().__init__(service_account=service_account)
+        super().__init__(service_account=self.service_account)
 
     def _set_env_vars(self):
         try:
@@ -24,8 +24,7 @@ class GoogleCloudClient(CloudStorage):
 
     def connect(self):
         fd = self._set_env_vars()
-        client = storage.Client()
-        return client
+        return storage.Client()
 
     def move_or_rename_files(self):
         pass
