@@ -12,10 +12,14 @@ python = "^3.9"
 SQLAlchemy = "2.0.0"
 pymssql = "2.2.7"
 pandas = "1.5.3"
+shipyard-templates = "^0.2.0"
+pyodbc = "^4.0.39"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-bp-utils = {path = "../shipyard-bp-utils"}
-shipyard-templates = {path = "../../shipyard-templates"}
+shipyard-templates = {path = "../../shipyard-templates", develop = true}
+pytest = "^7.4.0"
+python-dotenv = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]
