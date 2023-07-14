@@ -8,7 +8,7 @@ class AthenaClient(Database):
         self.aws_access_key = user
         self.aws_secret_key = pwd
         self.region = region
-        super().__init__(user, pwd, region=None)
+        super().__init__(user = self.user, pwd = self.pwd, region= self.region)
 
     def connect(self):
         try:

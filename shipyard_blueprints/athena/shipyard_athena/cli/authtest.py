@@ -11,17 +11,30 @@ def get_args():
     return args
 
 def main():
-    args = get_args()
-    access_key = args['aws_access_key']
-    secret_key = args['aws_secret_key']
-    region = args['region']
-    athena = AthenaClient(access_key, secret_key, region)
+    # args = get_args()
+    # access_key = args['aws_access_key']
+    # secret_key = args['aws_secret_key']
+    # region = args['region']
 
-    con = athena.connect()
-    if con == 1:
+    client = AthenaClient(os.getenv('AWS_ACCESS_KEY_ID'), os.getenv('AWS_SECRET_ACCESS_KEY'))
+
+    try:
+        client = boto3.client('sts', aws_access_key_id= os.getenv('AWS_ACCESS_KEY_ID'), aws_secret_access_key= os.getenv('AWS_SECRET_ACCESS_KEY'))
+        response = client.get_caller_identity()
+        if response['ReponseMetadata']['HTTPStatusCode'] == 200:
+            return 0
+    except Exception as e:
+        s3.logger.error(f"Could not connect to the AWS Athena")
         return 1
+    
     else:
-        return 0
+        s3.logger.error(f"Could not connect to the AWS Athena")
+        return 1
+
+
+
+    
+
 
 
 if __name__ == '__main__':
