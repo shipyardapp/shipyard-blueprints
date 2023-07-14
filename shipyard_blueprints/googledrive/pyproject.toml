@@ -11,9 +11,12 @@ packages = [{include = "shipyard_googledrive"}]
 python = "^3.9"
 google-api-python-client = "2.7"
 google-auth-httplib2 = "0.1.0"
+shipyard-templates = "^0.2.0"
 
 [tool.poetry.group.dev.dependencies]
-shipyard-templates = {path = "../../shipyard-templates"}
+shipyard-templates = {path = "../../shipyard-templates", develop = true}
+pytest = "^7.4.0"
+python-dotenv = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]
