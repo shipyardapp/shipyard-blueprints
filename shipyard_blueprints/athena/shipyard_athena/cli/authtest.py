@@ -1,7 +1,7 @@
 import argparse
 import os
 import boto3
-from shipyard_athena import AthenaClient
+from shipyard_blueprints import AthenaClient
 
 
 def get_args():
