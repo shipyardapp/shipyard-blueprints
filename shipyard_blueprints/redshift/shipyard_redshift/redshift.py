@@ -16,14 +16,14 @@ class RedshiftClient(Database):
 
     def connect(self):
         con_str = URL.create(drivername= 'redshift+redshift_connector', host = self.host, password= self.password, username= self.user, port = self.port, database= self.database)
-        engine = create_engine(con_str)
-        return engine
+        return create_engine(con_str).connect()
+    
 
     def execute_query(self, query: str):
         pass
 
-    def fetch_query_results(self, query: str):
+    def fetch(self, query: str):
         pass
 
-    def upload_csv_to_table(self, file: str):
+    def upload(self, file: str):
         pass
