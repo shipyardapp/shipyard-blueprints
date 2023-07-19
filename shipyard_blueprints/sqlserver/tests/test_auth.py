@@ -23,3 +23,6 @@ def test_good_connection():
     db = os.getenv('MSSQL_DATABASE')
     client = SqlServerClient(user = user, pwd = pwd, host = host, database = db)
     assert conn_helper(client) == 0
+
+def test_bad_user():
+    pass

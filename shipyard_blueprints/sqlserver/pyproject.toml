@@ -10,10 +10,9 @@ packages = [{include = "shipyard_sqlserver"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 SQLAlchemy = "2.0.0"
-pymssql = "2.2.7"
 pandas = "1.5.3"
 shipyard-templates = "^0.2.0"
-pyodbc = "^4.0.39"
+pyodbc = "4.0.39"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-bp-utils = {path = "../shipyard-bp-utils"}
