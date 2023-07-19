@@ -11,11 +11,11 @@ packages = [{include = "shipyard_azureblob"}]
 python = "^3.9"
 azure-storage-blob = "12.3.2"
 shipyard-templates = "^0.2.0"
-pytest = "^7.4.0"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-templates = {path = "../../shipyard-templates", develop = true}
 python-dotenv = "^1.0.0"
+pytest = "^7.4.0"
 
 [build-system]
 requires = ["poetry-core"]
