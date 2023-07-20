@@ -1,2 +1,0 @@
-google-cloud-storage==2.7.0
-httplib2==0.15.0

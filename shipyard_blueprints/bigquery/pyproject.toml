@@ -10,8 +10,8 @@ packages = [{include = "shipyard_bigquery"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 pandas = "1.5.3"
-google-cloud-bigquery = "3.4.0"
-db-dtypes = "1.0.4"
+google-cloud-bigquery = "3.10.0"
+db-dtypes = "1.1.1"
 
 
 [tool.poetry.group.dev.dependencies]

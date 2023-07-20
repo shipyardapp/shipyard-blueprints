@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, text
 from shipyard_templates import Database
+from urllib.parse import quote_plus
 
 
 class SqlServerClient(Database):
@@ -10,19 +11,22 @@ class SqlServerClient(Database):
         self.database = database
         self.port = port
         self.url_params = url_params
-        super.__init__(user, pwd, host=host, database=database,
+        super().__init__(user, pwd, host=host, database=database,
                        port=port, url_params=url_params)
 
     def connect(self):
-        con_str = f'mssql+pymssql://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?{self.url_parameters}'
-        engine = create_engine(con_str).connect()
-        return engine
+        # con_str = f'mssql+pymssql://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?{self.url_params}'
+        # con_str = f'mssql+pyodbc://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?driver=SQL Server?{self.url_params}'
+        connection_string = 'DRIVER={ODBC Driver 17 for SQL Server};'
+        connection_string += f'SERVER={self.host};DATABASE={self.database};'
+        connection_string += f'UID={self.user};PWD={self.pwd}'
+        return create_engine(f'mssql+pyodbc:///?odbc_connect={quote_plus(connection_string)}').connect()
 
     def execute_query(self, query: str):
         pass
 
-    def fetch_query_results(self, query: str):
+    def fetch(self, query: str):
         pass
 
-    def upload_csv_to_table(self, file: str):
+    def upload(self, file: str):
         pass

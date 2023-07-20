@@ -3,11 +3,14 @@ import ftplib
 
 
 class FtpClient(CloudStorage):
-    def __init__(self, host: str, user: str, pwd: str, port: int) -> None:
+    def __init__(self, host: str, user: str, pwd: str, port: int = None) -> None:
         self.host = host
         self.user = user
         self.pwd = pwd
-        self.port = port
+        if not port:
+            self.port = 21
+        else:
+            self.port = int(port)
         super().__init__(host=host, user=user, pwd=pwd, port=port)
 
     def connect(self):

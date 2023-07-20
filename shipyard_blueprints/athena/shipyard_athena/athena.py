@@ -8,7 +8,7 @@ class AthenaClient(Database):
         self.aws_access_key = user
         self.aws_secret_key = pwd
         self.region = region
-        super().__init__(user, pwd, region=None)
+        super().__init__(user = self.aws_access_key, pwd = self.aws_secret_key, region = self.region)
 
     def connect(self):
         try:
@@ -25,8 +25,8 @@ class AthenaClient(Database):
     def execute_query(self, query: str):
         pass
 
-    def fetch_query_results(self, query: str):
+    def fetch(self, query: str):
         pass
 
-    def upload_csv_to_table(self, file: str):
+    def upload(self, file: str):
         pass
