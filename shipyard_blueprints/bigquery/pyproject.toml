@@ -15,7 +15,9 @@ db-dtypes = "1.1.1"
 
 
 [tool.poetry.group.dev.dependencies]
-shipyard-templates = {path = "../../shipyard-templates"}
+shipyard-templates = {path = "../../shipyard-templates", develop = true}
+python-dotenv = "^1.0.0"
+pytest = "^7.4.0"
 
 [build-system]
 requires = ["poetry-core"]
