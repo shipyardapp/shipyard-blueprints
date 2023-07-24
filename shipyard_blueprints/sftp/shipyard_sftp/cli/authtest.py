@@ -1,25 +1,8 @@
 import os
 from shipyard_blueprints import SftpClient
 
-
-def get_args():
-    args = {}
-    args['host'] = os.environ.get('SFTP_HOST')
-    args['port'] = os.environ.get('SFTP_PORT')
-    args['username'] = os.environ.get('SFTP_USERNAME')
-    args['password'] = os.environ.get('SFTP_PASSWORD')
-    args['key'] = os.environ.get('SFTP_RSA_KEY_FILE')
-    return args
-
-
 def main():
-    args = get_args()
-    host = args['host']
-    port = args['port']
-    username = args['username']
-    password = args['password']
-    key = args['key']
-    sftp = SftpClient(host, port, key, username, password)
+    sftp = SftpClient(host = os.getenv('SFTP_HOST'), port = os.getenv('SFTP_PORT'), username = os.getenv('SFTP_USERNAME'), password = os.getenv('SFTP_PASSWORD'), key = None)
     try:
         sftp.connect()
         sftp.logger.info("Successfully connected to SFTP server")
