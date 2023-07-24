@@ -1,19 +1,10 @@
 import argparse
+import os
 from shipyard_bigquery import BigQueryClient
 
 
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--service-account",
-                        dest='service_account', required=True)
-    args = parser.parse_args()
-    return args
-
-
 def main():
-    args = get_args()
-    creds = args.service_account
-    google_client = BigQueryClient(creds)
+    google_client = BigQueryClient(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
     try:
         con = google_client.connect()
         google_client.logger.info("Successfully established a connection")
