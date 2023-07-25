@@ -1,23 +1,15 @@
 import os
 from shipyard_blueprints import EmailClient
 
-def get_args():
-    args = {}
-    args['smtp_host'] = os.getenv('EMAIL_SMTP_HOST')
-    args['smtp_port'] = os.getenv('EMAIL_SMTP_PORT')
-    args['username'] = os.getenv('EMAIL_USERNAME')
-    args['password'] = os.getenv('EMAIL_PASSWORD')
-    return args
-
 
 def main():
-    args = get_args()
-    client = EmailClient(**args)
-    try:
-        client.connect()
-        return 0
-    except Exception as e:
-        return 1
-    
+    return EmailClient(smtp_host=os.getenv('EMAIL_SMTP_HOST'),
+                       smtp_port=os.getenv('EMAIL_SMTP_PORT'),
+                       username=os.getenv('EMAIL_USERNAME'),
+                       password=os.getenv('EMAIL_PASSWORD'),
+                       send_method=os.getenv('EMAIL_SEND_METHOD')
+                       ).connect()
+
+
 if __name__ == '__main__':
     main()
