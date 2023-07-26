@@ -7,7 +7,6 @@ def main():
     try:
         box.connect()
         box.logger.info("Successfully connected to Box")
-        box.logger.info(f"Creds are {box.service_account}")
         return 0
     except Exception as e:
         box.logger.error(
