@@ -1,4 +1,4 @@
-from shipyard_shortcut.shortcut import TicketNotFound, InvalidIssueType
+from .shortcut import TicketNotFound, InvalidIssueType
 import sys
 
 def handle_error(client,error):

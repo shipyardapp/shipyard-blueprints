@@ -7,6 +7,7 @@ from shipyard_blueprints.hightouch.shipyard_hightouch import HightouchClient
 from shipyard_blueprints.airbyte.shipyard_airbyte import AirbyteClient
 from shipyard_blueprints.coalesce.shipyard_coalesce import CoalesceClient
 from shipyard_blueprints.dbt.shipyard_dbt import DbtClient
+from shipyard_blueprints.fivetran.shipyard_fivetran import FivetranClient
 # databases
 from shipyard_blueprints.athena.shipyard_athena import AthenaClient
 from shipyard_blueprints.mysql.shipyard_mysql import MySqlClient
@@ -30,6 +31,7 @@ from shipyard_blueprints.domo.shipyard_domo import DomoClient
 from shipyard_blueprints.tableau.shipyard_tableau import TableauClient
 from shipyard_blueprints.looker.shipyard_looker import LookerClient
 from shipyard_blueprints.mode.shipyard_mode import ModeClient
+from shipyard_blueprints.thoughtspot.shipyard_thoughtspot import ThoughtSpotClient
 
 # Spreadsheets
 from shipyard_blueprints.googlesheets.shipyard_googlesheets import GoogleSheetsClient
@@ -41,3 +43,10 @@ from shipyard_blueprints.email.shipyard_email import EmailClient
 
 # Notebooks
 from shipyard_blueprints.hex.shipyard_hex import HexClient
+
+# Project Management
+from shipyard_blueprints.clickup.shipyard_clickup import ClickupClient
+from shipyard_blueprints.trello.shipyard_trello import TrelloClient
+from shipyard_blueprints.jira.shipyard_jira import JiraClient
+from shipyard_blueprints.shortcut.shipyard_shortcut import ShortcutClient
+
