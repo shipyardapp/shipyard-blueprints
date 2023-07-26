@@ -23,13 +23,13 @@ class DbtClient(Etl):
         try:
             response = requests.get(self.account_url, headers=self.headers)
             if response.status_code == 200:
-                client.logger.info('Successfully connected to DBT')
+                self.logger.info('Successfully connected to DBT')
                 return 0
             else:
-                client.logger.error('Could not connect to DBT')
+                self.logger.error('Could not connect to DBT')
                 return 1
         except Exception as e:
-            client.logger.error('Could not connect to DBT')
+            self.logger.error('Could not connect to DBT')
             return 1
 
 
