@@ -45,9 +45,8 @@ from shipyard_blueprints.email.shipyard_email import EmailClient
 from shipyard_blueprints.hex.shipyard_hex import HexClient
 
 # Project Management
-from shipyard_blueprints.asana import shipyard_asana
-from shipyard_blueprints.clickup import shipyard_clickup
-from shipyard_blueprints.trello import shipyard_trello
-from shipyard_blueprints.jira import shipyard_jira
-from shipyard_blueprints.shortcut import shipyard_shortcut
+from shipyard_blueprints.clickup.shipyard_clickup import ClickupClient
+from shipyard_blueprints.trello.shipyard_trello import TrelloClient
+from shipyard_blueprints.jira.shipyard_jira import JiraClient
+from shipyard_blueprints.shortcut.shipyard_shortcut import ShortcutClient
 
