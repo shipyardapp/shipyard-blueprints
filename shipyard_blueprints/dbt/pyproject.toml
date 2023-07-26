@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "shipyard-dbt"
+version = "0.1.0"
+description = ""
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+readme = "README.md"
+packages = [{include = "shipyard_dbt"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "2.31.0"
+
+
+[tool.poetry.group.dev.dependencies]
+shipyard-templates = {path = "../../shipyard-templates", develop = true}
+pytest = "^7.4.0"
+python-dotenv = "^1.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
