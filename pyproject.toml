@@ -13,7 +13,7 @@ shipyard-templates = "0.2.0"
 
 
 [tool.poetry.group.airbyte.dependencies]
-requests = "2.28.0"
+requests = "2.31.0"
 
 
 [tool.poetry.group.airtable.dependencies]
@@ -42,19 +42,20 @@ appengine-python-standard = "^1.1.2"
 
 
 [tool.poetry.group.census.dependencies]
-requests = "2.28.0"
+requests = "2.31.0"
 
 
 [tool.poetry.group.coalesce.dependencies]
-requests = "2.28.0"
+requests = "2.31.0"
 
 
 [tool.poetry.group.databricks.dependencies]
 databricks-cli = "^0.17.6"
+databricks-sdk = "0.2.1"
 
 
 [tool.poetry.group.domo.dependencies]
-requests = "2.28.0"
+requests = "2.31.0"
 pydomo = "^0.3.0.9"
 
 
@@ -89,11 +90,11 @@ pytest = "^7.3.1"
 
 
 [tool.poetry.group.hex.dependencies]
-requests = "2.28.0"
+requests = "2.31.0"
 
 
 [tool.poetry.group.hightouch.dependencies]
-requests = "2.28.0"
+requests = "2.31.0"
 
 
 [tool.poetry.group.looker.dependencies]
@@ -101,7 +102,7 @@ looker-sdk = "22.20.0"
 
 
 [tool.poetry.group.mode.dependencies]
-requests = "2.28.0"
+requests = "2.31.0"
 
 
 [tool.poetry.group.mysql.dependencies]
@@ -122,7 +123,7 @@ redshift-connector = "^2.0.913"
 
 
 [tool.poetry.group.rudderstack.dependencies]
-requests = "2.28.0"
+requests = "2.31.0"
 
 
 [tool.poetry.group.s3.dependencies]
@@ -151,7 +152,7 @@ pandas = "1.5.3"
 
 
 [tool.poetry.group.tableau.dependencies]
-requests = "2.28.0"
+requests = "2.31.0"
 tableauserverclient = "0.25"
 
 [build-system]
