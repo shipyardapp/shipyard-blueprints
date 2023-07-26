@@ -1,1 +1,1 @@
-from ..shipyard_thoughtspot import ThoughtSpotClient
+from shipyard_thoughtspot import ThoughtSpotClient
