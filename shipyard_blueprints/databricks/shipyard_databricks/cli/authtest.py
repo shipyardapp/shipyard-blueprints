@@ -1,24 +1,17 @@
 import os
+import requests
 from shipyard_blueprints import DatabricksClient
 
-def get_args():
-    args = {}
-    args['access_token'] = os.getenv('DATABRICKS_ACCESS_TOKEN')
-    args['instance_url'] = os.getenv('DATABRICKS_INSTANCE_URL')
-    return args 
-
-
 def main():
-    args = get_args()
-    token = args['access_token']
-    url = args['instance_url']
-    databricks_client = DatabricksClient(url, token)
+    client = DatabricksClient(access_token = os.getenv('DATABRICKS_ACCESS_TOKEN'),instance_url= os.getenv('DATABRICKS_INSTANCE_URL'))
     try:
-        databricks_client.connect()
-        databricks_client.logger.info("Successfully connected to Databricks")
-        return 0
+        response = requests.get(f"{client.base_url}/clusters/list",headers = client.headers)
+        if response.status_code == 200:
+            return 0
+        else:
+            return 1
     except Exception as e:
-        databricks_client.logger.error("Could not connect to Databricks with the given access token and instance url")
+        client.logger.error('Could not connect to Databricks')
         return 1
 
 

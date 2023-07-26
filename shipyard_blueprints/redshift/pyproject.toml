@@ -10,8 +10,7 @@ packages = [{include = "shipyard_redshift"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 pandas = "1.5.3"
-sqlalchemy-redshift = "0.8.14"
-redshift-connector = "2.0.910"
+redshift-connector = "2.0.913"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-bp-utils = {path = "../shipyard-bp-utils"}

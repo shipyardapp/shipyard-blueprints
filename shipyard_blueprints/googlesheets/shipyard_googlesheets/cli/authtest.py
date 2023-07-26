@@ -1,17 +1,8 @@
 import os
 from shipyard_blueprints import GoogleSheetsClient
 
-
-def get_args():
-    args = {}
-    args['service_account'] = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
-    return args
-
-
 def main():
-    args = get_args()
-    service_account = args['service_account']
-    client = GoogleSheetsClient(service_account)
+    client = GoogleSheetsClient(service_account = os.getenv('GOOGLE_APPLICATION_CREDENTIALS'))
     try:
         service, drive = client.connect()
         client.logger.info("Successfully connected to google sheets")

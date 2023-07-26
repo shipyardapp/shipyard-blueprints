@@ -1,5 +1,6 @@
-from sqlalchemy import create_engine, text
-from sqlalchemy.engine.url import URL
+# from sqlalchemy import create_engine, text
+# from sqlalchemy.engine.url import URL
+import redshift_connector
 from shipyard_templates import Database
 
 
@@ -15,8 +16,9 @@ class RedshiftClient(Database):
                          port=port, url_params=url_params)
 
     def connect(self):
-        con_str = URL.create(drivername= 'redshift+redshift_connector', host = self.host, password= self.password, username= self.user, port = self.port, database= self.database)
-        return create_engine(con_str).connect()
+        # con_str = URL.create(drivername= 'redshift+redshift_connector', host = self.host, password= self.password, username= self.user, port = self.port, database= self.database)
+        conn = redshift_connector.connect(host = self.host, database = self.database, user = self.user, password = self.pwd)
+        return conn
     
 
     def execute_query(self, query: str):

@@ -1,23 +1,20 @@
 [tool.poetry]
-name = "shipyard-bigquery"
+name = "shipyard-dbt"
 version = "0.1.0"
-description = "A local client for connecting to and working with Google BigQuery"
+description = ""
 authors = ["wrp801 <wespoulsen@gmail.com>"]
-license = "Apache 2.0"
 readme = "README.md"
-packages = [{include = "shipyard_bigquery"}]
+packages = [{include = "shipyard_dbt"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pandas = "1.5.3"
-google-cloud-bigquery = "3.10.0"
-db-dtypes = "1.1.1"
+requests = "2.31.0"
 
 
 [tool.poetry.group.dev.dependencies]
 shipyard-templates = {path = "../../shipyard-templates", develop = true}
-python-dotenv = "^1.0.0"
 pytest = "^7.4.0"
+python-dotenv = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]
