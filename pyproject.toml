@@ -118,8 +118,7 @@ sqlalchemy = "2.0.0"
 
 [tool.poetry.group.redshift.dependencies]
 pandas = "1.5.3"
-redshift-connector = "^2.0.910"
-sqlalchemy-redshift = "^0.8.14"
+redshift-connector = "^2.0.913"
 
 
 [tool.poetry.group.rudderstack.dependencies]
