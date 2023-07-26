@@ -1,20 +1,13 @@
 import os
+import sys
 from shipyard_blueprints import BoxClient
 
-
-def get_args():
-    args = {}
-    args['application_credentials'] = os.getenv['BOX_APPLICATION_CREDENTIALS']
-    return args
-
-
 def main():
-    args = get_args()
-    service_account = args['application_credentials']
-    box = BoxClient(service_account)
+    box = BoxClient(os.getenv('BOX_APPLICATION_CREDENTIALS'))
     try:
         box.connect()
         box.logger.info("Successfully connected to Box")
+        box.logger.info(f"Creds are {box.service_account}")
         return 0
     except Exception as e:
         box.logger.error(
