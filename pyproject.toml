@@ -139,15 +139,15 @@ slackclient = "2.9.4"
 
 
 [tool.poetry.group.snowflake.dependencies]
-snowflake-sqlalchemy = "^1.4.7"
-dask = "2022.2.0"
 pandas = "1.5.3"
-snowflake-connector-python = {version = "^3.0.3", extras = ["pandas"]}
+dask = "2022.2.0"
+psutil = "^5.9.5"
+snowflake-connector-python = {version = "^3.0.4", extras = ["pandas"]}
 
 
 [tool.poetry.group.sqlserver.dependencies]
 sqlalchemy = "2.0.0"
-pyodbc = "4.0.39"
+# pyodbc = "4.0.39"
 pandas = "1.5.3"
 
 
