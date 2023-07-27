@@ -1,3 +1,4 @@
+import pyodbc
 from sqlalchemy import create_engine, text
 from shipyard_templates import Database
 from urllib.parse import quote_plus
@@ -15,13 +16,9 @@ class SqlServerClient(Database):
                        port=port, url_params=url_params)
 
     def connect(self):
-        # con_str = f'mssql+pymssql://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?{self.url_params}'
-        # con_str = f'mssql+pyodbc://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?driver=SQL Server?{self.url_params}'
-        connection_string = 'DRIVER={ODBC Driver 18 for SQL Server};'
-        connection_string += f'SERVER=+{self.host}+;DATABASE=+{self.database}+;'
-        connection_string += f'UID=+{self.user}+;PWD={self.pwd}'
-        # return create_engine(f'mssql+pyodbc:///?odbc_connect={quote_plus(connection_string)}').connect()
+        connection_string = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={self.host};PORT={self.port};DATABASE={self.database};UID={self.user};PWD={self.pwd};TrustServerCertificate=yes;"
         return pyodbc.connect(connection_string)
+
 
     def execute_query(self, query: str):
         pass
