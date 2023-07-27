@@ -18,7 +18,7 @@ def main():
     args = get_args()
     host = args['host']
     user = args['user']
-    pwd = args['pwd']
+    pwd = args['password']
     port = args['port']
     database = args['database']
     redshift = RedshiftClient(
