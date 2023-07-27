@@ -24,10 +24,11 @@ def main():
         user=user, pwd=pwd, host=host, port=port, database=database)
     try:
         con = sqlserver.connect()
+        sqlserver.logger.info("Successfully connected to Sql Server")
         sys.exit(0)
     except Exception as e:
         sqlserver.logger.error(
-            "Could not connect to postgres with given credentials")
+            "Could not connect to Sql Server with given credentials")
         sys.exit(1)
 
 
