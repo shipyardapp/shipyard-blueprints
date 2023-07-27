@@ -11,7 +11,8 @@ def main():
         client = boto3.client('sts', aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                               aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
         response = client.get_caller_identity()
-        if response['ReponseMetadata']['HTTPStatusCode'] == 200:
+        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+            s3.logger.info('Successfully connected to S3')
             sys.exit(0)
     except Exception as e:
         s3.logger.error(f"Could not connect to the AWS S3")
