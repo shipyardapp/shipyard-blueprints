@@ -18,17 +18,18 @@ def main():
     args = get_args()
     host = args['host']
     user = args['user']
-    pwd = args['pwd']
+    pwd = args['password']
     port = args['port']
     database = args['database']
     redshift = RedshiftClient(
         user=user, pwd=pwd, host=host, port=port, database=database)
     try:
         con = redshift.connect()
+        redshift.logger.info("Connected to Redshift")
         sys.exit(0)
     except Exception as e:
         redshift.logger.error(
-            "Could not connect to postgres with given credentials")
+            "Could not connect to Redshift with given credentials")
         sys.exit(1)
 
 
