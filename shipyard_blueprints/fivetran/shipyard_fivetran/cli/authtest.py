@@ -1,12 +1,13 @@
 import os
-from shipyard_fivetran import FivetranClient
+import sys
+from shipyard_blueprints import FivetranClient
 
 
 def main():
-    return FivetranClient(
+    sys.exit(FivetranClient(
         access_token=os.getenv("FIVETRAN_API_KEY"),
         api_secret=os.getenv("FIVETRAN_API_SECRET"),
-    ).connect()
+    ).connect())
 
 
 if __name__ == "__main__":

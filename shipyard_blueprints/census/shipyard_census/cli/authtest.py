@@ -1,9 +1,10 @@
 import os
+import sys
 from shipyard_blueprints import CensusClient
 
 
 def main():
-    return CensusClient(os.getenv("CENSUS_API_KEY")).connect()
+    sys.exit(CensusClient(os.getenv("CENSUS_API_KEY")).connect())
 
 
 if __name__ == "__main__":

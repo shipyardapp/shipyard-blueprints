@@ -1,15 +1,16 @@
 import os
+import sys
 from shipyard_blueprints import PostgresqlClient
 
 
 def get_args():
-    args = {}
-    args['host'] = os.environ.get('POSTGRES_HOST')
-    args['username'] = os.environ.get('POSTGRES_USERNAME')
-    args['password'] = os.environ.get('POSTGRES_PASSWORD')
-    args['port'] = os.environ.get('POSTGRES_PORT')
-    args['database'] = os.environ.get('POSTGRES_DATABASE')
-    return args
+    return {
+        'host': os.environ.get('POSTGRES_HOST'),
+        'username': os.environ.get('POSTGRES_USERNAME'),
+        'password': os.environ.get('POSTGRES_PASSWORD'),
+        'port': os.environ.get('POSTGRES_PORT'),
+        'database': os.environ.get('POSTGRES_DATABASE'),
+    }
 
 
 def main():
@@ -24,11 +25,11 @@ def main():
     try:
         con = postgres.connect()
         postgres.logger.info("Successfully established connection")
-        return 0
+        sys.exit(0)
     except Exception as e:
         postgres.logger.error(
             "Could not connect to postgres with given credentials")
-        return 1
+        sys.exit(1)
 
 
 if __name__ == "__main__":

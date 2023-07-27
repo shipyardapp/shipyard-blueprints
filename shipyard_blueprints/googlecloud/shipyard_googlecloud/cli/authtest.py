@@ -1,28 +1,17 @@
 import os
+import sys
 from shipyard_blueprints import GoogleCloudClient
 
 
-def get_args():
-    args = {}
-    args['service_account'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("--service-account",
-    #                     dest='service_account', required=True)
-    # args = parser.parse_args()
-    return args
-
-
 def main():
-    args = get_args()
-    service_account = args['service_account']
-    client = GoogleCloudClient(service_account=service_account)
+    client = GoogleCloudClient(service_account=os.getenv('GOOGLE_APPLICATION_CREDENTIALS'))
     try:
         client.connect()
-        return 0
+        sys.exit(0)
     except Exception as e:
         client.logger.error(
             "Could not connect to Google Cloud with the service account provided")
-        return 1
+        sys.exit(1)
 
 
 if __name__ == "__main__":

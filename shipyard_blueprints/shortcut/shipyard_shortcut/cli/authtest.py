@@ -1,9 +1,10 @@
 import os
-from shipyard_shortcut import ShortcutClient
+import sys
+from shipyard_blueprints import ShortcutClient
 
 
 def main():
-    return ShortcutClient(access_token=os.getenv('SHORTCUT_ACCESS_TOKEN')).connect()
+    sys.exit(ShortcutClient(access_token=os.getenv('SHORTCUT_ACCESS_TOKEN')).connect())
 
 
 if __name__ == '__main__':

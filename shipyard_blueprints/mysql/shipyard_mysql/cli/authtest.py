@@ -1,15 +1,16 @@
 import os
+import sys
 from shipyard_blueprints import MySqlClient
 
 
 def get_args():
-    args = {}
-    args['host'] = os.environ.get('MYSQL_HOST')
-    args['port'] = os.environ.get('MYSQL_PORT')
-    args['username'] = os.environ.get('MYSQL_USERNAME')
-    args['password'] = os.environ.get('MYSQL_PASSWORD')
-    args['database'] = os.environ.get('MYSQL_DATABASE')
-    return args
+    return {
+        'host': os.environ.get('MYSQL_HOST'),
+        'port': os.environ.get('MYSQL_PORT'),
+        'username': os.environ.get('MYSQL_USERNAME'),
+        'password': os.environ.get('MYSQL_PASSWORD'),
+        'database': os.environ.get('MYSQL_DATABASE'),
+    }
 
 
 def main():
@@ -21,11 +22,13 @@ def main():
     database = args['database']
     mysql = MySqlClient(user=user, pwd=password, host=host,
                         port=port, database=database)
-    con = mysql.connect()
-    if con == 1:
-        return 1
-    else:
-        return 0
+    try:
+        con = mysql.connect()
+        mysql.logger.info(f"Connected to MySQL server {host}")
+        sys.exit(0)
+    except Exception as e:
+        mysql.logger.error(f"Could not connect to MySQL server {host} with the provided credentials")
+        sys.exit(1)
 
 
 if __name__ == '__main__':
