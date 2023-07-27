@@ -4,7 +4,7 @@ from shipyard_blueprints import GoogleDriveClient
 
 
 def main():
-    drive = GoogleDriveClient(os.getenv('GOOGLE_APPLICATIONS_CREDENTIALS'))
+    drive = GoogleDriveClient(os.getenv('GOOGLE_APPLICATION_CREDENTIALS'))
     try:
         conn = drive.connect()
         drive.logger.info("Successfully connected to Google Drive")
