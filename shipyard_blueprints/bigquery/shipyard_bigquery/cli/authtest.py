@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_bigquery import BigQueryClient
+from shipyard_blueprints import BigQueryClient
 
 
 def main():

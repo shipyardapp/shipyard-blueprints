@@ -22,11 +22,13 @@ def main():
     database = args['database']
     mysql = MySqlClient(user=user, pwd=password, host=host,
                         port=port, database=database)
-    con = mysql.connect()
-    if con == 1:
-        sys.exit(1)
-    else:
+    try:
+        con = mysql.connect()
+        mysql.logger.info(f"Connected to MySQL server {host}")
         sys.exit(0)
+    except Exception as e:
+        mysql.logger.error(f"Could not connect to MySQL server {host} with the provided credentials")
+        sys.exit(1)
 
 
 if __name__ == '__main__':
