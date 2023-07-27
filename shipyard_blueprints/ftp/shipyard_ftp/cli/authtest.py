@@ -2,7 +2,6 @@ import os
 import sys
 from shipyard_blueprints import FtpClient
 
-
 def get_args():
     return {
         'host': os.getenv("FTP_HOST"),
