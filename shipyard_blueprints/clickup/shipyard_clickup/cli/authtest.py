@@ -1,9 +1,10 @@
 import os
-from shipyard_clickup import ClickupClient
+import sys
+from shipyard_blueprints import ClickupClient
 
 
 def main():
-    return ClickupClient(access_token=os.getenv('CLICKUP_ACCESS_TOKEN')).connect()
+    sys.exit(ClickupClient(access_token=os.getenv('CLICKUP_ACCESS_TOKEN')).connect())
 
 
 if __name__ == '__main__':

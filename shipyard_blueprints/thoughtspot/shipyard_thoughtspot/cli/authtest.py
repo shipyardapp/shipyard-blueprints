@@ -1,9 +1,10 @@
 import os
+import sys
 from shipyard_thoughtspot import ThoughtSpotClient
 
 
 def main():
-    return ThoughtSpotClient(token=os.getenv("THOUGHTSPOT_TOKEN")).connect()
+    sys.exit(ThoughtSpotClient(token=os.getenv("THOUGHTSPOT_TOKEN")).connect())
 
 
 if __name__ == "__main__":

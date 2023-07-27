@@ -65,7 +65,7 @@ class TrelloClient(ProjectManagement):
         try:
             self._request('members/me')
         except Exception as e:
-            self.logger(f'Connection failed: {e}')
+            self.logger.error(f'Connection failed: {e}')
             return 1
         else:
             self.logger.info('Connection successful!')

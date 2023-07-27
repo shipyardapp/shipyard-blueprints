@@ -1,11 +1,13 @@
-from shipyard_blueprints import DropboxClient
+import sys
 import argparse
+from shipyard_blueprints import DropboxClient
+
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--access-key", dest = "access_key", required = True)
-    args = parser.parse_args()
-    return args
+    parser.add_argument("--access-key", dest="access_key", required=True)
+    return parser.parse_args()
+
 
 def main():
     args = get_args()
@@ -14,10 +16,11 @@ def main():
     try:
         dropbox.connect()
         dropbox.logger.info("Successfully connected to Dropbox")
-        return 0
+        sys.exit(0)
     except Exception as e:
         dropbox.logger.error("Could not connect to Dropbox with the access key provided")
-        return 1
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
