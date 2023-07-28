@@ -48,8 +48,7 @@ def main():
     poke_interval = args.poke_interval
 
     if (
-        poke_interval == ""
-        and not wait
+        not wait
         and int(os.environ.get("SHIPYARD_FLEET_DOWNSTREAM_COUNT")) > 0
     ):
         # This handles the situation where there are downstream vessels and the poke interval is not set since this is a good indicator that the fleet is running on the original blueprint
