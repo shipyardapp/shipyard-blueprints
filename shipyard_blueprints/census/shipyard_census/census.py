@@ -30,7 +30,7 @@ class CensusClient(Etl):
         """
         base_url = f"https://bearer:{self.access_token}@app.getcensus.com/api/v1/"
         url = base_url + endpoint
-        self.logger.debug(f"Attempting to make request to {endpoint}")
+        # self.logger.debug(f"Attempting to make request to {endpoint}")
 
         try:
             response = request(method, url, headers=self.api_headers)
@@ -39,22 +39,20 @@ class CensusClient(Etl):
             raise ExitCodeException(error, self.EXIT_CODE_UNKNOWN_ERROR) from error
 
         if response.ok:
-            self.logger.info("Request successful")
             return response.json()
+        # self.logger.debug(f"Request failed with status code {response.status_code}")
+        if response.status_code == 401:
+            raise ExitCodeException(
+                response.text, self.EXIT_CODE_INVALID_CREDENTIALS
+            )
+        elif response.status_code == 404:
+            raise ExitCodeException(response.text, self.EXIT_CODE_BAD_REQUEST)
+        elif response.status_code == 409:
+            raise ExitCodeException(
+                response.text, self.EXIT_CODE_SYNC_ALREADY_RUNNING
+            )
         else:
-            self.logger.debug(f"Request failed with status code {response.status_code}")
-            if response.status_code == 401:
-                raise ExitCodeException(
-                    response.text, self.EXIT_CODE_INVALID_CREDENTIALS
-                )
-            elif response.status_code == 404:
-                raise ExitCodeException(response.text, self.EXIT_CODE_BAD_REQUEST)
-            elif response.status_code == 409:
-                raise ExitCodeException(
-                    response.text, self.EXIT_CODE_SYNC_ALREADY_RUNNING
-                )
-            else:
-                raise ExitCodeException(response.text, self.EXIT_CODE_UNKNOWN_ERROR)
+            raise ExitCodeException(response.text, self.EXIT_CODE_UNKNOWN_ERROR)
 
     def get_sync_status(self, sync_run_id: str) -> dict:
         """

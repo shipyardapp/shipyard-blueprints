@@ -34,7 +34,6 @@ def get_args():
 def main():
     args = get_args()
     census = CensusClient(args.access_token)
-    census.connect()
     try:
         trigger_sync = census.trigger_sync(args.sync_id)
     except ExitCodeException as error:
@@ -63,11 +62,11 @@ def main():
             try:
                 sync_run_data = census.get_sync_status(sync_run_id)
                 status = census.determine_sync_status(sync_run_data)
-
-                census.logger.info(
-                    f"Waiting {poke_interval} minute(s) to check sync status..."
-                )
-                time.sleep(poke_interval * 60)
+                if status != "completed":
+                    census.logger.info(
+                        f"Waiting {poke_interval} minute(s) to check sync status..."
+                    )
+                    time.sleep(poke_interval * 60)
             except ExitCodeException as error:
                 census.logger.error(error)
                 sys.exit(error.exit_code)
