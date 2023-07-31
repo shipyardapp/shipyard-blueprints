@@ -72,8 +72,15 @@ class AirbyteClient(Etl):
             'authorization': f'Bearer {self.access_token}',
             'User-Agent': 'Shipyard User 1.0'
         }
-        job_response = requests.get(job_url, headers=headers).json()
-        return job_response
+        try:
+            job_response = requests.get(job_url, headers=headers).json()
+            job_response.raise_for_status()
+        except Exception as error:
+            self.logger.error(
+                f"Error occurred when attempting to fetch sync status. Check to see that the job id and api token are valid. Error: {error}")
+            sys.exit(self.EXIT_CODE_BAD_REQUEST)
+        else:
+            return job_response
 
     def determine_sync_status(self, job_response: dict) -> int:
         """ Provides logging and handling based off of the status. Intended to be used by the Shipyard Application only
