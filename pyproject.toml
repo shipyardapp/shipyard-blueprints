@@ -95,6 +95,8 @@ requests = "2.31.0"
 
 [tool.poetry.group.hightouch.dependencies]
 requests = "2.31.0"
+shipyard-bp-utils = {path = "shipyard_blueprints/shipyard-bp-utils", develop = true}
+shipyard-templates = {path = "shipyard-templates", develop = true}
 
 
 [tool.poetry.group.looker.dependencies]
