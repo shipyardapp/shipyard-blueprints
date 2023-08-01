@@ -1,8 +1,20 @@
+import sys
+import time
 import argparse
-
-from shipyard_coalesce import CoalesceClient
 import shipyard_bp_utils as shipyard
+from shipyard_coalesce import CoalesceClient
 
+def create_pickle_file(response):
+    # create artifacts folder to save response
+    base_folder_name = shipyard.logs.determine_base_artifact_folder("coalesce")
+    artifact_subfolder_paths = shipyard.logs.determine_artifact_subfolders(
+        base_folder_name
+    )
+    shipyard.logs.create_artifacts_folders(artifact_subfolder_paths)
+    # save sync response as variable
+    shipyard.logs.create_pickle_file(
+        artifact_subfolder_paths, "coalesce_response", response
+    )
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -26,9 +38,10 @@ def get_args():
     parser.add_argument(
         "--exclude-nodes-selector", dest="exclude_nodes", required=False, default=None
     )
+    parser.add_argument("--wait-for-completion",dest="wait_for_completion")
+    parser.add_argument("--poke-interval",dest="poke_interval")
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -46,18 +59,33 @@ def main():
         "exclude_nodes_selector": None if args.exclude_nodes == '' else args.exclude_nodes
     }
     client = CoalesceClient(access_token)
-    response = client.trigger_sync(**sync_args)
 
-    # create artifacts folder to save response
-    base_folder_name = shipyard.logs.determine_base_artifact_folder("coalesce")
-    artifact_subfolder_paths = shipyard.logs.determine_artifact_subfolders(
-        base_folder_name
-    )
-    shipyard.logs.create_artifacts_folders(artifact_subfolder_paths)
-    # save sync response as variable
-    shipyard.logs.create_pickle_file(
-        artifact_subfolder_paths, "coalesce_response", response
-    )
+    try:
+        response = client.trigger_sync(**sync_args)
+    except Exception as e:
+        client.logger.error(f"Error triggering sync: {e}")
+        raise e
+
+    if args.wait_for_completion == 'TRUE' and (0 < int(args.poke_interval) <= 60):
+        run_id = response["runCounter"]
+        status = client.determine_sync_status(run_id)
+
+        while status not in (client.EXIT_CODE_FINAL_STATUS_COMPLETED,
+                             client.EXIT_CODE_FINAL_STATUS_INCOMPLETE,
+                             client.EXIT_CODE_FINAL_STATUS_CANCELLED,
+                             ):
+            client.logger.info(f"Waiting {args.poke_interval} minute(s)...")
+            time.sleep(int(args.poke_interval) * 60)
+            status = client.determine_sync_status(run_id)
+
+        sys.exit(status)
+    elif args.wait_for_completion == 'TRUE':
+        client.logger.error(
+            "Poke interval must be between 1 and 60 minutes")
+        sys.exit(client.EXIT_CODE_SYNC_INVALID_POKE_INTERVAL)
+    else:
+        create_pickle_file(response) # Backwards Compatibility: Ensures this code works with older versions of Check Sync Blueprint.
+
 
 
 if __name__ == "__main__":
