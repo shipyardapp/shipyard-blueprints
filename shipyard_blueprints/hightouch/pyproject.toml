@@ -10,7 +10,6 @@ packages = [{ include = "shipyard_hightouch" }]
 [tool.poetry.dependencies]
 python = "^3.9"
 requests = "2.31.0"
-shipyard-bp-utils = "^0.1.0"
 shipyard-templates = "^0.2.0"
 shipyard-utils = "^0.1.4"
 
