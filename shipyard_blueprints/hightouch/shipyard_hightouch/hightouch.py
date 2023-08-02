@@ -1,6 +1,6 @@
-import requests
 import sys
-from shipyard_templates import Etl
+import requests
+from shipyard_templates import Etl,ExitCodeException
 
 
 class HightouchClient(Etl):
@@ -28,40 +28,27 @@ class HightouchClient(Etl):
             if sync_status_code == requests.codes.ok:
                 sync_run_json = sync_run_response.json()
 
-                # Handles an error where the response is successful, but a blank list
-                # is returned when runID provide returns no matches.
-                if len(sync_run_json['data']) == 0:
-                    self.logger.warn(
-                        f"Sync request Failed. Invalid Sync ID: {sync_id}")
-                    sys.exit(self.EXIT_CODE_SYNC_INVALID_ID)
-                else:
+                if len(sync_run_json['data']) != 0:
                     return sync_run_json['data'][0]
+                raise ExitCodeException(f'Invalid Sync ID: {sync_id}', self.EXIT_CODE_SYNC_INVALID_ID)
 
             elif sync_status_code == 400:  # Bad request
-                self.logger.error(
-                    "Sync status request failed due to Bad Request Error.")
-                sys.exit(self.EXIT_CODE_BAD_REQUEST)
+                raise ExitCodeException("Sync status request failed due to Bad Request Error.",self.EXIT_CODE_BAD_REQUEST)
 
             elif sync_status_code == 401:  # Incorrect credentials
-                self.logger.error(
-                    "Incorrect credentials, check your access token")
-                sys.exit(self.EXIT_CODE_INVALID_CREDENTIALS)
+                raise ExitCodeException("Incorrect credentials, check your access token",self.EXIT_CODE_INVALID_CREDENTIALS)
 
             elif sync_status_code == 422:  # Invalid status query
                 sync_run_json = sync_run_response.json()
-                self.logger.error(
-                    f"Check status Validation failed: {sync_run_json['details']}")
-                sys.exit(self.EXIT_CODE_BAD_REQUEST)
-
+                raise ExitCodeException(f"Validation failed: {sync_run_json['details']}",self.EXIT_CODE_BAD_REQUEST)
             else:
-                self.logger.error("Unknown Error when sending request")
-                sys.exit(self.EXIT_CODE_UNKNOWN_ERROR)
-
+                raise ExitCodeException("Unknown Error when sending request",self.EXIT_CODE_UNKNOWN_ERROR)
         except Exception as e:
             # Handle an error where a blank list is returned when the
-            self.logger.exception(
-                f"Failed to grab the sync status for Sync {sync_id}, Sync Run {sync_run_id} due to: {e}")
-            sys.exit(self.EXIT_CODE_UNKNOWN_ERROR)
+            raise ExitCodeException(
+                f"Sync status request failed due to: {e}",
+                self.EXIT_CODE_UNKNOWN_ERROR,
+            ) from e
 
     def determine_sync_status(self, sync_run_data: dict):
         """
@@ -74,7 +61,7 @@ class HightouchClient(Etl):
         if status == "success":
             self.logger.info(f"Sync run {run_id} completed successfully. ")
             self.logger.info(f"Completed at: {sync_run_data['finishedAt']}")
-            status_code = self.EXIT_CODE_FINAL_STATUS_COMPLETED
+            return self.EXIT_CODE_FINAL_STATUS_COMPLETED
 
         elif sync_run_data['finishedAt'] is None:
             self.logger.info(
@@ -82,34 +69,27 @@ class HightouchClient(Etl):
             self.logger.info(
                 f"Current records processed: {sync_run_data['records_processed']}")
 
-            status_code = self.EXIT_CODE_SYNC_ALREADY_RUNNING
+            return self.EXIT_CODE_SYNC_ALREADY_RUNNING
 
         elif status == "failed":
             error_info = sync_run_data['error']
             self.logger.error(f"Sync run {run_id} failed. {error_info}")
-            status_code = self.EXIT_CODE_FINAL_STATUS_ERRORED
+            return self.EXIT_CODE_FINAL_STATUS_ERRORED
 
         else:
             self.logger.error(f"Unknown Sync status: {status}")
-            status_code = self.EXIT_CODE_UNKNOWN_ERROR
-
-        return status_code
+            return self.EXIT_CODE_UNKNOWN_ERROR
 
     def trigger_sync(self, sync_id: str, full_resync=False):
         sync_api = f"https://api.hightouch.io/api/v1/syncs/{sync_id}/trigger"
-        payload = {}
-
-        if full_resync:
-            payload['fullResync'] = 'true'
-        else:
-            payload['fullResync'] = 'false'
-
+        payload = {'fullResync': 'true' if full_resync else 'false'}
         try:
             sync_trigger_response = requests.post(sync_api,
                                                   json=payload,
                                                   headers=self.api_headers)
 
             sync_status_code = sync_trigger_response.status_code
+            print(sync_trigger_response.json())
             # check if successful, if not return error message
             if sync_status_code == requests.codes.ok:
                 self.logger.info(
@@ -154,4 +134,4 @@ class HightouchClient(Etl):
         url = 'https://api.hightouch.com/api/v1/sources'
         response = requests.get(url, headers=self.api_headers)
         return response.status_code
-        
+
