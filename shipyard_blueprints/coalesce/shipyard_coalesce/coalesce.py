@@ -8,16 +8,16 @@ class CoalesceClient(Etl):
         super().__init__(access_token)
 
     def trigger_sync(
-        self,
-        environment_id: str,
-        job_id: str,
-        snowflake_username: str,
-        snowflake_password: str,
-        snowflake_role: str,
-        snowflake_warehouse: str = None,
-        parallelism: int = 16,
-        include_nodes_selector: str = None,
-        exclude_nodes_selector=None,
+            self,
+            environment_id: str,
+            job_id: str,
+            snowflake_username: str,
+            snowflake_password: str,
+            snowflake_role: str,
+            snowflake_warehouse: str = None,
+            parallelism: int = 16,
+            include_nodes_selector: str = None,
+            exclude_nodes_selector=None,
     ) -> dict[any, any]:
         """
         # reference is available here: https://docs.coalesce.io/reference/startrun
@@ -67,12 +67,12 @@ class CoalesceClient(Etl):
 
         if response.status_code == 200:
             self.logger.info("Successfully triggered job")
-
+            return response.json()
         else:
             self.logger.error(f"Error message: {response.json()['error']['errorString']}")
             self.logger.error(f"Error details: {response.json()['error']['errorDetail']}")
-
-        return response.json()
+            raise Exception(
+                f"Error occurred when attempting to trigger sync: {response.json()['error']['errorString']}")
 
     def get_run_status(self, run_counter: int) -> requests.Response:
         """Returns the HTTP response for a Coalesce job status
@@ -107,7 +107,7 @@ class CoalesceClient(Etl):
             # go through the statuses and return the appropriate exit code
             # documentation does not provide options for status aside from completed
             if status == "completed":
-                self.logger.info(f"Status: completed")
+                self.logger.info("Status: completed")
                 return self.EXIT_CODE_FINAL_STATUS_COMPLETED
             elif status == "pending":
                 self.logger.info("Status: pending")
@@ -121,6 +121,9 @@ class CoalesceClient(Etl):
             elif status == "canceled":
                 self.logger.info("Status: canceled")
                 return self.EXIT_CODE_FINAL_STATUS_CANCELLED
+            elif status == "failed":
+                self.logger.info("Status: failed")
+                return self.EXIT_CODE_FINAL_STATUS_ERRORED
             else:
                 self.logger.info(f"Status: {status}")
                 return self.EXIT_CODE_UNKNOWN_STATUS
@@ -148,5 +151,3 @@ class CoalesceClient(Etl):
         }
         response = requests.get(url=url, headers=headers)
         return response.status_code
-
-

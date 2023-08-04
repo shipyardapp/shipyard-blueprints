@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [[ -z "${1}" ]]; then
+	echo >&2 "${0}: first argument <vendor> required"
+	exit 1
+fi
+
+vendor="${1}"
+run_options=( "--rm" "-w" "/var/task/shipyard-blueprints" "--entrypoint" "/var/task/shipyard-blueprints/.venv/bin/python" )
+run_command="./shipyard_blueprints/${vendor}/shipyard_${vendor}/cli/authtest.py"
+
+if [[ -f ./docker/credentialtesting/.env ]]; then
+	run_options+=("--env-file" "./docker/credentialtesting/.env")
+fi
+
+docker \
+    run \
+	"${run_options[@]}" \
+    shipyardapp/credentialtesting:localtest \
+    "${run_command}"
+pass=$?
+
+if [[ $pass -eq 0 ]]; then
+	echo "Test passed!!"
+else
+	echo "Test failed..."
+fi

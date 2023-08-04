@@ -4,6 +4,7 @@ import argparse
 import shipyard_bp_utils as shipyard
 from shipyard_coalesce import CoalesceClient
 
+
 def create_pickle_file(response):
     # create artifacts folder to save response
     base_folder_name = shipyard.logs.determine_base_artifact_folder("coalesce")
@@ -15,6 +16,7 @@ def create_pickle_file(response):
     shipyard.logs.create_pickle_file(
         artifact_subfolder_paths, "coalesce_response", response
     )
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -38,8 +40,8 @@ def get_args():
     parser.add_argument(
         "--exclude-nodes-selector", dest="exclude_nodes", required=False, default=None
     )
-    parser.add_argument("--wait-for-completion",dest="wait_for_completion")
-    parser.add_argument("--poke-interval",dest="poke_interval")
+    parser.add_argument("--wait-for-completion", dest="wait_for_completion")
+    parser.add_argument("--poke-interval", dest="poke_interval")
 
     return parser.parse_args()
 
@@ -73,6 +75,7 @@ def main():
         while status not in (client.EXIT_CODE_FINAL_STATUS_COMPLETED,
                              client.EXIT_CODE_FINAL_STATUS_INCOMPLETE,
                              client.EXIT_CODE_FINAL_STATUS_CANCELLED,
+                             client.EXIT_CODE_FINAL_STATUS_ERRORED,
                              ):
             client.logger.info(f"Waiting {args.poke_interval} minute(s)...")
             time.sleep(int(args.poke_interval) * 60)
@@ -84,8 +87,8 @@ def main():
             "Poke interval must be between 1 and 60 minutes")
         sys.exit(client.EXIT_CODE_SYNC_INVALID_POKE_INTERVAL)
     else:
-        create_pickle_file(response) # Backwards Compatibility: Ensures this code works with older versions of Check Sync Blueprint.
-
+        create_pickle_file(
+            response)  # Backwards Compatibility: Ensures this code works with older versions of Check Sync Blueprint.
 
 
 if __name__ == "__main__":
