@@ -1,0 +1,26 @@
+name: Publish Poetry Packages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "pyproject.toml"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install Poetry
+        run: |
+          pip install poetry
+      - name: Build and publish
+        run: |
+          poetry build
+          poetry publish
+        env:
+          POETRY_PYPI_TOKEN: ${{ secrets.POETRY_PYPI_TOKEN }}
