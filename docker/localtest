@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# Default values for arguments
+IMAGE_TAG="localtest"
+FORCE_REBUILD=false
+SCRIPT_ARGS=""
+
+echo "[INFO] Initializing Docker management script..."
+
+# Process named arguments
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -t|--tag)
+    IMAGE_TAG="$2"
+    echo "[INFO] Using image tag: $IMAGE_TAG"
+    shift # past argument
+    shift # past value
+    ;;
+    -v|--vendor)
+    VENDOR="$2"
+    echo "[INFO] Setting vendor to: $VENDOR"
+    shift # past argument
+    shift # past value
+    ;;
+    -p|--packages)
+    EXTRA_PACKAGES="$2"
+    echo "[INFO] Including extra packages: $EXTRA_PACKAGES"
+    shift # past argument
+    shift # past value
+    ;;
+    -s|--script)
+    SCRIPT="$2"
+    echo "[INFO] Running script: $SCRIPT"
+    shift # past argument
+    shift # past value
+    ;;
+    --force-rebuild)
+    FORCE_REBUILD=true
+    echo "[WARNING] Force rebuild activated!"
+    shift # past argument
+    ;;
+    *)    # unknown option
+    echo "[WARNING] Unknown option: $1"
+    shift # past argument
+    ;;
+esac
+done
+
+# Collect the remaining arguments as SCRIPT_ARGS
+SCRIPT_ARGS="$@"
+echo "[INFO] Script arguments set to: $SCRIPT_ARGS"
+
+# Check if a container is already running from the image with the specified tag
+if [[ $(docker ps --filter ancestor=${IMAGE_TAG} --format "{{.ID}}") ]]; then
+    echo "[ERROR] A container is already running from the image with tag ${IMAGE_TAG}. Exiting..."
+    exit 1
+fi
+
+# Check if the image with the tag exists
+if [[ $(docker images -q ${IMAGE_TAG}) ]]; then
+    if [ "$FORCE_REBUILD" = true ]; then
+        echo "[INFO] Deleting existing image with tag ${IMAGE_TAG} due to --force-rebuild flag."
+        docker rmi ${IMAGE_TAG}
+    else
+        echo "[INFO] Image with tag ${IMAGE_TAG} already exists. Skipping rebuild. Use --force-rebuild to override."
+    fi
+else
+    echo "[INFO] Building Docker image with tag: $IMAGE_TAG"
+    docker build -f "./docker/Dockerfile" --build-arg VENDOR=$VENDOR --build-arg EXTRA_PACKAGES="$EXTRA_PACKAGES" -t $IMAGE_TAG .
+fi
+
+echo "[INFO] Cleaning up stopped containers..."
+docker container prune -f
+
+echo "[INFO] Pruning unused images..."
+docker image prune -f
+
+# Path to the .env file
+ENV_FILE=./shipyard_blueprints/$VENDOR/.env
+
+# Check if the .env file exists
+if [ -f "$ENV_FILE" ]; then
+    echo "[INFO] Loading environment variables from $ENV_FILE"
+    echo -e "[INFO] Beginning execution of $SCRIPT $SCRIPT_ARGS \n"
+    docker run -it --env-file $ENV_FILE -e SCRIPT_ARGS="$SCRIPT_ARGS" $IMAGE_TAG poetry run python3 /app/shipyard_blueprints/$VENDOR/shipyard_$VENDOR/cli/$SCRIPT $SCRIPT_ARGS
+    echo -e "\n[INFO] Execution of $SCRIPT completed."
+else
+
+    echo "[WARNING] $ENV_FILE not found. Running without environment variables from file."
+
+    docker run -it -e SCRIPT_ARGS="$SCRIPT_ARGS" $IMAGE_TAG /app/shipyard_blueprints/$VENDOR/shipyard_$VENDOR/cli/$SCRIPT $SCRIPT_ARGS
+    echo "[INFO] Execution of $SCRIPT completed."
+
+fi
+
+echo "[INFO] Docker management script completed."
