@@ -3,12 +3,10 @@ from pkg_resources import parse_requirements
 from setuptools import find_packages, setup
 
 
-for path in Path('./').rglob('requirements.txt'):
+for path in Path("./").rglob("requirements.txt"):
     with Path(path).open() as requirements_txt:
         install_requires = [
-            str(requirement)
-            for requirement
-            in parse_requirements(requirements_txt)
+            str(requirement) for requirement in parse_requirements(requirements_txt)
         ]
 
 
@@ -32,6 +30,7 @@ config = {
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
     ],
-    "python_requires": ">=3.7"}
+    "python_requires": ">=3.7",
+}
 
 setup(**config)

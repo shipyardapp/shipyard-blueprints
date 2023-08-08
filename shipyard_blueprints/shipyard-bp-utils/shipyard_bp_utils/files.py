@@ -22,19 +22,18 @@ def enumerate_destination_file_name(destination_file_name: str, file_number: int
     Append a number to the end of the provided destination file name, before the file extension.
     Only used when multiple files are matched to, preventing the destination file from being continuously overwritten.
     """
-    if re.search(r'\.', destination_file_name):
+    if re.search(r"\.", destination_file_name):
         destination_file_name = re.sub(
-            r'\.', f'_{file_number}.', destination_file_name, 1)
+            r"\.", f"_{file_number}.", destination_file_name, 1
+        )
     else:
-        destination_file_name = f'{destination_file_name}_{file_number}'
+        destination_file_name = f"{destination_file_name}_{file_number}"
     return destination_file_name
 
 
 def determine_destination_file_name(
-    *,
-    source_full_path: str,
-    destination_file_name: str,
-        file_number: int = None):
+    *, source_full_path: str, destination_file_name: str, file_number: int = None
+):
     """
     Determine what the destination_file_name should be.
     If the destination_file_name was provided use that name.
@@ -44,14 +43,17 @@ def determine_destination_file_name(
     if destination_file_name:
         if file_number:
             destination_file_name = enumerate_destination_file_name(
-                destination_file_name, file_number)
+                destination_file_name, file_number
+            )
         else:
             destination_file_name = destination_file_name
     else:
         destination_file_name = extract_file_name_from_source_full_path(
-            source_full_path)
+            source_full_path
+        )
 
     return destination_file_name
+
 
 # Functions for Folders
 
@@ -60,8 +62,8 @@ def clean_folder_name(folder_name):
     """
     Cleans folder names by removing duplicate '/' as well as leading and trailing '/' characters.
     """
-    folder_name = folder_name.strip('/')
-    if folder_name != '':
+    folder_name = folder_name.strip("/")
+    if folder_name != "":
         folder_name = os.path.normpath(folder_name)
     return folder_name
 
@@ -71,9 +73,9 @@ def create_folder_if_dne(destination_folder_name):
     Checks to verify if the provided folder already exists.
     If not, the folder and all subfolders are created.
     """
-    if not os.path.exists(destination_folder_name) and (
-            destination_folder_name != ''):
+    if not os.path.exists(destination_folder_name) and (destination_folder_name != ""):
         os.makedirs(destination_folder_name)
+
 
 # Functions for mixing File + Folder
 
@@ -83,26 +85,28 @@ def combine_folder_and_file_name(folder_name, file_name):
     Combine together the provided folder_name and file_name into one path variable.
     """
     combined_name = os.path.normpath(
-        f'{folder_name}{"/" if folder_name else ""}{file_name}')
+        f'{folder_name}{"/" if folder_name else ""}{file_name}'
+    )
     combined_name = os.path.normpath(combined_name)
     return combined_name
 
 
 def determine_destination_full_path(
-        destination_folder_name,
-        destination_file_name,
-        source_full_path,
-        file_number=None):
+    destination_folder_name, destination_file_name, source_full_path, file_number=None
+):
     """
     Determine the full destination path of the file to be uploaded or downloaded.
     """
     destination_file_name = determine_destination_file_name(
         destination_file_name=destination_file_name,
         source_full_path=source_full_path,
-        file_number=file_number)
+        file_number=file_number,
+    )
     destination_full_path = combine_folder_and_file_name(
-        destination_folder_name, destination_file_name)
+        destination_folder_name, destination_file_name
+    )
     return destination_full_path
+
 
 # Functions for handling large files
 
@@ -112,15 +116,15 @@ def compress_files(file_paths, destination_full_path, compression):
     Given a list of files, compress all of them into a single file.
     Keeps the existing directory structure in tact.
     """
-    if f'.{compression}' in destination_full_path:
+    if f".{compression}" in destination_full_path:
         compressed_file_name = destination_full_path
     else:
-        compressed_file_name = f'{destination_full_path}.{compression}'
+        compressed_file_name = f"{destination_full_path}.{compression}"
 
-    if compression == 'zip':
+    if compression == "zip":
         compress_with_zip(file_paths, compressed_file_name, compression)
 
-    if 'tar' in compression:
+    if "tar" in compression:
         compress_with_tar(file_paths, compressed_file_name, compression)
 
     return compressed_file_name
@@ -134,10 +138,9 @@ def compress_with_zip(file_paths, compressed_file_name, compression):
 
     with ZipFile(compressed_file_name, write_method) as zip:
         for file in file_paths:
-            file = clean_folder_name(file.replace(os.getcwd(), ''))
+            file = clean_folder_name(file.replace(os.getcwd(), ""))
             zip.write(file)
-            print(
-                f'Successfully compressed {file} into {compressed_file_name}')
+            print(f"Successfully compressed {file} into {compressed_file_name}")
 
 
 def compress_with_tar(file_paths, compressed_file_name, compression):
@@ -148,10 +151,9 @@ def compress_with_tar(file_paths, compressed_file_name, compression):
 
     with tarfile.open(compressed_file_name, write_method) as tar:
         for file in file_paths:
-            file = clean_folder_name(file.replace(os.getcwd(), ''))
+            file = clean_folder_name(file.replace(os.getcwd(), ""))
             tar.add(file)
-            print(
-                f'Successfully compressed {file} into {compressed_file_name}')
+            print(f"Successfully compressed {file} into {compressed_file_name}")
 
 
 def determine_write_method(compression):
@@ -159,12 +161,12 @@ def determine_write_method(compression):
     Given a specified compression type, choose the write method
     for generating the file.
     """
-    if compression == 'tar.bz2':
-        write_method = 'w:bz2'
-    if compression == 'tar.gz':
-        write_method = 'w:gz'
+    if compression == "tar.bz2":
+        write_method = "w:bz2"
+    if compression == "tar.gz":
+        write_method = "w:gz"
     else:
-        write_method = 'w'
+        write_method = "w"
 
     return write_method
 
@@ -174,17 +176,11 @@ def decompress_file(source_full_path, destination_full_path, compression):
     Decompress a given file, using the specified compression method.
     """
 
-    if compression == 'zip':
-        decompress_with_zip(
-            source_full_path,
-            destination_full_path,
-            compression)
+    if compression == "zip":
+        decompress_with_zip(source_full_path, destination_full_path, compression)
 
-    if 'tar' in compression:
-        decompress_with_tar(
-            source_full_path,
-            destination_full_path,
-            compression)
+    if "tar" in compression:
+        decompress_with_tar(source_full_path, destination_full_path, compression)
 
 
 def decompress_with_zip(source_full_path, destination_full_path, compression):
@@ -199,7 +195,8 @@ def decompress_with_zip(source_full_path, destination_full_path, compression):
     with ZipFile(source_full_path, read_method) as zipped:
         zipped.extractall(destination_full_path)
         print(
-            f'Successfully extracted files from {source_full_path} to {destination_full_path}')
+            f"Successfully extracted files from {source_full_path} to {destination_full_path}"
+        )
 
 
 def decompress_with_tar(source_full_path, destination_full_path, compression):
@@ -207,7 +204,8 @@ def decompress_with_tar(source_full_path, destination_full_path, compression):
     file = tarfile.open(source_full_path, read_method)
     file.extractall(path=destination_full_path)
     print(
-        f'Successfully extracted files from {source_full_path} to {destination_full_path}')
+        f"Successfully extracted files from {source_full_path} to {destination_full_path}"
+    )
 
 
 def determine_read_method(compression):
@@ -215,12 +213,12 @@ def determine_read_method(compression):
     Given a specified compression type, choose the read method
     for opening the file.
     """
-    if compression == 'tar.bz2':
-        read_method = 'r:bz2'
-    if compression == 'tar.gz':
-        read_method = 'r:gz'
+    if compression == "tar.bz2":
+        read_method = "r:bz2"
+    if compression == "tar.gz":
+        read_method = "r:gz"
     else:
-        read_method = 'r'
+        read_method = "r"
 
     return read_method
 
@@ -249,6 +247,7 @@ def are_files_too_large(file_paths, max_size_bytes):
     else:
         return False
 
+
 # Functions for Regex Matching Logic
 
 
@@ -258,7 +257,7 @@ def find_all_local_file_names(source_folder_name=None):
     filtered by source_folder_name if provided.
     """
     cwd = os.getcwd()
-    cwd_extension = os.path.normpath(f'{cwd}/{source_folder_name}/**')
+    cwd_extension = os.path.normpath(f"{cwd}/{source_folder_name}/**")
     all_paths = glob.glob(cwd_extension, recursive=True)
     file_names = remove_directories_from_path_list(all_paths)
     return file_names
@@ -285,7 +284,7 @@ def find_all_file_matches(file_names, file_name_re):
         if re.search(file_name_re, file):
             matching_file_names.append(file)
 
-    print(f'Found {len(matching_file_names)} file matches.')
+    print(f"Found {len(matching_file_names)} file matches.")
     print(matching_file_names)
     return matching_file_names
 
@@ -294,18 +293,14 @@ def find_all_file_matches(file_names, file_name_re):
 
 
 def write_json_to_file(json_object, file_name):
-    with open(file_name, 'w') as f:
-        f.write(
-            json.dumps(
-                json_object,
-                ensure_ascii=False,
-                indent=4))
-    print(f'JSON data stored at {file_name}')
+    with open(file_name, "w") as f:
+        f.write(json.dumps(json_object, ensure_ascii=False, indent=4))
+    print(f"JSON data stored at {file_name}")
     return
 
 
 def write_text_to_file(text_var, file_name):
-    with open(file_name, 'w') as f:
+    with open(file_name, "w") as f:
         f.write(text_var)
-    print(f'Text data stored at {file_name}')
+    print(f"Text data stored at {file_name}")
     return

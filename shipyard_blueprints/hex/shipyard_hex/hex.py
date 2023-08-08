@@ -11,7 +11,7 @@ class HexClient(Notebooks):
         super().__init__()
 
     def connect(self) -> int:
-        """ Connect to Hex
+        """Connect to Hex
 
         Returns:
             int: exit code
@@ -19,11 +19,12 @@ class HexClient(Notebooks):
 
         try:
             response = requests.get(
-                url = f"https://app.hex.tech/api/v1/project/{self.project_id}/runs", headers= self.api_headers)
+                url=f"https://app.hex.tech/api/v1/project/{self.project_id}/runs",
+                headers=self.api_headers,
+            )
             response.raise_for_status()
         except Exception as e:
             print(e)
             return 1
         else:
             return 0
-

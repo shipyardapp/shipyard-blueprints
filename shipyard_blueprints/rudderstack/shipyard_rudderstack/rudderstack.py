@@ -122,12 +122,10 @@ class RudderStackClient(Etl):
             else:
                 self.logger.info(
                     f"Rudderstack reports that the most recent run for source {source_id} finished without errors",
-
-                    )
+                )
         elif sync_status == "processing":
             self.logger.info(
                 f"Rudderstack reports that the most recent run for source {source_id} is still processing",
-
             )
         else:
             raise ExitCodeException(

@@ -15,4 +15,5 @@ def test_connection():
             return code
         except Exception as e:
             return 1
+
     assert connection_test() == 200

@@ -12,13 +12,11 @@ class SlackClient(Messaging):
 
     def _set_environment_variabls(token: str):
         if token:
-            os.environ['SLACK_BOT_TOKEN'] = token
+            os.environ["SLACK_BOT_TOKEN"] = token
 
     def connect(self):
-
         try:
-            WebClient(
-                token=self.slack_token, timeout=self.TIMEOUT).auth_test()
+            WebClient(token=self.slack_token, timeout=self.TIMEOUT).auth_test()
             self.logger.info("Successfully connected to Slack")
         except Exception as e:
             self.logger.error(f"Could not connect to Slack due to {e}")

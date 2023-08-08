@@ -8,16 +8,16 @@ class CoalesceClient(Etl):
         super().__init__(access_token)
 
     def trigger_sync(
-            self,
-            environment_id: str,
-            job_id: str,
-            snowflake_username: str,
-            snowflake_password: str,
-            snowflake_role: str,
-            snowflake_warehouse: str = None,
-            parallelism: int = 16,
-            include_nodes_selector: str = None,
-            exclude_nodes_selector=None,
+        self,
+        environment_id: str,
+        job_id: str,
+        snowflake_username: str,
+        snowflake_password: str,
+        snowflake_role: str,
+        snowflake_warehouse: str = None,
+        parallelism: int = 16,
+        include_nodes_selector: str = None,
+        exclude_nodes_selector=None,
     ) -> dict[any, any]:
         """
         # reference is available here: https://docs.coalesce.io/reference/startrun
@@ -69,10 +69,15 @@ class CoalesceClient(Etl):
             self.logger.info("Successfully triggered job")
             return response.json()
         else:
-            self.logger.error(f"Error message: {response.json()['error']['errorString']}")
-            self.logger.error(f"Error details: {response.json()['error']['errorDetail']}")
+            self.logger.error(
+                f"Error message: {response.json()['error']['errorString']}"
+            )
+            self.logger.error(
+                f"Error details: {response.json()['error']['errorDetail']}"
+            )
             raise Exception(
-                f"Error occurred when attempting to trigger sync: {response.json()['error']['errorString']}")
+                f"Error occurred when attempting to trigger sync: {response.json()['error']['errorString']}"
+            )
 
     def get_run_status(self, run_counter: int) -> requests.Response:
         """Returns the HTTP response for a Coalesce job status

@@ -46,17 +46,29 @@ class HubspotClient(Crm):
         if response.ok:
             return response_details
         if response.status_code in {401, 403}:
-            raise ExitCodeException(response_details.get("message", "Invalid credentials"),
-                                    self.EXIT_CODE_INVALID_CREDENTIALS)
+            raise ExitCodeException(
+                response_details.get("message", "Invalid credentials"),
+                self.EXIT_CODE_INVALID_CREDENTIALS,
+            )
         elif response.status_code == 429:
-            raise ExitCodeException(response_details.get("message", "Rate limit exceeded"), self.EXIT_CODE_RATE_LIMIT)
+            raise ExitCodeException(
+                response_details.get("message", "Rate limit exceeded"),
+                self.EXIT_CODE_RATE_LIMIT,
+            )
         elif response.status_code in {502, 504, 522, 524}:
-            raise ExitCodeException(response_details.get("message", "Gateway timeout"), self.TIMEOUT)
+            raise ExitCodeException(
+                response_details.get("message", "Gateway timeout"), self.TIMEOUT
+            )
         elif response.status_code in {503, 521, 523}:
-            raise ExitCodeException(response_details.get("message", "Service unavailable"),
-                                    self.EXIT_CODE_SERVICE_UNAVAILABLE)
+            raise ExitCodeException(
+                response_details.get("message", "Service unavailable"),
+                self.EXIT_CODE_SERVICE_UNAVAILABLE,
+            )
         elif response.status_code == 415:
-            raise ExitCodeException(response_details.get("message", "Bad Request"), self.EXIT_CODE_BAD_REQUEST)
+            raise ExitCodeException(
+                response_details.get("message", "Bad Request"),
+                self.EXIT_CODE_BAD_REQUEST,
+            )
         else:
             raise ExitCodeException(response.text, self.EXIT_CODE_UNKNOWN_ERROR)
 

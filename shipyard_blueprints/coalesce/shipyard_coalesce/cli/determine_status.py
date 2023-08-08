@@ -24,7 +24,7 @@ def main():
     shipyard.logs.create_artifacts_folders(artifact_subfolder_paths)
 
     # check if the job id was provided, if not then read it from the artifacts folder
-    if run_id is None or run_id == '':
+    if run_id is None or run_id == "":
         response = shipyard.logs.read_pickle_file(
             artifact_subfolder_paths, "coalesce_response"
         )

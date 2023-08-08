@@ -5,8 +5,11 @@ from shipyard_templates import ExitCodeException
 
 
 def main():
-    snowflake = SnowflakeClient(username=os.getenv('SNOWFLAKE_USERNAME'), pwd=os.getenv('SNOWFLAKE_PASSWORD'),
-                                account=os.getenv('SNOWFLAKE_ACCOUNT'))
+    snowflake = SnowflakeClient(
+        username=os.getenv("SNOWFLAKE_USERNAME"),
+        pwd=os.getenv("SNOWFLAKE_PASSWORD"),
+        account=os.getenv("SNOWFLAKE_ACCOUNT"),
+    )
     try:
         conn = snowflake.connect()
         snowflake.logger.info("Successfully connected to Snowflake")

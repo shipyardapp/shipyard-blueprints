@@ -4,7 +4,7 @@ from shipyard_blueprints import AirbyteClient
 
 
 def main():
-    token = os.getenv('AIRBYTE_API_TOKEN')
+    token = os.getenv("AIRBYTE_API_TOKEN")
     client = AirbyteClient(token)
     response = client.connect()
     if response == 200:
@@ -13,5 +13,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -7,14 +7,14 @@ from dotenv import load_dotenv
 from shipyard_hubspot.cli import authtest
 
 
-@patch('shipyard_hubspot.cli.authtest.HubspotClient.connect', return_value=1)
+@patch("shipyard_hubspot.cli.authtest.HubspotClient.connect", return_value=1)
 def test_mocked_failed_connection(mock_connect):
     with pytest.raises(SystemExit) as execinfo:
         authtest.main()
     assert execinfo.value.code == 1
 
 
-@patch('shipyard_hubspot.cli.authtest.HubspotClient.connect', return_value=0)
+@patch("shipyard_hubspot.cli.authtest.HubspotClient.connect", return_value=0)
 def test_mocked_successful_connection(mock_connect):
     with pytest.raises(SystemExit) as execinfo:
         authtest.main()
@@ -43,7 +43,7 @@ def test_with_no_credentials():
 # is handled appropriately!
 ####################################
 load_dotenv()
-env_exists = os.path.exists('.env')
+env_exists = os.path.exists(".env")
 
 
 @pytest.mark.skipif(not env_exists, reason="No .env file found")

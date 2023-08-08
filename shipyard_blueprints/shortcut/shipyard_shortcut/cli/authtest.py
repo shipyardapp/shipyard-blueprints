@@ -4,8 +4,8 @@ from shipyard_blueprints import ShortcutClient
 
 
 def main():
-    sys.exit(ShortcutClient(access_token=os.getenv('SHORTCUT_ACCESS_TOKEN')).connect())
+    sys.exit(ShortcutClient(access_token=os.getenv("SHORTCUT_ACCESS_TOKEN")).connect())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
