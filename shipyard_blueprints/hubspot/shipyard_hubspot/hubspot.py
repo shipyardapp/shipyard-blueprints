@@ -28,7 +28,6 @@ class HubspotClient(Crm):
         headers = {"Authorization": f"Bearer {self.access_token}"}
         if payload:
 
-
             headers["Content-Type"] = "application/json"
 
         response = request(
