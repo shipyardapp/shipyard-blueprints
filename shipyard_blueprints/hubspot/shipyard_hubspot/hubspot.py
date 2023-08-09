@@ -26,6 +26,7 @@ class HubspotClient(Crm):
         :return: The response from the request
         """
 
+
         headers = {"Authorization": f"Bearer {self.access_token}"}
         if payload:
             headers["Content-Type"] = "application/json"
