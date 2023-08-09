@@ -31,6 +31,7 @@ class HubspotClient(Crm):
 
             headers["Content-Type"] = "application/json"
 
+
         response = request(
             method=method,
             url=f"https://api.hubapi.com/{endpoint}",

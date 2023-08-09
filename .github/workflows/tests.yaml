@@ -25,7 +25,7 @@ jobs:
           echo $changed_vendors
           vendors=$changed_vendors
           
-          echo "::set-env name=CHANGED_VENDORS::${vendors[*]}"
+          CHANGED_VENDORS=${vendors[*]} >> $GITHUB_ENV
 
       - name: No changes
         if: ${{ !env.CHANGED_VENDORS }}
