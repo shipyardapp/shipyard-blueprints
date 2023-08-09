@@ -29,10 +29,19 @@ jobs:
             echo "::set-output name=matrix::[\"${changed_vendors//,/\",\"}\"]"
           fi
 
+  no_changes_message:
+    needs: detect_changes
+    runs-on: ubuntu-latest
+    if: needs.detect_changes.outputs.matrix == '[]'
+    steps:
+      - name: Print no changes message
+        run: echo "No vendor changes detected, skipping tests."
+
   test:
     name: Run tests
     needs: detect_changes
     runs-on: ubuntu-latest
+    if: needs.detect_changes.outputs.matrix != '[]'
     strategy:
       matrix:
         vendor: ${{fromJson(needs.detect_changes.outputs.matrix)}}
