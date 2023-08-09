@@ -1,4 +1,4 @@
-name: Vendor Package Tests
+name: PyTests
 
 on: [ push ]
 
@@ -22,9 +22,11 @@ jobs:
             echo "$file"
           done
           
-          changed_files=$(echo "$changed_files" | grep shipyard_blueprints)
+          changed_files=$(echo "$changed_files" | grep shipyard_blueprints | xargs -I {} dirname $(dirname {}))
+          # Remove duplicates
+          changed_files=$(echo "$changed_files" | sort | uniq)
           
-          echo "Filtered changed files:"
+          echo "Filtered changed directories:"
           
           for file in $changed_files; do
             echo "$file"
@@ -41,15 +43,15 @@ jobs:
       - name: Install dependencies
         if: env.CHANGED_FILES
         run: |
-          for file in ${{ env.CHANGED_FILES }}; do
-            cd ./shipyard_blueprints/$file
+          for dir in ${{ env.CHANGED_FILES }}; do
+            cd ./$dir
             poetry install
           done
 
       - name: Run tests
         if: env.CHANGED_FILES
         run: |
-          for file in ${{ env.CHANGED_FILES }}; do
-            cd ./shipyard_blueprints/$file
+          for dir in ${{ env.CHANGED_FILES }}; do
+            cd ./$dir
             poetry run pytest
           done
