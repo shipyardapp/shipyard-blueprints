@@ -27,12 +27,3 @@ def get_changed_dirs(before_sha: str, after_sha: str):
             changed_dirs.add(vendor)
 
     return sorted(changed_dirs)
-
-if __name__ == "__main__":
-    before_sha = sys.argv[1]
-    after_sha = sys.argv[2]
-    dirs = get_changed_dirs(before_sha, after_sha)
-    for dir in dirs:
-        print(dir)
-# 6686807
-# f0139a2
