@@ -78,8 +78,7 @@ class HubspotClient(Crm):
         """
         self.logger.debug("Verifying connection to Hubspot API")
         try:
-            # Changed to single quotes to fail linter build
-            self._requests('crm/v3/imports/')
+            self._requests("crm/v3/imports/")
         except ExitCodeException as e:
             return 1
         else:
