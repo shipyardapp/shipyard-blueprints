@@ -5,6 +5,7 @@ from requests import request
 from shipyard_templates import Crm, ExitCodeException
 
 
+
 class HubspotClient(Crm):
     def __init__(self, access_token: str, verbose: bool = False) -> None:
         self.access_token = access_token
