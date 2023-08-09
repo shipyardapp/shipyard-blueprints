@@ -22,7 +22,7 @@ jobs:
         run: |
           changed_vendors=$(python3 .github/workflows/scripts/get_modified_blueprints.py ${{ github.event.before }} ${{ github.event.after }})
           echo "Changed vendors:"
-          echo $changed_vendors
+          echo "$changed_vendors"
           vendors=$changed_vendors
           
           echo "::set-env name=CHANGED_VENDORS::${vendors[*]}"
