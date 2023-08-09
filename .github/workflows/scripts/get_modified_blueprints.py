@@ -24,7 +24,9 @@ def get_changed_dirs(before_sha: str, after_sha: str):
         if file.startswith("shipyard_blueprints"):
             directories = file.split("/")
             vendor = directories[1]
+            print(vendor)
             changed_dirs.add(vendor)
+
 
     return sorted(changed_dirs)
 
