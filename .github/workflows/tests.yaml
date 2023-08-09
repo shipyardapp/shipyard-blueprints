@@ -1,0 +1,31 @@
+name: Pytest
+
+on:
+  push:
+    paths:
+      - "shipyard_blueprint/*"
+jobs:
+  test:
+    runs-on: ubunto-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Get Modified Files
+        id: changed
+        uses: tj-actions/changed-files@v5.6
+        with:
+          files: |
+            ./shipyard_blueprint/
+
+      - name: Install dependencies
+        if: steps.changed.outputs.any_changed == 'true'
+        working-directory: ./shipyard_blueprints/${{ steps.changed.outputs.all_changed_files[0] }}
+        run: |
+          poetry install
+
+      - name: Run tests
+        if: steps.changed.outputs.any_changed == 'true'
+        working-directory: ./shipyard_blueprints/${{ steps.changed.outputs.all_changed_files[0] }}
+        run: |
+          poetry run pytest
