@@ -1,0 +1,24 @@
+name: PyTests
+
+on: [ push ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+
+      - name: Trigger PyTests based on Vendor Changes
+        run: |
+          python3 .github/workflows/scripts/trigger_pytests_on_vendor_changes.py ${{ github.event.before }} ${{ github.event.after }}

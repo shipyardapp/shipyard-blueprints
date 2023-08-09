@@ -10,6 +10,7 @@ class HubspotClient(Crm):
         self.access_token = access_token
 
         super().__init__(access_token)
+
         self.logger.info("HubspotClient initialized")
         if verbose:
             self.logger.info("Verbose mode enabled")
@@ -79,7 +80,7 @@ class HubspotClient(Crm):
         self.logger.debug("Verifying connection to Hubspot API")
         try:
             self._requests("crm/v3/imports/")
-        except ExitCodeException as e:
+        except ExitCodeException:
             return 1
         else:
             self.logger.info("Successfully connected to Hubspot API")
