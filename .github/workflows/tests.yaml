@@ -1,9 +1,6 @@
 name: Pytest
 
-on:
-  push:
-    paths:
-      - "shipyard_blueprint/*"
+on: [push]
 jobs:
   test:
     runs-on: ubunto-latest
