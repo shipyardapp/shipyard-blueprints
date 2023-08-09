@@ -1,6 +1,6 @@
 name: PyTests
 
-on: [ push ]
+on: [push]
 
 jobs:
   test:
@@ -11,47 +11,36 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
       - id: changed
         continue-on-error: true
         name: Get changed files
         run: |
-          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})    
-          echo "All changed files:"
-          
-          for file in $changed_files; do
-            echo "$file"
-          done
-          
-          changed_dirs=$(echo "$changed_files" | grep "^shipyard_blueprints" | awk -F/ 'NF>2{OFS="/"; $NF=""; print $0}' | sed 's/\/$//')
-          # Remove duplicates
-          changed_dirs=$(echo "$changed_dirs" | sort | uniq)
-          
-          echo "Filtered changed directories:"
-          
-          for dir in $changed_dirs; do
-            echo "$dir"
-          done
-          
-          echo "CHANGED_DIRS<<$changed_dirs" >> $GITHUB_ENV
+          changed_vendors=$(python3 .github/workflows/scripts/get_modified_blueprints.py ${{ github.event.before }} ${{ github.event.after }})
+          echo "Changed vendors:"
+          echo "$changed_vendors"
+          echo "CHANGED_VENDORS=$changed_vendors" >> $GITHUB_ENV
 
       - name: No changes
-        if: ${{ !env.CHANGED_DIRS }}
+        if: ${{ !env.CHANGED_VENDORS }}
         run: |
-          echo "No directory changes detected."
+          echo "No vendor package changes detected."
           exit 0
 
-      - name: Install dependencies
-        if: env.CHANGED_DIRS
+      - name: Install Poetry
+        if: env.CHANGED_VENDORS
         run: |
-          for dir in ${{ env.CHANGED_DIRS }}; do
-            cd ./$dir
-            poetry install
-          done
+          curl -sSL https://install.python-poetry.org | python3 -
 
       - name: Run tests
-        if: env.CHANGED_DIRS
+        if: env.CHANGED_VENDORS
         run: |
-          for dir in ${{ env.CHANGED_DIRS }}; do
-            cd ./$dir
+          for vendor in ${{ env.CHANGED_VENDORS }}; do
+            cd shipyard_blueprints/$vendor
+            poetry install
             poetry run pytest
           done
