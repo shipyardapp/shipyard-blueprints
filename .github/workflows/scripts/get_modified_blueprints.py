@@ -27,8 +27,8 @@ def get_changed_dirs(before_sha: str, after_sha: str):
             print(vendor)
             changed_dirs.add(vendor)
 
-
     return sorted(changed_dirs)
+
 
 if __name__ == "__main__":
     before_sha = sys.argv[1]
