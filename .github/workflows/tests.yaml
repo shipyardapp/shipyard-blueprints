@@ -1,34 +1,39 @@
 name: Python Tests
 
-on: [push]
+on: [ push ]
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    - name: Get changed files
-      run: |  
-        changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep shipyard_blueprints || echo "")
-        if [ -z "$changed_files" ]; then
-          echo "No changed files found."
-          echo "::set-output name=skip::true"
-        else
+      - id: changed
+        name: Get changed files
+        run: |
+          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep shipyard_blueprints)
           echo "::set-output name=changed_files::$changed_files"
-          echo "::set-output name=skip::false"
-        fi
-      id: changed
 
-    - name: Install dependencies
-      if: steps.changed.outputs.changed_files != ''
-      working-directory: ./shipyard_blueprints/${{ steps.changed.outputs.changed_files[0] }}
-      run: |
-        poetry install
+      - name: Check for changes
+        if: ${{ !contains(steps.changed.outputs.changed_files, '') }}
+        continue-on-error: true
+        run: |
+          echo "No changes detected in vendor packages"
+          exit 1
 
-    - name: Run tests
-      if: steps.changed.outputs.changed_files != ''
-      working-directory: ./shipyard_blueprints/${{ steps.changed.outputs.changed_files[0] }}
-      run: |
-        poetry run pytest
+      - name: Install dependencies
+        if: ${{ !contains(steps.changed.outputs.changed_files, '') }}
+        run: |
+          for file in ${{ steps.changed.outputs.changed_files }}; do
+            cd ./shipyard_blueprints/$file
+            poetry install
+          done
+
+      - name: Run tests
+        if: ${{ !contains(steps.changed.outputs.changed_files, '') }}
+        run: |
+          for file in ${{ steps.changed.outputs.changed_files }}; do
+            cd ./shipyard_blueprints/$file  
+            poetry run pytest
+          done
