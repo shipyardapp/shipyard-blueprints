@@ -12,17 +12,17 @@ jobs:
         fetch-depth: 0
 
     - id: changed
+      continue-on-error: true
       name: Get changed files
       run: |
         changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep shipyard_blueprints)
         echo "CHANGED_FILES<<$changed_files" >> $GITHUB_ENV
 
-    - name: Check for changes
-      if: env.CHANGED_FILES
-      continue-on-error: true
+    - name: No changes
+      if: ${{ !env.CHANGED_FILES }}
       run: |
-        echo "No changes detected in vendor packages"
-        exit 1
+        echo "No file changes detected."
+        exit 0
 
     - name: Install dependencies
       if: env.CHANGED_FILES
