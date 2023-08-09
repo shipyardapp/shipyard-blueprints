@@ -27,3 +27,23 @@ def get_changed_dirs(before_sha: str, after_sha: str):
             changed_dirs.add(vendor)
 
     return sorted(changed_dirs)
+
+
+def run_pytest_for_vendors(vendors):
+    """
+    Run pytest for each specified vendor.
+
+    Args:
+        vendors (list): List of vendor names.
+    """
+    for vendor in vendors:
+        vendor_dir = f"shipyard_blueprints/{vendor}"
+        # Installing dependencies
+        subprocess.run(["poetry", "install"], cwd=vendor_dir)
+        # Running pytest
+        subprocess.run(["poetry", "run", "pytest"], cwd=vendor_dir)
+if __name__ == "__main__":
+    before_sha = sys.argv[1]
+    after_sha = sys.argv[2]
+    vendors = get_changed_dirs(before_sha, after_sha)
+    run_pytest_for_vendors(vendors)
