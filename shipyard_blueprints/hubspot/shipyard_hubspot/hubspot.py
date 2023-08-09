@@ -74,6 +74,7 @@ class HubspotClient(Crm):
             raise ExitCodeException(response.text, self.EXIT_CODE_UNKNOWN_ERROR)
 
     def connect(self):
+
         """
         Method for verifying connection to the Hubspot API
         """
