@@ -5,7 +5,8 @@ on: [ push ]
 jobs:
   test:
     env:
-      CHANGED_VENDORS: ${{ env.CHANGED_VENDORS }}
+      CHANGED_VENDORS:
+
     runs-on: ubuntu-latest
     steps:
 
@@ -27,7 +28,7 @@ jobs:
           echo $changed_vendors
           vendors=$changed_vendors
           
-          CHANGED_VENDORS=${vendors[*]} >> $GITHUB_ENV
+          echo "CHANGED_VENDORS=${vendors[*]}" >> "$GITHUB_ENV"
 
       - name: No changes
         if: ${{ !env.CHANGED_VENDORS }}
