@@ -9,8 +9,6 @@ class HubspotClient(Crm):
     def __init__(self, access_token: str, verbose: bool = False) -> None:
         self.access_token = access_token
 
-
-
         super().__init__(access_token)
 
         self.logger.info("HubspotClient initialized")

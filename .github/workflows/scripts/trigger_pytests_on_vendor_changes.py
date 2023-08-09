@@ -41,7 +41,7 @@ def run_pytest_for_vendors(vendors):
         # Installing dependencies
         subprocess.run(["poetry", "install"], cwd=vendor_dir)
         # Running pytest
-        subprocess.run(["poetry", "run", "pytest"], cwd=vendor_dir)
+        subprocess.run(["poetry", "run", "pytest"], cwd=vendor_dir,check=True)
 if __name__ == "__main__":
     before_sha = sys.argv[1]
     after_sha = sys.argv[2]
