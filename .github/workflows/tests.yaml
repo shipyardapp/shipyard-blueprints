@@ -30,6 +30,7 @@ jobs:
           fi
 
   test:
+    name: Run tests
     needs: detect_changes
     runs-on: ubuntu-latest
     strategy:
