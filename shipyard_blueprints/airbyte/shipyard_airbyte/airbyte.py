@@ -9,6 +9,7 @@ class AirbyteClient(Etl):
         self.access_token = access_token
         super().__init__(access_token)
 
+
     def _trigger_sync_response(self, connection_id: str) -> requests.Response:
         """Helper function that triggers an airbyte sync and returns the response
 
