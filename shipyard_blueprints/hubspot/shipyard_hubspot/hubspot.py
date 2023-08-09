@@ -5,7 +5,6 @@ from requests import request
 from shipyard_templates import Crm, ExitCodeException
 
 
-
 class HubspotClient(Crm):
     def __init__(self, access_token: str, verbose: bool = False) -> None:
         self.access_token = access_token
@@ -25,7 +24,6 @@ class HubspotClient(Crm):
         :param payload: The payload to send with the request
         :return: The response from the request
         """
-
 
         headers = {"Authorization": f"Bearer {self.access_token}"}
         if payload:
