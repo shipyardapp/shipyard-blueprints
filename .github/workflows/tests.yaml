@@ -1,28 +1,26 @@
-name: Pytest
+name: Python Tests
 
 on: [push]
 jobs:
   test:
-    runs-on: ubunto-latest
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
-      - name: Get Modified Files
-        id: changed
-        uses: tj-actions/changed-files@v5.6
-        with:
-          files: |
-            ./shipyard_blueprint/
+    - name: Get changed files
+      run: |
+        changed_files=$(git diff --name-only HEAD^ HEAD | grep shipyard_blueprints)
+        echo "::set-output name=changed_files::$changed_files"
+      id: changed
 
-      - name: Install dependencies
-        if: steps.changed.outputs.any_changed == 'true'
-        working-directory: ./shipyard_blueprints/${{ steps.changed.outputs.all_changed_files[0] }}
-        run: |
-          poetry install
+    - name: Install dependencies
+      if: steps.changed.outputs.changed_files != ''
+      working-directory: ./shipyard_blueprints/${{ steps.changed.outputs.changed_files[0] }}
+      run: |
+        poetry install
 
-      - name: Run tests
-        if: steps.changed.outputs.any_changed == 'true'
-        working-directory: ./shipyard_blueprints/${{ steps.changed.outputs.all_changed_files[0] }}
-        run: |
-          poetry run pytest
+    - name: Run tests
+      if: steps.changed.outputs.changed_files != ''
+      working-directory: ./shipyard_blueprints/${{ steps.changed.outputs.changed_files[0] }}
+      run: |
+        poetry run pytest
