@@ -18,7 +18,7 @@ jobs:
       - name: Get changed files
         id: set-matrix
         run: |
-          changed_vendors=$(python3 .github/workflows/scripts/get_modified_blueprints.py ${{ github.event.before }} ${{ github.event.after }})
+          changed_vendors=$(python3 .github/workflows/scripts/trigger_pytests_on_vendor_changes.py ${{ github.event.before }} ${{ github.event.after }})
           # Convert newline-separated values to comma-separated
           matrix_values=$(echo "$changed_vendors" | tr '\n' ',' | sed 's/,$//')
           echo "MATRIX_VALUES=[$matrix_values]" >> $GITHUB_ENV
