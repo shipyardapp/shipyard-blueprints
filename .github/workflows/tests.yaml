@@ -6,7 +6,8 @@ jobs:
   detect_changes:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      MATRIX: ${{ env.MATRIX }}
+      HAS_CHANGES: ${{ env.HAS_CHANGES }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -24,27 +25,21 @@ jobs:
           echo "Changed vendors: $changed_vendors"
           if [[ -z "$changed_vendors" ]]; then
             echo "No vendor package changes detected."
-            echo "::set-output name=matrix::[]"
+            echo "MATRIX=[]" >> $GITHUB_ENV
+            echo "HAS_CHANGES=false" >> $GITHUB_ENV
           else
-            echo "::set-output name=matrix::[\"${changed_vendors//,/\",\"}\"]"
+            echo "MATRIX=[\"${changed_vendors//,/\",\"}\"]" >> $GITHUB_ENV
+            echo "HAS_CHANGES=true" >> $GITHUB_ENV
           fi
 
-  no_changes_message:
-    needs: detect_changes
-    runs-on: ubuntu-latest
-    if: needs.detect_changes.outputs.matrix == '[]'
-    steps:
-      - name: Print no changes message
-        run: echo "No vendor changes detected, skipping tests."
-
   test:
+    if: needs.detect_changes.outputs.HAS_CHANGES == 'true'
     name: Run tests
     needs: detect_changes
     runs-on: ubuntu-latest
-    if: needs.detect_changes.outputs.matrix != '[]'
     strategy:
       matrix:
-        vendor: ${{fromJson(needs.detect_changes.outputs.matrix)}}
+        vendor: ${{fromJson(needs.detect_changes.outputs.MATRIX)}}
     steps:
       - uses: actions/checkout@v3
         with:
