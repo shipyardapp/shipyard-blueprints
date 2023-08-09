@@ -76,6 +76,7 @@ class HubspotClient(Crm):
 
     def connect(self):
 
+
         """
         Method for verifying connection to the Hubspot API
         """
