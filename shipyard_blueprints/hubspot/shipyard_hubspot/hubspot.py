@@ -79,7 +79,7 @@ class HubspotClient(Crm):
         self.logger.debug("Verifying connection to Hubspot API")
         try:
             self._requests("crm/v3/imports/")
-        except ExitCodeException as e:
+        except ExitCodeException:
             return 1
         else:
             self.logger.info("Successfully connected to Hubspot API")
