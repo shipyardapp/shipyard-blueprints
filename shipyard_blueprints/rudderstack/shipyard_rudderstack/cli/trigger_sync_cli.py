@@ -47,16 +47,15 @@ def main():
     wait = args.wait_for_completion.upper() == "TRUE"
     poke_interval = args.poke_interval
 
-    if (
-        not wait
-        and int(os.environ.get("SHIPYARD_FLEET_DOWNSTREAM_COUNT")) > 0
-    ):
+    if not wait and int(os.environ.get("SHIPYARD_FLEET_DOWNSTREAM_COUNT")) > 0:
         # This handles the situation where there are downstream vessels and the poke interval is not set since this is a good indicator that the fleet is running on the original blueprint
         create_artifacts(source_id)
     elif wait:
         # wait for sync to complete if wait is set to true
         if 0 < int(poke_interval) <= 60:
-            rudderstack.logger.info(f"Setting poke interval to {poke_interval} minute(s)")
+            rudderstack.logger.info(
+                f"Setting poke interval to {poke_interval} minute(s)"
+            )
             poke_interval = int(poke_interval)
         else:
             rudderstack.logger.error("Poke interval must be between 1 and 60 minutes")

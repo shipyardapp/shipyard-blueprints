@@ -11,18 +11,19 @@ def conn_helper(client: GoogleSheetsClient) -> int:
         client.logger.info("Successfully connected to Google Sheets")
         return 0
     except Exception as e:
-        client.logger.error('Could not connect to Google Sheets')
+        client.logger.error("Could not connect to Google Sheets")
         return 1
 
 
 def test_good_connection():
-    client = GoogleSheetsClient(service_account = os.getenv('GOOGLE_APPLICATION_CREDENTIALS'))
+    client = GoogleSheetsClient(
+        service_account=os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    )
 
     assert conn_helper(client) == 0
 
 
 def test_bad_connection():
-    client = GoogleSheetsClient(service_account = 'bad_credentials')
+    client = GoogleSheetsClient(service_account="bad_credentials")
 
     assert conn_helper(client) == 1
-

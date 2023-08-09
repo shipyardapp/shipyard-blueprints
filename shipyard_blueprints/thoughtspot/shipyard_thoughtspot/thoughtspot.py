@@ -25,13 +25,13 @@ class ThoughtSpotClient(DataVisualization):
         super().__init__(token=self.token)
 
     def get_live_report(
-            self,
-            metadata_identifier: str,
-            visualization_identifiers: list = None,
-            file_format: str = "csv",
-            file_name: str = "liveboard",
-            runtime_filter: dict = None,
-            runtime_sort: dict = None,
+        self,
+        metadata_identifier: str,
+        visualization_identifiers: list = None,
+        file_format: str = "csv",
+        file_name: str = "liveboard",
+        runtime_filter: dict = None,
+        runtime_sort: dict = None,
     ) -> Response:
         """
 
@@ -87,12 +87,12 @@ class ThoughtSpotClient(DataVisualization):
         return response
 
     def get_answer_report(
-            self,
-            metadata_identifier: str,
-            file_format: str = "csv",
-            runtime_filter: dict = None,
-            runtime_sort: dict = None,
-            file_name: str = "export",
+        self,
+        metadata_identifier: str,
+        file_format: str = "csv",
+        runtime_filter: dict = None,
+        runtime_sort: dict = None,
+        file_name: str = "export",
     ) -> Response:
         """
 
@@ -149,11 +149,11 @@ class ThoughtSpotClient(DataVisualization):
         return response
 
     def search_data(
-            self,
-            query: str,
-            table_identifier: str,
-            num_rows: int = None,
-            file_format: str = "csv",
+        self,
+        query: str,
+        table_identifier: str,
+        num_rows: int = None,
+        file_format: str = "csv",
     ):
         """
 

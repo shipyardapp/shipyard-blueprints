@@ -51,14 +51,20 @@ def main():
     access_token = args.access_token
     sync_args = {
         "environment_id": args.environment_id,
-        "job_id": None if args.job_id == '' else args.job_id,
+        "job_id": None if args.job_id == "" else args.job_id,
         "snowflake_username": args.snowflake_username,
         "snowflake_password": args.snowflake_password,
-        "snowflake_role": None if args.snowflake_role == '' else args.snowflake_role,
-        "snowflake_warehouse": None if args.snowflake_role == '' else args.snowflake_warehouse,
+        "snowflake_role": None if args.snowflake_role == "" else args.snowflake_role,
+        "snowflake_warehouse": None
+        if args.snowflake_role == ""
+        else args.snowflake_warehouse,
         "parallelism": args.parallelism,
-        "include_nodes_selector": None if args.include_nodes == '' else args.include_nodes,
-        "exclude_nodes_selector": None if args.exclude_nodes == '' else args.exclude_nodes
+        "include_nodes_selector": None
+        if args.include_nodes == ""
+        else args.include_nodes,
+        "exclude_nodes_selector": None
+        if args.exclude_nodes == ""
+        else args.exclude_nodes,
     }
     client = CoalesceClient(access_token)
 
@@ -68,27 +74,28 @@ def main():
         client.logger.error(f"Error triggering sync: {e}")
         raise e
 
-    if args.wait_for_completion == 'TRUE' and (0 < int(args.poke_interval) <= 60):
+    if args.wait_for_completion == "TRUE" and (0 < int(args.poke_interval) <= 60):
         run_id = response["runCounter"]
         status = client.determine_sync_status(run_id)
 
-        while status not in (client.EXIT_CODE_FINAL_STATUS_COMPLETED,
-                             client.EXIT_CODE_FINAL_STATUS_INCOMPLETE,
-                             client.EXIT_CODE_FINAL_STATUS_CANCELLED,
-                             client.EXIT_CODE_FINAL_STATUS_ERRORED,
-                             ):
+        while status not in (
+            client.EXIT_CODE_FINAL_STATUS_COMPLETED,
+            client.EXIT_CODE_FINAL_STATUS_INCOMPLETE,
+            client.EXIT_CODE_FINAL_STATUS_CANCELLED,
+            client.EXIT_CODE_FINAL_STATUS_ERRORED,
+        ):
             client.logger.info(f"Waiting {args.poke_interval} minute(s)...")
             time.sleep(int(args.poke_interval) * 60)
             status = client.determine_sync_status(run_id)
 
         sys.exit(status)
-    elif args.wait_for_completion == 'TRUE':
-        client.logger.error(
-            "Poke interval must be between 1 and 60 minutes")
+    elif args.wait_for_completion == "TRUE":
+        client.logger.error("Poke interval must be between 1 and 60 minutes")
         sys.exit(client.EXIT_CODE_SYNC_INVALID_POKE_INTERVAL)
     else:
         create_pickle_file(
-            response)  # Backwards Compatibility: Ensures this code works with older versions of Check Sync Blueprint.
+            response
+        )  # Backwards Compatibility: Ensures this code works with older versions of Check Sync Blueprint.
 
 
 if __name__ == "__main__":

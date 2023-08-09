@@ -4,17 +4,27 @@ import sys
 from shipyard_shortcut import ShortcutClient
 from shipyard_shortcut.error_handler import handle_error
 
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--access-token", dest="access_token", required=True)
-    parser.add_argument('--story-id', dest='story_id', required=True)
-    parser.add_argument('--story-name', dest='name', required=False, default=None)
-    parser.add_argument('--workflow-state-id', dest='workflow_state_id', required=False, default=None)
-    parser.add_argument('--description', dest='description', required=False, default=None)
-    parser.add_argument('--story-type', dest='story_type', choices=['feature', 'bug', 'chore',''], required=False)
-    parser.add_argument('--labels', dest='labels', required=False, default=None)
-    parser.add_argument('--deadline', dest='deadline', required=False, default=None)
-    parser.add_argument('--tasks', dest='tasks', required=False, default=None)
+    parser.add_argument("--story-id", dest="story_id", required=True)
+    parser.add_argument("--story-name", dest="name", required=False, default=None)
+    parser.add_argument(
+        "--workflow-state-id", dest="workflow_state_id", required=False, default=None
+    )
+    parser.add_argument(
+        "--description", dest="description", required=False, default=None
+    )
+    parser.add_argument(
+        "--story-type",
+        dest="story_type",
+        choices=["feature", "bug", "chore", ""],
+        required=False,
+    )
+    parser.add_argument("--labels", dest="labels", required=False, default=None)
+    parser.add_argument("--deadline", dest="deadline", required=False, default=None)
+    parser.add_argument("--tasks", dest="tasks", required=False, default=None)
     return parser.parse_args()
 
 
@@ -22,19 +32,21 @@ def main():
     args = get_args()
     args_dict = vars(args)
     shortcut = ShortcutClient(access_token=args.access_token)
-    args_dict.pop('access_token')
+    args_dict.pop("access_token")
     tasks = None
-    if args_dict['labels']:
-        labels = args_dict['labels'].split(',')
-        args_dict['labels'] = [{"name": label} for label in labels]
+    if args_dict["labels"]:
+        labels = args_dict["labels"].split(",")
+        args_dict["labels"] = [{"name": label} for label in labels]
 
-    if args_dict['tasks']:
-        tasks = args_dict['tasks'].split(',')
-        args_dict.pop('tasks')
+    if args_dict["tasks"]:
+        tasks = args_dict["tasks"].split(",")
+        args_dict.pop("tasks")
 
     # Filter out blank values from update_ticket_args to avoid sending them to the Shortcut API
     # and inadvertently overwriting valid ticket data.
-    update_ticket_args = {key: value for key, value in args_dict.items() if value not in (None, '')}
+    update_ticket_args = {
+        key: value for key, value in args_dict.items() if value not in (None, "")
+    }
 
     try:
         shortcut.update_ticket(**update_ticket_args)
@@ -48,5 +60,5 @@ def main():
         sys.exit(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

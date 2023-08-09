@@ -18,7 +18,9 @@ def main():
         dropbox.logger.info("Successfully connected to Dropbox")
         sys.exit(0)
     except Exception as e:
-        dropbox.logger.error("Could not connect to Dropbox with the access key provided")
+        dropbox.logger.error(
+            "Could not connect to Dropbox with the access key provided"
+        )
         sys.exit(1)
 
 

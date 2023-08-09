@@ -42,15 +42,11 @@ class CensusClient(Etl):
             return response.json()
         # self.logger.debug(f"Request failed with status code {response.status_code}")
         if response.status_code == 401:
-            raise ExitCodeException(
-                response.text, self.EXIT_CODE_INVALID_CREDENTIALS
-            )
+            raise ExitCodeException(response.text, self.EXIT_CODE_INVALID_CREDENTIALS)
         elif response.status_code == 404:
             raise ExitCodeException(response.text, self.EXIT_CODE_BAD_REQUEST)
         elif response.status_code == 409:
-            raise ExitCodeException(
-                response.text, self.EXIT_CODE_SYNC_ALREADY_RUNNING
-            )
+            raise ExitCodeException(response.text, self.EXIT_CODE_SYNC_ALREADY_RUNNING)
         else:
             raise ExitCodeException(response.text, self.EXIT_CODE_UNKNOWN_ERROR)
 

@@ -3,7 +3,9 @@ from shipyard_templates import CloudStorage
 
 
 class SftpClient(CloudStorage):
-    def __init__(self, host: str, port: int, key: str = None, user: str = None, pwd: str = None) -> None:
+    def __init__(
+        self, host: str, port: int, key: str = None, user: str = None, pwd: str = None
+    ) -> None:
         self.host = host
         self.port = port
         self.key = key
@@ -16,8 +18,7 @@ class SftpClient(CloudStorage):
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             k = paramiko.RSAKey.from_private_key_file(self.key)
-            ssh.connect(hostname=self.host, port=self.port,
-                        username=self.user, pkey=k)
+            ssh.connect(hostname=self.host, port=self.port, username=self.user, pkey=k)
             client = ssh.open_sftp()
         else:
             transport = paramiko.Transport((self.host, int(self.port)))

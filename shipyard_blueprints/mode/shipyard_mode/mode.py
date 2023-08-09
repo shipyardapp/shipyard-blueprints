@@ -14,16 +14,18 @@ class ModeClient(DataVisualization):
 
     def connect(self):
         try:
-
             response = requests.get(
-                url=f'{self.mode_api_base}/spaces', headers={
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/hal+json'
+                url=f"{self.mode_api_base}/spaces",
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/hal+json",
                 },
-                auth=HTTPBasicAuth(self.api_token, self.api_secret))
+                auth=HTTPBasicAuth(self.api_token, self.api_secret),
+            )
         except Exception as error:
             self.logger.error(
-                f"Could not connect to Mode API with the token id and token secret provided. Error: {error}")
+                f"Could not connect to Mode API with the token id and token secret provided. Error: {error}"
+            )
             return 1
         else:
             if response.status_code == 200:
@@ -31,7 +33,7 @@ class ModeClient(DataVisualization):
                 print(response.json())
                 return 0
             else:
-
                 self.logger.error(
-                    f"Could not connect to Mode API with the token id and token secret provided {response.json()}")
+                    f"Could not connect to Mode API with the token id and token secret provided {response.json()}"
+                )
                 return 1

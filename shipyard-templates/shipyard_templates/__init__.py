@@ -8,3 +8,4 @@ from .shipyard_logger import ShipyardLogger
 from .spreadsheets import Spreadsheets
 from .projectmanagement import ProjectManagement, ExitCodeError
 from .exit_code_exception import ExitCodeException
+from .crm import Crm
