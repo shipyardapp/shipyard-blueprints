@@ -39,6 +39,7 @@ class HubspotClient(Crm):
             headers=headers,
         )
 
+
         self.logger.info(f"Response status code: {response.status_code}")
         try:
             response_details = response.json()

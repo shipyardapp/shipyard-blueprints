@@ -4,6 +4,8 @@ on: [ push ]
 
 jobs:
   test:
+    env:
+      CHANGED_VENDORS: ${{ env.CHANGED_VENDORS }}
     runs-on: ubuntu-latest
     steps:
 
