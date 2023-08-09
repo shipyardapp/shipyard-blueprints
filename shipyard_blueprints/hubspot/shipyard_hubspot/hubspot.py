@@ -11,9 +11,6 @@ class HubspotClient(Crm):
 
         super().__init__(access_token)
 
-
-
-
         self.logger.info("HubspotClient initialized")
         if verbose:
             self.logger.info("Verbose mode enabled")
@@ -31,10 +28,7 @@ class HubspotClient(Crm):
 
         headers = {"Authorization": f"Bearer {self.access_token}"}
         if payload:
-
-
             headers["Content-Type"] = "application/json"
-
 
         response = request(
             method=method,
@@ -42,7 +36,6 @@ class HubspotClient(Crm):
             data=json.dumps(payload),
             headers=headers,
         )
-
 
         self.logger.info(f"Response status code: {response.status_code}")
         try:
