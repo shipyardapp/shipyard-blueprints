@@ -1,39 +1,41 @@
-name: Python Tests
+name: Vendor Package Tests
 
-on: [ push ]
+on: [push]
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
-      - id: changed
-        name: Get changed files
-        run: |
-          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep shipyard_blueprints)
-          echo "::set-output name=changed_files::$changed_files"
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
-      - name: Check for changes
-        if: ${{ !contains(steps.changed.outputs.changed_files, '') }}
-        continue-on-error: true
-        run: |
-          echo "No changes detected in vendor packages"
-          exit 1
+    - id: changed
+      name: Get changed files
+      run: |
+        changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep shipyard_blueprints)
+        echo "CHANGED_FILES<<$changed_files" >> $GITHUB_ENV
 
-      - name: Install dependencies
-        if: ${{ !contains(steps.changed.outputs.changed_files, '') }}
-        run: |
-          for file in ${{ steps.changed.outputs.changed_files }}; do
-            cd ./shipyard_blueprints/$file
-            poetry install
-          done
+    - name: Check for changes
+      if: env.CHANGED_FILES
+      continue-on-error: true
+      run: |
+        echo "No changes detected in vendor packages"
+        exit 1
 
-      - name: Run tests
-        if: ${{ !contains(steps.changed.outputs.changed_files, '') }}
-        run: |
-          for file in ${{ steps.changed.outputs.changed_files }}; do
-            cd ./shipyard_blueprints/$file  
-            poetry run pytest
-          done
+    - name: Install dependencies
+      if: env.CHANGED_FILES
+      run: |
+        for file in ${{ env.CHANGED_FILES }}; do
+          cd ./shipyard_blueprints/$file
+          poetry install
+        done
+
+    - name: Run tests
+      if: env.CHANGED_FILES
+      run: |
+        for file in ${{ env.CHANGED_FILES }}; do
+          cd ./shipyard_blueprints/$file
+          poetry run pytest
+        done
