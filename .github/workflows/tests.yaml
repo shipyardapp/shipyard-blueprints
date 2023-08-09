@@ -22,36 +22,36 @@ jobs:
             echo "$file"
           done
           
-          changed_files=$(echo "$changed_files" | grep shipyard_blueprints | xargs -I {} dirname $(dirname {}))
+          changed_dirs=$(echo "$changed_files" | grep "^shipyard_blueprints" | awk -F/ 'NF>2{OFS="/"; $NF=""; print $0}' | sed 's/\/$//')
           # Remove duplicates
-          changed_files=$(echo "$changed_files" | sort | uniq)
+          changed_dirs=$(echo "$changed_dirs" | sort | uniq)
           
           echo "Filtered changed directories:"
           
-          for file in $changed_files; do
-            echo "$file"
+          for dir in $changed_dirs; do
+            echo "$dir"
           done
           
-          echo "CHANGED_FILES<<$changed_files" >> $GITHUB_ENV
+          echo "CHANGED_DIRS<<$changed_dirs" >> $GITHUB_ENV
 
       - name: No changes
-        if: ${{ !env.CHANGED_FILES }}
+        if: ${{ !env.CHANGED_DIRS }}
         run: |
-          echo "No file changes detected."
+          echo "No directory changes detected."
           exit 0
 
       - name: Install dependencies
-        if: env.CHANGED_FILES
+        if: env.CHANGED_DIRS
         run: |
-          for dir in ${{ env.CHANGED_FILES }}; do
+          for dir in ${{ env.CHANGED_DIRS }}; do
             cd ./$dir
             poetry install
           done
 
       - name: Run tests
-        if: env.CHANGED_FILES
+        if: env.CHANGED_DIRS
         run: |
-          for dir in ${{ env.CHANGED_FILES }}; do
+          for dir in ${{ env.CHANGED_DIRS }}; do
             cd ./$dir
             poetry run pytest
           done
