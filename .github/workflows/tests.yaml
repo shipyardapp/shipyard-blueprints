@@ -1,6 +1,6 @@
 name: PyTests
 
-on: [push]
+on: [ push ]
 
 jobs:
   test:
@@ -25,7 +25,7 @@ jobs:
           echo $changed_vendors
           vendors=$changed_vendors
           
-          echo "CHANGED_VENDORS=${vendors[*]}" >> $GITHUB_ENV
+          echo "::set-env name=CHANGED_VENDORS::${vendors[*]}"
 
       - name: No changes
         if: ${{ !env.CHANGED_VENDORS }}
