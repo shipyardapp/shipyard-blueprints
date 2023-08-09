@@ -14,7 +14,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
@@ -59,10 +59,3 @@ jobs:
           poetry add pytest
           poetry install
           poetry run pytest
-
-  log_no_changes:
-    if: needs.detect_changes.outputs.HAS_CHANGES == 'false'
-    name: No Vendor Changes Detected
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "No vendor changes detected. Skipping tests."
