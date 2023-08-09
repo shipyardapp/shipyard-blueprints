@@ -20,7 +20,7 @@ jobs:
         continue-on-error: true
         name: Get changed files
         run: |
-          changed_vendors=$(python3 .github/workflows/scripts/get_modified_blueprints.py ${{ github.event.before }} ${{ github.event.after }} | tr '\n' ',')
+          changed_vendors=$(python3 .github/workflows/scripts/get_modified_blueprints.py ${{ github.event.before }} ${{ github.event.after }} | tr '\n' ',' | sed 's/,$//')
           echo "Changed vendors:"
           vendors=$changed_vendors
           echo $vendors
