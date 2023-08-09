@@ -15,7 +15,7 @@ jobs:
       continue-on-error: true
       name: Get changed files
       run: |
-        changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep shipyard_blueprints)
+        changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q shipyard_blueprints)
         echo "CHANGED_FILES<<$changed_files" >> $GITHUB_ENV
 
     - name: No changes
