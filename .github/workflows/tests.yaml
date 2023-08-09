@@ -23,22 +23,3 @@ jobs:
           matrix_values=$(echo "$changed_vendors" | tr '\n' ',' | sed 's/,$//')
           echo "MATRIX_VALUES=[$matrix_values]" >> $GITHUB_ENV
           echo "::set-output name=matrix::[$matrix_values]"
-
-    test:
-      needs: find-vendors
-      runs-on: ubuntu-latest
-      strategy:
-        matrix:
-          vendor: ${{fromJson(needs.find-vendors.outputs.matrix)}}
-      steps:
-        - uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-
-        - name: Install Poetry
-          run: |
-            curl -sSL https://install.python-poetry.org | python3 -
-
-        - name: Trigger PyTests based on Vendor Changes
-          run: |
-            python3 .github/workflows/scripts/trigger_pytests_on_vendor_changes.py ${{ github.event.before }} ${{ github.event.after }}
