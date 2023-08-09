@@ -5,7 +5,9 @@ The script will build a Docker image and run it in a container. The script will 
 
 You my need to run `chmod +x localtest.sh` to make the script executable.
 
+<b> Environment Variables </b>
 
+Loads the environment variables from the .env file in the vendor directory. This is useful for storing sensitive information like API keys and access tokens.
 ## Command-Line Arguments Breakdown
 
 | Argument                 | Description                                                                                                                                                      | Example                                                   |
