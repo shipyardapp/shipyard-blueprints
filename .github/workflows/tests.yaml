@@ -3,13 +3,11 @@ name: PyTests
 on: [ push ]
 
 jobs:
-  test:
-    env:
-      CHANGED_VENDORS:
-
+  find-vendors:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -19,33 +17,29 @@ jobs:
         with:
           python-version: '3.x'
 
-      - id: changed
-        continue-on-error: true
-        name: Get changed files
+      - name: Get changed files
+        id: set-matrix
         run: |
           changed_vendors=$(python3 .github/workflows/scripts/get_modified_blueprints.py ${{ github.event.before }} ${{ github.event.after }})
-          echo "Changed vendors:"
-          echo $changed_vendors
-          vendors=$changed_vendors
-          
-          echo "CHANGED_VENDORS=${vendors[*]}" >> "$GITHUB_ENV"
+          echo "::set-output name=matrix::[$changed_vendors]"
 
-      - name: No changes
-        if: ${{ !env.CHANGED_VENDORS }}
-        run: |
-          echo "No vendor package changes detected."
-          exit 0
+  test:
+    needs: find-vendors
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        vendor: ${{fromJson(needs.find-vendors.outputs.matrix)}}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Install Poetry
-        if: env.CHANGED_VENDORS
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
 
-      - name: Run tests
-        if: env.CHANGED_VENDORS
+      - name: Run tests for ${{ matrix.vendor }}
         run: |
-          for vendor in ${{ env.CHANGED_VENDORS }}; do
-            cd shipyard_blueprints/$vendor
-            poetry install
-            poetry run pytest
-          done
+          cd shipyard_blueprints/${{ matrix.vendor }}
+          poetry install
+          poetry run pytest

@@ -11,6 +11,7 @@ class HubspotClient(Crm):
 
         super().__init__(access_token)
 
+
         self.logger.info("HubspotClient initialized")
         if verbose:
             self.logger.info("Verbose mode enabled")
