@@ -84,6 +84,7 @@ class HubspotClient(Crm):
 
 
 
+
         """
         Method for verifying connection to the Hubspot API
         """

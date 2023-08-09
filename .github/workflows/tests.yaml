@@ -3,10 +3,11 @@ name: PyTests
 on: [ push ]
 
 jobs:
-  test:
+  detect_changes:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -16,33 +17,39 @@ jobs:
         with:
           python-version: '3.x'
 
-      - id: changed
-        continue-on-error: true
-        name: Get changed files
+      - id: set-matrix
+        name: Get changed files and set matrix
         run: |
           changed_vendors=$(python3 .github/workflows/scripts/get_modified_blueprints.py ${{ github.event.before }} ${{ github.event.after }} | tr '\n' ',' | sed 's/,$//')
-          echo "Changed vendors:"
-          vendors=$changed_vendors
-          echo $vendors
-          
-          echo "CHANGED_VENDORS=${vendors[*]}" >> $GITHUB_ENV
+          echo "Changed vendors: $changed_vendors"
+          if [[ -z "$changed_vendors" ]]; then
+            echo "No vendor package changes detected."
+            echo "::set-output name=matrix::[]"
+          else
+            echo "::set-output name=matrix::[\"${changed_vendors//,/\",\"}\"]"
+          fi
 
-      - name: No changes
-        if: ${{ !env.CHANGED_VENDORS }}
-        run: |
-          echo "No vendor package changes detected."
-          exit 0
+  test:
+    needs: detect_changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        vendor: ${{fromJson(needs.detect_changes.outputs.matrix)}}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
 
       - name: Install Poetry
-        if: env.CHANGED_VENDORS
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
+        run: curl -sSL https://install.python-poetry.org | python3 -
 
       - name: Run tests
-        if: env.CHANGED_VENDORS
         run: |
-          for vendor in ${{ env.CHANGED_VENDORS }}; do
-            cd shipyard_blueprints/$vendor
-            poetry install
-            poetry run pytest
-          done
+          cd shipyard_blueprints/${{ matrix.vendor }}
+          poetry install
+          poetry run pytest
