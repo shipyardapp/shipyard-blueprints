@@ -51,5 +51,6 @@ jobs:
       - name: Run tests
         run: |
           cd shipyard_blueprints/${{ matrix.vendor }}
+          poetry add pytest
           poetry install
           poetry run pytest
