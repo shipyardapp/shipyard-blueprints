@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "shipyard-notion"
+version = "0.1.0"
+description = ""
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+readme = "README.md"
+packages = [{include = "shipyard_notion"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+shipyard-templates = "^0.2.0"
+notion-sdk = "^0.7.0"
+
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.0"
+pytest = "^7.4.0"
+shipyard-templates = {path = "../../shipyard-templates"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

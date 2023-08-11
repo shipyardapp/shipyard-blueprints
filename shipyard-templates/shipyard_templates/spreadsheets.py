@@ -11,3 +11,11 @@ class Spreadsheets(ABC):
     @abstractmethod
     def connect(self):
         pass
+
+    @abstractmethod
+    def upload(self):
+        pass
+
+    @abstractmethod
+    def download(self):
+        pass
