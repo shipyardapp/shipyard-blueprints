@@ -36,7 +36,7 @@ class Database(ABC):
         pass
 
 
-class GoogleDatabase():
+class GoogleDatabase:
     EXIT_CODE_INVALID_CREDENTIALS = 200
     EXIT_CODE_INVALID_ACCOUNT = 201  # snowflake specific
     EXIT_CODE_INVALID_WAREHOUSE = 202
@@ -59,7 +59,7 @@ class GoogleDatabase():
         pass
 
     @abstractmethod
-    def execute_query(self,**kwargs):
+    def execute_query(self, **kwargs):
         pass
 
     @abstractmethod

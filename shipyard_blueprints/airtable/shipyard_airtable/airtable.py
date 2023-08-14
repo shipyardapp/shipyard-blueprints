@@ -4,7 +4,9 @@ from pyairtable import Table
 
 
 class AirtableClient(Spreadsheets):
-    def __init__(self, api_key: str, base_id: str = None, table_name:str=None) -> None:
+    def __init__(
+        self, api_key: str, base_id: str = None, table_name: str = None
+    ) -> None:
         self.base_id = base_id
         self.api_key = api_key
         self.table_name = table_name
@@ -12,6 +14,6 @@ class AirtableClient(Spreadsheets):
 
     def connect(self):
         url = "https://api.airtable.com/v0/meta/whoami"
-        headers = {'Authorization': f'Bearer {self.api_key}'}
+        headers = {"Authorization": f"Bearer {self.api_key}"}
         response = requests.get(url, headers=headers)
         return response.status_code

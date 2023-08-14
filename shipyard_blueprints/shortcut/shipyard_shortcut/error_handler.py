@@ -1,7 +1,8 @@
 from .shortcut import TicketNotFound, InvalidIssueType
 import sys
 
-def handle_error(client,error):
+
+def handle_error(client, error):
     if isinstance(error, TicketNotFound):
         client.logger.error(error)
         sys.exit(client.EXIT_CODE_TICKET_NOT_FOUND)
@@ -10,7 +11,7 @@ def handle_error(client,error):
         sys.exit(client.EXIT_CODE_INVALID_ISSUE_TYPE)
     elif isinstance(error, Exception):
         client.logger.error(error)
-        error_code = error.response.status_code if hasattr(error, 'response') else None
+        error_code = error.response.status_code if hasattr(error, "response") else None
         if error_code == 401:
             sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
         elif error_code == 422:

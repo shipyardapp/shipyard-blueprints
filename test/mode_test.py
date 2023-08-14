@@ -7,8 +7,7 @@ account = Mode.ACCOUNT
 
 
 def test_connection():
-    client = ModeClient(api_token=api_key,
-                        api_secret=api_secret, account=account)
+    client = ModeClient(api_token=api_key, api_secret=api_secret, account=account)
 
     def connection_helper():
         try:
@@ -18,4 +17,5 @@ def test_connection():
             return 0
         except Exception as e:
             return 1
+
     assert connection_helper() == 0

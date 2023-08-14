@@ -3,12 +3,11 @@ from settings import Looker
 
 client_id = Looker.CLIENT_ID
 secret = Looker.SECRET
-base_url = 'https://shipyard.cloud.looker.com/'
+base_url = "https://shipyard.cloud.looker.com/"
 
 
 def test_connection():
-    client = LookerClient(
-        base_url=base_url, client_id=client_id, client_secret=secret)
+    client = LookerClient(base_url=base_url, client_id=client_id, client_secret=secret)
 
     def connection_helper():
         try:

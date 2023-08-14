@@ -4,7 +4,7 @@ from shipyard_blueprints import BigQueryClient
 
 
 def main():
-    google_client = BigQueryClient(os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
+    google_client = BigQueryClient(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
     try:
         con = google_client.connect()
         google_client.logger.info("Successfully established a connection")

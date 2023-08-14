@@ -10,7 +10,8 @@ port = Postgres.PORT
 
 def test_connection():
     client = PostgresqlClient(
-        user=user, pwd=pwd, host=host, port=port, database=database)
+        user=user, pwd=pwd, host=host, port=port, database=database
+    )
 
     def connection_helper():
         try:
@@ -18,4 +19,5 @@ def test_connection():
             return 0
         except Exception as e:
             return 1
+
     assert connection_helper() == 0

@@ -10,7 +10,8 @@ class AzureBlobClient(CloudStorage):
 
     def connect(self) -> BlobServiceClient:
         client = BlobServiceClient.from_connection_string(
-            conn_str=self.connection_string)
+            conn_str=self.connection_string
+        )
         return client
 
     def move_or_rename_files(self):

@@ -4,8 +4,8 @@ from shipyard_blueprints import SlackClient
 
 
 def main():
-    sys.exit(SlackClient(os.getenv('SLACK_TOKEN')).connect())
+    sys.exit(SlackClient(os.getenv("SLACK_TOKEN")).connect())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

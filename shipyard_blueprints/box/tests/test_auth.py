@@ -4,7 +4,8 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-def conn_helper(client:BoxClient) -> int:
+
+def conn_helper(client: BoxClient) -> int:
     try:
         client.connect()
         return 0
@@ -18,8 +19,8 @@ def test_good_connection():
     client = BoxClient(service_account=creds)
     assert conn_helper(client) == 0
 
+
 def test_bad_connetion():
     creds = os.getenv("BAD_CREDENTIALS")
     client = BoxClient(service_account=creds)
     assert conn_helper(client) == 1
-

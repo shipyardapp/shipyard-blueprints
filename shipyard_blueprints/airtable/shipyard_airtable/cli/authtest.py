@@ -4,7 +4,7 @@ from shipyard_blueprints import AirtableClient
 
 
 def main():
-    airtable = AirtableClient(api_key=os.environ['AIRTABLE_API_KEY'])
+    airtable = AirtableClient(api_key=os.environ["AIRTABLE_API_KEY"])
     try:
         conn = airtable.connect()
         if conn == 200:
@@ -15,5 +15,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

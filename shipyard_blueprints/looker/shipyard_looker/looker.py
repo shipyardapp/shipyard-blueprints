@@ -7,7 +7,7 @@ import logging
 
 class MyApiSettings(api_settings.ApiSettings):
     def __init__(self, *args, **kw_args):
-        self.base_url = kw_args.pop('base_url')
+        self.base_url = kw_args.pop("base_url")
         if "https://" not in self.base_url:
             self.base_url = f"https://{self.base_url}"
         self.client_id = kw_args.pop("client_id")
@@ -16,7 +16,7 @@ class MyApiSettings(api_settings.ApiSettings):
 
     def read_config(self):
         config = super().read_config()
-        config['base_url'] = self.base_url
+        config["base_url"] = self.base_url
         config["client_id"] = self.client_id
         config["client_secret"] = self.client_secret
         return config
@@ -27,7 +27,9 @@ class LookerClient(DataVisualization):
         self.base_url = base_url
         self.client_id = client_id
         self.client_secret = client_secret
-        super().__init__(base_url=base_url, client_id=client_id, client_secret=client_secret)
+        super().__init__(
+            base_url=base_url, client_id=client_id, client_secret=client_secret
+        )
 
     def _get_sdk(self):
         print(self.base_url)
@@ -36,7 +38,7 @@ class LookerClient(DataVisualization):
                 config_settings=MyApiSettings(
                     base_url=self.base_url,
                     client_id=self.client_id,
-                    client_secret=self.client_secret
+                    client_secret=self.client_secret,
                 )
             )
         except Exception as e:

@@ -17,9 +17,9 @@ def get_args():
 
 def main():
     args = get_args()
-    jira = JiraClient(access_token=args.access_token,
-                      domain=args.domain,
-                      email_address=args.email)
+    jira = JiraClient(
+        access_token=args.access_token, domain=args.domain, email_address=args.email
+    )
 
     try:
         jira.add_comment(ticket_key=args.ticket_key, comment=args.comment)
@@ -30,5 +30,5 @@ def main():
         sys.exit(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
