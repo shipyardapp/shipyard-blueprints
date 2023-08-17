@@ -96,7 +96,7 @@ requests = "2.31.0"
 [tool.poetry.group.hightouch.dependencies]
 requests = "2.31.0"
 shipyard-templates = "^0.2.0"
-shipyard-utils = "^0.1.4"
+# shipyard-utils = "^0.1.4"
 
 
 [tool.poetry.group.looker.dependencies]
@@ -149,7 +149,7 @@ snowflake-connector-python = {version = "^3.0.4", extras = ["pandas"]}
 
 [tool.poetry.group.sqlserver.dependencies]
 sqlalchemy = "2.0.0"
-pyodbc = "4.0.39"
+# pyodbc = "4.0.39"
 pandas = "1.5.3"
 
 
