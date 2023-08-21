@@ -29,8 +29,11 @@ def main():
     args = get_args()
     connection_id = args.connection_id
     api_token = args.api_token
+    poke_interval = int(args.poke_interval)
+    sleep_time = poke_interval * 60
 
     client = AirbyteClient(access_token=api_token)
+
     try:
         resp = client.trigger_sync(connection_id=connection_id)
     except Exception as e:
@@ -45,7 +48,7 @@ def main():
         job_id
     )  # This is for backwards compatibility the Check Sync Blueprint needs in order to run
 
-    if args.wait_for_completion == "TRUE" and (0 < int(args.poke_interval) <= 60):
+    if args.wait_for_completion == "TRUE" and (0 < poke_interval <= 60):
         status = client.get_sync_status(job_id=job_id)
         sync_status = client.determine_sync_status(status)
         while sync_status not in (
@@ -53,11 +56,11 @@ def main():
             client.EXIT_CODE_FINAL_STATUS_INCOMPLETE,
             client.EXIT_CODE_FINAL_STATUS_CANCELLED,
         ):
-            time.sleep(int(args.poke_interval))
+            time.sleep(sleep_time)
             status = client.get_sync_status(job_id=job_id)
             sync_status = client.determine_sync_status(status)
 
-        sys.exit(status)
+        sys.exit(sync_status)
     elif args.wait_for_completion == "TRUE":
         client.logger.error("Poke interval must be between 1 and 60 seconds")
         sys.exit(client.EXIT_CODE_SYNC_INVALID_POKE_INTERVAL)
