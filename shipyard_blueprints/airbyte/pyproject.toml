@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-airbyte"
-version = "0.1.5a0"
+version = "0.1.6"
 description = "A local client to work with Airbyte Cloud"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache License 2.0"
