@@ -70,7 +70,7 @@ class AirbyteClient(Etl):
             "User-Agent": "Shipyard User 1.0",
         }
         try:
-            job_response = requests.get(job_url, headers=headers).json()
+            job_response = requests.get(job_url, headers=headers)
             job_response.raise_for_status()
         except Exception as error:
             self.logger.error(
@@ -78,7 +78,7 @@ class AirbyteClient(Etl):
             )
             sys.exit(self.EXIT_CODE_BAD_REQUEST)
         else:
-            return job_response
+            return job_response.json()
 
     def determine_sync_status(self, job_response: dict) -> int:
         """Provides logging and handling based off of the status. Intended to be used by the Shipyard Application only
