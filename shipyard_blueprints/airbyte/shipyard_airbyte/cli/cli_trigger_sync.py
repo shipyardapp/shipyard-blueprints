@@ -53,7 +53,7 @@ def main():
             client.EXIT_CODE_FINAL_STATUS_CANCELLED,
         ):
             status = client.get_sync_status(job_id=job_id)
-            time.sleep(args.poke_interval)
+            time.sleep(int(args.poke_interval))
 
         sys.exit(status)
     elif args.wait_for_completion == "TRUE":
