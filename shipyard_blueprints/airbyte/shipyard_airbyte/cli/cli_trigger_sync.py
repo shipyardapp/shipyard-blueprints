@@ -45,14 +45,14 @@ def main():
         job_id
     )  # This is for backwards compatibility the Check Sync Blueprint needs in order to run
 
-    if args.wait_for_completion == "TRUE" and (0 < args.poke_interval <= 60):
-        status = client.determine_sync_status(job_id=job_id)
+    if args.wait_for_completion == "TRUE" and (0 < int(args.poke_interval) <= 60):
+        status = client.get_sync_status(job_id=job_id)
         while status not in (
             client.EXIT_CODE_FINAL_STATUS_COMPLETED,
             client.EXIT_CODE_FINAL_STATUS_INCOMPLETE,
             client.EXIT_CODE_FINAL_STATUS_CANCELLED,
         ):
-            status = client.determine_sync_status(job_id=job_id)
+            status = client.get_sync_status(job_id=job_id)
             time.sleep(args.poke_interval)
 
         sys.exit(status)
