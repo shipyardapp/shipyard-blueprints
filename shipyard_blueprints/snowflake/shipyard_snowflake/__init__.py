@@ -7,3 +7,4 @@ from .snowflake import (
     map_snowflake_to_pandas,
     read_file,
 )
+from .snowpark import SnowparkClient

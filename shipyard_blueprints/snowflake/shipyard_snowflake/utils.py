@@ -9,6 +9,10 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization.ssh import serialize_ssh_public_key
 from typing import Dict, List, Optional, Tuple, Union
 from copy import deepcopy
+from random import random, randrange
+from itertools import islice
+from io import StringIO
+from math import exp, log, floor, ceil
 
 
 def _get_file_size(file: str) -> int:
@@ -109,13 +113,13 @@ def map_snowflake_to_pandas(snowflake_data_types: List[List]) -> Union[Dict, Non
             converted = snowflake_to_pandas[str(dtype).upper()]
             if converted is None:
                 raise Exception(
-                    f"Invalid datatypes: the datatype {field} is not a recognized snowflake datatype"
+                    f"Invalid datatypes: the datatype {dtype} is not a recognized snowflake datatype"
                 )
 
             pandas_dtypes[field] = converted
         except KeyError as e:
             raise Exception(
-                f"Invalid datatype: the datatype {field} is not a recognized snowflake datatype"
+                f"Invalid datatype: the datatype {dtype} is not a recognized snowflake datatype"
             )
 
     return pandas_dtypes
@@ -176,3 +180,83 @@ def read_file(
         else:
             df = dd.read_csv("file", dtype=pandas_dtypes)
     return df
+
+
+def reservoir_sample(iterable, k=1):
+    """Select k items uniformly from iterable.
+    Returns the whole population if there are k or fewer items
+
+    """
+    iterator = iter(iterable)
+    values = list(islice(iterator, k))
+
+    W = exp(log(random()) / k)
+    while True:
+        # skip is geometrically distributed
+        skip = floor(log(random()) / log(1 - W))
+        selection = list(islice(iterator, skip, skip + 1))
+        if selection:
+            values[randrange(k)] = selection[0]
+            W *= exp(log(random()) / k)
+        else:
+            return values
+
+
+def infer_schema(file_name: str, k=10000) -> dict:
+    """Randomly samples a csv file and infers the schema based off of the k rows sampled
+
+    Args:
+        file_name (str): The file to be sampled
+        k (int, optional): The number of rows to sample. Defaults to 10000.
+
+    Returns:
+        dict: The dictionary of inferred pandas datatypes data types
+    """
+    if isinstance(file_name, list):
+        dataframes = []
+        n_files = len(file_name)
+        rows_per_file = ceil(k / n_files)
+        for f in file_name:
+            file_path = f
+            with open(file_path, "r") as f:
+                header = next(f)
+                result = [header] + reservoir_sample(f, rows_per_file)
+            df = pd.read_csv(StringIO("".join(result)))
+            dataframes.append(df)
+        merged = pd.concat(dataframes, axis=0, ignore_index=True)
+        return merged.dtypes.to_dict()
+    else:
+        with open(file_name, "r") as f:
+            header = next(f)
+            result = [header] + reservoir_sample(f, k)
+        df = pd.read_csv(StringIO("".join(result)))
+        return df.dtypes.to_dict()
+
+
+def map_pandas_to_snowflake(data_type_dict: dict):
+    """Helper function to map the the pandas data types to the snowflake data types
+
+    Args:
+        pandas_dtypes (dict): Dictionary of the pandas data types
+
+    Returns:
+        dict: Dictionary of the mapped snowflake data types
+    """
+    snowflake_data_types = {
+        "int64": "NUMBER",
+        "float64": "FLOAT",
+        "object": "STRING",
+        "bool": "BOOLEAN",
+        "datetime64[ns]": "TIMESTAMP",
+        "timedelta64[ns]": "TIME",
+    }
+
+    # snowflake_columns = {}
+    snowflake_columns = []
+    for column_name, pandas_data_type in data_type_dict.items():
+        snowflake_data_type = snowflake_data_types.get(str(pandas_data_type), "STRING")
+        snowflake_columns.append([column_name, snowflake_data_type])
+        # snowflake_columns[column_name] = snowflake_data_type
+        # snowflake_columns.append(f"{column_name} {snowflake_data_type}")
+
+    return snowflake_columns

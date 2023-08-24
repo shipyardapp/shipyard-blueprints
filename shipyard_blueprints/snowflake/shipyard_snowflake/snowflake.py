@@ -148,3 +148,39 @@ class SnowflakeClient(Database):
         cursor = self.execute_query(conn, query)
         results = cursor.fetchall()
         return pd.DataFrame(results, columns=[desc[0] for desc in cursor.description])
+
+    def put(
+        self,
+        conn: snowflake.connector.SnowflakeConnection,
+        file_path: str,
+        table_name: str,
+    ):
+        """Executes a PUT command to load a file to internal staging. This is the fastest way to load a large file and should be followed by a copy into command
+
+        Args:
+            conn: The established Snowflake Connection
+            file: The file to load
+            table_name: The table in Snowflake to write to
+        """
+        put_statement = f"""PUT file://{file_path}* '@%"{table_name}"' """
+        self.execute_query(conn, put_statement)
+
+    def copy_into(self, conn: snowflake.connector.SnowflakeConnection, table_name: str):
+        """Executes a COPY INTO command to load a file from internal staging to a table"""
+        copy_statement = f"""COPY INTO "{table_name}" FROM '@%\"{table_name}\"' PURGE=TRUE FILE_FORMAT=(TYPE=CSV FIELD_DELIMITER=',' COMPRESSION=GZIP, PARSE_HEADER=TRUE) MATCH_BY_COLUMN_NAME=CASE_INSENSITIVE"""
+        self.execute_query(conn, copy_statement)
+
+    def _create_table(
+        self,
+        table_name: str,
+        columns=None,
+    ) -> str:
+        """Returns the SQL for to create or replace a table in Snowflake
+        Args:
+            conn (snowflake.connector.SnowflakeConnection): The snowflake connection object
+            table_name (str): The name of the table to create
+            columns (List[List[str,str]]): A list of lists of the column name and the data type. Example: [("column1","varchar(100)"),("column2","varchar(100)")]. Defaults to None
+        """
+        column_string = ",".join([f"{col[0]} {col[1]}" for col in columns])
+        create_statement = f"""CREATE OR REPLACE TABLE {table_name} ({column_string})"""
+        return create_statement
