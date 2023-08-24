@@ -8,8 +8,6 @@ The `shipyard-snowflake` Python Package is a set of utility classes designed to 
 - [Usage](#usage)
   - [SnowflakeClient](#snowflakeclient)
   - [SnowparkClient](#snowparkclient)
-- [License](#license)
-
 ## Installation
 
 You can install `shipyard-snowflake` using `pip`:
