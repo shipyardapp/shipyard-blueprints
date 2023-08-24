@@ -60,6 +60,16 @@ class SnowparkClient(Database):
     def upload(
         self, session: Session, df: pd.DataFrame, table_name: str, overwrite=True
     ):
+        """
+        Uploads a pandas dataframe to a table in Snowflake using the Snowpark API
+
+        Args:
+            overwrite (): Whether to overwrite the existing table. True to replace, False to append to table (if it exists)
+            session: The Snowpark Session established by the connect method
+            df: The pandas dataframe to load
+            table_name: The name of the Snowflake Table to write to
+        """
+
         self.logger.info("Attempting to write pandas dataframe to Snowflake")
         try:
             session.write_pandas(
