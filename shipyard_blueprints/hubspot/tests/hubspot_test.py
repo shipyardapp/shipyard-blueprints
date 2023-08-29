@@ -4,7 +4,7 @@ import requests_mock
 from unittest.mock import Mock
 
 from shipyard_hubspot import HubspotClient
-from shipyard_hubspot.hubspot_utils import column_to_hubspot,handle_import_file
+from shipyard_hubspot.hubspot_utils import column_to_hubspot, handle_import_file
 from shipyard_templates import ExitCodeException, Crm
 
 
@@ -48,6 +48,8 @@ def test_get_contacts(client):
         client.get_contacts()
         mock_requests.assert_called_once_with("crm/v3/objects/contacts")
         mock_requests.reset_mock()
+
+
 def test_handle_request_errors_401():
     response = Mock()
     response.status_code = 401
@@ -57,15 +59,17 @@ def test_handle_request_errors_401():
     assert e.value.exit_code == Crm.EXIT_CODE_INVALID_CREDENTIALS
     assert e.value.message == "Invalid credentials"
 
+
 def test_column_to_hubspot_without_column_type():
     result = column_to_hubspot("csv_column", "hubspot_property")
     assert result == {
         "columnObjectTypeId": "0-1",
         "columnName": "csv_column",
-        "propertyName": "hubspot_property"
+        "propertyName": "hubspot_property",
     }
+
+
 def test_handle_import_file_file_not_exists():
     with pytest.raises(ExitCodeException) as e:
         handle_import_file("non_existent_file.csv")
     assert e.value.exit_code == Crm.EXIT_CODE_FILE_NOT_FOUND
-

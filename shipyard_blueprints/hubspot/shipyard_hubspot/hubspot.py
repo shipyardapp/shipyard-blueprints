@@ -46,7 +46,7 @@ class HubspotClient(Crm):
         endpoint: str,
         method: str = "GET",
         payload: Optional[Dict] = None,
-        headers: Optional[Dict] = None
+        headers=None,
     ):
         """
         Helper function to make requests to the Hubspot API
@@ -59,7 +59,6 @@ class HubspotClient(Crm):
         """
 
         if headers is None:
-            # Default headers
             headers = {"Accept": "application/json", "Content-Type": "application/json"}
         if not self.access_token:
             raise ExitCodeException(
@@ -90,7 +89,7 @@ class HubspotClient(Crm):
         else:
             handle_request_errors(response)
 
-    def connect(self)-> int:
+    def connect(self) -> int:
         """
         Method for verifying connection to the Hubspot API
         """
@@ -104,6 +103,12 @@ class HubspotClient(Crm):
             return 0
 
     def export_data(self, export_type: str, **kwargs):
+        """
+        Method for exporting data from Hubspot
+
+        :param export_type: The type of export to perform. Options include list or view
+        :param kwargs: The arguments to pass to the export method
+        """
         export_type = validate_export_type(export_type)
         self.logger.debug("Exporting data from Hubspot API")
         if export_type == "list":
@@ -112,14 +117,14 @@ class HubspotClient(Crm):
         # self.export_view(**kwargs)
 
     def export_list(
-            self,
-            export_format: str,
-            export_name: str,
-            object_properties: list,
-            object_type: str,
-            language: str,
-            list_id: str,
-            associated_object: str = None,
+        self,
+        export_format: str,
+        export_name: str,
+        object_properties: list,
+        object_type: str,
+        language: str,
+        list_id: str,
+        associated_object: str = None,
     ):
         """
         Method for triggering an export from Hubspot
@@ -239,8 +244,21 @@ class HubspotClient(Crm):
             handle_request_errors(response)
 
     def import_contact_data(
-            self, import_name, filename, import_operations, date_format="MONTH_DAY_YEAR"
+        self,
+        import_name: str,
+        filename: str,
+        import_operations: str,
+        date_format="MONTH_DAY_YEAR",
     ):
+        """
+        Method for importing contact data into Hubspot
+
+        :param import_name: The name of the import
+        :param filename: The name of the file to import
+        :param import_operations: The operations to perform on the import: CREATE, UPDATE, or UPSERT
+        :param date_format: The date format of the import: MONTH_DAY_YEAR, DAY_MONTH_YEAR, or YEAR_MONTH_DAY
+
+        """
         import_operations = validate_import_operations(import_operations)
         date_format = validate_date_format(date_format)
 
@@ -277,13 +295,9 @@ class HubspotClient(Crm):
         """
         self.logger.debug("Retrieving import status from Hubspot")
         try:
-            response = self._requests(
-                f"crm/v3/imports/{import_job_id}"
-            )
+            response = self._requests(f"crm/v3/imports/{import_job_id}")
         except ExitCodeException as err:
             raise ExitCodeException(err.message, err.exit_code) from err
         else:
-            self.logger.info(
-                f"Import ID: {import_job_id} is {response['state']}."
-            )
+            self.logger.info(f"Import ID: {import_job_id} is {response['state']}.")
             return response

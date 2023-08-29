@@ -414,7 +414,7 @@ test = ["fixtures", "mock", "purl", "pytest", "requests-futures", "sphinx", "tes
 name = "shipyard-templates"
 version = "0.2.0"
 description = "Super classes for blueprint development"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "^3.9"
 files = []
@@ -481,4 +481,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "ba35b2e765ddc5952e2bad52f2ae5ce1ed2966f36711e2734ad5557cb7dd08c7"
+content-hash = "4f07449f77b6a2994467b4aeb56c821951a0c88e1c0c2dc444e40398fa7b1e24"
