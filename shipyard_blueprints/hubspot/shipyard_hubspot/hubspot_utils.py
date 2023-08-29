@@ -5,6 +5,12 @@ from shipyard_templates import Crm, ExitCodeException
 
 
 def handle_request_errors(response):
+    """
+    Method for handling errors from the Hubspot API
+
+    :param response: Response object from the Hubspot API
+    :return: ExitCodeException
+    """
     try:
         response_details = response.json()
     except json.decoder.JSONDecodeError:
@@ -43,21 +49,13 @@ def handle_request_errors(response):
         raise ExitCodeException(response.text, Crm.EXIT_CODE_UNKNOWN_ERROR)
 
 
-def connect(self):
+def validate_export_type(export_type: str):
     """
-    Method for verifying connection to the Hubspot API
+    Method for validating the export type and cleaning the input
+
+    :param export_type: The export type
+    :return: The export type
     """
-    self.logger.debug("Verifying connection to Hubspot API")
-    try:
-        self._requests("crm/v3/imports/")
-    except ExitCodeException:
-        return 1
-    else:
-        self.logger.info("Successfully connected to Hubspot API")
-        return 0
-
-
-def validate_export_type(export_type):
     export_type = export_type.strip().lower()
     if export_type not in ["list", "view"]:
         raise ExitCodeException(
@@ -67,7 +65,13 @@ def validate_export_type(export_type):
     return export_type
 
 
-def validate_import_operations(import_operation):
+def validate_import_operations(import_operation: str):
+    """
+    Method for validating the import operation and cleaning the input
+
+    :param import_operation: The import operation
+    :return: The import operation
+    """
     import_operation = import_operation.strip().upper()
     if import_operation not in {"UPSERT", "CREATE", "UPDATE"}:
         raise ExitCodeException(
@@ -77,7 +81,13 @@ def validate_import_operations(import_operation):
     return import_operation
 
 
-def validate_export_language(language):
+def validate_export_language(language: str):
+    """
+    Method for validating the export language and cleaning the input
+
+    :param language: The export language
+    :return: The export language
+    """
     language = language.strip().upper()
     if language not in {
         "EN",
@@ -102,7 +112,13 @@ def validate_export_language(language):
     return language
 
 
-def validate_date_format(date_format):
+def validate_date_format(date_format: str):
+    """
+    Method for validating the date format and cleaning the input
+
+    :param date_format: The date format
+    :return: The date format
+    """
     date_format = date_format.strip().upper()
     if date_format not in {"DAY_MONTH_YEAR", "MONTH_DAY_YEAR", "YEAR_MONTH_DAY"}:
         raise ExitCodeException(
@@ -112,7 +128,13 @@ def validate_date_format(date_format):
     return date_format
 
 
-def validate_export_file_format(file_type):
+def validate_export_file_format(file_type: str):
+    """
+    Method for validating the export file format and cleaning the input
+
+    :param file_type: The export file format
+    :return: The export file format
+    """
     file_type = file_type.strip().upper()
     if file_type not in {"CSV", "XLSX", "XLS"}:
         raise ExitCodeException(
@@ -128,6 +150,15 @@ def column_to_hubspot(
     column_object_type_id="0-1",  # 0-1 is the default value for contacts
     column_type=None,
 ):
+    """
+    Method for converting a column to a Hubspot property
+
+    :param csv_column_name: The name of the column in the CSV file
+    :param hubspot_property_name: The name of the Hubspot property
+    :param column_object_type_id: The object type ID
+    :param column_type: The column type: HUBSPOT_OBJECT_ID, HUBSPOT_ALTERNATE_ID
+    :return: importRequest Column Mapping
+    """
     if column_type:
         column_type = column_type.strip().upper()
         if column_type not in {"HUBSPOT_OBJECT_ID", "HUBSPOT_ALTERNATE_ID"}:
@@ -151,7 +182,13 @@ def column_to_hubspot(
         }
 
 
-def validate_import_file_format(file_type):
+def validate_import_file_format(file_type: str):
+    """
+    Method for validating the import file format and cleaning the input
+
+    :param file_type: The import file format: CSV or SPREADSHEET
+    :return: The import file format
+    """
     file_type = file_type.strip().upper()
     if file_type not in {"CSV", "SPREADSHEET"}:
         raise ExitCodeException(
@@ -167,6 +204,12 @@ def handle_import_file(
     """
     Method for handling the import file.
     Currently only supports headers matching the Hubspot property names. Eventually will support mapping of headers to Hubspot property names.
+
+    :param filename: The name of the file to import
+    :param file_format: The file format: CSV or SPREADSHEET
+    :param headers_match: Whether the headers match the Hubspot property names
+    :param hubspot_alternate_id: The Hubspot alternate ID
+    :return: importRequest
     """
 
     if not os.path.exists(filename):
