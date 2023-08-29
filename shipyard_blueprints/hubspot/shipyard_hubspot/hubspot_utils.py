@@ -125,7 +125,7 @@ def validate_export_file_format(file_type):
 def column_to_hubspot(
     csv_column_name,
     hubspot_property_name,
-    column_object_type_id="0-1", # 0-1 is the default value for contacts
+    column_object_type_id="0-1",  # 0-1 is the default value for contacts
     column_type=None,
 ):
     if column_type:

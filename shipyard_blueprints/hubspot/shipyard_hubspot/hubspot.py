@@ -46,7 +46,7 @@ class HubspotClient(Crm):
         endpoint: str,
         method: str = "GET",
         payload: Optional[Dict] = None,
-        headers: Optional[Dict] = None
+        headers: Optional[Dict] = None,
     ):
         """
         Helper function to make requests to the Hubspot API
@@ -90,7 +90,7 @@ class HubspotClient(Crm):
         else:
             handle_request_errors(response)
 
-    def connect(self)-> int:
+    def connect(self) -> int:
         """
         Method for verifying connection to the Hubspot API
         """
@@ -112,14 +112,14 @@ class HubspotClient(Crm):
         # self.export_view(**kwargs)
 
     def export_list(
-            self,
-            export_format: str,
-            export_name: str,
-            object_properties: list,
-            object_type: str,
-            language: str,
-            list_id: str,
-            associated_object: str = None,
+        self,
+        export_format: str,
+        export_name: str,
+        object_properties: list,
+        object_type: str,
+        language: str,
+        list_id: str,
+        associated_object: str = None,
     ):
         """
         Method for triggering an export from Hubspot
@@ -239,7 +239,7 @@ class HubspotClient(Crm):
             handle_request_errors(response)
 
     def import_contact_data(
-            self, import_name, filename, import_operations, date_format="MONTH_DAY_YEAR"
+        self, import_name, filename, import_operations, date_format="MONTH_DAY_YEAR"
     ):
         import_operations = validate_import_operations(import_operations)
         date_format = validate_date_format(date_format)
@@ -277,13 +277,9 @@ class HubspotClient(Crm):
         """
         self.logger.debug("Retrieving import status from Hubspot")
         try:
-            response = self._requests(
-                f"crm/v3/imports/{import_job_id}"
-            )
+            response = self._requests(f"crm/v3/imports/{import_job_id}")
         except ExitCodeException as err:
             raise ExitCodeException(err.message, err.exit_code) from err
         else:
-            self.logger.info(
-                f"Import ID: {import_job_id} is {response['state']}."
-            )
+            self.logger.info(f"Import ID: {import_job_id} is {response['state']}.")
             return response

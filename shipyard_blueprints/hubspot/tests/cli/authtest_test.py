@@ -16,11 +16,13 @@ from shipyard_hubspot.cli import authtest
 if env_exists := os.path.exists(".env"):
     load_dotenv()
 
+
 @pytest.mark.skipif(not env_exists, reason="No .env file found")
 def test_with_valid_credentials():
     with pytest.raises(SystemExit) as execinfo:
         authtest.main()
     assert execinfo.value.code == 0
+
 
 @patch("shipyard_hubspot.cli.authtest.HubspotClient.connect", return_value=1)
 def test_mocked_failed_connection(mock_connect):
@@ -49,5 +51,3 @@ def test_with_no_credentials():
     with pytest.raises(SystemExit) as execinfo:
         authtest.main()
     assert execinfo.value.code == 1
-
-
