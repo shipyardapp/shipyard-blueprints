@@ -8,6 +8,7 @@ from shipyard_hubspot import HubspotClient
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--access-token", dest="access_token", required=True)
+    parser.add_argument("--object-type", dest="object_type", required=True)
     parser.add_argument("--csv-file", dest="csv_file")
     return parser.parse_args()
 
@@ -56,7 +57,7 @@ def main():
     # TODO: Add support for multiple files
     args = get_args()
     client = HubspotClient(access_token=args.access_token)
-    hubspot_properties = client.get_available_contact_properties()
+    hubspot_properties = client.get_available_contact_properties(args.object_type)
     hubspot_property_names = [
         hubspot_property["name"] for hubspot_property in hubspot_properties
     ]

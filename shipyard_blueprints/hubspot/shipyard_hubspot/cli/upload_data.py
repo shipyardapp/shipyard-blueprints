@@ -13,6 +13,7 @@ def get_args():
     parser.add_argument("--access-token", dest="access_token", required=True)
 
     parser.add_argument("--import-name", dest="import_name", required=True)
+    parser.add_argument("--object-type", dest="object_type", required=True)
     parser.add_argument(
         "--source-file-name-match-type",
         dest="source_match_type",
@@ -59,10 +60,11 @@ def find_files_matching_pattern(start_path=".", pattern=".*", exact_match=False)
     return matching_files
 
 
-def import_file(client, import_name, filename, import_operations, file_format):
+def import_file(client, import_name, filename, import_operations,object_type, file_format):
     import_job_id = client.import_contact_data(
         import_name=import_name,
         filename=filename,
+        object_type=object_type,
         import_operations=import_operations,
         file_format=file_format,
     ).get("id")
@@ -95,6 +97,7 @@ def main():
                 client=hubspot,
                 import_name=args.import_name,
                 filename=file,
+                object_type= args.object_type,
                 import_operations=args.import_operation,
                 file_format=args.file_format,
             )

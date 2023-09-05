@@ -15,6 +15,7 @@ from shipyard_hubspot.hubspot_utils import (
     validate_export_file_format,
     handle_import_file,
     validate_import_file_format,
+    validate_hubspot_object_type
 )
 
 
@@ -192,6 +193,7 @@ class HubspotClient(Crm):
         import_name: str,
         filename: str,
         import_operations: str,
+        object_type: str = "contacts",
         file_format: str = "CSV",
         date_format="MONTH_DAY_YEAR",
     ):
@@ -205,12 +207,13 @@ class HubspotClient(Crm):
 
         """
         import_operations = validate_import_operations(import_operations)
+        object_type_id = validate_hubspot_object_type(object_type).get("id")
         file_format = validate_import_file_format(file_format)
         date_format = validate_date_format(date_format)
 
         data = {
             "name": import_name,
-            "importOperations": {"0-1": import_operations},
+            "importOperations": {object_type_id: import_operations},
             "files": [handle_import_file(filename, file_format)],
             "dateFormat": date_format,
         }
@@ -222,17 +225,19 @@ class HubspotClient(Crm):
         else:
             return response
 
-    def get_available_contact_properties(self):
+    def get_available_contact_properties(self, hubspot_data_type: str = "contacts"):
         """
         Method for retrieving all contact properties from Hubspot
         """
         self.logger.debug("Retrieving all contact properties from Hubspot")
+
+        hubspot_data_type=validate_hubspot_object_type(hubspot_data_type).get("name")
         try:
-            response = self._requests("crm/v3/properties/contacts")
+            response = self._requests(f"crm/v3/properties/{hubspot_data_type}")
         except ExitCodeException as err:
             raise ExitCodeException(err.message, err.exit_code) from err
         else:
-            self.logger.info("Successfully retrieved all contact properties")
+            self.logger.info(f"Successfully retrieved all {hubspot_data_type} properties")
             return response["results"]
 
     def export_list(
