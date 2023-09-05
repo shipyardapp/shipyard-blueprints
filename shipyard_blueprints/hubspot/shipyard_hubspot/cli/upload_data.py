@@ -60,7 +60,9 @@ def find_files_matching_pattern(start_path=".", pattern=".*", exact_match=False)
     return matching_files
 
 
-def import_file(client, import_name, filename, import_operations,object_type, file_format):
+def import_file(
+    client, import_name, filename, import_operations, object_type, file_format
+):
     import_job_id = client.import_contact_data(
         import_name=import_name,
         filename=filename,
@@ -97,7 +99,7 @@ def main():
                 client=hubspot,
                 import_name=args.import_name,
                 filename=file,
-                object_type= args.object_type,
+                object_type=args.object_type,
                 import_operations=args.import_operation,
                 file_format=args.file_format,
             )

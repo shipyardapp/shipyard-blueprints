@@ -145,10 +145,10 @@ def validate_export_file_format(file_type: str):
 
 
 def column_to_hubspot(
-        csv_column_name,
-        hubspot_property_name,
-        column_object_type_id="0-1",  # 0-1 is the default value for contacts
-        column_type=None,
+    csv_column_name,
+    hubspot_property_name,
+    column_object_type_id="0-1",  # 0-1 is the default value for contacts
+    column_type=None,
 ):
     """
     Method for converting a column to a Hubspot property
@@ -199,7 +199,7 @@ def validate_import_file_format(file_type: str):
 
 
 def handle_import_file(
-        filename, file_format="CSV", headers_match=True, hubspot_alternate_id="email"
+    filename, file_format="CSV", headers_match=True, hubspot_alternate_id="email"
 ):
     """
     Method for handling the import file.
@@ -260,5 +260,4 @@ def validate_hubspot_object_type(object_type):
     elif object_type == "deals":
         object_id = "0-3"
 
-    return {'name': object_type,
-            'id': object_id}
+    return {"name": object_type, "id": object_id}

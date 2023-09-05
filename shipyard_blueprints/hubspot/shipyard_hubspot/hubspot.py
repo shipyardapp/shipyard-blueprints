@@ -15,7 +15,7 @@ from shipyard_hubspot.hubspot_utils import (
     validate_export_file_format,
     handle_import_file,
     validate_import_file_format,
-    validate_hubspot_object_type
+    validate_hubspot_object_type,
 )
 
 
@@ -231,13 +231,15 @@ class HubspotClient(Crm):
         """
         self.logger.debug("Retrieving all contact properties from Hubspot")
 
-        hubspot_data_type=validate_hubspot_object_type(hubspot_data_type).get("name")
+        hubspot_data_type = validate_hubspot_object_type(hubspot_data_type).get("name")
         try:
             response = self._requests(f"crm/v3/properties/{hubspot_data_type}")
         except ExitCodeException as err:
             raise ExitCodeException(err.message, err.exit_code) from err
         else:
-            self.logger.info(f"Successfully retrieved all {hubspot_data_type} properties")
+            self.logger.info(
+                f"Successfully retrieved all {hubspot_data_type} properties"
+            )
             return response["results"]
 
     def export_list(
