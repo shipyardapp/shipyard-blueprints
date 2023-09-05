@@ -1,6 +1,6 @@
 [tool.poetry]
+version = "0.1.1a10"
 name = "shipyard-hubspot"
-version = "0.1.0"
 description = "A local client for connecting and working with Hubspot APIs"
 authors = ["JR <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"
