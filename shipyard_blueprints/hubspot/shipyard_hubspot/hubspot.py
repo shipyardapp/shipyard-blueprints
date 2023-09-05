@@ -14,7 +14,7 @@ from shipyard_hubspot.hubspot_utils import (
     validate_date_format,
     validate_export_file_format,
     handle_import_file,
-    validate_import_file_format
+    validate_import_file_format,
 )
 
 
@@ -43,11 +43,11 @@ class HubspotClient(Crm):
                 handler.setLevel(DEBUG)
 
     def _requests(
-            self,
-            endpoint: str,
-            method: str = "GET",
-            payload: Optional[Dict] = None,
-            headers=None,
+        self,
+        endpoint: str,
+        method: str = "GET",
+        payload: Optional[Dict] = None,
+        headers=None,
     ):
         """
         Helper function to make requests to the Hubspot API
@@ -188,12 +188,12 @@ class HubspotClient(Crm):
             handle_request_errors(response)
 
     def import_contact_data(
-            self,
-            import_name: str,
-            filename: str,
-            import_operations: str,
-            file_format: str = "CSV",
-            date_format="MONTH_DAY_YEAR",
+        self,
+        import_name: str,
+        filename: str,
+        import_operations: str,
+        file_format: str = "CSV",
+        date_format="MONTH_DAY_YEAR",
     ):
         """
         Method for importing contact data into Hubspot
@@ -236,14 +236,14 @@ class HubspotClient(Crm):
             return response["results"]
 
     def export_list(
-            self,
-            export_name: str,
-            object_properties: list,
-            list_id: str,
-            object_type: str = "CONTACT",
-            export_format: str = 'CSV',
-            language: str = 'EN',
-            associated_object: str = None,
+        self,
+        export_name: str,
+        object_properties: list,
+        list_id: str,
+        object_type: str = "CONTACT",
+        export_format: str = "CSV",
+        language: str = "EN",
+        associated_object: str = None,
     ):
         """
         Method for triggering an export from Hubspot
