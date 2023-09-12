@@ -14,6 +14,8 @@ from shipyard_hubspot.hubspot_utils import (
     validate_date_format,
     validate_export_file_format,
     handle_import_file,
+    validate_import_file_format,
+    validate_hubspot_object_type,
 )
 
 
@@ -116,63 +118,6 @@ class HubspotClient(Crm):
         # elif export_type == "view":
         # self.export_view(**kwargs)
 
-    def export_list(
-        self,
-        export_format: str,
-        export_name: str,
-        object_properties: list,
-        object_type: str,
-        language: str,
-        list_id: str,
-        associated_object: str = None,
-    ):
-        """
-        Method for triggering an export from Hubspot
-
-        The download URL will expire five minutes after the completed request.
-        Once expired, you can perform another GET request to generate a new unique URL.
-
-        :param export_format: The file format. Options include XLSX, CSV, or XLS.
-        :param export_name: The name of the export
-        :param object_properties: A list of the properties you want included in your export. ei firstname, lastname, email
-        :param object_type: The type of object to export ex CONTACT
-        :param language: The language of the export file. Options include DE, EN, ES, FI, FR, IT, JA, NL, PL, PT, or SV.
-            see https://knowledge.hubspot.com/account/hubspot-language-offerings for more info
-        :param list_id: The ILS List ID of the list to export
-        :param associated_object: The associated object to export
-        """
-
-        export_format = validate_export_file_format(export_format)
-        language = validate_export_language(language)
-        if associated_object is None:
-            associated_object = []
-
-        self.logger.debug("Attempting to trigger an export from Hubspot...")
-        try:
-            response = self._requests(
-                endpoint="crm/v3/exports/export/async",
-                method="POST",
-                payload={
-                    "exportType": "LIST",
-                    "format": export_format,
-                    "exportName": export_name,
-                    "objectProperties": object_properties,
-                    "associatedObject": associated_object,
-                    "objectType": object_type,
-                    "language": language,
-                    "listId": list_id,
-                },
-            )
-            self.logger.debug("Successfully triggered export")
-        except ExitCodeException as err:
-            raise ExitCodeException(err.message, err.exit_code) from err
-        else:
-            export_job_id = response["id"]
-            self.logger.info(
-                f"Successfully triggered export with export id: {export_job_id}"
-            )
-            return response
-
     def get_contacts(self):
         """
         Method for retrieving all contact lists from Hubspot
@@ -248,6 +193,8 @@ class HubspotClient(Crm):
         import_name: str,
         filename: str,
         import_operations: str,
+        object_type: str = "contacts",
+        file_format: str = "CSV",
         date_format="MONTH_DAY_YEAR",
     ):
         """
@@ -260,12 +207,14 @@ class HubspotClient(Crm):
 
         """
         import_operations = validate_import_operations(import_operations)
+        object_type_id = validate_hubspot_object_type(object_type).get("id")
+        file_format = validate_import_file_format(file_format)
         date_format = validate_date_format(date_format)
 
         data = {
             "name": import_name,
-            "importOperations": {"0-1": import_operations},
-            "files": [handle_import_file(filename)],
+            "importOperations": {object_type_id: import_operations},
+            "files": [handle_import_file(filename, file_format)],
             "dateFormat": date_format,
         }
         self.logger.debug(f"The following import data will be sent to Hubspot: {data}")
@@ -276,18 +225,79 @@ class HubspotClient(Crm):
         else:
             return response
 
-    def get_available_contact_properties(self):
+    def get_available_contact_properties(self, hubspot_data_type: str = "contacts"):
         """
         Method for retrieving all contact properties from Hubspot
         """
         self.logger.debug("Retrieving all contact properties from Hubspot")
+
+        hubspot_data_type = validate_hubspot_object_type(hubspot_data_type).get("name")
         try:
-            response = self._requests("crm/v3/properties/contacts")
+            response = self._requests(f"crm/v3/properties/{hubspot_data_type}")
         except ExitCodeException as err:
             raise ExitCodeException(err.message, err.exit_code) from err
         else:
-            self.logger.info("Successfully retrieved all contact properties")
+            self.logger.info(
+                f"Successfully retrieved all {hubspot_data_type} properties"
+            )
             return response["results"]
+
+    def export_list(
+        self,
+        export_name: str,
+        object_properties: list,
+        list_id: str,
+        object_type: str = "CONTACT",
+        export_format: str = "CSV",
+        language: str = "EN",
+        associated_object: str = None,
+    ):
+        """
+        Method for triggering an export from Hubspot
+
+        The download URL will expire five minutes after the completed request.
+        Once expired, you can perform another GET request to generate a new unique URL.
+
+        :param export_format: The file format. Options include XLSX, CSV, or XLS.
+        :param export_name: The name of the export
+        :param object_properties: A list of the properties you want included in your export. ei firstname, lastname, email
+        :param object_type: The type of object to export ex CONTACT
+        :param language: The language of the export file. Options include DE, EN, ES, FI, FR, IT, JA, NL, PL, PT, or SV.
+            see https://knowledge.hubspot.com/account/hubspot-language-offerings for more info
+        :param list_id: The ILS List ID of the list to export
+        :param associated_object: The associated object to export
+        """
+
+        export_format = validate_export_file_format(export_format)
+        language = validate_export_language(language)
+        if associated_object is None:
+            associated_object = []
+
+        self.logger.debug("Attempting to trigger an export from Hubspot...")
+        try:
+            response = self._requests(
+                endpoint="crm/v3/exports/export/async",
+                method="POST",
+                payload={
+                    "exportType": "LIST",
+                    "format": export_format,
+                    "exportName": export_name,
+                    "objectProperties": object_properties,
+                    "associatedObject": associated_object,
+                    "objectType": object_type,
+                    "language": language,
+                    "listId": list_id,
+                },
+            )
+            self.logger.debug("Successfully triggered export")
+        except ExitCodeException as err:
+            raise ExitCodeException(err.message, err.exit_code) from err
+        else:
+            export_job_id = response["id"]
+            self.logger.info(
+                f"Successfully triggered export with export id: {export_job_id}"
+            )
+            return response
 
     def get_import_status(self, import_job_id):
         """
