@@ -19,9 +19,7 @@ def main():
         print(e)
         sys.exit(1)
     else:
-        sys.exit(
-            client.connect()
-        )
+        sys.exit(client.connect())
 
 
 if __name__ == "__main__":
