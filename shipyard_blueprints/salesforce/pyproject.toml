@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "shipyard-salesforce"
+version = "0.1.1a0"
+description = ""
+authors = ["JR <johnathan.rodriguez@shipyardapp.com>"]
+readme = "README.md"
+packages = [{ include = "shipyard_salesforce" }]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+shipyard-templates = "^0.3.0"
+requests = "^2.31.0"
+[tool.poetry.group.dev.dependencies]
+shipyard-templates = { path = "../../shipyard-templates", develop = true }
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
