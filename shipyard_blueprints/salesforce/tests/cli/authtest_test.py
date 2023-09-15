@@ -22,6 +22,8 @@ def test_with_valid_credentials():
     with pytest.raises(SystemExit) as execinfo:
         authtest.main()
     assert execinfo.value.code == 0
+
+
 @pytest.mark.skipif(not env_exists, reason="No .env file found")
 def test_with_invalid_credentials():
     os.environ["SALESFORCE_ACCESS_TOKEN"] = "invalid_token"
@@ -49,9 +51,6 @@ def test_mocked_successful_connection(mock_connect):
     with pytest.raises(SystemExit) as execinfo:
         authtest.main()
     assert execinfo.value.code == 0
-
-
-
 
 
 def test_with_no_credentials():
