@@ -1,4 +1,4 @@
-def standardize_to_exit_code_exception(func):
+def standardize_errors(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)

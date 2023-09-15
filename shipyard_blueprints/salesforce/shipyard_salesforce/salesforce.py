@@ -4,7 +4,7 @@ from typing import Optional, Any, Dict, List
 from requests import request
 from shipyard_templates import (
     Crm,
-    standardize_to_exit_code_exception,
+    standardize_errors,
     ExitCodeException,
 )
 
@@ -139,7 +139,7 @@ class SalesforceClient(Crm):
         else:
             handle_request_errors(response)
 
-    @standardize_to_exit_code_exception
+    @standardize_errors
     def get_resource_metadata(self, resource: str) -> Dict[str, Any]:
         """
         Retrieve the metadata for a Salesforce resource.
@@ -152,7 +152,7 @@ class SalesforceClient(Crm):
         self.logger.info(f"Found {len(response)} {resource}")
         return response
 
-    @standardize_to_exit_code_exception
+    @standardize_errors
     def get_resource_definition(self, resource: str) -> Dict[str, Any]:
         """
         Retrieve the definition for a Salesforce resource.
@@ -166,7 +166,7 @@ class SalesforceClient(Crm):
         self.logger.info(f"Found {len(response)} {resource}")
         return response
 
-    @standardize_to_exit_code_exception
+    @standardize_errors
     def get_resource_layout(self, resource: str) -> Dict[str, Any]:
         """
         Retrieve the layout for a Salesforce resource.
@@ -180,7 +180,7 @@ class SalesforceClient(Crm):
         self.logger.info(f"Found {len(response)} {resource}")
         return response
 
-    @standardize_to_exit_code_exception
+    @standardize_errors
     def get_resource_fields(self, resource: str) -> List[Dict[str, Any]]:
         """
         Retrieve the fields for a Salesforce resource.
@@ -194,7 +194,7 @@ class SalesforceClient(Crm):
         self.logger.info(f"Found {len(response)} {resource} fields")
         return response
 
-    @standardize_to_exit_code_exception
+    @standardize_errors
     def import_data(
         self,
         resource: str,
@@ -229,7 +229,7 @@ class SalesforceClient(Crm):
                     f"Invalid import type: {import_type}", self.EXIT_CODE_INVALID_INPUT
                 )
 
-    @standardize_to_exit_code_exception
+    @standardize_errors
     def export_data(self, resource: str, fieldnames: List[str]) -> List[Dict[str, Any]]:
         """
         Export data from Salesforce based on specified fields.
@@ -242,7 +242,7 @@ class SalesforceClient(Crm):
         # TODO: For more than 2000 records, use the Bulk API
         return self.get_records_by_fields(resource, fieldnames)
 
-    @standardize_to_exit_code_exception
+    @standardize_errors
     def upsert_record(
         self, resource: str, record_id: str, id_field_key: str, record: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -263,7 +263,7 @@ class SalesforceClient(Crm):
             data=json.dumps(record),
         )
 
-    @standardize_to_exit_code_exception
+    @standardize_errors
     def delete_record(self, resource: str, record_id: str) -> Dict[str, Any]:
         """
         Delete record from Salesforce by ID.
@@ -275,7 +275,7 @@ class SalesforceClient(Crm):
         """
         return self._request(f"sobjects/{resource}/{record_id}", method="DELETE")
 
-    @standardize_to_exit_code_exception
+    @standardize_errors
     def update_record(
         self, resource: str, record_id: str, record: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -308,7 +308,7 @@ class SalesforceClient(Crm):
             f"sobjects/{resource}", method="POST", data=json.dumps(record)
         )
 
-    @standardize_to_exit_code_exception
+    @standardize_errors
     def execute_soql_query(self, query: str) -> List[Dict[str, Any]]:
         """
         Execute a SOQL query.
