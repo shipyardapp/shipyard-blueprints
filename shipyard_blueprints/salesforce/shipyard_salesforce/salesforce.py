@@ -16,15 +16,15 @@ from shipyard_salesforce.salesforce_utils import (
 
 class SalesforceClient(Crm):
     def __init__(
-            self,
-            access_token: Optional[str] = None,
-            consumer_key: Optional[str] = None,
-            consumer_secret: Optional[str] = None,
-            domain: Optional[str] = None,
-            username: Optional[str] = None,
-            password: Optional[str] = None,
-            security_token: Optional[str] = None,
-            **kwargs: Any,
+        self,
+        access_token: Optional[str] = None,
+        consumer_key: Optional[str] = None,
+        consumer_secret: Optional[str] = None,
+        domain: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        security_token: Optional[str] = None,
+        **kwargs: Any,
     ) -> None:
         """
         Initialize the Salesforce client.
@@ -66,7 +66,7 @@ class SalesforceClient(Crm):
         )
 
     def _request(
-            self, endpoint: str, method: str = "GET", data: Optional[str] = None
+        self, endpoint: str, method: str = "GET", data: Optional[str] = None
     ) -> Dict[str, Any]:
         """Make a request to the Salesforce API
 
@@ -196,11 +196,11 @@ class SalesforceClient(Crm):
 
     @standardize_to_exit_code_exception
     def import_data(
-            self,
-            resource: str,
-            records: List[Dict[str, Any]],
-            import_type: str = "insert",
-            id_field_key: str = "Id",
+        self,
+        resource: str,
+        records: List[Dict[str, Any]],
+        import_type: str = "insert",
+        id_field_key: str = "Id",
     ) -> None:
         """
         Import data into Salesforce.
@@ -244,7 +244,7 @@ class SalesforceClient(Crm):
 
     @standardize_to_exit_code_exception
     def upsert_record(
-            self, resource: str, record_id: str, id_field_key: str, record: Dict[str, Any]
+        self, resource: str, record_id: str, id_field_key: str, record: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         If the record exists with the match value to the id_field_key, the record is updated with the values in the request body. If multiple of the same record exist, the first record is updated. If the record does not exist, a new record is created with the values in the request body.
@@ -277,7 +277,7 @@ class SalesforceClient(Crm):
 
     @standardize_to_exit_code_exception
     def update_record(
-            self, resource: str, record_id: str, record: Dict[str, Any]
+        self, resource: str, record_id: str, record: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Update record in Salesforce by ID.
@@ -331,7 +331,7 @@ class SalesforceClient(Crm):
         return records
 
     def get_records_by_fields(
-            self, resource: str, fieldnames: List[str]
+        self, resource: str, fieldnames: List[str]
     ) -> List[Dict[str, Any]]:
         """
         Get records from Salesforce by fields.
