@@ -65,7 +65,9 @@ class SalesforceClient(Crm):
             "access_token"
         )
 
-    def _request(self, endpoint: str, method: str = "GET", data: Optional[str] = None) -> Dict[str, Any]:
+    def _request(
+        self, endpoint: str, method: str = "GET", data: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Make a request to the Salesforce API
 
         :param endpoint: The endpoint to make the request to
@@ -193,7 +195,13 @@ class SalesforceClient(Crm):
         return response
 
     @standardize_to_exit_code_exception
-    def import_data(self, resource: str, records: List[Dict[str, Any]], import_type: str = "insert", id_field_key: str = "Id") -> None:
+    def import_data(
+        self,
+        resource: str,
+        records: List[Dict[str, Any]],
+        import_type: str = "insert",
+        id_field_key: str = "Id",
+    ) -> None:
         """
         Import data into Salesforce.
 
@@ -235,7 +243,9 @@ class SalesforceClient(Crm):
         return self.get_records_by_fields(resource, fieldnames)
 
     @standardize_to_exit_code_exception
-    def upsert_record(self, resource: str, record_id: str, id_field_key: str, record: Dict[str, Any]) -> Dict[str, Any]:
+    def upsert_record(
+        self, resource: str, record_id: str, id_field_key: str, record: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         If the record exists with the match value to the id_field_key, the record is updated with the values in the request body. If multiple of the same record exist, the first record is updated. If the record does not exist, a new record is created with the values in the request body.
         https://developer.salesforce.com/docs/atlas.en-us.244.0.api_rest.meta/api_rest/dome_upsert.htm
@@ -266,7 +276,9 @@ class SalesforceClient(Crm):
         return self._request(f"sobjects/{resource}/{record_id}", method="DELETE")
 
     @standardize_to_exit_code_exception
-    def update_record(self, resource: str, record_id: str, record: Dict[str, Any]) -> Dict[str, Any]:
+    def update_record(
+        self, resource: str, record_id: str, record: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Update record in Salesforce by ID.
         https://developer.salesforce.com/docs/atlas.en-us.244.0.api_rest.meta/api_rest/dome_update_fields.htm
@@ -318,7 +330,9 @@ class SalesforceClient(Crm):
                 records.extend(additional_records)
         return records
 
-    def get_records_by_fields(self, resource: str, fieldnames: List[str]) -> List[Dict[str, Any]]:
+    def get_records_by_fields(
+        self, resource: str, fieldnames: List[str]
+    ) -> List[Dict[str, Any]]:
         """
         Get records from Salesforce by fields.
         https://developer.salesforce.com/docs/atlas.en-us.244.0.api_rest.meta/api_rest/resources_query.htm

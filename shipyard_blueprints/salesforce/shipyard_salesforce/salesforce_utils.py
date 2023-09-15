@@ -5,7 +5,6 @@ from requests import Response
 from shipyard_templates import Crm, ExitCodeException
 
 
-
 def handle_request_errors(response: Response) -> None:
     """
     Method for handling errors from the Salesforce API
@@ -61,13 +60,13 @@ def handle_request_errors(response: Response) -> None:
 
 
 def validate_client_init(
-        access_token: Optional[str] = None,
-        consumer_key: Optional[str] = None,
-        consumer_secret: Optional[str] = None,
-        domain: Optional[str] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        security_token: Optional[str] = None,
+    access_token: Optional[str] = None,
+    consumer_key: Optional[str] = None,
+    consumer_secret: Optional[str] = None,
+    domain: Optional[str] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
+    security_token: Optional[str] = None,
 ) -> None:
     """
     Validates that the client is initialized with the correct combination arguments
