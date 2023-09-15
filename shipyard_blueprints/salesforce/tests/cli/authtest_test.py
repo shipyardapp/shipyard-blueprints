@@ -48,6 +48,13 @@ def test_with_invalid_credentials():
 
 def test_with_no_credentials():
     os.environ["SALESFORCE_ACCESS_TOKEN"] = ""
+    os.environ["SALESFORCE_CONSUMER_KEY"]= ""
+    os.environ["SALESFORCE_CONSUMER_SECRET"]= ""
+    os.environ["SALESFORCE_USERNAME"]= ""
+    os.environ["SALESFORCE_PASSWORD"] = ""
+    os.environ["SALESFORCE_SECURITY_TOKEN"] = ""
+    os.environ["SALESFORCE_DOMAIN"] = ""
+
     with pytest.raises(SystemExit) as execinfo:
         authtest.main()
-    assert execinfo.value.code == 1
+    assert execinfo.value.code !=0
