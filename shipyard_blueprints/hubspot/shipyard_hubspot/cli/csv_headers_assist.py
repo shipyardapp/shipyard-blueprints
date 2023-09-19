@@ -71,7 +71,7 @@ def main():
             headers = extract_csv_headers(args.csv_file)
             if headers_match(headers, hubspot_property_names):
                 client.logger.info(
-                    "All headers in the CSV file are valid hubspot properties."
+                    "All headers in the CSV file are valid Hubspot properties."
                 )
             else:
                 log_unmatched_headers(client, headers, hubspot_property_names)

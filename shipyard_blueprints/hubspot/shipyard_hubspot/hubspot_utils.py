@@ -226,9 +226,7 @@ def handle_import_file(
             headers = file.readline().strip().split(",")
 
             for header in headers:
-                if (
-                    header == hubspot_alternate_id
-                ):  # Apply the unique id tag to email addresses
+                if header == hubspot_alternate_id:
                     mapping.append(
                         column_to_hubspot(
                             hubspot_property_name=header,
@@ -267,7 +265,7 @@ def validate_hubspot_object_type(object_type):
     object_type = object_type.strip().lower()
     if object_type not in ["contacts", "deals", "companies"]:
         raise ExitCodeException(
-            "Invalid hubspot object type. Please choose between contacts, deals, or companies",
+            "Invalid Hubspot object type. Please choose between contacts, deals, or companies",
             Crm.EXIT_CODE_INVALID_INPUT,
         )
     object_id = None
