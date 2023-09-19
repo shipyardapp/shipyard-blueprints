@@ -199,7 +199,11 @@ def validate_import_file_format(file_type: str):
 
 
 def handle_import_file(
-    filename, file_format="CSV", headers_match=True, hubspot_alternate_id="email"
+    filename,
+    file_format="CSV",
+    headers_match=True,
+    hubspot_alternate_id="email",
+    object_type="contacts",
 ):
     """
     Method for handling the import file.
@@ -211,7 +215,7 @@ def handle_import_file(
     :param hubspot_alternate_id: The Hubspot alternate ID
     :return: importRequest
     """
-
+    column_object_type_id = validate_hubspot_object_type(object_type).get("id")
     if not os.path.exists(filename):
         raise ExitCodeException(
             f"File {filename} does not exist", Crm.EXIT_CODE_FILE_NOT_FOUND
@@ -222,16 +226,30 @@ def handle_import_file(
             headers = file.readline().strip().split(",")
 
             for header in headers:
-                if header == hubspot_alternate_id:
+                if (
+                    header == hubspot_alternate_id
+                ):  # Apply the unique id tag to email addresses
                     mapping.append(
                         column_to_hubspot(
-                            header, header, column_type="HUBSPOT_ALTERNATE_ID"
+                            hubspot_property_name=header,
+                            csv_column_name=header,
+                            column_object_type_id=column_object_type_id,
+                            column_type="HUBSPOT_ALTERNATE_ID",
                         )
                     )
-                else:
-                    mapping.append(column_to_hubspot(header, header))
-            mapping = [column_to_hubspot(header, header) for header in headers]
-
+                else:  # Apply the default tag to all other columns
+                    mapping.append(
+                        column_to_hubspot(
+                            hubspot_property_name=header,
+                            csv_column_name=header,
+                            column_object_type_id=column_object_type_id,
+                        )
+                    )
+    else:
+        raise ExitCodeException(
+            message="Header mapping is not currently supported. Please ensure that the headers in the CSV file match the Hubspot property names.",
+            exit_code=Crm.EXIT_CODE_INVALID_INPUT,
+        )
     return {
         "fileName": os.path.basename(filename),
         "fileFormat": file_format,
