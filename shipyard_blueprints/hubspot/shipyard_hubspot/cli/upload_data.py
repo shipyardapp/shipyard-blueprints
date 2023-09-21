@@ -42,9 +42,6 @@ def find_files_matching_pattern(start_path=".", pattern=".*", exact_match=False)
     """
     matching_files = []
     valid_extensions = {".csv", ".xlsx", ".xls", ".txt"}
-    print(
-        f"Looking for files matching {pattern} in {start_path} with a file format of {valid_extensions}..."
-    )
     for dirpath, _, filenames in os.walk(start_path):
         for filename in filenames:
             if exact_match:
@@ -57,6 +54,12 @@ def find_files_matching_pattern(start_path=".", pattern=".*", exact_match=False)
                 full_path = os.path.join(dirpath, filename)
                 matching_files.append(full_path)
 
+    if not matching_files:
+        raise ExitCodeException(
+            exit_code=HubspotClient.EXIT_CODE_FILE_NOT_FOUND,
+            message=f"No files found matching {pattern} in {start_path}."
+            f"Please check filenames and ensure they are one of the following file types {valid_extensions}.",
+        )
     return matching_files
 
 
@@ -91,6 +94,7 @@ def main():
             exact_match=args.source_match_type == "exact_match",
         )
 
+        hubspot.logger.info(f"Found the following file(s): {files}")
         for file in files:
             hubspot.logger.info(
                 f"Attempting to import {file} with import name {args.import_name}"
@@ -107,6 +111,9 @@ def main():
     except ExitCodeException as e:
         hubspot.logger.error(e)
         sys.exit(e.exit_code)
+
+    else:
+        hubspot.logger.info("Import completed successfully.")
 
 
 if __name__ == "__main__":

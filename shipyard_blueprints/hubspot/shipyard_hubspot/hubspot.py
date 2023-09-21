@@ -214,7 +214,11 @@ class HubspotClient(Crm):
         data = {
             "name": import_name,
             "importOperations": {object_type_id: import_operations},
-            "files": [handle_import_file(filename, file_format)],
+            "files": [
+                handle_import_file(
+                    filename=filename, file_format=file_format, object_type=object_type
+                )
+            ],
             "dateFormat": date_format,
         }
         self.logger.debug(f"The following import data will be sent to Hubspot: {data}")

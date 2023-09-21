@@ -3,6 +3,7 @@ import argparse
 import sys
 
 from shipyard_hubspot import HubspotClient
+from shipyard_templates import ExitCodeException
 
 
 def get_args():
@@ -56,26 +57,37 @@ def format_property_message(hubspot_properties):
 def main():
     # TODO: Add support for multiple files
     args = get_args()
-    client = HubspotClient(access_token=args.access_token)
-    hubspot_properties = client.get_available_contact_properties(args.object_type)
-    hubspot_property_names = [
-        hubspot_property["name"] for hubspot_property in hubspot_properties
-    ]
+    try:
+        client = HubspotClient(access_token=args.access_token)
+        hubspot_properties = client.get_available_contact_properties(args.object_type)
+        hubspot_property_names = [
+            hubspot_property["name"] for hubspot_property in hubspot_properties
+        ]
 
-    if args.csv_file:
-        client.logger.info(
-            f"Checking if all headers in {args.csv_file} exist in the Hubspot properties."
-        )
-        headers = extract_csv_headers(args.csv_file)
-        if headers_match(headers, hubspot_property_names):
+        if args.csv_file:
             client.logger.info(
-                "All headers in the CSV file are valid hubspot properties."
+                f"Checking if all headers in {args.csv_file} exist in the Hubspot properties."
             )
+            headers = extract_csv_headers(args.csv_file)
+            if headers_match(headers, hubspot_property_names):
+                client.logger.info(
+                    "All headers in the CSV file are valid Hubspot properties."
+                )
+            else:
+                log_unmatched_headers(client, headers, hubspot_property_names)
+                sys.exit(client.EXIT_CODE_INVALID_INPUT)
         else:
-            log_unmatched_headers(client, headers, hubspot_property_names)
-            sys.exit(1)
-    else:
-        client.logger.info(format_property_message(hubspot_properties))
+            client.logger.info(format_property_message(hubspot_properties))
+
+    except ExitCodeException as e:
+        client.logger.error(e)
+        sys.exit(e.exit_code)
+    except FileNotFoundError as e:
+        client.logger.error(e)
+        sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
+    except Exception as e:
+        client.logger.error(e)
+        sys.exit(client.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":
