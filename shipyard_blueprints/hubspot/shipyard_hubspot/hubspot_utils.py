@@ -145,10 +145,10 @@ def validate_export_file_format(file_type: str):
 
 
 def column_to_hubspot(
-    csv_column_name,
-    hubspot_property_name,
-    column_object_type_id="0-1",  # 0-1 is the default value for contacts
-    column_type=None,
+        csv_column_name,
+        hubspot_property_name,
+        column_object_type_id="0-1",  # 0-1 is the default value for contacts
+        column_type=None,
 ):
     """
     Method for converting a column to a Hubspot property
@@ -159,27 +159,27 @@ def column_to_hubspot(
     :param column_type: The column type: HUBSPOT_OBJECT_ID, HUBSPOT_ALTERNATE_ID
     :return: importRequest Column Mapping
     """
-    if column_type:
-        column_type = column_type.strip().upper()
-        if column_type not in {"HUBSPOT_OBJECT_ID", "HUBSPOT_ALTERNATE_ID"}:
-            raise ExitCodeException(
-                "Invalid column type. Column type is used to specify that a column contains a unique identifier "
-                "property Please choose between HUBSPOT_OBJECT_ID, HUBSPOT_ALTERNATE_ID",
-                Crm.EXIT_CODE_INVALID_INPUT,
-            )
+    if not column_type:
+        return {
+            "columnObjectTypeId": column_object_type_id,
+            "columnName": csv_column_name,
+            "propertyName": hubspot_property_name,
+        }
 
-        return {
-            "columnObjectTypeId": column_object_type_id,
-            "columnName": csv_column_name,
-            "propertyName": hubspot_property_name,
-            "columnType": column_type,
-        }
-    else:
-        return {
-            "columnObjectTypeId": column_object_type_id,
-            "columnName": csv_column_name,
-            "propertyName": hubspot_property_name,
-        }
+    column_type = column_type.strip().upper()
+    if column_type not in {"HUBSPOT_OBJECT_ID", "HUBSPOT_ALTERNATE_ID"}:
+        raise ExitCodeException(
+            "Invalid column type. Column type is used to specify that a column contains a unique identifier "
+            "property Please choose between HUBSPOT_OBJECT_ID, HUBSPOT_ALTERNATE_ID",
+            Crm.EXIT_CODE_INVALID_INPUT,
+        )
+
+    return {
+        "columnObjectTypeId": column_object_type_id,
+        "columnName": csv_column_name,
+        "propertyName": hubspot_property_name,
+        "columnType": column_type,
+    }
 
 
 def validate_import_file_format(file_type: str):
@@ -199,11 +199,11 @@ def validate_import_file_format(file_type: str):
 
 
 def handle_import_file(
-    filename,
-    file_format="CSV",
-    headers_match=True,
-    hubspot_alternate_id="email",
-    object_type="contacts",
+        filename,
+        file_format="CSV",
+        headers_match=True,
+        hubspot_alternate_id="email",
+        object_type="contacts",
 ):
     """
     Method for handling the import file.
@@ -233,6 +233,12 @@ def handle_import_file(
                             csv_column_name=header,
                             column_object_type_id=column_object_type_id,
                             column_type="HUBSPOT_ALTERNATE_ID",
+                        )
+                    )
+                elif header == "hs_object_id":
+                    mapping.append(
+                        column_to_hubspot(
+                            header, header, column_type="HUBSPOT_OBJECT_ID"
                         )
                     )
                 else:  # Apply the default tag to all other columns

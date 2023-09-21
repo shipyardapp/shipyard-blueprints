@@ -1,5 +1,5 @@
 [tool.poetry]
-version = "0.1.1a15"
+version = "0.1.1a21"
 name = "shipyard-hubspot"
 description = "A local client for connecting and working with Hubspot APIs"
 authors = ["JR <johnathan.rodriguez@shipyardapp.com>"]
@@ -10,7 +10,7 @@ packages = [{ include = "shipyard_hubspot" }]
 python = "^3.9"
 requests = "2.31.0"
 hubspot-api-client = "^8.1.0"
-shipyard-templates = "^0.3.0"
+shipyard-templates = "^0.3.1a1"
 
 
 
