@@ -43,7 +43,7 @@ def find_files_matching_pattern(start_path=".", pattern=".*", exact_match=False)
     matching_files = []
     valid_extensions = {".csv", ".xlsx", ".xls", ".txt"}
     if exact_match:
-        print(f'Looking for file {pattern} in {start_path}...')
+        print(f"Looking for file {pattern} in {start_path}...")
     else:
         print(
             f"Looking for files matching {pattern} in {start_path} with a file format of {valid_extensions}..."
@@ -64,13 +64,13 @@ def find_files_matching_pattern(start_path=".", pattern=".*", exact_match=False)
         raise ExitCodeException(
             exit_code=HubspotClient.EXIT_CODE_FILE_NOT_FOUND,
             message=f"No files found matching {pattern} in {start_path}."
-                    f"Please check filenames and ensure they are one of the following file types {valid_extensions}.",
+            f"Please check filenames and ensure they are one of the following file types {valid_extensions}.",
         )
     return matching_files
 
 
 def import_file(
-        client, import_name, filename, import_operations, object_type, file_format
+    client, import_name, filename, import_operations, object_type, file_format
 ):
     import_job_id = client.import_contact_data(
         import_name=import_name,
@@ -90,8 +90,8 @@ def import_file(
         time.sleep(30)
 
     job_metadata = client.get_import_status(import_job_id).get("metadata", {})
-    metadata_counters = job_metadata.get('counters', {})
-    error_count = metadata_counters.get('ERRORS', 0)
+    metadata_counters = job_metadata.get("counters", {})
+    error_count = metadata_counters.get("ERRORS", 0)
     if error_count > 0:
         raise ExitCodeException(
             f"{error_count} error(s) occurred when attempting to import {filename}."
