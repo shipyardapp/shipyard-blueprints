@@ -145,10 +145,10 @@ def validate_export_file_format(file_type: str):
 
 
 def column_to_hubspot(
-    csv_column_name,
-    hubspot_property_name,
-    column_object_type_id="0-1",  # 0-1 is the default value for contacts
-    column_type=None,
+        csv_column_name,
+        hubspot_property_name,
+        column_object_type_id="0-1",  # 0-1 is the default value for contacts
+        column_type=None,
 ):
     """
     Method for converting a column to a Hubspot property
@@ -238,7 +238,8 @@ def handle_import_file(
                 elif header == "hs_object_id":
                     mapping.append(
                         column_to_hubspot(
-                            header, header, column_type="HUBSPOT_OBJECT_ID"
+                            header, header, column_type="HUBSPOT_OBJECT_ID",
+                            column_object_type_id=column_object_type_id,
                         )
                     )
                 else:  # Apply the default tag to all other columns

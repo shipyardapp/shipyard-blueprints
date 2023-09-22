@@ -278,6 +278,7 @@ class HubspotClient(Crm):
             associated_object = []
 
         self.logger.debug("Attempting to trigger an export from Hubspot...")
+        object_type_id = validate_hubspot_object_type(object_type).get("id")
         try:
             response = self._requests(
                 endpoint="crm/v3/exports/export/async",
@@ -288,7 +289,7 @@ class HubspotClient(Crm):
                     "exportName": export_name,
                     "objectProperties": object_properties,
                     "associatedObject": associated_object,
-                    "objectType": object_type,
+                    "objectType": object_type_id,
                     "language": language,
                     "listId": list_id,
                 },
