@@ -11,6 +11,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--access-token", dest="access_token", required=True)
     parser.add_argument("--export-name", dest="export_name", required=True)
+    parser.add_argument("--object-type", dest="object_type", required=True)
     parser.add_argument("--list-id", dest="list_id", required=True)
     parser.add_argument("--object-properties", dest="object_properties", required=True)
     parser.add_argument(
@@ -41,6 +42,7 @@ def export_and_wait(client, args):
     export_id = client.export_list(
         export_name=args.export_name,
         list_id=args.list_id,
+        object_type=args.object_type,
         object_properties=object_properties,
     ).get("id")
 

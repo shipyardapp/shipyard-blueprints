@@ -6,17 +6,7 @@ from typing import Dict, List, Union, Optional
 
 from requests import request
 from shipyard_templates import Crm, ExitCodeException
-from shipyard_hubspot.hubspot_utils import (
-    handle_request_errors,
-    validate_export_type,
-    validate_import_operations,
-    validate_export_language,
-    validate_date_format,
-    validate_export_file_format,
-    handle_import_file,
-    validate_import_file_format,
-    validate_hubspot_object_type,
-)
+from shipyard_hubspot.hubspot_utils import HubspotUtility
 
 
 class HubspotClient(Crm):
@@ -89,7 +79,7 @@ class HubspotClient(Crm):
             self.logger.debug(response_details)
             return response_details
         else:
-            handle_request_errors(response)
+            HubspotUtility.handle_request_errors(response)
 
     def connect(self) -> int:
         """
@@ -99,6 +89,7 @@ class HubspotClient(Crm):
         try:
             self._requests("crm/v3/imports/")
         except ExitCodeException:
+            self.logger.error("Unable to connect to Hubspot API")
             return 1
         else:
             self.logger.info("Successfully connected to Hubspot API")
@@ -111,7 +102,7 @@ class HubspotClient(Crm):
         :param export_type: The type of export to perform. Options include list or view
         :param kwargs: The arguments to pass to the export method
         """
-        export_type = validate_export_type(export_type)
+        export_type = HubspotUtility.validate_export_type(export_type)
         self.logger.debug("Exporting data from Hubspot API")
         if export_type == "list":
             return self.export_list(**kwargs)
@@ -186,14 +177,14 @@ class HubspotClient(Crm):
             return response
 
         else:
-            handle_request_errors(response)
+            HubspotUtility.handle_request_errors(response)
 
     def import_contact_data(
         self,
         import_name: str,
         filename: str,
         import_operations: str,
-        object_type: str = "contacts",
+        object_type: str,
         file_format: str = "CSV",
         date_format="MONTH_DAY_YEAR",
     ):
@@ -203,19 +194,23 @@ class HubspotClient(Crm):
         :param import_name: The name of the import
         :param filename: The name of the file to import
         :param import_operations: The operations to perform on the import: CREATE, UPDATE, or UPSERT
+        :param object_type: The type of object to import: CONTACT, COMPANY, or DEAL
         :param date_format: The date format of the import: MONTH_DAY_YEAR, DAY_MONTH_YEAR, or YEAR_MONTH_DAY
+        :param file_format: The file format of the import: CSV or XLSX
 
         """
-        import_operations = validate_import_operations(import_operations)
-        object_type_id = validate_hubspot_object_type(object_type).get("id")
-        file_format = validate_import_file_format(file_format)
-        date_format = validate_date_format(date_format)
+        import_operations = HubspotUtility.validate_import_operations(import_operations)
+        object_type_id = HubspotUtility.validate_hubspot_object_type(object_type).get(
+            "id"
+        )
+        file_format = HubspotUtility.validate_import_file_format(file_format)
+        date_format = HubspotUtility.validate_date_format(date_format)
 
         data = {
             "name": import_name,
             "importOperations": {object_type_id: import_operations},
             "files": [
-                handle_import_file(
+                HubspotUtility.handle_import_file(
                     filename=filename, file_format=file_format, object_type=object_type
                 )
             ],
@@ -229,13 +224,15 @@ class HubspotClient(Crm):
         else:
             return response
 
-    def get_available_contact_properties(self, hubspot_data_type: str = "contacts"):
+    def get_available_contact_properties(self, hubspot_data_type: str):
         """
         Method for retrieving all contact properties from Hubspot
         """
         self.logger.debug("Retrieving all contact properties from Hubspot")
 
-        hubspot_data_type = validate_hubspot_object_type(hubspot_data_type).get("name")
+        hubspot_data_type = HubspotUtility.validate_hubspot_object_type(
+            hubspot_data_type
+        ).get("name")
         try:
             response = self._requests(f"crm/v3/properties/{hubspot_data_type}")
         except ExitCodeException as err:
@@ -251,7 +248,7 @@ class HubspotClient(Crm):
         export_name: str,
         object_properties: list,
         list_id: str,
-        object_type: str = "CONTACT",
+        object_type: str,
         export_format: str = "CSV",
         language: str = "EN",
         associated_object: str = None,
@@ -272,12 +269,15 @@ class HubspotClient(Crm):
         :param associated_object: The associated object to export
         """
 
-        export_format = validate_export_file_format(export_format)
-        language = validate_export_language(language)
+        export_format = HubspotUtility.validate_export_file_format(export_format)
+        language = HubspotUtility.validate_export_language(language)
         if associated_object is None:
             associated_object = []
 
         self.logger.debug("Attempting to trigger an export from Hubspot...")
+        object_type_id = HubspotUtility.validate_hubspot_object_type(object_type).get(
+            "id"
+        )
         try:
             response = self._requests(
                 endpoint="crm/v3/exports/export/async",
@@ -288,7 +288,7 @@ class HubspotClient(Crm):
                     "exportName": export_name,
                     "objectProperties": object_properties,
                     "associatedObject": associated_object,
-                    "objectType": object_type,
+                    "objectType": object_type_id,
                     "language": language,
                     "listId": list_id,
                 },
