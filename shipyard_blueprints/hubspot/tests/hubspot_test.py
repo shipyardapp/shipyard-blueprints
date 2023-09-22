@@ -4,7 +4,7 @@ import requests_mock
 from unittest.mock import Mock
 
 from shipyard_hubspot import HubspotClient
-from shipyard_hubspot.hubspot_utils import column_to_hubspot, handle_import_file
+from shipyard_hubspot.hubspot_utils import HubspotUtility
 from shipyard_templates import ExitCodeException, Crm
 
 
@@ -61,7 +61,9 @@ def test_handle_request_errors_401():
 
 
 def test_column_to_hubspot_without_column_type():
-    result = column_to_hubspot("csv_column", "hubspot_property")
+    result = HubspotUtility.column_to_hubspot(
+        "csv_column", "hubspot_property", column_object_type_id="0-1"
+    )
     assert result == {
         "columnObjectTypeId": "0-1",
         "columnName": "csv_column",
@@ -71,5 +73,5 @@ def test_column_to_hubspot_without_column_type():
 
 def test_handle_import_file_file_not_exists():
     with pytest.raises(ExitCodeException) as e:
-        handle_import_file("non_existent_file.csv")
+        HubspotUtility.handle_import_file("non_existent_file.csv", "contacts")
     assert e.value.exit_code == Crm.EXIT_CODE_FILE_NOT_FOUND

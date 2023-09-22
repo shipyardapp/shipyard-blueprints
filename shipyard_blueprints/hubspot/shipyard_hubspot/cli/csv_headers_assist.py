@@ -45,6 +45,10 @@ def format_property_message(hubspot_properties):
 
     property_msg += f"\n{'-' * 10}"  # 10 dashes as a separator
     for hubspot_property in hubspot_properties:
+        modify_metadata = hubspot_property.get("modificationMetadata", {})
+        if modify_metadata.get("readOnlyValue"):
+            continue
+
         property_msg += f'\nName: {hubspot_property["name"]}'
         property_msg += f'\nLabel: {hubspot_property["label"]}'
         property_msg += f'\nDescription: {hubspot_property["description"]}'
@@ -55,7 +59,6 @@ def format_property_message(hubspot_properties):
 
 
 def main():
-    # TODO: Add support for multiple files
     args = get_args()
     try:
         client = HubspotClient(access_token=args.access_token)
