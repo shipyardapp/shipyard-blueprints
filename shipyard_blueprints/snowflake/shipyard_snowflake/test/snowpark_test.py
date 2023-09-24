@@ -49,5 +49,15 @@ def test_larger_upload_append():
     print("Done")
 
 
+def test_put():
+    session = client.connect()
+    larger = "shipyard_snowflake/test/larger.csv"
+    client.put(
+        session=session, file_path=larger, table_name="LARGER_TEST", overwrite=True
+    )
+    print("Done")
+    # client.copy_into(session=session, table_name="LARGER_TEST", overwrite=True)
+
+
 if __name__ == "__main__":
-    test_larger_upload_append()
+    test_put()

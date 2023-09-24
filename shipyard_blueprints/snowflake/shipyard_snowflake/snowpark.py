@@ -83,6 +83,40 @@ class SnowparkClient(Database):
                 message=e, exit_code=self.EXIT_CODE_INVALID_UPLOAD_VALUE
             )
 
+    def put(self, session: Session, file_path: str, table_name: str, overwrite=False):
+        stage_name = f'@%"{table_name}"'
+        if overwrite:
+            try:
+                session.sql(f"CREATE OR REPLACE stage {table_name}").collect()
+                self.logger.info("Successfully created table in Snowflake")
+            except Exception as e:
+                self.logger.error("Error in creating table")
+                raise ExitCodeException(
+                    message=e, exit_code=self.EXIT_CODE_INVALID_UPLOAD_VALUE
+                )
+        self.logger.info("Attempting to put file to Snowflake")
+        try:
+            session.file.put(file_path, stage_name, overwrite=overwrite)
+            self.logger.info("Successfully loaded file into Snowflake")
+        except Exception as e:
+            self.logger.error("Error in putting file in Snowflake")
+            raise ExitCodeException(
+                message=e, exit_code=self.EXIT_CODE_INVALID_UPLOAD_VALUE
+            )
+
+    def copy_into(self, session: Session, table_name: str, overwrite=False):
+        stage_name = f"@%{table_name}"
+        self.logger.info("Attempting to copy into Snowflake")
+        try:
+            copy_statement = f"""COPY INTO "{table_name}" FROM '@%\"{table_name}\"' PURGE=TRUE FILE_FORMAT=(TYPE=CSV FIELD_DELIMITER=',' COMPRESSION=GZIP, PARSE_HEADER=TRUE) MATCH_BY_COLUMN_NAME=CASE_INSENSITIVE"""
+            session.sql(copy_statement)
+            self.logger.info("Successfully copied into Snowflake")
+        except Exception as e:
+            self.logger.error("Error in copying into Snowflake")
+            raise ExitCodeException(
+                message=e, exit_code=self.EXIT_CODE_INVALID_UPLOAD_VALUE
+            )
+
     def execute_query(self):
         pass
 
