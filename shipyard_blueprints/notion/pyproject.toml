@@ -10,6 +10,7 @@ packages = [{include = "shipyard_notion"}]
 python = "^3.9"
 shipyard-templates = "^0.2.0"
 notion-sdk = "^0.7.0"
+pandas = "1.5.3"
 
 
 [tool.poetry.group.dev.dependencies]
