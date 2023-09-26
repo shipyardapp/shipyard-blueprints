@@ -1,6 +1,5 @@
 import pandas as pd
 from notion.client import NotionClient
-from sqlalchemy import except_
 
 class ShipyardNotion():
 
@@ -34,8 +33,4 @@ def upload(client:NotionClient, data:pd.DataFrame):
 def download(client:NotionClient):
     pass
 
-
-
-    
-    
 
