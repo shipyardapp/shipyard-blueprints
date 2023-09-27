@@ -188,14 +188,14 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "hubspot-api-client"
-version = "8.1.0"
+version = "8.1.1"
 description = "HubSpot API client"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "hubspot-api-client-8.1.0.tar.gz", hash = "sha256:e8c25c2a12ab3801a6ab051ad7b25766a2e743928ed6ce9a309672c53b973044"},
-    {file = "hubspot_api_client-8.1.0-py3-none-any.whl", hash = "sha256:2b255b6330770b263995baa07a831940f8bd6a692e8462a3a83771f65e718736"},
+    {file = "hubspot-api-client-8.1.1.tar.gz", hash = "sha256:beedfeade5e335ba251b4c0e7bc93f3f7ac63f00bf52ef94d72d3af2d73cfc8c"},
+    {file = "hubspot_api_client-8.1.1-py3-none-any.whl", hash = "sha256:5b78981239fe98e6d98b455407998835092a1c58c51ea8eeb2d4da02944ae452"},
 ]
 
 [package.dependencies]
@@ -412,7 +412,7 @@ test = ["fixtures", "mock", "purl", "pytest", "requests-futures", "sphinx", "tes
 
 [[package]]
 name = "shipyard-templates"
-version = "0.3.1a1"
+version = "0.3.1"
 description = "Super classes for blueprint development"
 category = "main"
 optional = false
@@ -481,4 +481,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "66d40712664b79256667f294860eb3ff7840fed4309fc0bda56bdbcd9ced9d72"
+content-hash = "0bd9c9b7c6d99950e4d47ab32bb37bc76473cc4a84d4444da382bcc1b057af77"
