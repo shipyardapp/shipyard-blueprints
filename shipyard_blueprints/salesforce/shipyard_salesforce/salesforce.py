@@ -37,8 +37,6 @@ class SalesforceClient(Crm):
         - username: Salesforce login username
         - password: Salesforce login password
         - security_token: Salesforce security token
-
-
         """
         super().__init__(access_token, **kwargs)
         self.logger.info("Initializing Salesforce client")
@@ -89,7 +87,10 @@ class SalesforceClient(Crm):
         else:
             response = request(method, f"{self.base_url}/{endpoint}", headers=headers)
         if response.ok:
-            return response.json()
+            if (
+                response.status_code != 204
+            ):  # 204 is no content but still a successful request
+                return response.json()
         else:
             handle_request_errors(response)
 
@@ -140,64 +141,64 @@ class SalesforceClient(Crm):
             handle_request_errors(response)
 
     @standardize_errors
-    def get_resource_metadata(self, resource: str) -> Dict[str, Any]:
+    def get_sobject_metadata(self, sobject: str) -> Dict[str, Any]:
         """
-        Retrieve the metadata for a Salesforce resource.
+        Retrieve the metadata for a Salesforce sobject.
         https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_list.htm
-        :param resource: The resource to get metadata for
-        :return: The metadata for the resource
+        :param sobject: The sobject to get metadata for
+        :return: The metadata for the sobject
         :raises ExitCodeException: If the request fails
         """
-        response = self._request(f"sobjects/{resource}")
-        self.logger.info(f"Found {len(response)} {resource}")
+        response = self._request(f"sobjects/{sobject}")
+        self.logger.info(f"Found {len(response)} {sobject}")
         return response
 
     @standardize_errors
-    def get_resource_definition(self, resource: str) -> Dict[str, Any]:
+    def get_sobject_definition(self, sobject: str) -> Dict[str, Any]:
         """
-        Retrieve the definition for a Salesforce resource.
+        Retrieve the definition for a Salesforce sobject.
         https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_sobject_describe.htm
 
-        :param resource: The resource to get the definition for
-        :return: The definition for the resource
+        :param sobject: The sobject to get the definition for
+        :return: The definition for the sobject
         :raises ExitCodeException: If the request fails
         """
-        response = self._request(f"sobjects/{resource}/describe")
-        self.logger.info(f"Found {len(response)} {resource}")
+        response = self._request(f"sobjects/{sobject}/describe")
+        self.logger.info(f"Found {len(response)} {sobject}")
         return response
 
     @standardize_errors
-    def get_resource_layout(self, resource: str) -> Dict[str, Any]:
+    def get_sobject_layout(self, sobject: str) -> Dict[str, Any]:
         """
-        Retrieve the layout for a Salesforce resource.
+        Retrieve the layout for a Salesforce sobject.
         https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_sobject_layouts.htm
 
-        :param resource: The resource to get the layout for
-        :return: The layout for the resource
+        :param sobject: The sobject to get the layout for
+        :return: The layout for the sobject
         :raises ExitCodeException: If the request fails
         """
-        response = self._request(f"sobjects/{resource}/describe/layouts")
-        self.logger.info(f"Found {len(response)} {resource}")
+        response = self._request(f"sobjects/{sobject}/describe/layouts")
+        self.logger.info(f"Found {len(response)} {sobject}")
         return response
 
     @standardize_errors
-    def get_resource_fields(self, resource: str) -> List[Dict[str, Any]]:
+    def get_sobject_fields(self, sobject: str) -> List[Dict[str, Any]]:
         """
-        Retrieve the fields for a Salesforce resource.
+        Retrieve the fields for a Salesforce sobject.
         https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_sobject_describe.htm
 
-        :param resource: The resource to get the fields for
-        :return: The fields for the resource
+        :param sobject: The sobject to get the fields for
+        :return: The fields for the sobject
         :raises ExitCodeException: If the request fails
         """
-        response = self._request(f"sobjects/{resource}/describe/").get("fields")
-        self.logger.info(f"Found {len(response)} {resource} fields")
+        response = self._request(f"sobjects/{sobject}/describe/").get("fields")
+        self.logger.info(f"Found {len(response)} {sobject} fields")
         return response
 
     @standardize_errors
     def import_data(
         self,
-        resource: str,
+        sobject: str,
         records: List[Dict[str, Any]],
         import_type: str = "insert",
         id_field_key: str = "Id",
@@ -205,52 +206,58 @@ class SalesforceClient(Crm):
         """
         Import data into Salesforce.
 
-        :param resource: The resource to import data into
+        :param sobject: The sobject to import data into
         :param records: The records to import
         :param import_type: The type of import to perform. Valid values are "insert", "upsert", "update", and "delete"
         :param id_field_key: The key of the field to use as the unique identifier
         :raises ExitCodeException: If the request fails
         """
         # TODO: For more than 2000 records, use the Bulk API
-
+        if import_type not in {"insert", "upsert", "update", "delete"}:
+            raise ExitCodeException(
+                f"Invalid import type: {import_type}", self.EXIT_CODE_INVALID_INPUT
+            )
         for record in records:
-            if import_type == "insert":
-                self.create_record(resource, record)
-            elif import_type == "upsert":
-                self.upsert_record(
-                    resource, record.get(id_field_key), id_field_key, record
-                )
-            elif import_type == "update":
-                self.update_record(resource, record.get(id_field_key), record)
-            elif import_type == "delete":
-                self.delete_record(resource, record.get(id_field_key))
-            else:
-                raise ExitCodeException(
-                    f"Invalid import type: {import_type}", self.EXIT_CODE_INVALID_INPUT
-                )
+            if import_type in {"insert", "upsert", "update", "delete"}:
+                try:
+                    record_id = record.pop(id_field_key)
+                except KeyError:
+                    raise ExitCodeException(
+                        f"Record is missing {id_field_key}",
+                        self.EXIT_CODE_INVALID_INPUT,
+                    )
+                else:
+                    if import_type == "update":
+                        self.update_record(sobject, record_id, record)
+                    elif import_type == "delete":
+                        self.delete_record(sobject, record_id)
+                    elif import_type == "upsert":
+                        self.upsert_record(sobject, record_id, id_field_key, record)
+            elif import_type == "insert":
+                self.create_record(sobject, record)
 
     @standardize_errors
-    def export_data(self, resource: str, fieldnames: List[str]) -> List[Dict[str, Any]]:
+    def export_data(self, sobject: str, fieldnames: List[str]) -> List[Dict[str, Any]]:
         """
         Export data from Salesforce based on specified fields.
 
-        :param resource: The resource to export data from
+        :param sobject: The sobject to export data from
         :param fieldnames: The fieldnames to get records by
         :return: The list of records
         :raises ExitCodeException: If the request fails
         """
         # TODO: For more than 2000 records, use the Bulk API
-        return self.get_records_by_fields(resource, fieldnames)
+        return self.get_records_by_fields(sobject, fieldnames)
 
     @standardize_errors
     def upsert_record(
-        self, resource: str, record_id: str, id_field_key: str, record: Dict[str, Any]
+        self, sobject: str, record_id: str, id_field_key: str, record: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         If the record exists with the match value to the id_field_key, the record is updated with the values in the request body. If multiple of the same record exist, the first record is updated. If the record does not exist, a new record is created with the values in the request body.
         https://developer.salesforce.com/docs/atlas.en-us.244.0.api_rest.meta/api_rest/dome_upsert.htm
 
-        :param resource: The resource to upsert a record into
+        :param sobject: The sobject to upsert a record into
         :param record_id: The ID of the record to upsert
         :param id_field_key: The key of the field to use as the unique identifier
         :param record: The record to upsert
@@ -258,54 +265,53 @@ class SalesforceClient(Crm):
         :raises ExitCodeException: If the request fails
         """
         return self._request(
-            f"sobjects/{resource}/{id_field_key}/{record_id}",
+            f"sobjects/{sobject}/{id_field_key}/{record_id}",
             method="PATCH",
             data=json.dumps(record),
         )
 
     @standardize_errors
-    def delete_record(self, resource: str, record_id: str) -> Dict[str, Any]:
+    def delete_record(self, sobject: str, record_id: str) -> Dict[str, Any]:
         """
         Delete record from Salesforce by ID.
         https://developer.salesforce.com/docs/atlas.en-us.244.0.api_rest.meta/api_rest/dome_delete_record.htm
-        :param resource: The resource to delete a record from
+        :param sobject: The sobject to delete a record from
         :param record_id: The ID of the record to delete
         :return: The deleted record response
         :raises ExitCodeException: If the request fails
         """
-        return self._request(f"sobjects/{resource}/{record_id}", method="DELETE")
+        return self._request(f"sobjects/{sobject}/{record_id}", method="DELETE")
 
     @standardize_errors
     def update_record(
-        self, resource: str, record_id: str, record: Dict[str, Any]
+        self, sobject: str, record_id: str, record: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Update record in Salesforce by ID.
         https://developer.salesforce.com/docs/atlas.en-us.244.0.api_rest.meta/api_rest/dome_update_fields.htm
 
-        :param resource: The resource to update a record in
+        :param sobject: The sobject to update a record in
         :param record_id: The ID of the record to update
         :param record: The record to update
         :return: The updated record response
         :raises ExitCodeException: If the request fails
         """
+        print(f"sobjects/{sobject}/{record_id}")
         return self._request(
-            f"sobjects/{resource}/{record_id}",
-            method="PATCH",
-            data=json.dumps(record),
+            f"sobjects/{sobject}/{record_id}", method="PATCH", data=json.dumps(record)
         )
 
-    def create_record(self, resource: str, record: Dict[str, Any]) -> Dict[str, Any]:
+    def create_record(self, sobject: str, record: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create record in Salesforce.
         https://developer.salesforce.com/docs/atlas.en-us.244.0.api_rest.meta/api_rest/dome_sobject_create.htm
-        :param resource: The resource to create a record in
+        :param sobject: The sobject to create a record in
         :param record: The record details to create
         :return: The created record response
         :raises ExitCodeException: If the request fails
         """
         return self._request(
-            f"sobjects/{resource}", method="POST", data=json.dumps(record)
+            f"sobjects/{sobject}", method="POST", data=json.dumps(record)
         )
 
     @standardize_errors
@@ -331,14 +337,14 @@ class SalesforceClient(Crm):
         return records
 
     def get_records_by_fields(
-        self, resource: str, fieldnames: List[str]
+        self, sobject: str, fieldnames: List[str]
     ) -> List[Dict[str, Any]]:
         """
         Get records from Salesforce by fields.
         https://developer.salesforce.com/docs/atlas.en-us.244.0.api_rest.meta/api_rest/resources_query.htm
-        :param resource: The resource to get records from
+        :param sobject: The sobject to get records from
         :param fieldnames: The fieldnames to get records by
         :return: The list of records
         :raises ExitCodeException: If the request fails
         """
-        return self.execute_soql_query(f'SELECT {",".join(fieldnames)} FROM {resource}')
+        return self.execute_soql_query(f'SELECT {",".join(fieldnames)} FROM {sobject}')

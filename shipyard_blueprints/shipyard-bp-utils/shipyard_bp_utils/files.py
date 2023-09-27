@@ -5,6 +5,7 @@ import json
 from zipfile import ZipFile
 import tarfile
 
+
 # Functions for Files
 
 
@@ -287,6 +288,72 @@ def find_all_file_matches(file_names, file_name_re):
     print(f"Found {len(matching_file_names)} file matches.")
     print(matching_file_names)
     return matching_file_names
+
+
+def find_files_by_regex_or_exact_match(
+    start_path=".", pattern=".*", exact_match=False, valid_extensions=None
+):
+    """Find files in the given directory and its subdirectories that match the given regex pattern.
+
+    Args:
+        start_path (str): The starting path for the directory search. Defaults to the current directory.
+        pattern (str): The regex pattern to match filenames against.
+        exact_match (bool): Whether to match the pattern exactly or just contain it.
+        valid_extensions (set): A set of valid file extensions to match against. ex: {".csv", ".xlsx", ".xls"}.
+
+    Returns:
+        list: A list of filenames (with their full paths) that match the given regex pattern.
+    """
+    print("=== File Search Logs ===")
+    if valid_extensions is None:
+        valid_extensions = set()
+
+    print('Validating that all extensions start with a "." (dot).')
+    for extension in valid_extensions:
+        if not extension.startswith("."):
+            print(
+                f"Extension {extension} does not start with a . (dot). Reformatting..."
+            )
+            valid_extensions.add(f".{extension}")
+            valid_extensions.remove(extension)
+
+    matching_files = []
+
+    if exact_match:
+        _, extension = os.path.splitext(pattern)
+        if not bool(extension):
+            raise ValueError(
+                "When using exact_match, the pattern must include a file extension."
+            )
+
+        print(f"Searching for files matching {pattern} in directory: {start_path}.")
+    else:
+        print(
+            f"Searching for files containing {pattern} in starting in directory: {start_path}"
+        )
+
+    for dirpath, _, filenames in os.walk(start_path):
+        print(f"Searching directory: {dirpath}")
+        for filename in filenames:
+            if exact_match:
+                is_match = re.fullmatch(pattern, filename) is not None
+            else:  # Check if the filename contains the pattern
+                is_match = re.search(pattern, filename) is not None
+
+            # If there's a match, add the full path to the list
+            if valid_extensions:
+                if is_match and os.path.splitext(filename)[1] in valid_extensions:
+                    print(f"Found matching file: {filename} in {dirpath}")
+                    full_path = os.path.join(dirpath, filename)
+                    matching_files.append(full_path)
+            elif is_match:
+                print(
+                    f"Found matching file: {filename} in {dirpath}. No valid extensions restrictions provided."
+                )
+                full_path = os.path.join(dirpath, filename)
+                matching_files.append(full_path)
+    print("=== End File Search Logs ===")
+    return matching_files
 
 
 # Functions for Writing Files
