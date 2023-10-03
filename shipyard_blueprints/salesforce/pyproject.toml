@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-salesforce"
-version = "0.1.1a2"
+version = "0.1.1a3"
 description = ""
 authors = ["JR <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"
