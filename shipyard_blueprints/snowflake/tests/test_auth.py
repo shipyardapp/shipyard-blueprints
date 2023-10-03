@@ -21,57 +21,63 @@ def conn_helper(client: Union[SnowflakeClient, SnowparkClient]) -> int:
 
 @pytest.mark.skipif(not env_exists, reason="No .env file found")
 def test_good_connection():
-     user = os.getenv("SNOWFLAKE_USERNAME")
-     pwd = os.getenv("SNOWFLAKE_PASSWORD")
-     account = os.getenv("SNOWFLAKE_ACCOUNT")
+    user = os.getenv("SNOWFLAKE_USERNAME")
+    pwd = os.getenv("SNOWFLAKE_PASSWORD")
+    account = os.getenv("SNOWFLAKE_ACCOUNT")
 
-     client = SnowflakeClient(username=user, pwd=pwd, account=account)
+    client = SnowflakeClient(username=user, pwd=pwd, account=account)
 
-     assert conn_helper(client) == 0
+    assert conn_helper(client) == 0
 
 
 @pytest.mark.skipif(not env_exists, reason="No .env file found")
 def test_bad_user():
-     user = "bad_user"
-     pwd = os.getenv("SNOWFLAKE_PASSWORD")
-     account = os.getenv("SNOWFLAKE_ACCOUNT")
+    user = "bad_user"
+    pwd = os.getenv("SNOWFLAKE_PASSWORD")
+    account = os.getenv("SNOWFLAKE_ACCOUNT")
 
-     client = SnowflakeClient(username=user, pwd=pwd, account=account)
+    client = SnowflakeClient(username=user, pwd=pwd, account=account)
 
-     assert conn_helper(client) == 1
+    assert conn_helper(client) == 1
 
 
 @pytest.mark.skipif(not env_exists, reason="No .env file found")
 def test_bad_pwd():
-     user = os.getenv("SNOWFLAKE_USERNAME")
-     pwd = "bad_password"
-     account = os.getenv("SNOWFLAKE_ACCOUNT")
+    user = os.getenv("SNOWFLAKE_USERNAME")
+    pwd = "bad_password"
+    account = os.getenv("SNOWFLAKE_ACCOUNT")
 
-     client = SnowflakeClient(username=user, pwd=pwd, account=account)
+    client = SnowflakeClient(username=user, pwd=pwd, account=account)
 
-     assert conn_helper(client) == 1
+    assert conn_helper(client) == 1
 
 
 @pytest.mark.skipif(not env_exists, reason="No .env file found")
 def test_bad_account():
-     user = os.getenv("SNOWFLAKE_USERNAME")
-     pwd = os.getenv("SNOWFLAKE_PASSWORD")
-     account = "bad_account"
+    user = os.getenv("SNOWFLAKE_USERNAME")
+    pwd = os.getenv("SNOWFLAKE_PASSWORD")
+    account = "bad_account"
 
-     client = SnowflakeClient(username=user, pwd=pwd, account=account)
+    client = SnowflakeClient(username=user, pwd=pwd, account=account)
 
-     assert conn_helper(client) == 1
+    assert conn_helper(client) == 1
+
 
 @pytest.mark.skipif(not env_exists, reason="No .env file found")
 def test_snowpark_connection():
     user = os.getenv("SNOWFLAKE_USERNAME")
     pwd = os.getenv("SNOWFLAKE_PASSWORD")
     account = os.getenv("SNOWFLAKE_ACCOUNT")
-    schema = os.getenv('SNOWFLAKE_SCHEMA')
-    db = os.getenv('SNOWFLAKE_DATABASE')
-    warehouse = os.getenv('SNOWFLAKE_WAREHOUSE')
+    schema = os.getenv("SNOWFLAKE_SCHEMA")
+    db = os.getenv("SNOWFLAKE_DATABASE")
+    warehouse = os.getenv("SNOWFLAKE_WAREHOUSE")
 
-    client = SnowparkClient(username=user, pwd=pwd, account=account, schema = schema, database= db, warehouse = warehouse)
+    client = SnowparkClient(
+        username=user,
+        pwd=pwd,
+        account=account,
+        schema=schema,
+        database=db,
+        warehouse=warehouse,
+    )
     assert conn_helper(client) == 0
-
-        

@@ -21,6 +21,7 @@ shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
 shipyard-templates = {path = "../../shipyard-templates", develop = true}
 pytest = "^7.4.0"
 python-dotenv = "^1.0.0"
+black = "^23.9.1"
 
 [build-system]
 requires = ["poetry-core"]

@@ -20,7 +20,7 @@ if env_exists := os.path.exists(".env"):
     schema = os.getenv("SNOWFLAKE_SCHEMA")
     database = os.getenv("SNOWFLAKE_DATABASE")
     warehouse = os.getenv("SNOWFLAKE_WAREHOUSE")
-# rsa_key = "/Users/wespoulsen/.ssh/snowflake_key.p8"
+    # rsa_key = "/Users/wespoulsen/.ssh/snowflake_key.p8"
     role = os.getenv("SNOWFLAKE_ROLE")
 
     client = SnowflakeClient(
@@ -65,4 +65,3 @@ def test_put_no_datatypes():
         conn, file_path="shipyard_snowflake/test/larger.csv", table_name="LARGER_TEST"
     )
     client.copy_into(conn, table_name="LARGER_TEST")
-
