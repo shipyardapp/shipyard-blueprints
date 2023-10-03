@@ -13,7 +13,7 @@ The `shipyard-snowflake` Python Package is a set of utility classes designed to 
 You can install `shipyard-snowflake` using `pip`:
 
 ```bash
-pip install shipyard-snowflake
+python3 -m pip install shipyard-snowflake
 ```
 
 ## Usage

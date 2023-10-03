@@ -8,8 +8,8 @@ from shipyard_snowflake.utils import (
     reservoir_sample,
 )
 
-load_dotenv(find_dotenv())
-
+if env_exists := os.path.exists(".env"):
+    load_dotenv()
 
 df_path = "shipyard_snowflake/test/simple.csv"
 
