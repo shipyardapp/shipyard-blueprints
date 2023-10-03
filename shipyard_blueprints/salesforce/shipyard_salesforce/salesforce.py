@@ -218,7 +218,7 @@ class SalesforceClient(Crm):
                 f"Invalid import type: {import_type}", self.EXIT_CODE_INVALID_INPUT
             )
         for record in records:
-            if import_type in {"insert", "upsert", "update", "delete"}:
+            if import_type in {"upsert", "update", "delete"}:
                 try:
                     record_id = record.pop(id_field_key)
                 except KeyError:
