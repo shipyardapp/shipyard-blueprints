@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import pytest
 from shipyard_snowflake import SnowflakeClient, read_file
 from dotenv import load_dotenv, find_dotenv
 from shipyard_snowflake.utils import (
@@ -11,37 +12,38 @@ from shipyard_snowflake.utils import (
 if env_exists := os.path.exists(".env"):
     load_dotenv()
 
-df_path = "shipyard_snowflake/test/simple.csv"
+    df_path = "shipyard_snowflake/test/simple.csv"
 
-user = os.getenv("SNOWFLAKE_USER")
-pwd = os.getenv("SNOWFLAKE_PWD")
-account = os.getenv("SNOWFLAKE_ACCOUNT")
-schema = os.getenv("SNOWFLAKE_SCHEMA")
-database = os.getenv("SNOWFLAKE_DATABASE")
-warehouse = os.getenv("SNOWFLAKE_WAREHOUSE")
+    user = os.getenv("SNOWFLAKE_USER")
+    pwd = os.getenv("SNOWFLAKE_PWD")
+    account = os.getenv("SNOWFLAKE_ACCOUNT")
+    schema = os.getenv("SNOWFLAKE_SCHEMA")
+    database = os.getenv("SNOWFLAKE_DATABASE")
+    warehouse = os.getenv("SNOWFLAKE_WAREHOUSE")
 # rsa_key = "/Users/wespoulsen/.ssh/snowflake_key.p8"
-role = os.getenv("SNOWFLAKE_ROLE")
+    role = os.getenv("SNOWFLAKE_ROLE")
 
-client = SnowflakeClient(
-    username=user,
-    pwd=pwd,
-    database=database,
-    account=account,
-    warehouse=warehouse,
-    schema=schema,
-    role=role,
-)
-snowflake_dtypes = [
-    ["string_col", "VARCHAR"],
-    ["char_col", "CHAR"],
-    ["int_col", "INT"],
-    ["float_col", "FLOAT"],
-    ["date_col", "DATE"],
-    ["datetime_col", "TIMESTAMP"],
-    ["bool_col", "BOOLEAN"],
-]
+    client = SnowflakeClient(
+        username=user,
+        pwd=pwd,
+        database=database,
+        account=account,
+        warehouse=warehouse,
+        schema=schema,
+        role=role,
+    )
+    snowflake_dtypes = [
+        ["string_col", "VARCHAR"],
+        ["char_col", "CHAR"],
+        ["int_col", "INT"],
+        ["float_col", "FLOAT"],
+        ["date_col", "DATE"],
+        ["datetime_col", "TIMESTAMP"],
+        ["bool_col", "BOOLEAN"],
+    ]
 
 
+@pytest.mark.skipif(not env_exists, reason="No .env file found")
 def test_put():
     conn = client.connect()
     create_sql = client._create_table(table_name="PUT_TEST", columns=snowflake_dtypes)
@@ -50,6 +52,7 @@ def test_put():
     client.copy_into(conn, table_name="PUT_TEST")
 
 
+@pytest.mark.skipif(not env_exists, reason="No .env file found")
 def test_put_no_datatypes():
     conn = client.connect()
     sample = infer_schema(df_path)
@@ -63,6 +66,3 @@ def test_put_no_datatypes():
     )
     client.copy_into(conn, table_name="LARGER_TEST")
 
-
-if __name__ == "__main__":
-    test_put_no_datatypes()
