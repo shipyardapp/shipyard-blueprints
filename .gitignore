@@ -22,3 +22,6 @@ load.py
 
 # ignore all csv files
 *.csv
+
+*.sh
+runner.py
