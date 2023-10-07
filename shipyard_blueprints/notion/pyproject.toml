@@ -11,12 +11,14 @@ python = "^3.9"
 shipyard-templates = "^0.2.0"
 notion-sdk = "^0.7.0"
 pandas = "1.5.3"
+csv2notion = "^0.3.8"
 
 
 [tool.poetry.group.dev.dependencies]
 python-dotenv = "^1.0.0"
 pytest = "^7.4.0"
 shipyard-templates = {path = "../../shipyard-templates"}
+black = "^23.9.1"
 
 [build-system]
 requires = ["poetry-core"]
