@@ -16,6 +16,9 @@ notion-client = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-templates = {path = "../../shipyard-templates", develop = true}
+python-dotenv = "^1.0.0"
+pytest = "^7.4.2"
+black = "^23.9.1"
 
 [build-system]
 requires = ["poetry-core"]
