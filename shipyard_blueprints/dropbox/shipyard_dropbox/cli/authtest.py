@@ -2,8 +2,9 @@ import sys
 import os
 from shipyard_blueprints import DropboxClient
 
+
 def main():
-    key = os.getenv('DROPBOX_ACCESS_TOKEN')
+    key = os.getenv("DROPBOX_ACCESS_TOKEN")
     dropbox = DropboxClient(key)
     try:
         dropbox.connect()
