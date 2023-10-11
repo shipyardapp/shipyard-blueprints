@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Optional, Any, Dict, List
 
 from requests import request
@@ -58,10 +59,23 @@ class SalesforceClient(Crm):
 
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
-
-        self.access_token = access_token or self.generate_access_token().get(
-            "access_token"
-        )
+        try:
+            self.access_token = access_token or self.generate_access_token().get(
+                "access_token"
+            )
+        except ExitCodeException as e:
+            self.logger.error(f"Failed to initialize Salesforce client: {e}")
+            if self.security_token:
+                self.logger.warning(
+                    "A common error is the security token for your account has been refreshed. Please ensure you are "
+                    "using the most up to date security token."
+                )
+            else:
+                self.logger.warning(
+                    "A security token was not provided. If your account requires a security token, you will need to "
+                    "provide one to authenticate."
+                )
+            raise e
 
     def _request(
         self, endpoint: str, method: str = "GET", data: Optional[str] = None
@@ -191,9 +205,7 @@ class SalesforceClient(Crm):
         :return: The fields for the sobject
         :raises ExitCodeException: If the request fails
         """
-        response = self._request(f"sobjects/{sobject}/describe/").get("fields")
-        self.logger.info(f"Found {len(response)} {sobject} fields")
-        return response
+        return self._request(f"sobjects/{sobject}/describe/").get("fields")
 
     @standardize_errors
     def import_data(
@@ -217,24 +229,56 @@ class SalesforceClient(Crm):
             raise ExitCodeException(
                 f"Invalid import type: {import_type}", self.EXIT_CODE_INVALID_INPUT
             )
+        errors = []
         for record in records:
-            if import_type in {"upsert", "update", "delete"}:
-                try:
-                    record_id = record.pop(id_field_key)
-                except KeyError:
-                    raise ExitCodeException(
-                        f"Record is missing {id_field_key}",
-                        self.EXIT_CODE_INVALID_INPUT,
-                    )
-                else:
-                    if import_type == "update":
-                        self.update_record(sobject, record_id, record)
-                    elif import_type == "delete":
-                        self.delete_record(sobject, record_id)
-                    elif import_type == "upsert":
-                        self.upsert_record(sobject, record_id, id_field_key, record)
-            elif import_type == "insert":
-                self.create_record(sobject, record)
+            record_id = None
+            try:
+                if import_type in {"upsert", "update", "delete"}:
+                    try:
+                        record_id = record.pop(id_field_key)
+                    except KeyError as e:
+                        raise ExitCodeException(
+                            f"Record is missing {id_field_key}",
+                            self.EXIT_CODE_INVALID_INPUT,
+                        ) from e
+                    else:
+                        if import_type == "delete" and id_field_key != "Id":
+                            raise ExitCodeException(
+                                "Cannot delete by a field other than Id",
+                                self.EXIT_CODE_INVALID_INPUT,
+                            )
+                        elif import_type == "delete":
+                            self.delete_record(sobject, record_id)
+                        elif import_type == "update":
+                            self.update_record(sobject, record_id, record)
+                        elif import_type == "upsert":
+                            self.upsert_record(sobject, record_id, id_field_key, record)
+                elif import_type == "insert":
+                    self.create_record(sobject, record)
+            except ExitCodeException as e:
+                errors.append(
+                    {
+                        "record": record_id or record,
+                        "error_msg": e.message,
+                        "exit_code": e.exit_code,
+                    }
+                )
+        if errors:
+            self.logger.error("The following record(s) failed:")
+            for error in errors:
+                self.logger.error(error)
+
+            first_error = errors[0]["exit_code"]
+            if all(error["exit_code"] == first_error for error in errors):
+                raise ExitCodeException(
+                    f"Failed to {import_type} records",
+                    first_error,
+                )
+            else:
+                raise ExitCodeException(
+                    f"Failed to {import_type} records",
+                    self.EXIT_CODE_UNKNOWN_ERROR,
+                )
 
     @standardize_errors
     def export_data(self, sobject: str, fieldnames: List[str]) -> List[Dict[str, Any]]:
@@ -296,7 +340,6 @@ class SalesforceClient(Crm):
         :return: The updated record response
         :raises ExitCodeException: If the request fails
         """
-        print(f"sobjects/{sobject}/{record_id}")
         return self._request(
             f"sobjects/{sobject}/{record_id}", method="PATCH", data=json.dumps(record)
         )

@@ -104,7 +104,9 @@ def main():
                         id_field_key=args.id_field,
                     )
             except ExitCodeException as err:
-                salesforce.logger.error(f"Failed to {args.import_operation} data")
+                salesforce.logger.error(
+                    f"Failed to {args.import_operation} the following file: {file}"
+                )
                 errors.append(
                     {"file": file, "error_msg": err.message, "exit_code": err.exit_code}
                 )
@@ -118,7 +120,7 @@ def main():
         sys.exit(salesforce.EXIT_CODE_INVALID_INPUT)
 
     if errors:
-        salesforce.logger.error(f"The following record(s) failed:")
+        salesforce.logger.error("The following files(s) had failures:")
         for error in errors:
             salesforce.logger.error(error)
 

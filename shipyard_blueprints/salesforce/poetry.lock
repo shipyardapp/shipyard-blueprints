@@ -520,7 +520,7 @@ test = ["fixtures", "mock", "purl", "pytest", "requests-futures", "sphinx", "tes
 
 [[package]]
 name = "shipyard-bp-utils"
-version = "0.1.1a1"
+version = "0.1.1a2"
 description = "Utility functions for blueprints"
 category = "main"
 optional = false
@@ -606,4 +606,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "4e1d3b5e2270fcbac16a5b5f5bf1be3baf1ecce054d73d31e708772ddaabf0a9"
+content-hash = "2dd431e883929681efdd413de4b1ebbab1beefc0fa8b4d25ec65fa0c516d658a"

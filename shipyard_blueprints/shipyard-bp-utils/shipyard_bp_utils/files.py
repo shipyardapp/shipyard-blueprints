@@ -4,7 +4,7 @@ import glob
 import json
 from zipfile import ZipFile
 import tarfile
-
+import logging
 
 # Functions for Files
 
@@ -291,7 +291,11 @@ def find_all_file_matches(file_names, file_name_re):
 
 
 def find_files_by_regex_or_exact_match(
-    start_path=".", pattern=".*", exact_match=False, valid_extensions=None
+    start_path=".",
+    pattern=".*",
+    exact_match=False,
+    valid_extensions=None,
+    verbose=False,
 ):
     """Find files in the given directory and its subdirectories that match the given regex pattern.
 
@@ -304,14 +308,18 @@ def find_files_by_regex_or_exact_match(
     Returns:
         list: A list of filenames (with their full paths) that match the given regex pattern.
     """
-    print("=== File Search Logs ===")
+
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
+    logging.debug("=== File Search Logs ===")
     if valid_extensions is None:
         valid_extensions = set()
 
-    print('Validating that all extensions start with a "." (dot).')
+    logging.debug('Validating that all extensions start with a "." (dot).')
     for extension in valid_extensions:
         if not extension.startswith("."):
-            print(
+            logging.debug(
                 f"Extension {extension} does not start with a . (dot). Reformatting..."
             )
             valid_extensions.add(f".{extension}")
@@ -326,14 +334,16 @@ def find_files_by_regex_or_exact_match(
                 "When using exact_match, the pattern must include a file extension."
             )
 
-        print(f"Searching for files matching {pattern} in directory: {start_path}.")
+        logging.debug(
+            f"Searching for files matching {pattern} in directory: {start_path}."
+        )
     else:
-        print(
+        logging.debug(
             f"Searching for files containing {pattern} in starting in directory: {start_path}"
         )
 
     for dirpath, _, filenames in os.walk(start_path):
-        print(f"Searching directory: {dirpath}")
+        logging.debug(f"Searching directory: {dirpath}")
         for filename in filenames:
             if exact_match:
                 is_match = re.fullmatch(pattern, filename) is not None
@@ -343,16 +353,16 @@ def find_files_by_regex_or_exact_match(
             # If there's a match, add the full path to the list
             if valid_extensions:
                 if is_match and os.path.splitext(filename)[1] in valid_extensions:
-                    print(f"Found matching file: {filename} in {dirpath}")
+                    logging.debug(f"Found matching file: {filename} in {dirpath}")
                     full_path = os.path.join(dirpath, filename)
                     matching_files.append(full_path)
             elif is_match:
-                print(
+                logging.debug(
                     f"Found matching file: {filename} in {dirpath}. No valid extensions restrictions provided."
                 )
                 full_path = os.path.join(dirpath, filename)
                 matching_files.append(full_path)
-    print("=== End File Search Logs ===")
+    logging.debug("=== End File Search Logs ===")
     return matching_files
 
 
