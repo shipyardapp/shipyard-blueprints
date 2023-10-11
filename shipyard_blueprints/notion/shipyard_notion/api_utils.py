@@ -1,45 +1,46 @@
 import requests
 import pandas as pd
 from typing import Dict, Any, List
+from notion_utils import convert_pandas_to_notion, mapper
 
 
-def mapper(pandas_dtype: str) -> str:
-    """Helper function to map a pandas datatype to a notion datatype
-
-    Args:
-        pandas_dtype: The datatype of the pandas column
-
-    Returns: The notion datatype (in form a string)
-
-    """
-    if pandas_dtype == "bool":
-        return "checkbox"
-    if pandas_dtype in ("int64", "float64"):
-        return "number"
-
-    if "datetime64" in pandas_dtype:
-        return "datetime"
-    return "text"
-
-
-def convert_pandas_to_notion(df: pd.DataFrame) -> Dict[str, str]:
-    """Helper function to map the pandas datatypes to the equivalent Notion types. This will output a dictionary
-    with the Column name as the keys and the Notion datatype as the values
-
-    Args:
-        df: The pandas dataframe
-
-    Returns: Dictionary of the mapped types
-
-    """
-    dtypes = df.dtypes
-    cols = df.columns
-    mapped_dtypes = {}
-
-    for c, d in zip(cols, dtypes):
-        mapped_dtypes[c] = mapper(d)
-
-    return mapped_dtypes
+# def mapper(pandas_dtype: str) -> str:
+#     """Helper function to map a pandas datatype to a notion datatype
+#
+#     Args:
+#         pandas_dtype: The datatype of the pandas column
+#
+#     Returns: The notion datatype (in form a string)
+#
+#     """
+#     if pandas_dtype == "bool":
+#         return "checkbox"
+#     if pandas_dtype in ("int64", "float64"):
+#         return "number"
+#
+#     if "datetime64" in pandas_dtype:
+#         return "datetime"
+#     return "text"
+#
+#
+# def convert_pandas_to_notion(df: pd.DataFrame) -> Dict[str, str]:
+#     """Helper function to map the pandas datatypes to the equivalent Notion types. This will output a dictionary
+#     with the Column name as the keys and the Notion datatype as the values
+#
+#     Args:
+#         df: The pandas dataframe
+#
+#     Returns: Dictionary of the mapped types
+#
+#     """
+#     dtypes = df.dtypes
+#     cols = df.columns
+#     mapped_dtypes = {}
+#
+#     for c, d in zip(cols, dtypes):
+#         mapped_dtypes[c] = mapper(d)
+#
+#     return mapped_dtypes
 
 def create_properties_payload(df: pd.DataFrame, name: str) -> List[Dict[Any, Any]]:
     """Creates a list of payloads to create notion pages based off of the data provided from a pandas dataframe
