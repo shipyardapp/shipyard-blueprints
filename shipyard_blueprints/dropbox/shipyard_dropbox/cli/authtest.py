@@ -1,17 +1,10 @@
 import sys
-import argparse
+import os
 from shipyard_blueprints import DropboxClient
 
 
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--access-key", dest="access_key", required=True)
-    return parser.parse_args()
-
-
 def main():
-    args = get_args()
-    key = args.access_key
+    key = os.getenv("DROPBOX_ACCESS_TOKEN")
     dropbox = DropboxClient(key)
     try:
         dropbox.connect()
