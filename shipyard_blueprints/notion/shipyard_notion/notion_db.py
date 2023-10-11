@@ -5,6 +5,8 @@ from shipyard_templates import Spreadsheets, ExitCodeException, standardize_erro
 from typing import List, Dict, Any, Optional
 # import notion_utils as nu
 # import api_utils as api
+import notion_utils as nu
+from notion_utils import convert_pandas_to_notion, mapper
 
 
 class NotionClient(Spreadsheets):
