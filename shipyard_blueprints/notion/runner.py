@@ -2,7 +2,7 @@ import requests
 import os
 import pandas as pd
 from dotenv import load_dotenv, find_dotenv
-from shipyard_notion import NotionClient, create_properties_payload
+from shipyard_notion import NotionClient, create_row_payload, create_property_payload
 # db_id = 'f102c95cd73f4c539c476148b1d1d775'
 #
 # load_dotenv(find_dotenv())
@@ -27,17 +27,21 @@ token = os.getenv('NOTION_ACCESS_TOKEN')
 client = NotionClient(token=token)
 
 df =  pd.read_csv('sample.csv')
+#
+# data = create_properties_payload(df)
+#
+# # print(data)
+#
+# res = client.search('Demo Db')
+#
+# page_res = client.find_page('Demo')
+#
+# db_res = client.find_database('Demo Db')
+#
+# print(db_res)
 
-data = create_properties_payload(df)
+payload = create_row_payload(df)
 
-# print(data)
-
-res = client.search('Demo Db')
-
-page_res = client.find_page('Demo')
-
-db_res = client.find_database('Demo Db')
-
-print(db_res)
+print(payload)
 
 

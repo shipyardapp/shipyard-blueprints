@@ -3,7 +3,6 @@ import pandas as pd
 from notion_client import Client
 from shipyard_templates import Spreadsheets, ExitCodeException, standardize_errors
 from typing import List, Dict, Any, Optional, Union
-import shipyard_notion.api_utils as au
 import shipyard_notion.notion_utils as nu
 from dataclasses import dataclass 
 
@@ -84,14 +83,25 @@ class NotionClient(Spreadsheets):
 
         elif insert_method == "append":
             # handle append cases
-            # NOTE: When adding rows, use the `create page` endpoint
-            pass
+            # TODO: When adding rows, use the `create page` endpoint
+            if database_id is None:
+                self.logger.error(f"Database id is necessary in order to append to a database")
+                raise ValueError
+            else:
+                for index, row in  data.iterrows():
+                    pass
+                    # payload = au.create_properties_payload(row)
+
+                
+
+
+
 
 
     def download(self):
         pass
 
-    def create_database(self, db_name: str, parent: str):
+    def create_datbase(self, db_name: str, parent: str):
         try:
             self.client.databases.create(parent=parent, title=db_name)
         except Exception as e:
