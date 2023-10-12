@@ -3,9 +3,6 @@ import re
 import pandas as pd
 from typing import List, Dict
 
-from pandas.core.series import pandas
-
-
 def guess_type_by_values(values_str: List[str]) -> str:
     unique_values = set(filter(None, values_str))
 
@@ -65,6 +62,7 @@ def mapper(pandas_dtype: str) -> str:
 
     if "datetime64" in pandas_dtype:
         return "datetime"
+
     return "text"
 
 
@@ -86,3 +84,4 @@ def convert_pandas_to_notion(df: pd.DataFrame) -> Dict[str, str]:
         mapped_dtypes[c] = mapper(d)
 
     return mapped_dtypes
+

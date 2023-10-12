@@ -28,7 +28,16 @@ client = NotionClient(token=token)
 
 df =  pd.read_csv('sample.csv')
 
-data = create_properties_payload(df,name = 'duh')
+data = create_properties_payload(df)
 
-print(data)
+# print(data)
+
+res = client.search('Demo Db')
+
+page_res = client.find_page('Demo')
+
+db_res = client.find_database('Demo Db')
+
+print(db_res)
+
 
