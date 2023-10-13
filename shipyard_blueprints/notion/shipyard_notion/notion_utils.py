@@ -1,6 +1,7 @@
 import math
 import re
 import pandas as pd
+import json
 from typing import List, Dict, Any
 from dataclasses import dataclass
 
@@ -113,9 +114,10 @@ def create_property_payload(notion:str, value:Any) -> Dict[Any,Any]:
         
     """
     if notion == "text":
-        return {"title": [{"text": {"content": value}}]}
+        return {"title": {"text": {"content": value}}} # NOTE: Removed the brackets for the `text` obejct
+
     if notion == "number":
-        return {"number": value, "number_format": "number"}
+        return {"number": f"{value}", "number_format": "number"}
     if notion == "datetime":
         # check to see if value is date or datetime
         if type(value) is pd.Timestamp:
@@ -126,9 +128,17 @@ def create_property_payload(notion:str, value:Any) -> Dict[Any,Any]:
              return {"date": {"start": value, "end": None, "include_time": False}}
     if notion == "checkbox":
         return {"checkbox": {"checked": True if value else False}}
-    return {"title": [{"text": {"content": value}}]}
+    return {"title": {"text": {"content": value}}} # NOTE: Removed the brackets for the `text` obejct
 
 def create_row_payload(df: pd.DataFrame) -> List[DataRow]:
+    """ Creates a list of DataRow structs which will be used to load into Notion
+
+    Args:
+        df: The dataframe in which to construct the list 
+
+    Returns: List of DataRow structs
+        
+    """
     datatypes_list = [] # this will be a list of the DataType structs
     columns = df.columns
     dtypes = df.dtypes.to_dict()
@@ -145,8 +155,4 @@ def create_row_payload(df: pd.DataFrame) -> List[DataRow]:
         datarow = DataRow(index, row_list) 
         datatypes_list.append(datarow)
     return datatypes_list
-
-
-
-
 

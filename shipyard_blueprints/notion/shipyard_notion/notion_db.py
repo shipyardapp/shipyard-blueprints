@@ -22,13 +22,14 @@ class NotionClient(Spreadsheets):
     def __init__(self, token: str, database_id: Optional[str] = None) -> None:
         self.token = token
         self.client = self.connect()
-        self.database_id = database_id
         self.base_url = 'https://api.notion.com/v1'
         self.headers = {
                 'Authorization': f'Bearer {self.token}',
                 'Content-Type': 'application/json',
                 'Notion-Version': '2022-06-28'
                 }
+        self.session = requests.Session()
+        self.session.headers.update(self.headers)
 
         super().__init__(token=token, database_id=database_id, client=self.client)
 
@@ -65,9 +66,6 @@ class NotionClient(Spreadsheets):
             database_id: The optional ID of the database. Is required if the intent is to append to an already existing table
             insert_method: The action to replace or append (defaults to append)
         """
-        # get the datatypes
-        # notion_dtypes = nu.convert_pandas_to_notion(data)
-
         # check to see if a database id has been provided otherwise create a new database
 
         if insert_method not in ('replace', 'append'):
@@ -88,14 +86,22 @@ class NotionClient(Spreadsheets):
                 self.logger.error(f"Database id is necessary in order to append to a database")
                 raise ValueError
             else:
-                for index, row in  data.iterrows():
-                    pass
-                    # payload = au.create_properties_payload(row)
-
-                
-
-
-
+                rows = nu.create_row_payload(data)
+                for row in rows:
+                    payloads = list(map(lambda x: x.values, row.dtypes))
+                    # get the parent id
+                    # res = self.client.databases.retrieve(database_id=database_id, )
+                    # parent_id = res['parent']['page_id']
+                    parent = {'parent': {'type' :'database_id',
+                                         'page_id': database_id}}
+                    try:
+                        # resp = self.client.databases.create(database_id = database_id, properties = payloads, parent = parent)
+                        resp = self.client.pages.create(parent = parent, properties = payloads)
+                    except Exception as e:
+                        self.logger.error('Error in updating database')
+                        self.logger.exception(str(e))
+                    else:
+                        self.logger.info("Successfully updated database")
 
 
     def download(self):
@@ -211,4 +217,26 @@ class NotionClient(Spreadsheets):
         else:
             self.logger.warning(f"Did not find any matching datbases named {db_name}")
             return None
+
+    def fetch(self, database_id:str) -> Union[List[Dict[Any,Any]], None]:
+        """ Returns the entire results of a database in JSON form
+
+        Args:
+            database_id: The ID of the database to fetch
+
+        Returns: The query results in JSON form
+            
+        """
+        try:
+            results = self.client.databases.query(database_id = database_id)
+        except Exception as e:
+            self.logger.warning("No results were found for the provided database id")
+            return
+        else:
+            return results['results']
+
+    def _create_database(self, page_id:str, name:str, data:dict) -> Dict[Any,Any]:
+        db_url = f"{self.base_url}/databases"
+        response = self.session.post(db_url, json = data)
+        return response.json()
 
