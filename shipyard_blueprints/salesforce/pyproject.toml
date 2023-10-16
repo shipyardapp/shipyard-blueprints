@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-salesforce"
-version = "0.1.1a7"
+version = "0.1.1"
 description = ""
 authors = ["JR <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"
@@ -11,7 +11,7 @@ python = "^3.9"
 shipyard-templates = "0.3.1"
 requests = "^2.31.0"
 pandas = "^2.1.0"
-shipyard-bp-utils = "0.1.1a2"
+shipyard-bp-utils = "0.1.1"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-templates = { path = "../../shipyard-templates", develop = true }
