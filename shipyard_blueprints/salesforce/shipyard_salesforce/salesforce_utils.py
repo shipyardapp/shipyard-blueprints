@@ -21,33 +21,54 @@ def handle_request_errors(response: Response) -> None:
     if type(response_details) == list:
         response_details = response_details[0]  # TODO: Handle multiple errors
 
+    error_keys = ["error_description", "message", "errorCode"]
     if response.status_code in {401, 403}:
         raise ExitCodeException(
-            response_details.get("message", "Invalid credentials"),
+            response_details.get("error_description", "Invalid credentials"),
             Crm.EXIT_CODE_INVALID_CREDENTIALS,
         )
     elif response.status_code == 300:
         raise ExitCodeException(
-            response_details.get("message", "Multiple IDs found"),
+            extract_error_message(
+                response_details, *error_keys, fallback_message="Multiple IDs found"
+            ),
             Crm.EXIT_CODE_MULTIPLE_RECORDS_FOUND,
         )
     elif response.status_code == 304:
         raise ExitCodeException(
-            response_details.get("message", "Not Modified"), Crm.EXIT_CODE_NOT_MODIFIED
+            extract_error_message(
+                response_details, *error_keys, fallback_message="Not Modified"
+            ),
+            Crm.EXIT_CODE_NOT_MODIFIED,
         )
     elif response.status_code in {400, 404, 405, 414, 428, 431}:
-        raise ExitCodeException(
-            response_details.get("message", "Bad Request"), Crm.EXIT_CODE_BAD_REQUEST
+        error_message = extract_error_message(
+            response_details, *error_keys, fallback_message="Bad Request"
         )
+        if response.status_code == 404 and error_message == "entity is deleted":
+            raise ExitCodeException(
+                error_message,
+                Crm.EXIT_CODE_RESOURCE_NOT_FOUND,
+            )
+        else:
+            raise ExitCodeException(
+                error_message,
+                Crm.EXIT_CODE_BAD_REQUEST,
+            )
     elif response.status_code in {409, 412}:
         # The request could not be completed due to a conflict with the current state of the resource.
         raise ExitCodeException(
-            response_details.get("message", "Conflict"), Crm.EXIT_CODE_CONFLICT
+            extract_error_message(
+                response_details, *error_keys, fallback_message="Conflict"
+            ),
+            Crm.EXIT_CODE_CONFLICT,
         )
 
     elif response.status_code in {410}:
         raise ExitCodeException(
-            response_details.get("message", "Not Found"),
+            extract_error_message(
+                response_details, *error_keys, fallback_message="Resource not found"
+            ),
             Crm.EXIT_CODE_RESOURCE_NOT_FOUND,
         )
     elif response.status_code in {500, 502, 503}:
@@ -57,6 +78,23 @@ def handle_request_errors(response: Response) -> None:
         )
     else:
         raise ExitCodeException(response.text, Crm.EXIT_CODE_UNKNOWN_ERROR)
+
+
+def extract_error_message(
+    error_details: dict, *preferred_keys, fallback_message=None
+) -> str:
+    """
+    Extracts an error message from a dictionary based on the provided keys in order of preference.
+
+    :param error_details: Dictionary containing error information.
+    :param preferred_keys: Keys to look for in the dictionary in order of preference.
+    :param fallback_message: Message to return if none of the preferred keys are found.
+    :return: Extracted error message or the fallback message.
+    """
+    for key in preferred_keys:
+        if key in error_details:
+            return error_details[key]
+    return fallback_message
 
 
 def validate_client_init(
@@ -87,9 +125,7 @@ def validate_client_init(
         return
 
     missing_args = []
-    print(
-        "No access token provided. Attempting to authenticate with username and password."
-    )
+
     if not consumer_key:
         missing_args.append("consumer_key")
     if not consumer_secret:
@@ -100,10 +136,6 @@ def validate_client_init(
         missing_args.append("username")
     if not password:
         missing_args.append("password")
-    if not security_token:
-        print(
-            "No security token provided. Authentication may fail if your account settings require it."
-        )
 
     if missing_args:
         raise ExitCodeException(
