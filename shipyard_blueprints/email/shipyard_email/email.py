@@ -241,4 +241,3 @@ class EmailClient(Messaging):
                 return True
             else:
                 return False
-
