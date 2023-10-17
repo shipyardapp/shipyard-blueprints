@@ -75,19 +75,47 @@ class NotionClient(Spreadsheets):
             )
             raise ValueError
 
+        # get metadata for the database, if it exists
+        db_info = self.client.databases.retrieve(database_id=database_id)
         if insert_method == "replace":
             # handle replacements
-            for index, row in data.iterrows():
-                pass
+            db_pages = self.client.databases.query(database_id = database_id)['results'] # get the current pages and delete them
+            for page in db_pages:
+                print(page)
+                pg_id = page['id']
+                try:
+                    self.client.pages.update(page_id= pg_id, archived = True) # archiving will essentially delete the page
+                except Exception as e:
+                    self.logger.error("Error in trying to delete database")
+                    raise(ExitCodeException(e, self.EXIT_CODE_UPLOAD_ERROR))
+            self.logger.info("Successfully deleted existing database")
+
+            # now load the data to the empty database
+            db_properties = db_info['properties'] # this is to get schema information for the existing db
+            page_id = db_info['parent']['page_id']
+
+            rows = nu.create_row_payload(data, db_properties)
+            for row in rows:
+                # payloads = list(map(lambda x: x.values, row.dtypes))
+
+                # get the parent id
+                parent = {'type': 'database_id',
+                          'database_id': database_id}
+                try:
+                    self.client.pages.create(parent = parent, properties = row.dtypes.payload)
+                except Exception as e:
+                    self.logger.error('Error in updating database')
+                    # self.logger.exception(str(e))
+                    raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
+
+            self.logger.info("Successfully loaded data into database")
 
         elif insert_method == "append":
             # handle append cases
-            # TODO: When adding rows, use the `create page` endpoint
             if database_id is None:
                 self.logger.error(f"Database id is necessary in order to append to a database")
                 raise ValueError
             else:
-                db_info = self.client.databases.retrieve(database_id=database_id)
                 db_properties = db_info['properties'] # this is to get schema information for the existing db
                 page_id = db_info['parent']['page_id']
 
@@ -253,4 +281,32 @@ class NotionClient(Spreadsheets):
         db_url = f"{self.base_url}/databases"
         response = self.session.post(db_url, json = data)
         return response.json()
+
+    def _load(self, page_id:str, database_id:str, data:pd.DataFrame):
+        """ Helper function that inserts rows into a Notion database one row at a time
+        Args:
+            page_id: The page ID associated with the database
+            database_id: The database ID 
+            data: The pandas dataframe containing the data to load
+
+        Raises:
+            ExitCodeException: 
+        """
+        db_info = self.client.databases.query(database_id = database_id)
+        db_properties = db_info['properties'] # this is to get schema information for the existing db
+        page_id = db_info['parent']['page_id']
+        rows = nu.create_row_payload(data, db_properties)
+        for row in rows:
+            parent = {'type': 'database_id',
+                      'database_id': database_id}
+            try:
+                self.client.pages.create(parent = parent, properties = row.dtypes.payload)
+            except Exception as e:
+                self.logger.error('Error in updating database')
+                # self.logger.exception(str(e))
+                raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
+
+        self.logger.info("Successfully loaded data into database")
+
+
 

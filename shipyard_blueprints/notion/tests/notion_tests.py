@@ -34,6 +34,12 @@ def test_upload():
     client.upload(database_id = db, 
                   data = df,
                   insert_method = 'append')
+def test_upload_replace():
+    data = client.client.databases.query(database_id = db)
+    client.upload(database_id = db, 
+                  data = df,
+                  insert_method = 'replace')
+
 
 def test_fetch():
     data = client.client.databases.query(database_id = db)
@@ -103,8 +109,9 @@ def test_create():
 
 if __name__ == '__main__':
     # test_create()
-    test_upload()
-    # test_fetch()
+    # test_upload()
+    # # test_fetch()
+    test_upload_replace()
 
 
 
