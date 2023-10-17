@@ -28,7 +28,7 @@ class EmailClient(Messaging):
         self.smtp_port = smtp_port
         self.username = username
         self.password = password
-        self.send_method = send_method
+        self.send_method = send_method.lower()
         super().__init__(
             smtp_host=smtp_host,
             smtp_port=smtp_port,
