@@ -4,11 +4,16 @@ from shipyard_email import EmailClient
 
 
 class EmailClientConnectTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.smtp_host = os.getenv("SMTP_HOST")
+        cls.smtp_port = os.getenv("SMTP_PORT")
+        cls.username = os.getenv("SMTP_USERNAME")
+        cls.password = os.getenv("SMTP_PASSWORD")
+
     def setUp(self):
-        self.smtp_host = os.getenv("SMTP_HOST")
-        self.smtp_port = os.getenv("SMTP_PORT")
-        self.username = os.getenv("SMTP_USERNAME")
-        self.password = os.getenv("SMTP_PASSWORD")
+        if not all([self.smtp_host, self.smtp_port, self.username, self.password]):
+            self.skipTest("Skipping tests because environmental variables are missing")
 
     def setUp(self):
         if not all([self.smtp_host, self.smtp_port, self.username, self.password]):
