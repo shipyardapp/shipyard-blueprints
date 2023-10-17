@@ -3,12 +3,16 @@ import unittest
 from shipyard_email import EmailClient
 
 
-class ModeClientConnectTestCase(unittest.TestCase):
+class EmailClientConnectTestCase(unittest.TestCase):
     def setUp(self):
         self.smtp_host = os.getenv("SMTP_HOST")
         self.smtp_port = os.getenv("SMTP_PORT")
         self.username = os.getenv("SMTP_USERNAME")
         self.password = os.getenv("SMTP_PASSWORD")
+
+    def setUp(self):
+        if not all([self.smtp_host, self.smtp_port, self.username, self.password]):
+            self.skipTest("Skipping tests because environmental variables are missing")
 
     def test_connect_with_valid_credentials(self):
         assert (
