@@ -68,7 +68,6 @@ class NotionClient(Spreadsheets):
             insert_method: The action to replace or append (defaults to append)
         """
         # check to see if a database id has been provided otherwise create a new database
-
         if insert_method not in ('replace', 'append'):
             self.logger.error(
             f"Invalid insert_method: {insert_method}. Select either replace or append"
@@ -81,7 +80,6 @@ class NotionClient(Spreadsheets):
             # handle replacements
             db_pages = self.client.databases.query(database_id = database_id)['results'] # get the current pages and delete them
             for page in db_pages:
-                print(page)
                 pg_id = page['id']
                 try:
                     self.client.pages.update(page_id= pg_id, archived = True) # archiving will essentially delete the page
@@ -91,24 +89,7 @@ class NotionClient(Spreadsheets):
             self.logger.info("Successfully deleted existing database")
 
             # now load the data to the empty database
-            db_properties = db_info['properties'] # this is to get schema information for the existing db
-            page_id = db_info['parent']['page_id']
-
-            rows = nu.create_row_payload(data, db_properties)
-            for row in rows:
-                # payloads = list(map(lambda x: x.values, row.dtypes))
-
-                # get the parent id
-                parent = {'type': 'database_id',
-                          'database_id': database_id}
-                try:
-                    self.client.pages.create(parent = parent, properties = row.dtypes.payload)
-                except Exception as e:
-                    self.logger.error('Error in updating database')
-                    # self.logger.exception(str(e))
-                    raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
-
-            self.logger.info("Successfully loaded data into database")
+            self._load(database_id= database_id, data = data)
 
         elif insert_method == "append":
             # handle append cases
@@ -116,31 +97,7 @@ class NotionClient(Spreadsheets):
                 self.logger.error(f"Database id is necessary in order to append to a database")
                 raise ValueError
             else:
-                db_properties = db_info['properties'] # this is to get schema information for the existing db
-                page_id = db_info['parent']['page_id']
-
-                rows = nu.create_row_payload(data, db_properties)
-                for row in rows:
-                    # payloads = list(map(lambda x: x.values, row.dtypes))
-
-                    # get the parent id
-                    parent = {'type': 'database_id',
-                              'database_id': database_id}
-                    # have to append each row, and column at a time
-                    try:
-                        # full_payload = {}
-                        # full_payload['parent'] = parent
-                        # full_payload['properties'] = row.dtypes.payload
-                        # url = f"{self.base_url}/pages"
-                        # resp = requests.post(url, headers = self.headers, json = full_payload)
-                        
-                        self.client.pages.create(parent = parent, properties = row.dtypes.payload)
-                    except Exception as e:
-                        self.logger.error('Error in updating database')
-                        # self.logger.exception(str(e))
-                        raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
-
-                self.logger.info("Successfully updated database")
+                self._load(database_id=database_id, data = data)
 
 
     def download(self):
@@ -282,7 +239,7 @@ class NotionClient(Spreadsheets):
         response = self.session.post(db_url, json = data)
         return response.json()
 
-    def _load(self, page_id:str, database_id:str, data:pd.DataFrame):
+    def _load(self, database_id:str, data:pd.DataFrame):
         """ Helper function that inserts rows into a Notion database one row at a time
         Args:
             page_id: The page ID associated with the database
@@ -292,9 +249,8 @@ class NotionClient(Spreadsheets):
         Raises:
             ExitCodeException: 
         """
-        db_info = self.client.databases.query(database_id = database_id)
+        db_info = self.client.databases.retrieve(database_id = database_id)
         db_properties = db_info['properties'] # this is to get schema information for the existing db
-        page_id = db_info['parent']['page_id']
         rows = nu.create_row_payload(data, db_properties)
         for row in rows:
             parent = {'type': 'database_id',
