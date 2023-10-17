@@ -15,22 +15,24 @@ class DataType:
     name: str
     notion_type: str
     pandas_type: str
-    values: Dict[Any,Any] # this is the payload to send
+    values: Dict[Any, Any]  # this is the payload to send
+
 
 @dataclass
 class Properties:
-    payload: Dict[Any,Any]
+    payload: Dict[Any, Any]
 
-@dataclass 
+
+@dataclass
 class DataRow:
     row: int
     # dtypes: List[List[DataType]]
     dtypes: Properties
 
 
-def form_property_payload(row_payload:List[DataRow]):
+def form_property_payload(row_payload: List[DataRow]):
     d = {}
-    # go through each 
+    # go through each
     for row in row_payload:
         pass
 
@@ -117,18 +119,21 @@ def convert_pandas_to_notion(df: pd.DataFrame) -> Dict[str, str]:
 
     return mapped_dtypes
 
-def create_property_payload(notion:str, value:Any) -> Dict[Any,Any]:
-    """ Creates the payload for a single value
+
+def create_property_payload(notion: str, value: Any) -> Dict[Any, Any]:
+    """Creates the payload for a single value
 
     Args:
-        notion: The notion datatype 
+        notion: The notion datatype
         value:  The value from the pandas dataframe
 
-    Returns: The converted payload to load to notion 
-        
+    Returns: The converted payload to load to notion
+
     """
     if notion == "text":
-        return {"title": {"text": {"content": value}}} # NOTE: Removed the brackets for the `text` obejct
+        return {
+            "title": {"text": {"content": value}}
+        }  # NOTE: Removed the brackets for the `text` obejct
 
     if notion == "number":
         return {"number": f"{value}", "number_format": "number"}
@@ -139,135 +144,140 @@ def create_property_payload(notion:str, value:Any) -> Dict[Any,Any]:
             return {"date": {"start": value, "end": None, "include_time": True}}
         else:
             # handle dates
-             return {"date": {"start": value, "end": None, "include_time": False}}
+            return {"date": {"start": value, "end": None, "include_time": False}}
     if notion == "checkbox":
         return {"checkbox": {"checked": True if value else False}}
-    return {"title": {"text": {"content": value}}} # NOTE: Removed the brackets for the `text` obejct
+    return {
+        "title": {"text": {"content": value}}
+    }  # NOTE: Removed the brackets for the `text` obejct
 
-def form_row_payload(col_name:str, db_properties:Dict[Any,Any],value:Any) -> Dict[Any,Any]:
-    dtype = db_properties.get(col_name).get('type')
+
+def form_row_payload(
+    col_name: str, db_properties: Dict[Any, Any], value: Any
+) -> Dict[Any, Any]:
+    dtype = db_properties.get(col_name).get("type")
     payload = {}
     # go through each case and form the payload accordingly
-    if dtype == 'rich_text':
+    if dtype == "rich_text":
         body = {}
-        inner = {} 
-        body['type'] = 'rich_text'
-        inner['type'] = 'text'
-        inner['text'] = {'content': value}
-        inner['plain_text'] = value
+        inner = {}
+        body["type"] = "rich_text"
+        inner["type"] = "text"
+        inner["text"] = {"content": value}
+        inner["plain_text"] = value
         # ignoring the annotations section
         # payload['rich_text'] = [inner]
-        body['rich_text'] = [inner]
+        body["rich_text"] = [inner]
         payload[col_name] = body
 
-    elif dtype == 'title':
+    elif dtype == "title":
         body = {}
         inner = {}
-        body['type'] = 'title'
-        inner['type'] = 'text'
-        inner['text'] = {'content': value}
-        inner['plain_text'] = value
+        body["type"] = "title"
+        inner["type"] = "text"
+        inner["text"] = {"content": value}
+        inner["plain_text"] = value
         # ignoring the annotations section
         # payload['title'] = [inner]
-        body['title'] = [inner]
+        body["title"] = [inner]
         payload[col_name] = body
 
-    elif dtype == 'checkbox':
+    elif dtype == "checkbox":
         inner = {}
-        inner['type'] = 'checkbox'
+        inner["type"] = "checkbox"
         if bool(value):
-            inner['checkbox'] = True
-        inner['checkbox'] = False
+            inner["checkbox"] = True
+        inner["checkbox"] = False
         payload[col_name] = inner
 
-    elif dtype == 'number':
+    elif dtype == "number":
         inner = {}
-        inner['type'] = 'number'
+        inner["type"] = "number"
         if type(value) is int64:
-            inner['number'] = int(value) # need to put this as a string
+            inner["number"] = int(value)  # need to put this as a string
         elif type(value) is float64:
-            inner['number'] = float(value)
+            inner["number"] = float(value)
         payload[col_name] = inner
 
-    elif dtype in ('date', 'datetime'):
+    elif dtype in ("date", "datetime"):
         body = {}
         inner = {}
-        body['type'] = 'date'
-        inner['start'] = value
-        body['date'] = inner
+        body["type"] = "date"
+        inner["start"] = value
+        body["date"] = inner
         payload[col_name] = body
 
     else:
-        raise ExitCodeException(f"Unsupported data type {value}. Please update the schema in Notion to be either a Title, Rich Text, Number, Checkbox, or Date", 1)
+        raise ExitCodeException(
+            f"Unsupported data type {value}. Please update the schema in Notion to be either a Title, Rich Text, Number, Checkbox, or Date",
+            1,
+        )
     return payload
 
 
-def create_row_payload(df: pd.DataFrame, db_properties:Dict[Any,Any]) -> List[DataRow]:
-    """ Creates a list of DataRow structs which will be used to load into Notion
+def create_row_payload(
+    df: pd.DataFrame, db_properties: Dict[Any, Any]
+) -> List[DataRow]:
+    """Creates a list of DataRow structs which will be used to load into Notion
 
     Args:
-        df: The dataframe in which to construct the list 
+        df: The dataframe in which to construct the list
 
     Returns: List of DataRow structs
-        
+
     """
-    datatypes_list = [] # this will be a list of the DataType structs
+    datatypes_list = []  # this will be a list of the DataType structs
     columns = df.columns
     dtypes = df.dtypes.to_dict()
     for index in range(len(df)):
         property_payload = {}
-        row_list = [] # this will be the size of the number of columns
+        row_list = []  # this will be the size of the number of columns
         for column in columns:
             row_value = df[column].iloc[index]
             pd_dtype = dtypes.get(column)
             notion_type = mapper(str(pd_dtype))
             # NOTE: using the form function instead here
             # payload = create_property_payload(notion_type, row_value)
-            payload = form_row_payload(column,db_properties,row_value)
+            payload = form_row_payload(column, db_properties, row_value)
             property_payload = property_payload | payload
-
 
             # dt = DataType(name = column,notion_type= notion_type, pandas_type = pd_dtype, values = payload)
             # row_list.append(dt)
         prop = Properties(property_payload)
-        # datarow = DataRow(index, row_list) 
-        datarow = DataRow(index, prop) 
+        # datarow = DataRow(index, row_list)
+        datarow = DataRow(index, prop)
         datatypes_list.append(datarow)
     return datatypes_list
 
-def create_column_mapping(properties:Dict[Any,Any]) -> Dict[str,Dict[str,str]]:
 
-    """  Returns a mapping of of the column name and notion datatype. An example of the properties object from notion is:
-        "properties": {
-        "datetime_col": {
-            "id": "GhnZ",
-            "name": "datetime_col",
-            "type": "date",
-            "date": {}
-        },
+def create_column_mapping(properties: Dict[Any, Any]) -> Dict[str, Dict[str, str]]:
+    """Returns a mapping of of the column name and notion datatype. An example of the properties object from notion is:
+    "properties": {
+    "datetime_col": {
+        "id": "GhnZ",
+        "name": "datetime_col",
+        "type": "date",
+        "date": {}
+    },
 
-        Args:
-            properties: The properties object of the database
+    Args:
+        properties: The properties object of the database
 
-        Returns: Dictionary with column name as the key, and type as the value
-            
-        """
+    Returns: Dictionary with column name as the key, and type as the value
+
+    """
     d = {}
     for property in properties:
         inner = {}
-        name = properties[property]['name']
-        dtype = properties[property]['type']
-        inner['type'] = dtype
+        name = properties[property]["name"]
+        dtype = properties[property]["type"]
+        inner["type"] = dtype
         d[name] = inner
     return d
 
 
-def get_type(name:str,db_properties:Dict[Any,Any]) -> Union[str, None]:
+def get_type(name: str, db_properties: Dict[Any, Any]) -> Union[str, None]:
     for k in db_properties:
         if k == name:
-            return db_properties[k]['type']
+            return db_properties[k]["type"]
     return None
-
-
-    
-

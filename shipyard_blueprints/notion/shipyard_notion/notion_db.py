@@ -5,30 +5,34 @@ from notion_client import Client
 from shipyard_templates import Spreadsheets, ExitCodeException, standardize_errors
 from typing import List, Dict, Any, Optional, Union
 import shipyard_notion.notion_utils as nu
-from dataclasses import dataclass 
+from dataclasses import dataclass
 
-@dataclass 
+
+@dataclass
 class PageItem:
     name: str
     id: str
 
-@dataclass 
+
+@dataclass
 class NotionDatabase:
     name: str
     id: str
     parent: str
 
+
 class NotionClient(Spreadsheets):
     EXIT_CODE_DUPLICATE_PAGE_ERROR = 250
+
     def __init__(self, token: str, database_id: Optional[str] = None) -> None:
         self.token = token
         self.client = self.connect()
-        self.base_url = 'https://api.notion.com/v1'
+        self.base_url = "https://api.notion.com/v1"
         self.headers = {
-                'Authorization': f'Bearer {self.token}',
-                'Content-Type': 'application/json',
-                'Notion-Version': '2022-06-28'
-                }
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json",
+            "Notion-Version": "2022-06-28",
+        }
         self.session = requests.Session()
         self.session.headers.update(self.headers)
 
@@ -59,7 +63,7 @@ class NotionClient(Spreadsheets):
         database_id: str,
         insert_method: str = "append",
     ):
-        """ Uploads a pandas dataframe to a Notion database. If the database already exists, then it will either overwrite the existing data or add to it. 
+        """Uploads a pandas dataframe to a Notion database. If the database already exists, then it will either overwrite the existing data or add to it.
         If the database does not exist, it will be created
 
         Args:
@@ -68,9 +72,9 @@ class NotionClient(Spreadsheets):
             insert_method: The action to replace or append (defaults to append)
         """
         # check to see if a database id has been provided otherwise create a new database
-        if insert_method not in ('replace', 'append'):
+        if insert_method not in ("replace", "append"):
             self.logger.error(
-            f"Invalid insert_method: {insert_method}. Select either replace or append"
+                f"Invalid insert_method: {insert_method}. Select either replace or append"
             )
             raise ValueError
 
@@ -78,27 +82,32 @@ class NotionClient(Spreadsheets):
         db_info = self.client.databases.retrieve(database_id=database_id)
         if insert_method == "replace":
             # handle replacements
-            db_pages = self.client.databases.query(database_id = database_id)['results'] # get the current pages and delete them
+            db_pages = self.client.databases.query(database_id=database_id)[
+                "results"
+            ]  # get the current pages and delete them
             for page in db_pages:
-                pg_id = page['id']
+                pg_id = page["id"]
                 try:
-                    self.client.pages.update(page_id= pg_id, archived = True) # archiving will essentially delete the page
+                    self.client.pages.update(
+                        page_id=pg_id, archived=True
+                    )  # archiving will essentially delete the page
                 except Exception as e:
                     self.logger.error("Error in trying to delete database")
-                    raise(ExitCodeException(e, self.EXIT_CODE_UPLOAD_ERROR))
+                    raise (ExitCodeException(e, self.EXIT_CODE_UPLOAD_ERROR))
             self.logger.info("Successfully deleted existing database")
 
             # now load the data to the empty database
-            self._load(database_id= database_id, data = data)
+            self._load(database_id=database_id, data=data)
 
         elif insert_method == "append":
             # handle append cases
             if database_id is None:
-                self.logger.error(f"Database id is necessary in order to append to a database")
+                self.logger.error(
+                    f"Database id is necessary in order to append to a database"
+                )
                 raise ValueError
             else:
-                self._load(database_id=database_id, data = data)
-
+                self._load(database_id=database_id, data=data)
 
     def download(self):
         pass
@@ -135,22 +144,22 @@ class NotionClient(Spreadsheets):
             self.logger.error(f"Error in deleting page {page_id}")
             raise ExitCodeException(e, exit_code=self.EXIT_CODE_BAD_REQUEST)
 
-    def search(self, query:str):
-        """ Searches the notion api and returns possible matches on the string provided as the `query` parameter
+    def search(self, query: str):
+        """Searches the notion api and returns possible matches on the string provided as the `query` parameter
 
         Args:
             query: The string to search the notion API with
 
         Returns: The matching search results
-            
+
         """
-        return self.client.search(query = query)
+        return self.client.search(query=query)
 
     def get_database_details(self, database_id: str):
         return self.client.databases.retrieve(database_id=database_id)
 
-    def find_page(self, page_name:str) -> Union[List[PageItem], None]:
-        """ Wrapper function around the self.search method which returns name and ID of the page_name (if it exists). The matching is case sensitive
+    def find_page(self, page_name: str) -> Union[List[PageItem], None]:
+        """Wrapper function around the self.search method which returns name and ID of the page_name (if it exists). The matching is case sensitive
 
         Args:
             page_name: The name of page to search for in Notion
@@ -159,22 +168,24 @@ class NotionClient(Spreadsheets):
             ExitCodeException: Custom Exception for error handling
 
         Returns: If the page exists, the total number of matches will be returned
-            
+
         """
-        search_res = self.search(query = page_name)['results']
+        search_res = self.search(query=page_name)["results"]
         matches = []
         if len(search_res) == 0:
             self.logger.error(f"No results found for page name {page_name}")
             return
         for result in search_res:
-            obj = result['object']
-            if obj != 'page':
+            obj = result["object"]
+            if obj != "page":
                 self.logger.error(f"No results found for page name {page_name}")
                 return
             try:
-                page_id = result['id']
-                title_text = result['properties']['title']['title'][0]['text']['content']
-                archived = bool(result['archived'])
+                page_id = result["id"]
+                title_text = result["properties"]["title"]["title"][0]["text"][
+                    "content"
+                ]
+                archived = bool(result["archived"])
                 # check to see if the title matches the search parameter and if the page is still active
                 if title_text == page_name and not archived:
                     dc = PageItem(title_text, page_id)
@@ -185,24 +196,23 @@ class NotionClient(Spreadsheets):
                 self.logger.info(f"Found {len(matches)} for page {page_name}")
                 return matches
 
-
         return matches
 
-    def find_database(self, db_name:str) -> Union[List[PageItem], None]:
-        search_res = self.search(query = db_name)['results']
+    def find_database(self, db_name: str) -> Union[List[PageItem], None]:
+        search_res = self.search(query=db_name)["results"]
         matches = []
         if len(search_res) == 0:
             self.logger.error(f"No results found for database {db_name}")
             return
         for result in search_res:
-            obj = result['object']
-            if obj == 'database':
+            obj = result["object"]
+            if obj == "database":
                 try:
                     print(result)
-                    page_id = result['id']
-                    title_text = result['title'][0]['text']['content']
-                    archived = bool(result['archived'])
-                    parent = result['parent']['page_id']
+                    page_id = result["id"]
+                    title_text = result["title"][0]["text"]["content"]
+                    archived = bool(result["archived"])
+                    parent = result["parent"]["page_id"]
                     # check to see if the title matches the search parameter and if the page is still active
                     if title_text == db_name and not archived:
                         dc = NotionDatabase(title_text, page_id, parent)
@@ -217,52 +227,50 @@ class NotionClient(Spreadsheets):
             self.logger.warning(f"Did not find any matching datbases named {db_name}")
             return None
 
-    def fetch(self, database_id:str) -> Union[List[Dict[Any,Any]], None]:
-        """ Returns the entire results of a database in JSON form
+    def fetch(self, database_id: str) -> Union[List[Dict[Any, Any]], None]:
+        """Returns the entire results of a database in JSON form
 
         Args:
             database_id: The ID of the database to fetch
 
         Returns: The query results in JSON form
-            
+
         """
         try:
-            results = self.client.databases.query(database_id = database_id)
+            results = self.client.databases.query(database_id=database_id)
         except Exception as e:
             self.logger.warning("No results were found for the provided database id")
             return
         else:
-            return results['results']
+            return results["results"]
 
-    def _create_database(self, page_id:str, name:str, data:dict) -> Dict[Any,Any]:
+    def _create_database(self, page_id: str, name: str, data: dict) -> Dict[Any, Any]:
         db_url = f"{self.base_url}/databases"
-        response = self.session.post(db_url, json = data)
+        response = self.session.post(db_url, json=data)
         return response.json()
 
-    def _load(self, database_id:str, data:pd.DataFrame):
-        """ Helper function that inserts rows into a Notion database one row at a time
+    def _load(self, database_id: str, data: pd.DataFrame):
+        """Helper function that inserts rows into a Notion database one row at a time
         Args:
             page_id: The page ID associated with the database
-            database_id: The database ID 
+            database_id: The database ID
             data: The pandas dataframe containing the data to load
 
         Raises:
-            ExitCodeException: 
+            ExitCodeException:
         """
-        db_info = self.client.databases.retrieve(database_id = database_id)
-        db_properties = db_info['properties'] # this is to get schema information for the existing db
+        db_info = self.client.databases.retrieve(database_id=database_id)
+        db_properties = db_info[
+            "properties"
+        ]  # this is to get schema information for the existing db
         rows = nu.create_row_payload(data, db_properties)
         for row in rows:
-            parent = {'type': 'database_id',
-                      'database_id': database_id}
+            parent = {"type": "database_id", "database_id": database_id}
             try:
-                self.client.pages.create(parent = parent, properties = row.dtypes.payload)
+                self.client.pages.create(parent=parent, properties=row.dtypes.payload)
             except Exception as e:
-                self.logger.error('Error in updating database')
+                self.logger.error("Error in updating database")
                 # self.logger.exception(str(e))
                 raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
 
         self.logger.info("Successfully loaded data into database")
-
-
-
