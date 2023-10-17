@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import json
 from notion_client import Client
 from shipyard_templates import Spreadsheets, ExitCodeException, standardize_errors
 from typing import List, Dict, Any, Optional, Union
@@ -86,22 +87,32 @@ class NotionClient(Spreadsheets):
                 self.logger.error(f"Database id is necessary in order to append to a database")
                 raise ValueError
             else:
-                rows = nu.create_row_payload(data)
+                db_info = self.client.databases.retrieve(database_id=database_id)
+                db_properties = db_info['properties'] # this is to get schema information for the existing db
+                page_id = db_info['parent']['page_id']
+
+                rows = nu.create_row_payload(data, db_properties)
                 for row in rows:
-                    payloads = list(map(lambda x: x.values, row.dtypes))
+                    # payloads = list(map(lambda x: x.values, row.dtypes))
+
                     # get the parent id
-                    # res = self.client.databases.retrieve(database_id=database_id, )
-                    # parent_id = res['parent']['page_id']
-                    parent = {'parent': {'type' :'database_id',
-                                         'page_id': database_id}}
+                    parent = {'type': 'database_id',
+                              'database_id': database_id}
+                    # have to append each row, and column at a time
                     try:
-                        # resp = self.client.databases.create(database_id = database_id, properties = payloads, parent = parent)
-                        resp = self.client.pages.create(parent = parent, properties = payloads)
+                        # full_payload = {}
+                        # full_payload['parent'] = parent
+                        # full_payload['properties'] = row.dtypes.payload
+                        # url = f"{self.base_url}/pages"
+                        # resp = requests.post(url, headers = self.headers, json = full_payload)
+                        
+                        self.client.pages.create(parent = parent, properties = row.dtypes.payload)
                     except Exception as e:
                         self.logger.error('Error in updating database')
-                        self.logger.exception(str(e))
-                    else:
-                        self.logger.info("Successfully updated database")
+                        # self.logger.exception(str(e))
+                        raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
+
+                self.logger.info("Successfully updated database")
 
 
     def download(self):
@@ -149,6 +160,9 @@ class NotionClient(Spreadsheets):
             
         """
         return self.client.search(query = query)
+
+    def get_database_details(self, database_id: str):
+        return self.client.databases.retrieve(database_id=database_id)
 
     def find_page(self, page_name:str) -> Union[List[PageItem], None]:
         """ Wrapper function around the self.search method which returns name and ID of the page_name (if it exists). The matching is case sensitive

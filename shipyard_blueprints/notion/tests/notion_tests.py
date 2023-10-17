@@ -1,6 +1,7 @@
 import os
 import pytest
 import pandas as pd
+import json
 from shipyard_notion import NotionClient, create_row_payload
 from dotenv import load_dotenv, find_dotenv
 
@@ -33,6 +34,14 @@ def test_upload():
     client.upload(database_id = db, 
                   data = df,
                   insert_method = 'append')
+
+def test_fetch():
+    data = client.client.databases.query(database_id = db)
+    with open('notion_data.json', 'w') as f:
+        json.dump(data, f)
+    return
+
+
 
 def test_create():
     page_id = client.client.search(query = 'Demo')['results'][0]['id']
@@ -93,8 +102,9 @@ def test_create():
 
 
 if __name__ == '__main__':
-    test_create()
-    # test_upload()
+    # test_create()
+    test_upload()
+    # test_fetch()
 
 
 
