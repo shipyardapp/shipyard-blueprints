@@ -45,33 +45,6 @@ def test_fetch():
     return
 
 
-def test_create():
-    page_id = client.client.search(query="Demo")["results"][0]["id"]
-    print(page_id)
-    catches = {
-        "parent": {"type": "page_id", "page_id": page_id},
-        "icon": {"type": "emoji", "emoji": "🐟"},
-        "title": [{"type": "text", "text": {"content": "Catches", "link": None}}],
-        "properties": {
-            "Name": {"title": {}},
-            "Species": {
-                "select": {
-                    "options": [
-                        {"name": "Northern Pike", "color": "green"},
-                        {"name": "Walleye", "color": "red"},
-                        {"name": "Smallmouth Bass", "color": "pink"},
-                    ]
-                }
-            },
-            "Weight (lbs)": {"number": {}},
-            "Location": {"rich_text": {}},
-            "Date": {"date": {}},
-        },
-    }
-
-    client._create_database(page_id=page_id, data=catches, name="duh")
-
-
 if __name__ == "__main__":
     # test_create()
     # test_upload()

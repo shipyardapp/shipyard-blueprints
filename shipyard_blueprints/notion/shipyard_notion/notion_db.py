@@ -48,15 +48,6 @@ class NotionClient(Spreadsheets):
         else:
             return client
 
-    # NOTE: this should be run iteratively, as the create_properties_payload from the api_utils.py module outputs list of all payloads
-    def create_page(self, data: Dict[Any, Any], db_id: str):
-        try:
-            self.client.pages.create(parent=db_id, properties=data)
-            self.logger.info("Successfully created page")
-        except ExitCodeException as e:
-            self.logger.error("Error in creating page")
-            self.logger.exception(e)
-
     def upload(
         self,
         data: pd.DataFrame,
@@ -110,40 +101,12 @@ class NotionClient(Spreadsheets):
             else:
                 self._load(database_id=database_id, data=data)
 
-    def download(self):
-        pass
-
     def create_datbase(self, db_name: str, parent: str):
         try:
-            self.client.databases.create(parent=parent, title=db_name)
+           return self.client.databases.create(parent=parent, title=db_name)
         except Exception as e:
             raise ExitCodeException(e, exit_code=self.EXIT_CODE_DB_CREATE_ERROR)
 
-    # NOTE: This is returning false positives. This actually doesn't delete the database. In order to do that we need to use the page endpoint
-    def _delete_database(self, database_id: str):
-        try:
-            # self.client.databases.update(database_id, archive = False)
-            self.client.pages.update(page_id=database_id, archive=True)
-            self.logger.info("Successfully deleted database")
-        except Exception as e:
-            self.logger.error("Error in deleting database")
-            self.logger.exception(str(e))
-
-    def _delete_page(self, page_id: str):
-        """Helepr function to delete a current page
-
-        gs:
-            page_id: The ID of the page to delete (archive, in Notion terms)
-
-        Raises:
-            ExitCodeException:
-        """
-        try:
-            self.client.pages.update(page_id, archived=True)
-            self.logger.info(f"Successfully delete page {page_id}")
-        except Exception as e:
-            self.logger.error(f"Error in deleting page {page_id}")
-            raise ExitCodeException(e, exit_code=self.EXIT_CODE_BAD_REQUEST)
 
     def search(self, query: str):
         """Searches the notion api and returns possible matches on the string provided as the `query` parameter
@@ -199,34 +162,6 @@ class NotionClient(Spreadsheets):
 
         return matches
 
-    def find_database(self, db_name: str) -> Union[List[PageItem], None]:
-        search_res = self.search(query=db_name)["results"]
-        matches = []
-        if len(search_res) == 0:
-            self.logger.error(f"No results found for database {db_name}")
-            return
-        for result in search_res:
-            obj = result["object"]
-            if obj == "database":
-                try:
-                    print(result)
-                    page_id = result["id"]
-                    title_text = result["title"][0]["text"]["content"]
-                    archived = bool(result["archived"])
-                    parent = result["parent"]["page_id"]
-                    # check to see if the title matches the search parameter and if the page is still active
-                    if title_text == db_name and not archived:
-                        dc = NotionDatabase(title_text, page_id, parent)
-                        matches.append(dc)
-                except ExitCodeException as e:
-                    raise ExitCodeException(e.message, e.exit_code) from e
-
-        if len(matches) != 0:
-            self.logger.info(f"Found {len(matches)}")
-            return matches
-        else:
-            self.logger.warning(f"Did not find any matching datbases named {db_name}")
-            return None
 
     def fetch(self, database_id: str) -> Union[List[Dict[Any, Any]], None]:
         """Returns the entire results of a database in JSON form
@@ -245,10 +180,6 @@ class NotionClient(Spreadsheets):
         else:
             return results["results"]
 
-    def _create_database(self, page_id: str, name: str, data: dict) -> Dict[Any, Any]:
-        db_url = f"{self.base_url}/databases"
-        response = self.session.post(db_url, json=data)
-        return response.json()
 
     def _load(self, database_id: str, data: pd.DataFrame):
         """Helper function that inserts rows into a Notion database one row at a time
@@ -260,7 +191,7 @@ class NotionClient(Spreadsheets):
         Raises:
             ExitCodeException:
         """
-        db_info = self.client.databases.retrieve(database_id=database_id)
+        db_info = self.get_database_details(database_id)
         db_properties = db_info[
             "properties"
         ]  # this is to get schema information for the existing db
