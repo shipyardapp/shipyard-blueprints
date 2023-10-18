@@ -29,12 +29,37 @@ class DataRow:
     # dtypes: List[List[DataType]]
     dtypes: Properties
 
+def flatten_json(json_data:Dict[Any,Any]) -> Dict[str, List[Any]]:
+    """ Helper function to get data returned from NotionClient.fetch() to be in a readable format. 
+    Format will result in {Column1: [Values],
+                           Column2: [Values]}
 
-def form_property_payload(row_payload: List[DataRow]):
+    Args:
+        json_data: The json response data from the Notion API for the contents of the database
+    """
     d = {}
-    # go through each
-    for row in row_payload:
-        pass
+    for results in json_data:
+        properties = results['properties']
+        for property in properties: # this will grab the key (column) for each property
+            nested = properties[property]
+            column_type = nested['type']
+            # initialize the values of the return dictionary to an empty list 
+            if not d.get(property):
+                d[property] = []
+            # TODO: Handle url, email, and phone number types as well
+            if column_type == 'date':
+                d[property].append(nested['date']['start'])
+            if column_type == 'number':
+                d[property].append(nested['number'])
+            if column_type == 'rich_text':
+                d[property].append(nested['rich_text'][0]['text']['content'])
+
+            if column_type == 'checkbox':
+                d[property].append(nested['checkbox'])
+            if column_type == 'title':
+                d[property].append(nested['title'][0]['text']['content'])
+
+    return d
 
 
 def guess_type_by_values(values_str: List[str]) -> str:
@@ -247,34 +272,3 @@ def create_row_payload(
     return datatypes_list
 
 
-def create_column_mapping(properties: Dict[Any, Any]) -> Dict[str, Dict[str, str]]:
-    """Returns a mapping of of the column name and notion datatype. An example of the properties object from notion is:
-    "properties": {
-    "datetime_col": {
-        "id": "GhnZ",
-        "name": "datetime_col",
-        "type": "date",
-        "date": {}
-    },
-
-    Args:
-        properties: The properties object of the database
-
-    Returns: Dictionary with column name as the key, and type as the value
-
-    """
-    d = {}
-    for property in properties:
-        inner = {}
-        name = properties[property]["name"]
-        dtype = properties[property]["type"]
-        inner["type"] = dtype
-        d[name] = inner
-    return d
-
-
-def get_type(name: str, db_properties: Dict[Any, Any]) -> Union[str, None]:
-    for k in db_properties:
-        if k == name:
-            return db_properties[k]["type"]
-    return None

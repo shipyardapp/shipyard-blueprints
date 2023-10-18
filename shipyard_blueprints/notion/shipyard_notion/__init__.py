@@ -4,5 +4,6 @@ from .notion_utils import (
     mapper,
     create_property_payload,
     create_row_payload,
+    flatten_json
 )
 from .cli import upload, download

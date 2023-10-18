@@ -86,7 +86,6 @@ class NotionClient(Spreadsheets):
             db_pages = self.client.databases.query(database_id=database_id)[
                 "results"
             ]  # get the current pages and delete them
-            self.logger.debug(f"Need to delete {len(db_pages)} pages")
             for page in db_pages:
                 pg_id = page["id"]
                 try:

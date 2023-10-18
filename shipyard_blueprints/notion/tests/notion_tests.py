@@ -74,6 +74,6 @@ def test_create():
 
 if __name__ == "__main__":
     # test_create()
-    test_upload()
-    # # test_fetch()
+    # test_upload()
+    test_fetch()
     # test_upload_replace()
