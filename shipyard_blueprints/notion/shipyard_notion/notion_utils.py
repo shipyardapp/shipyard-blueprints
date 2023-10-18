@@ -149,9 +149,10 @@ def create_property_payload(notion: str, value: Any) -> Dict[Any, Any]:
         return {"checkbox": {"checked": True if value else False}}
     return {
         "title": {"text": {"content": value}}
-    }  # NOTE: Removed the brackets for the `text` obejct
+    }  
 
 
+# TODO: Add logic here for handling emails, urls, 
 def form_row_payload(
     col_name: str, db_properties: Dict[Any, Any], value: Any
 ) -> Dict[Any, Any]:
@@ -166,7 +167,6 @@ def form_row_payload(
         inner["text"] = {"content": value}
         inner["plain_text"] = value
         # ignoring the annotations section
-        # payload['rich_text'] = [inner]
         body["rich_text"] = [inner]
         payload[col_name] = body
 
@@ -178,7 +178,6 @@ def form_row_payload(
         inner["text"] = {"content": value}
         inner["plain_text"] = value
         # ignoring the annotations section
-        # payload['title'] = [inner]
         body["title"] = [inner]
         payload[col_name] = body
 
@@ -193,8 +192,9 @@ def form_row_payload(
     elif dtype == "number":
         inner = {}
         inner["type"] = "number"
+        # need to parse the numpy floats/ints in order to serialize them
         if type(value) is int64:
-            inner["number"] = int(value)  # need to put this as a string
+            inner["number"] = int(value)  
         elif type(value) is float64:
             inner["number"] = float(value)
         payload[col_name] = inner
@@ -208,6 +208,8 @@ def form_row_payload(
         payload[col_name] = body
 
     else:
+
+        # TODO: Update this message once the new data types are supported
         raise ExitCodeException(
             f"Unsupported data type {value}. Please update the schema in Notion to be either a Title, Rich Text, Number, Checkbox, or Date",
             1,
@@ -236,15 +238,10 @@ def create_row_payload(
             row_value = df[column].iloc[index]
             pd_dtype = dtypes.get(column)
             notion_type = mapper(str(pd_dtype))
-            # NOTE: using the form function instead here
-            # payload = create_property_payload(notion_type, row_value)
             payload = form_row_payload(column, db_properties, row_value)
             property_payload = property_payload | payload
 
-            # dt = DataType(name = column,notion_type= notion_type, pandas_type = pd_dtype, values = payload)
-            # row_list.append(dt)
         prop = Properties(property_payload)
-        # datarow = DataRow(index, row_list)
         datarow = DataRow(index, prop)
         datatypes_list.append(datarow)
     return datatypes_list

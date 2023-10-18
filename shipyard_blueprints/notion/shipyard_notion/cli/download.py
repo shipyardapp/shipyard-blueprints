@@ -25,7 +25,7 @@ def main():
         file_path = args.file_name
 
     try:
-        data = notion.fetch(database_id= args.database_id)
+        data = notion.fetch(database_id= args.database_id)[0]
     except Exception as e:
         notion.logger.error("Error in downloading data from notion")
         notion.logger.exception(e)
@@ -34,7 +34,7 @@ def main():
     notion.logger.info("Successfully fetched data from notion")
 
     if args.file_type == 'csv':
-        df = pd.DataFrame(data)
+        df = pd.DataFrame(data['properties'])
         df.to_csv(file_path, index = False)
 
     else:

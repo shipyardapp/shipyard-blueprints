@@ -5,5 +5,4 @@ from .notion_utils import (
     create_property_payload,
     create_row_payload,
 )
-import cli
-
+from .cli import upload, download
