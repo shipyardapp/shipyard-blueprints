@@ -2,13 +2,12 @@ import argparse
 import os
 import pandas as pd
 import sys
-from typing import Union
 from shipyard_notion import NotionClient
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('--token', dest = 'token', required = True)
-    parser.add_argument('--database-id', dest = 'database_id', required = False, default = '')
+    parser.add_argument('--database-id', dest = 'database_id', required = True, default = '')
     parser.add_argument('--source-file-name', dest = 'file_name', required = True)
     parser.add_argument('--source-folder-name', dest = 'folder_name', required = False, default = '')
     parser.add_argument('--insert-method', dest = 'insert_method', required = False, choices = {'append','replace'}, default = 'append')

@@ -51,7 +51,7 @@ class NotionClient(Spreadsheets):
     def upload(
         self,
         data: pd.DataFrame,
-        database_id: str,
+        database_id:str,
         insert_method: str = "append",
     ):
         """Uploads a pandas dataframe to a Notion database. If the database already exists, then it will either overwrite the existing data or add to it.
@@ -69,14 +69,18 @@ class NotionClient(Spreadsheets):
             )
             raise ValueError
 
+        if database_id is None:
+            self.logger.error(
+                f"Database id is necessary in order to append to a database"
+            )
+            raise ValueError
+
         # get metadata for the database, if it exists
         self.logger.info(f"Method selected: {insert_method}")
         db_info = self.client.databases.retrieve(database_id=database_id)
         if insert_method == "replace":
             # handle replacements
-            db_pages = self.client.databases.query(database_id=database_id)[
-                "results"
-            ]  # get the current pages and delete them
+            db_pages = self.client.databases.query(database_id=database_id)["results"]  # get the current pages and delete them
             for page in db_pages:
                 pg_id = page["id"]
                 try:
@@ -86,26 +90,10 @@ class NotionClient(Spreadsheets):
                 except Exception as e:
                     self.logger.error("Error in trying to delete database")
                     raise (ExitCodeException(e, self.EXIT_CODE_UPLOAD_ERROR))
-            self.logger.info("Successfully deleted existing database")
+            self.logger.info("Successfully deleted rows in existing database")
 
-            # now load the data to the empty database
-            self._load(database_id=database_id, data=data)
-
-        elif insert_method == "append":
-            # handle append cases
-            if database_id is None:
-                self.logger.error(
-                    f"Database id is necessary in order to append to a database"
-                )
-                raise ValueError
-            else:
-                self._load(database_id=database_id, data=data)
-
-    def create_datbase(self, db_name: str, parent: str):
-        try:
-           return self.client.databases.create(parent=parent, title=db_name)
-        except Exception as e:
-            raise ExitCodeException(e, exit_code=self.EXIT_CODE_DB_CREATE_ERROR)
+        # load the data row by row
+        self._load(database_id=database_id, data=data)
 
 
     def search(self, query: str):
@@ -202,7 +190,6 @@ class NotionClient(Spreadsheets):
                 self.client.pages.create(parent=parent, properties=row.dtypes.payload)
             except Exception as e:
                 self.logger.error("Error in updating database")
-                # self.logger.exception(str(e))
                 raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
 
         self.logger.info("Successfully loaded data into database")
