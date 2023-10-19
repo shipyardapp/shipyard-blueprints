@@ -9,7 +9,7 @@ from shipyard_notion.notion_utils import flatten_json
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('--token', dest = 'token', required = True)
-    parser.add_argument('--database-id', dest = 'database_id', required = False, default = '')
+    parser.add_argument('--database-id', dest = 'database_id', required = True)
     parser.add_argument('--destination-file-name', dest = 'file_name',required = True)
     parser.add_argument('--destination-folder-name', dest = 'folder_name', required = False, default = '')
     parser.add_argument('--file-type', dest = 'file_type', choices= {'csv','json'}, default = 'csv')
@@ -18,8 +18,13 @@ def get_args() -> argparse.Namespace:
 
 def main():
     args = get_args()
-    # check to see if a folder name is provided 
     notion = NotionClient(args.token)
+    # check to see the database is shared with integration
+    if not notion.is_accessible(args.database_id):
+        notion.logger.error(f"Database provided is not accessible. Please ensure that the database is shared with the Integration created in the Notion developer portal")
+        sys.exit(notion.EXIT_CODE_INVALID_DATABASE_ID)
+    
+    # check to see if a folder name is provided 
     if args.folder_name != '':
         file_path = os.path.normpath(os.path.join(args.folder_name, args.file_name))
     else:

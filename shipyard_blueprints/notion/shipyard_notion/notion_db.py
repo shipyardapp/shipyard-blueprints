@@ -14,13 +14,6 @@ class PageItem:
     id: str
 
 
-@dataclass
-class NotionDatabase:
-    name: str
-    id: str
-    parent: str
-
-
 class NotionClient(Spreadsheets):
     EXIT_CODE_DUPLICATE_PAGE_ERROR = 250
 
@@ -193,3 +186,20 @@ class NotionClient(Spreadsheets):
                 raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
 
         self.logger.info("Successfully loaded data into database")
+
+    def is_accessible(self, database_id:str) -> bool:
+        """ Helper function to check to see if the database provided is accessible via the API. If False is returned, then the notion database must be shared with the Integration through the UI
+
+        Args:
+            database_id: The ID of the Notion database
+
+        Returns: True if shared with the integration, False otherwise
+            
+        """
+        try:
+            data = self.client.databases.retrieve(database_id)
+            if data:
+                return True
+        except Exception as e:
+            return False
+

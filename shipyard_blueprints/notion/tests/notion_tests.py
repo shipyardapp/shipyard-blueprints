@@ -15,19 +15,6 @@ try:
 except:
     df = pd.read_csv("tests/test_sample.csv")
 
-
-# @pytest.fixture
-# def client():
-#     return NotionClient(token)
-#
-# @pytest.fixture
-# def df():
-#     return pd.read_csv('test_sample.csv')
-#
-# def test_payload():
-#     rows = create_row_payload(df)
-#     assert len(rows) != 0
-#
 def test_upload():
     data = client.client.databases.query(database_id=db)
     client.upload(database_id=db, data=df, insert_method="append")

@@ -32,4 +32,15 @@ if [ "$1" = 'uprn' ]; then
     python3 shipyard_notion/cli/upload.py --token $NOTION_ACCESS_TOKEN --source-file-name sample.csv --insert-method replace
 fi
 
+# fetch data with notion specific datatypes
+if [ "$1" = 'dlj2' ]; then
+    echo "Starting download of nonstandard datatypes to JSON"
+    python3 shipyard_notion/cli/download.py --token $NOTION_ACCESS_TOKEN --destination-file-name nonstandard.json --database-id $DB2 --file-type json
+fi
 
+
+if [ "$1" = "dlc2" ]; then
+    echo "Starting download of nonstandard datatypes to CSV"
+    python3 shipyard_notion/cli/download.py --token $NOTION_ACCESS_TOKEN --database-id $DB2 --destination-file-name nonstandard.csv --file-type csv
+
+fi

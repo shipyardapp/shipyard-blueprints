@@ -11,22 +11,12 @@ from shipyard_templates import ExitCodeException
 
 # These dataclasses are helpful for dealing with rowise operations, since Notion inserts data 1 row at a time
 @dataclass
-class DataType:
-    name: str
-    notion_type: str
-    pandas_type: str
-    values: Dict[Any, Any]  # this is the payload to send
-
-
-@dataclass
 class Properties:
     payload: Dict[Any, Any]
-
 
 @dataclass
 class DataRow:
     row: int
-    # dtypes: List[List[DataType]]
     dtypes: Properties
 
 def flatten_json(json_data:Dict[Any,Any]) -> Dict[str, List[Any]]:
@@ -46,18 +36,53 @@ def flatten_json(json_data:Dict[Any,Any]) -> Dict[str, List[Any]]:
             # initialize the values of the return dictionary to an empty list 
             if not d.get(property):
                 d[property] = []
-            # TODO: Handle url, email, and phone number types as well
             if column_type == 'date':
-                d[property].append(nested['date']['start'])
+                d[property].append(nested.get('date').get('start'))
             if column_type == 'number':
-                d[property].append(nested['number'])
+                d[property].append(nested.get('number'))
             if column_type == 'rich_text':
-                d[property].append(nested['rich_text'][0]['text']['content'])
+                inner_array = nested.get('rich_text')
+                if len(inner_array) > 0:
+                    d[property].append(inner_array[0].get('text').get('content'))
+                else:
+                    d[property].append(None) # need to add None so that all the lists will be the same length
 
             if column_type == 'checkbox':
-                d[property].append(nested['checkbox'])
+                d[property].append(nested.get('checkbox'))
             if column_type == 'title':
-                d[property].append(nested['title'][0]['text']['content'])
+                inner_array = nested.get('title')
+                if len(inner_array) > 0:
+                    d[property].append(inner_array[0].get('text').get('content'))
+                else:
+                    d[property].append(None) # need to add None so that all the lists will be the same length
+
+
+            if column_type == 'multi_select':
+                # NOTE: this may not be accounting for blanks correctly
+                vals = [x.get('name') for x in nested.get('multi_select')]
+                d[property].append(vals)
+            if column_type == 'select':
+                d[property].append(nested.get('select').get('name'))
+            if column_type == 'url':
+                d[property].append(nested.get('url'))
+            if column_type == 'files':
+                d[property].append(nested.get('name'))
+            if column_type == 'email':
+                d[property].append(nested.get('email'))
+
+            if column_type == 'status':
+                d[property].append(nested.get('status').get('name'))
+
+            if column_type == 'people': 
+                vals = [x.get('person').get('email') for x in nested.get('people')]
+                d[property].append(vals)
+
+            if column_type == 'formula':
+                d[property].append(nested.get('formula').get('string'))
+
+            if column_type == 'phone_number':
+                d[property].append(nested.get('phone_number'))
+
 
     return d
 
@@ -145,38 +170,6 @@ def convert_pandas_to_notion(df: pd.DataFrame) -> Dict[str, str]:
     return mapped_dtypes
 
 
-def create_property_payload(notion: str, value: Any) -> Dict[Any, Any]:
-    """Creates the payload for a single value
-
-    Args:
-        notion: The notion datatype
-        value:  The value from the pandas dataframe
-
-    Returns: The converted payload to load to notion
-
-    """
-    if notion == "text":
-        return {
-            "title": {"text": {"content": value}}
-        }  # NOTE: Removed the brackets for the `text` obejct
-
-    if notion == "number":
-        return {"number": f"{value}", "number_format": "number"}
-    if notion == "datetime":
-        # check to see if value is date or datetime
-        if type(value) is pd.Timestamp:
-            # handle datetime
-            return {"date": {"start": value, "end": None, "include_time": True}}
-        else:
-            # handle dates
-            return {"date": {"start": value, "end": None, "include_time": False}}
-    if notion == "checkbox":
-        return {"checkbox": {"checked": True if value else False}}
-    return {
-        "title": {"text": {"content": value}}
-    }  
-
-
 # TODO: Add logic here for handling emails, urls, 
 def form_row_payload(
     col_name: str, db_properties: Dict[Any, Any], value: Any
@@ -232,15 +225,62 @@ def form_row_payload(
         body["date"] = inner
         payload[col_name] = body
 
+    elif dtype == 'multi_select':
+        inner = {}
+        inner['type'] = 'multi_select'
+        multi_list = []
+        list_values = eval(value) # need to parse the list of selected values
+        if len(list_values) > 0:
+            for val in list_values:
+                select_values = {}
+                select_values['name'] = val
+                multi_list.append(select_values)
+        inner['multi_select'] = list_values
+        payload[col_name] = inner
+
+
+    elif dtype == 'select':
+        inner = {}
+        inner['type'] = 'select'
+        select_dict = {}
+        select_dict['name'] = value
+        inner['select'] = select_dict
+        payload[col_name] = inner
+
+    elif dtype == 'url':
+        inner = {}
+        inner['type'] = 'url'
+        inner['url'] = value
+        payload[col_name] = inner
+
+
+    elif dtype == 'email':
+        inner = {}
+        inner['type'] = 'email'
+        inner['email'] = value
+        payload[col_name] = inner
+        
+    elif dtype == 'status':
+        inner = {}
+        inner['type'] = 'status'
+        status_dict = {}
+        status_dict['name'] = value
+        inner['status'] = status_dict
+        payload[col_name] = inner
+
+    elif dtype == 'phone_number':
+        inner = {}
+        inner['type'] = 'phone_number'
+        inner['phone_number'] = value
+        payload[col_name] = inner
+
     else:
 
-        # TODO: Update this message once the new data types are supported
         raise ExitCodeException(
-            f"Unsupported data type {value}. Please update the schema in Notion to be either a Title, Rich Text, Number, Checkbox, or Date",
-            1,
+                f"Unsupported data type {dtype}. At this time, the following types are not supported for upload: Files, Rollup, Relation, People",
+            1
         )
     return payload
-
 
 def create_row_payload(
     df: pd.DataFrame, db_properties: Dict[Any, Any]
