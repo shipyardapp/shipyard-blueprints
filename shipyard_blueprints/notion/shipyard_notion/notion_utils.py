@@ -14,13 +14,15 @@ from shipyard_templates import ExitCodeException
 class Properties:
     payload: Dict[Any, Any]
 
+
 @dataclass
 class DataRow:
     row: int
     dtypes: Properties
 
-def flatten_json(json_data:Dict[Any,Any]) -> Dict[str, List[Any]]:
-    """ Helper function to get data returned from NotionClient.fetch() to be in a readable format. 
+
+def flatten_json(json_data: Dict[Any, Any]) -> Dict[str, List[Any]]:
+    """Helper function to get data returned from NotionClient.fetch() to be in a readable format.
     Format will result in {Column1: [Values],
                            Column2: [Values]}
 
@@ -29,60 +31,62 @@ def flatten_json(json_data:Dict[Any,Any]) -> Dict[str, List[Any]]:
     """
     d = {}
     for results in json_data:
-        properties = results['properties']
-        for property in properties: # this will grab the key (column) for each property
+        properties = results["properties"]
+        for property in properties:  # this will grab the key (column) for each property
             nested = properties[property]
-            column_type = nested['type']
-            # initialize the values of the return dictionary to an empty list 
+            column_type = nested["type"]
+            # initialize the values of the return dictionary to an empty list
             if not d.get(property):
                 d[property] = []
-            if column_type == 'date':
-                d[property].append(nested.get('date').get('start'))
-            if column_type == 'number':
-                d[property].append(nested.get('number'))
-            if column_type == 'rich_text':
-                inner_array = nested.get('rich_text')
+            if column_type == "date":
+                d[property].append(nested.get("date").get("start"))
+            if column_type == "number":
+                d[property].append(nested.get("number"))
+            if column_type == "rich_text":
+                inner_array = nested.get("rich_text")
                 if len(inner_array) > 0:
-                    d[property].append(inner_array[0].get('text').get('content'))
+                    d[property].append(inner_array[0].get("text").get("content"))
                 else:
-                    d[property].append(None) # need to add None so that all the lists will be the same length
+                    d[property].append(
+                        None
+                    )  # need to add None so that all the lists will be the same length
 
-            if column_type == 'checkbox':
-                d[property].append(nested.get('checkbox'))
-            if column_type == 'title':
-                inner_array = nested.get('title')
+            if column_type == "checkbox":
+                d[property].append(nested.get("checkbox"))
+            if column_type == "title":
+                inner_array = nested.get("title")
                 if len(inner_array) > 0:
-                    d[property].append(inner_array[0].get('text').get('content'))
+                    d[property].append(inner_array[0].get("text").get("content"))
                 else:
-                    d[property].append(None) # need to add None so that all the lists will be the same length
+                    d[property].append(
+                        None
+                    )  # need to add None so that all the lists will be the same length
 
-
-            if column_type == 'multi_select':
+            if column_type == "multi_select":
                 # NOTE: this may not be accounting for blanks correctly
-                vals = [x.get('name') for x in nested.get('multi_select')]
+                vals = [x.get("name") for x in nested.get("multi_select")]
                 d[property].append(vals)
-            if column_type == 'select':
-                d[property].append(nested.get('select').get('name'))
-            if column_type == 'url':
-                d[property].append(nested.get('url'))
-            if column_type == 'files':
-                d[property].append(nested.get('name'))
-            if column_type == 'email':
-                d[property].append(nested.get('email'))
+            if column_type == "select":
+                d[property].append(nested.get("select").get("name"))
+            if column_type == "url":
+                d[property].append(nested.get("url"))
+            if column_type == "files":
+                d[property].append(nested.get("name"))
+            if column_type == "email":
+                d[property].append(nested.get("email"))
 
-            if column_type == 'status':
-                d[property].append(nested.get('status').get('name'))
+            if column_type == "status":
+                d[property].append(nested.get("status").get("name"))
 
-            if column_type == 'people': 
-                vals = [x.get('person').get('email') for x in nested.get('people')]
+            if column_type == "people":
+                vals = [x.get("person").get("email") for x in nested.get("people")]
                 d[property].append(vals)
 
-            if column_type == 'formula':
-                d[property].append(nested.get('formula').get('string'))
+            if column_type == "formula":
+                d[property].append(nested.get("formula").get("string"))
 
-            if column_type == 'phone_number':
-                d[property].append(nested.get('phone_number'))
-
+            if column_type == "phone_number":
+                d[property].append(nested.get("phone_number"))
 
     return d
 
@@ -170,7 +174,7 @@ def convert_pandas_to_notion(df: pd.DataFrame) -> Dict[str, str]:
     return mapped_dtypes
 
 
-# TODO: Add logic here for handling emails, urls, 
+# TODO: Add logic here for handling emails, urls,
 def form_row_payload(
     col_name: str, db_properties: Dict[Any, Any], value: Any
 ) -> Dict[Any, Any]:
@@ -212,7 +216,7 @@ def form_row_payload(
         inner["type"] = "number"
         # need to parse the numpy floats/ints in order to serialize them
         if type(value) is int64:
-            inner["number"] = int(value)  
+            inner["number"] = int(value)
         elif type(value) is float64:
             inner["number"] = float(value)
         payload[col_name] = inner
@@ -225,62 +229,60 @@ def form_row_payload(
         body["date"] = inner
         payload[col_name] = body
 
-    elif dtype == 'multi_select':
+    elif dtype == "multi_select":
         inner = {}
-        inner['type'] = 'multi_select'
+        inner["type"] = "multi_select"
         multi_list = []
-        list_values = eval(value) # need to parse the list of selected values
+        list_values = eval(value)  # need to parse the list of selected values
         if len(list_values) > 0:
             for val in list_values:
                 select_values = {}
-                select_values['name'] = val
+                select_values["name"] = val
                 multi_list.append(select_values)
-        inner['multi_select'] = list_values
+        inner["multi_select"] = list_values
         payload[col_name] = inner
 
-
-    elif dtype == 'select':
+    elif dtype == "select":
         inner = {}
-        inner['type'] = 'select'
+        inner["type"] = "select"
         select_dict = {}
-        select_dict['name'] = value
-        inner['select'] = select_dict
+        select_dict["name"] = value
+        inner["select"] = select_dict
         payload[col_name] = inner
 
-    elif dtype == 'url':
+    elif dtype == "url":
         inner = {}
-        inner['type'] = 'url'
-        inner['url'] = value
+        inner["type"] = "url"
+        inner["url"] = value
         payload[col_name] = inner
 
-
-    elif dtype == 'email':
+    elif dtype == "email":
         inner = {}
-        inner['type'] = 'email'
-        inner['email'] = value
+        inner["type"] = "email"
+        inner["email"] = value
         payload[col_name] = inner
-        
-    elif dtype == 'status':
+
+    elif dtype == "status":
         inner = {}
-        inner['type'] = 'status'
+        inner["type"] = "status"
         status_dict = {}
-        status_dict['name'] = value
-        inner['status'] = status_dict
+        status_dict["name"] = value
+        inner["status"] = status_dict
         payload[col_name] = inner
 
-    elif dtype == 'phone_number':
+    elif dtype == "phone_number":
         inner = {}
-        inner['type'] = 'phone_number'
-        inner['phone_number'] = value
+        inner["type"] = "phone_number"
+        inner["phone_number"] = value
         payload[col_name] = inner
 
     else:
-
         raise ExitCodeException(
-                f"Unsupported data type {dtype}. At this time, the following types are not supported for upload: Files, Rollup, Relation, People",
-            1
+            f"Unsupported data type {dtype}. At this time, the following types are not supported for upload: Files, Rollup, Relation, People",
+            1,
         )
     return payload
+
 
 def create_row_payload(
     df: pd.DataFrame, db_properties: Dict[Any, Any]
@@ -310,5 +312,3 @@ def create_row_payload(
         datarow = DataRow(index, prop)
         datatypes_list.append(datarow)
     return datatypes_list
-
-

@@ -44,7 +44,7 @@ class NotionClient(Spreadsheets):
     def upload(
         self,
         data: pd.DataFrame,
-        database_id:str,
+        database_id: str,
         insert_method: str = "append",
     ):
         """Uploads a pandas dataframe to a Notion database. If the database already exists, then it will either overwrite the existing data or add to it.
@@ -73,7 +73,9 @@ class NotionClient(Spreadsheets):
         db_info = self.client.databases.retrieve(database_id=database_id)
         if insert_method == "replace":
             # handle replacements
-            db_pages = self.client.databases.query(database_id=database_id)["results"]  # get the current pages and delete them
+            db_pages = self.client.databases.query(database_id=database_id)[
+                "results"
+            ]  # get the current pages and delete them
             for page in db_pages:
                 pg_id = page["id"]
                 try:
@@ -87,7 +89,6 @@ class NotionClient(Spreadsheets):
 
         # load the data row by row
         self._load(database_id=database_id, data=data)
-
 
     def search(self, query: str):
         """Searches the notion api and returns possible matches on the string provided as the `query` parameter
@@ -143,7 +144,6 @@ class NotionClient(Spreadsheets):
 
         return matches
 
-
     def fetch(self, database_id: str) -> Union[List[Dict[Any, Any]], None]:
         """Returns the entire results of a database in JSON form
 
@@ -160,7 +160,6 @@ class NotionClient(Spreadsheets):
             return
         else:
             return results["results"]
-
 
     def _load(self, database_id: str, data: pd.DataFrame):
         """Helper function that inserts rows into a Notion database one row at a time
@@ -187,14 +186,14 @@ class NotionClient(Spreadsheets):
 
         self.logger.info("Successfully loaded data into database")
 
-    def is_accessible(self, database_id:str) -> bool:
-        """ Helper function to check to see if the database provided is accessible via the API. If False is returned, then the notion database must be shared with the Integration through the UI
+    def is_accessible(self, database_id: str) -> bool:
+        """Helper function to check to see if the database provided is accessible via the API. If False is returned, then the notion database must be shared with the Integration through the UI
 
         Args:
             database_id: The ID of the Notion database
 
         Returns: True if shared with the integration, False otherwise
-            
+
         """
         try:
             data = self.client.databases.retrieve(database_id)
@@ -202,4 +201,3 @@ class NotionClient(Spreadsheets):
                 return True
         except Exception as e:
             return False
-
