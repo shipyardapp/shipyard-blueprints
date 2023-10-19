@@ -40,8 +40,7 @@ def main():
     try:
         notion.upload(data = df, database_id = args.database_id, insert_method = args.insert_method)
     except Exception as e:
-        notion.logger.error("Error uploading data to notion")
-        notion.logger.exception(e)
+        notion.logger.error(f"Error uploading data to notion. {str(e)}")
         sys.exit(notion.EXIT_CODE_UPLOAD_ERROR)
 
         

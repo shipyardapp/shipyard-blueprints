@@ -42,5 +42,9 @@ fi
 if [ "$1" = "dlc2" ]; then
     echo "Starting download of nonstandard datatypes to CSV"
     python3 shipyard_notion/cli/download.py --token $NOTION_ACCESS_TOKEN --database-id $DB2 --destination-file-name nonstandard.csv --file-type csv
+fi
 
+if [ "$1" = 'upa2' ]; then 
+    echo "Starting upload of nonstandard datatypes"
+    python3 shipyard_notion/cli/upload.py --token $NOTION_ACCESS_TOKEN --database-id $DB2 --source-file-name nonstandard.csv --insert-method append
 fi
