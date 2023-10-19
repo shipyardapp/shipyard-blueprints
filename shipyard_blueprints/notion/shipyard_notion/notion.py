@@ -52,7 +52,7 @@ class NotionClient(Spreadsheets):
 
         Args:
             data: The data to load to the database
-            database_id: The optional ID of the database. Is required if the intent is to append to an already existing table
+            database_id: The ID of the database. 
             insert_method: The action to replace or append (defaults to append)
         """
         # check to see if a database id has been provided otherwise create a new database
@@ -84,11 +84,18 @@ class NotionClient(Spreadsheets):
                     )  # archiving will essentially delete the page
                 except Exception as e:
                     self.logger.error("Error in trying to delete database")
-                    raise (ExitCodeException(e, self.EXIT_CODE_UPLOAD_ERROR))
+                    raise (ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR))
             self.logger.info("Successfully deleted rows in existing database")
 
         # load the data row by row
-        self._load(database_id=database_id, data=data)
+        try:
+            self._load(database_id=database_id, data=data)
+        except ExitCodeException as e:
+            self.logger.error("Error in updating database")
+            raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
+        else:
+            self.logger.info("Successfully loaded data into database")
+
 
     def search(self, query: str):
         """Searches the notion api and returns possible matches on the string provided as the `query` parameter
@@ -157,7 +164,7 @@ class NotionClient(Spreadsheets):
             results = self.client.databases.query(database_id=database_id)
         except Exception as e:
             self.logger.warning("No results were found for the provided database id")
-            return
+            raise ExitCodeException(str(e), self.EXIT_CODE_DOWNLOAD_ERROR)
         else:
             return results["results"]
 
@@ -178,13 +185,8 @@ class NotionClient(Spreadsheets):
         rows = nu.create_row_payload(data, db_properties)
         for row in rows:
             parent = {"type": "database_id", "database_id": database_id}
-            try:
-                self.client.pages.create(parent=parent, properties=row.dtypes.payload)
-            except Exception as e:
-                self.logger.error("Error in updating database")
-                raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
+            self.client.pages.create(parent=parent, properties=row.dtypes.payload)
 
-        self.logger.info("Successfully loaded data into database")
 
     def is_accessible(self, database_id: str) -> bool:
         """Helper function to check to see if the database provided is accessible via the API. If False is returned, then the notion database must be shared with the Integration through the UI

@@ -2,6 +2,8 @@ import argparse
 import os
 import pandas as pd
 import sys
+
+from shipyard_templates import ExitCodeException
 from shipyard_notion import NotionClient
 
 
@@ -54,10 +56,14 @@ def main():
         notion.upload(
             data=df, database_id=args.database_id, insert_method=args.insert_method
         )
+    except ExitCodeException as err:
+        notion.logger.error(f"Error uploading data to notion. {err.message}")
+        sys.exit(err.exit_code)
     except Exception as e:
-        notion.logger.error(f"Error uploading data to notion. {str(e)}")
-        sys.exit(notion.EXIT_CODE_UPLOAD_ERROR)
+        notion.logger.error(str(e))
+        sys.exit(notion.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":
     main()
+

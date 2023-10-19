@@ -3,6 +3,8 @@ import os
 import sys
 import pandas as pd
 import json
+
+from shipyard_templates import ExitCodeException
 from shipyard_notion import NotionClient
 from shipyard_notion.notion_utils import flatten_json
 
@@ -39,15 +41,28 @@ def main():
 
     try:
         data = notion.fetch(database_id=args.database_id)
+    except ExitCodeException as ec:
+        notion.logger.error(ec.message)
+        sys.exit(ec.exit_code)
+
     except Exception as e:
         notion.logger.error("Error in downloading data from notion")
-        notion.logger.exception(e)
+        notion.logger.exception(str(e))
         sys.exit(notion.EXIT_CODE_DOWNLOAD_ERROR)
 
     notion.logger.info("Successfully fetched data from notion")
 
     if args.file_type == "csv":
-        flat = flatten_json(data)
+        try:
+            flat = flatten_json(data)
+        except ExitCodeException as ec:
+            notion.logger.error(ec.message)
+            sys.exit(ec.exit_code)
+        except Exception as e:
+            notion.logger.error("Error in parsing the json response")
+            notion.logger.error(str(e))
+            sys.exit(notion.EXIT_CODE_DOWNLOAD_ERROR)
+
         df = pd.DataFrame(flat)
 
         df.to_csv(file_path, index=False)

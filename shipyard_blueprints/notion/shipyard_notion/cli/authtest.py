@@ -4,10 +4,11 @@ from shipyard_notion import NotionClient
 
 
 def main():
-    client = NotionClient(token=os.getenv("NOTION_ACCESS_TOKEN"))
     try:
+        client = NotionClient(token=os.getenv("NOTION_ACCESS_TOKEN"))
         c = client.connect()
     except Exception as e:
+        print("Could not connect to Notion with the provided access token")
         sys.exit(1)
     else:
         sys.exit(0)
