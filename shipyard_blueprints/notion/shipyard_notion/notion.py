@@ -166,7 +166,7 @@ class NotionClient(Spreadsheets):
 
         return matches
 
-    def fetch(self, database_id: str, start_cursor:Optional[str] = None) -> Union[List[Dict[Any, Any]], None]:
+    def fetch(self, database_id: str, start_cursor:Optional[str] = None):
         """Returns the entire results of a database in JSON form
 
         Args:
@@ -177,13 +177,14 @@ class NotionClient(Spreadsheets):
         """
         try:
             results = self.client.databases.query(database_id=database_id, start_cursor = start_cursor)
+            yield results['results']
 
-            print(results)
+            if results['has_more']:
+                yield from self.fetch(database_id, start_cursor = results['next_cursor'])
+
         except Exception as e:
             self.logger.warning("No results were found for the provided database id")
             raise ExitCodeException(str(e), self.EXIT_CODE_DOWNLOAD_ERROR)
-        else:
-            return results["results"]
 
     def _load(self, database_id: str, data: pd.DataFrame):
         """Helper function that inserts rows into a Notion database one row at a time

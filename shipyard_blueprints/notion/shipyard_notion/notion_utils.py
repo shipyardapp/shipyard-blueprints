@@ -21,7 +21,7 @@ class DataRow:
     dtypes: Properties
 
 
-def flatten_json(json_data: Dict[Any, Any]) -> Dict[str, List[Any]]:
+def flatten_json(json_data: List[Dict[Any, Any]]) -> Dict[str, List[Any]]:
     """Helper function to get data returned from NotionClient.fetch() to be in a readable format.
     Format will result in {Column1: [Values],
                            Column2: [Values]}
@@ -29,71 +29,78 @@ def flatten_json(json_data: Dict[Any, Any]) -> Dict[str, List[Any]]:
     Args:
         json_data: The json response data from the Notion API for the contents of the database
     """
-    d = {}
-    try:
-        for results in json_data:
-            properties = results["properties"]
-            for (
-                property
-            ) in properties:  # this will grab the key (column) for each property
-                nested = properties[property]
-                column_type = nested["type"]
-                # initialize the values of the return dictionary to an empty list
-                if not d.get(property):
-                    d[property] = []
-                if column_type == "date":
-                    d[property].append(nested.get("date").get("start"))
-                if column_type == "number":
-                    d[property].append(nested.get("number"))
-                if column_type == "rich_text":
-                    inner_array = nested.get("rich_text")
-                    if len(inner_array) > 0:
-                        d[property].append(inner_array[0].get("text").get("content"))
-                    else:
-                        d[property].append(
-                            None
-                        )  # need to add None so that all the lists will be the same length
+    master = {}
+    for dictionary in json_data:
+        d = {}
+        try:
+            for results in dictionary:
+                properties = results["properties"]
+                for (
+                    property
+                ) in properties:  # this will grab the key (column) for each property
+                    nested = properties[property]
+                    column_type = nested["type"]
+                    # initialize the values of the return dictionary to an empty list
+                    if not d.get(property):
+                        d[property] = []
+                    if column_type == "date":
+                        d[property].append(nested.get("date").get("start"))
+                    if column_type == "number":
+                        d[property].append(nested.get("number"))
+                    if column_type == "rich_text":
+                        inner_array = nested.get("rich_text")
+                        if len(inner_array) > 0:
+                            d[property].append(inner_array[0].get("text").get("content"))
+                        else:
+                            d[property].append(
+                                None
+                            )  # need to add None so that all the lists will be the same length
 
-                if column_type == "checkbox":
-                    d[property].append(nested.get("checkbox"))
-                if column_type == "title":
-                    inner_array = nested.get("title")
-                    if len(inner_array) > 0:
-                        d[property].append(inner_array[0].get("text").get("content"))
-                    else:
-                        d[property].append(
-                            None
-                        )  # need to add None so that all the lists will be the same length
+                    if column_type == "checkbox":
+                        d[property].append(nested.get("checkbox"))
+                    if column_type == "title":
+                        inner_array = nested.get("title")
+                        if len(inner_array) > 0:
+                            d[property].append(inner_array[0].get("text").get("content"))
+                        else:
+                            d[property].append(
+                                None
+                            )  # need to add None so that all the lists will be the same length
 
-                if column_type == "multi_select":
-                    # NOTE: this may not be accounting for blanks correctly
-                    vals = [x.get("name") for x in nested.get("multi_select")]
-                    d[property].append(vals)
-                if column_type == "select":
-                    d[property].append(nested.get("select").get("name"))
-                if column_type == "url":
-                    d[property].append(nested.get("url"))
-                if column_type == "files":
-                    d[property].append(nested.get("name"))
-                if column_type == "email":
-                    d[property].append(nested.get("email"))
+                    if column_type == "multi_select":
+                        # NOTE: this may not be accounting for blanks correctly
+                        vals = [x.get("name") for x in nested.get("multi_select")]
+                        d[property].append(vals)
+                    if column_type == "select":
+                        d[property].append(nested.get("select").get("name"))
+                    if column_type == "url":
+                        d[property].append(nested.get("url"))
+                    if column_type == "files":
+                        d[property].append(nested.get("name"))
+                    if column_type == "email":
+                        d[property].append(nested.get("email"))
 
-                if column_type == "status":
-                    d[property].append(nested.get("status").get("name"))
+                    if column_type == "status":
+                        d[property].append(nested.get("status").get("name"))
 
-                if column_type == "people":
-                    vals = [x.get("person").get("email") for x in nested.get("people")]
-                    d[property].append(vals)
+                    if column_type == "people":
+                        vals = [x.get("person").get("email") for x in nested.get("people")]
+                        d[property].append(vals)
 
-                if column_type == "formula":
-                    d[property].append(nested.get("formula").get("string"))
+                    if column_type == "formula":
+                        d[property].append(nested.get("formula").get("string"))
 
-                if column_type == "phone_number":
-                    d[property].append(nested.get("phone_number"))
-    except Exception as e:
-        raise ExitCodeException(str(e), 1)
-    else:
-        return d
+                    if column_type == "phone_number":
+                        d[property].append(nested.get("phone_number"))
+        except Exception as e:
+            raise ExitCodeException(str(e), 1)
+        else:
+            for d_key, d_val in d.items():
+                if master.get(d_key):
+                    master[d_key].extend(d_val)
+                else:
+                    master[d_key] = d_val
+    return master
 
 
 def guess_type_by_values(values_str: List[str]) -> str:

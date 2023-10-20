@@ -40,7 +40,7 @@ def main():
         file_path = args.file_name
 
     try:
-        data = notion.fetch(database_id=args.database_id)
+        data = list(notion.fetch(database_id=args.database_id)) # This will be a list with each element of the list containing at most 100 rows
     except ExitCodeException as ec:
         notion.logger.error(ec.message)
         sys.exit(ec.exit_code)
