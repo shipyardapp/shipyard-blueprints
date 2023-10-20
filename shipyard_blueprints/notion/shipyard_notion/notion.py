@@ -181,6 +181,11 @@ class NotionClient(Spreadsheets):
         Returns: The query results in JSON form
 
         """
+        if not self.is_accessible(database_id):
+            raise ExitCodeException(
+                message="Database is not accessible, ensure that it or the parent page where it resides is shared with your integration",
+                exit_code=self.EXIT_CODE_INVALID_DATABASE_ID,
+            )
         try:
             results = self.client.databases.query(
                 database_id=database_id, start_cursor=start_cursor
