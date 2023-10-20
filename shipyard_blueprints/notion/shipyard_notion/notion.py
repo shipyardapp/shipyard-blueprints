@@ -66,7 +66,7 @@ class NotionClient(Spreadsheets):
 
         if database_id is None and insert_method == "append":
             self.logger.error(
-                f"Database id is necessary in order to append to a database"
+                "Database id is necessary in order to append to a database"
             )
             raise ValueError
 
@@ -232,6 +232,7 @@ class NotionClient(Spreadsheets):
             if data:
                 return True
         except Exception as e:
+            self.logger.error(str(e))
             return False
 
     def create_database(
