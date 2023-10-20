@@ -30,12 +30,6 @@ def get_args() -> argparse.Namespace:
 def main():
     args = get_args()
     notion = NotionClient(args.token)
-    # if not notion.is_accessible(args.database_id):
-    #     notion.logger.error(
-    #         f"Database provided is not accessible. Please ensure that the database is shared with the Integration created in the Notion developer portal"
-    #     )
-    #     sys.exit(notion.EXIT_CODE_INVALID_DATABASE_ID)
-
     # check to see if a folder name is provided
     if args.folder_name != "":
         file_path = os.path.normpath(os.path.join(args.folder_name, args.file_name))

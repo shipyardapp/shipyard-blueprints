@@ -72,7 +72,6 @@ def flatten_json(json_data: List[Dict[Any, Any]]) -> Dict[str, List[Any]]:
                             )  # need to add None so that all the lists will be the same length
 
                     if column_type == "multi_select":
-                        # NOTE: this may not be accounting for blanks correctly
                         vals = [x.get("name") for x in nested.get("multi_select")]
                         d[property].append(vals)
                     if column_type == "select":

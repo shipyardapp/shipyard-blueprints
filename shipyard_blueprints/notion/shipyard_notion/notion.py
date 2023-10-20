@@ -87,6 +87,12 @@ class NotionClient(Spreadsheets):
 
             # get metadata for the database, if it exists
             self.logger.info(f"Method selected: {insert_method}")
+            if not self.is_accessible(database_id):
+                raise ExitCodeException(
+                    message="Database is not accessible, ensure that it or the parent page where it resides is shared with your integration",
+                    exit_code=self.EXIT_CODE_INVALID_DATABASE_ID,
+                )
+
             db_info = self.client.databases.retrieve(database_id=database_id)
             # handle replacements
             db_pages = self.client.databases.query(database_id=database_id)[
