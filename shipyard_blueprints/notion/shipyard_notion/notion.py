@@ -114,7 +114,7 @@ class NotionClient(Spreadsheets):
             self._load(database_id=database_id, data=data)
         except ExitCodeException as e:
             self.logger.error("Error in updating database")
-            raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
+            raise ExitCodeException(str(e), e.exit_code)
         else:
             self.logger.info("Successfully loaded data into database")
 
@@ -177,6 +177,7 @@ class NotionClient(Spreadsheets):
 
         Args:
             database_id: The ID of the database to fetch
+            start_cursor: The offset to use for paginated responses 
 
         Returns: The query results in JSON form
 
@@ -213,10 +214,15 @@ class NotionClient(Spreadsheets):
         db_properties = db_info[
             "properties"
         ]  # this is to get schema information for the existing db
-        rows = nu.create_row_payload(data, db_properties)
-        for row in rows:
-            parent = {"type": "database_id", "database_id": database_id}
-            self.client.pages.create(parent=parent, properties=row.dtypes.payload)
+        try:
+            rows = nu.create_row_payload(data, db_properties)
+            for row in rows:
+                parent = {"type": "database_id", "database_id": database_id}
+                self.client.pages.create(parent=parent, properties=row.dtypes.payload)
+        except ExitCodeException as ec:
+            raise ExitCodeException(ec.message,self.EXIT_CODE_UPLOAD_ERROR)
+        except Exception as e:
+            raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
 
     def is_accessible(self, database_id: str) -> bool:
         """Helper function to check to see if the database provided is accessible via the API. If False is returned, then the notion database must be shared with the Integration through the UI
