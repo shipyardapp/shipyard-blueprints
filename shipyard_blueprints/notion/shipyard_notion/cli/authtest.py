@@ -8,7 +8,7 @@ def main():
         client = NotionClient(token=os.getenv("NOTION_ACCESS_TOKEN"))
         c = client.connect()
     except Exception as e:
-        print("Could not connect to Notion with the provided access token")
+        print(f"Could not connect to Notion with the provided access token due to {e}")
         sys.exit(1)
     else:
         sys.exit(0)
