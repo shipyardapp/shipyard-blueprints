@@ -50,7 +50,9 @@ def flatten_json(json_data: List[Dict[Any, Any]]) -> Dict[str, List[Any]]:
                     if column_type == "rich_text":
                         inner_array = nested.get("rich_text")
                         if len(inner_array) > 0:
-                            d[property].append(inner_array[0].get("text").get("content"))
+                            d[property].append(
+                                inner_array[0].get("text").get("content")
+                            )
                         else:
                             d[property].append(
                                 None
@@ -61,7 +63,9 @@ def flatten_json(json_data: List[Dict[Any, Any]]) -> Dict[str, List[Any]]:
                     if column_type == "title":
                         inner_array = nested.get("title")
                         if len(inner_array) > 0:
-                            d[property].append(inner_array[0].get("text").get("content"))
+                            d[property].append(
+                                inner_array[0].get("text").get("content")
+                            )
                         else:
                             d[property].append(
                                 None
@@ -84,7 +88,9 @@ def flatten_json(json_data: List[Dict[Any, Any]]) -> Dict[str, List[Any]]:
                         d[property].append(nested.get("status").get("name"))
 
                     if column_type == "people":
-                        vals = [x.get("person").get("email") for x in nested.get("people")]
+                        vals = [
+                            x.get("person").get("email") for x in nested.get("people")
+                        ]
                         d[property].append(vals)
 
                     if column_type == "formula":

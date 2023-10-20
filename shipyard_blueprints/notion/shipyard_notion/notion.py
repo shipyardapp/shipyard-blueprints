@@ -166,7 +166,7 @@ class NotionClient(Spreadsheets):
 
         return matches
 
-    def fetch(self, database_id: str, start_cursor:Optional[str] = None):
+    def fetch(self, database_id: str, start_cursor: Optional[str] = None):
         """Returns the entire results of a database in JSON form
 
         Args:
@@ -176,11 +176,13 @@ class NotionClient(Spreadsheets):
 
         """
         try:
-            results = self.client.databases.query(database_id=database_id, start_cursor = start_cursor)
-            yield results['results']
+            results = self.client.databases.query(
+                database_id=database_id, start_cursor=start_cursor
+            )
+            yield results["results"]
 
-            if results['has_more']:
-                yield from self.fetch(database_id, start_cursor = results['next_cursor'])
+            if results["has_more"]:
+                yield from self.fetch(database_id, start_cursor=results["next_cursor"])
 
         except Exception as e:
             self.logger.warning("No results were found for the provided database id")
