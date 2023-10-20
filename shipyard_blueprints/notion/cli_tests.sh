@@ -48,3 +48,14 @@ if [ "$1" = 'upa2' ]; then
     echo "Starting upload of nonstandard datatypes"
     python3 shipyard_notion/cli/upload.py --token $NOTION_ACCESS_TOKEN --database-id $DB2 --source-file-name nonstandard.csv --insert-method append
 fi
+
+if [ "$1" = 'create' ]; then 
+    echo "Starting upload with creating a database"
+    python3 shipyard_notion/cli/upload.py --token $NOTION_ACCESS_TOKEN --page-id $PAGE_ID --source-file-name test.csv --insert-method replace
+fi
+
+if [ "$1" = 'dl' ]; then 
+    echo "Starting download with larger database"
+    python3 shipyard_notion/cli/download.py --token $NOTION_ACCESS_TOKEN --database-id $DB_LARGE --destination-file-name large.csv --file-type csv
+fi
+

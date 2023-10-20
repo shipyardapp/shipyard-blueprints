@@ -33,7 +33,9 @@ def flatten_json(json_data: Dict[Any, Any]) -> Dict[str, List[Any]]:
     try:
         for results in json_data:
             properties = results["properties"]
-            for property in properties:  # this will grab the key (column) for each property
+            for (
+                property
+            ) in properties:  # this will grab the key (column) for each property
                 nested = properties[property]
                 column_type = nested["type"]
                 # initialize the values of the return dictionary to an empty list
@@ -146,6 +148,7 @@ def mapper(pandas_dtype: str) -> str:
     Returns: The notion datatype (in form a string)
 
     """
+    pandas_dtype = str(pandas_dtype)
     if pandas_dtype == "bool":
         return "checkbox"
     if pandas_dtype in ("int64", "float64"):

@@ -44,7 +44,9 @@ class NotionClient(Spreadsheets):
     def upload(
         self,
         data: pd.DataFrame,
-        database_id: str,
+        database_id: Optional[str] = None,
+        page_id: Optional[str] = None,
+        database_name: Optional[str] = None,
         insert_method: str = "append",
     ):
         """Uploads a pandas dataframe to a Notion database. If the database already exists, then it will either overwrite the existing data or add to it.
@@ -52,7 +54,7 @@ class NotionClient(Spreadsheets):
 
         Args:
             data: The data to load to the database
-            database_id: The ID of the database. 
+            database_id: The ID of the database.
             insert_method: The action to replace or append (defaults to append)
         """
         # check to see if a database id has been provided otherwise create a new database
@@ -62,31 +64,45 @@ class NotionClient(Spreadsheets):
             )
             raise ValueError
 
-        if database_id is None:
+        if database_id is None and insert_method == "append":
             self.logger.error(
                 f"Database id is necessary in order to append to a database"
             )
             raise ValueError
 
-        # get metadata for the database, if it exists
-        self.logger.info(f"Method selected: {insert_method}")
-        db_info = self.client.databases.retrieve(database_id=database_id)
         if insert_method == "replace":
+            if not database_id:
+                # create the database
+                try:
+                    results = self.create_database(
+                        parent_id=page_id, data=data, name=database_name
+                    )
+                    database_id = results.json()["id"]
+                except Exception as e:
+                    self.logger.error("Error in creating database")
+                    raise ExitCodeException(
+                        message=str(e), exit_code=self.EXIT_CODE_DB_CREATE_ERROR
+                    )
+                self.logger.info("Created database")
+
+            # get metadata for the database, if it exists
+            self.logger.info(f"Method selected: {insert_method}")
+            db_info = self.client.databases.retrieve(database_id=database_id)
             # handle replacements
             db_pages = self.client.databases.query(database_id=database_id)[
                 "results"
             ]  # get the current pages and delete them
-            for page in db_pages:
-                pg_id = page["id"]
-                try:
-                    self.client.pages.update(
-                        page_id=pg_id, archived=True
-                    )  # archiving will essentially delete the page
-                except Exception as e:
-                    self.logger.error("Error in trying to delete database")
-                    raise (ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR))
-            self.logger.info("Successfully deleted rows in existing database")
-
+            if not page_id:
+                for page in db_pages:
+                    pg_id = page["id"]
+                    try:
+                        self.client.pages.update(
+                            page_id=pg_id, archived=True
+                        )  # archiving will essentially delete the page
+                    except Exception as e:
+                        self.logger.error("Error in trying to delete database")
+                        raise (ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR))
+                self.logger.info("Successfully deleted rows in existing database")
         # load the data row by row
         try:
             self._load(database_id=database_id, data=data)
@@ -95,7 +111,6 @@ class NotionClient(Spreadsheets):
             raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
         else:
             self.logger.info("Successfully loaded data into database")
-
 
     def search(self, query: str):
         """Searches the notion api and returns possible matches on the string provided as the `query` parameter
@@ -151,7 +166,7 @@ class NotionClient(Spreadsheets):
 
         return matches
 
-    def fetch(self, database_id: str) -> Union[List[Dict[Any, Any]], None]:
+    def fetch(self, database_id: str, start_cursor:Optional[str] = None) -> Union[List[Dict[Any, Any]], None]:
         """Returns the entire results of a database in JSON form
 
         Args:
@@ -161,7 +176,9 @@ class NotionClient(Spreadsheets):
 
         """
         try:
-            results = self.client.databases.query(database_id=database_id)
+            results = self.client.databases.query(database_id=database_id, start_cursor = start_cursor)
+
+            print(results)
         except Exception as e:
             self.logger.warning("No results were found for the provided database id")
             raise ExitCodeException(str(e), self.EXIT_CODE_DOWNLOAD_ERROR)
@@ -187,7 +204,6 @@ class NotionClient(Spreadsheets):
             parent = {"type": "database_id", "database_id": database_id}
             self.client.pages.create(parent=parent, properties=row.dtypes.payload)
 
-
     def is_accessible(self, database_id: str) -> bool:
         """Helper function to check to see if the database provided is accessible via the API. If False is returned, then the notion database must be shared with the Integration through the UI
 
@@ -203,3 +219,45 @@ class NotionClient(Spreadsheets):
                 return True
         except Exception as e:
             return False
+
+    def create_database(
+        self, parent_id: str, data: pd.DataFrame, name: Optional[str] = None
+    ) -> requests.Response:
+        """Creates a database as a subpage of a given parent page
+
+        Args:
+            parent_id: The parent page to create the database on
+            data: The data to base the schema on
+            name: The optional name of the database
+
+        Returns: The HTTP response from the API
+
+        """
+        url = f"{self.base_url}/databases"
+        parent_json = {"type": "page_id", "page_id": parent_id}
+
+        db_name = name if name else "Untitled"
+        title_json = {
+            "type": "text",
+            "text": {"content": db_name},
+        }  # NOTE: Needs to be wrapped around an array for the API
+        properties = {}
+        mapped_types = nu.convert_pandas_to_notion(data)
+        str_counter = 1
+        for k, v in mapped_types.items():
+            if v == "text":
+                if str_counter == 1:
+                    properties[k] = {"title": {}}
+                    str_counter += 1
+                else:
+                    properties[k] = {"rich_text": {}}
+            else:
+                properties[k] = {v: {}}
+        # form the payload to create the database
+        payload = {}
+        payload["parent"] = parent_json
+        payload["title"] = [title_json]
+        payload["properties"] = properties
+
+        resp = requests.post(url=url, headers=self.headers, json=payload)
+        return resp
