@@ -177,7 +177,7 @@ class NotionClient(Spreadsheets):
 
         Args:
             database_id: The ID of the database to fetch
-            start_cursor: The offset to use for paginated responses 
+            start_cursor: The offset to use for paginated responses
 
         Returns: The query results in JSON form
 
@@ -220,7 +220,7 @@ class NotionClient(Spreadsheets):
                 parent = {"type": "database_id", "database_id": database_id}
                 self.client.pages.create(parent=parent, properties=row.dtypes.payload)
         except ExitCodeException as ec:
-            raise ExitCodeException(ec.message,self.EXIT_CODE_UPLOAD_ERROR)
+            raise ExitCodeException(ec.message, self.EXIT_CODE_UPLOAD_ERROR)
         except Exception as e:
             raise ExitCodeException(str(e), self.EXIT_CODE_UPLOAD_ERROR)
 

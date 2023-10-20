@@ -35,20 +35,22 @@ def main():
     try:
         notion = NotionClient(args.token)
     except ExitCodeException as err:
-        print(f'Error connecting to Notion. {err.message}')
+        print(f"Error connecting to Notion. {err.message}")
         sys.exit(err.exit_code)
     except Exception as e:
-        print(f'An unexpected error connecting to Notion: {e}')
+        print(f"An unexpected error connecting to Notion: {e}")
         sys.exit(1)
 
     try:
         if args.insert_method == "append" and args.database_id == "":
             notion.logger.error("Database id is required for append method")
             sys.exit(notion.EXIT_CODE_INVALID_DATABASE_ID)
-        if args.insert_method == "replace" and (not args.database_id and not args.page_id):
+        if args.insert_method == "replace" and (
+            not args.database_id and not args.page_id
+        ):
             notion.logger.error(
                 "If `Replace` is selected as the insert method, and a database ID is not provided, the page ID is required to upload the data"
-                )
+            )
             sys.exit(notion.EXIT_CODE_DB_CREATE_ERROR)
 
         # check to see if a folder name is provided
@@ -57,7 +59,7 @@ def main():
         else:
             file_path = args.file_name
         df = pd.read_csv(file_path)
-        
+
         notion.upload(
             data=df,
             database_id=args.database_id,
@@ -72,9 +74,11 @@ def main():
         sys.exit(notion.EXIT_CODE_FILE_NOT_FOUND)
     except ExitCodeException as err:
         notion.logger.error(f"Error uploading data to notion. {err.message}")
-        sys.exit(err.exit_code)    
+        sys.exit(err.exit_code)
     except Exception as e:
         notion.logger.error(str(e))
         sys.exit(notion.EXIT_CODE_UNKNOWN_ERROR)
+
+
 if __name__ == "__main__":
     main()

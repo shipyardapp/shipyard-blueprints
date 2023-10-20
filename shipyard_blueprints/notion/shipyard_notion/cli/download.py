@@ -28,10 +28,10 @@ def main():
     try:
         notion = NotionClient(args.token)
     except ExitCodeException as err:
-        print(f'Error connecting to Notion. {err.message}')
+        print(f"Error connecting to Notion. {err.message}")
         sys.exit(err.exit_code)
     except Exception as e:
-        print(f'An unexpected error connecting to Notion: {e}')
+        print(f"An unexpected error connecting to Notion: {e}")
         sys.exit(1)
 
     try:
@@ -63,6 +63,7 @@ def main():
         notion.logger.error("Error in downloading data from notion")
         notion.logger.exception(str(e))
         sys.exit(notion.EXIT_CODE_DOWNLOAD_ERROR)
+
 
 if __name__ == "__main__":
     main()
