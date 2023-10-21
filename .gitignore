@@ -22,3 +22,7 @@ load.py
 
 # ignore all csv files
 *.csv
+# ignore test files
+runner.py
+demo/
+
