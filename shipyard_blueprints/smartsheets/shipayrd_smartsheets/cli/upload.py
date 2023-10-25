@@ -20,15 +20,15 @@ def get_logger():
     return logger
 
 def connect(logger:logging.Logger,smartsheet:smartsheet.Smartsheet):
-    response = smartsheet.Sheets.list_sheets()['response']
-    content = response['content']
-    if response['statusCode'] == 401 and content['errorCode'] in (1002,1003):
-        logger.error("Error connecting to Smartsheet")
-        logger.error(content['message'])
+    try:
+        test = smartsheet.Users.get_current_user()
+    except Exception as e:
+        logger.error('Error in connecting to Smartsheet')
+        logger.error(str(e))
         return 1
     else:
         return 0
-
+    
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -55,19 +55,23 @@ def main():
             sys.exit(ss.EXIT_CODE_INVALID_TOKEN)
         # handle the file types 
         if args.file_type == 'csv':
-            response = smart.Sheets.import_csv_sheet(file = file_path, sheet_name = sheet_name)
+            response = smart.Sheets.import_csv_sheet(file = file_path, sheet_name = sheet_name, header_row_index = 0, primary_column_index = 0)
         else:
             response = smart.Sheets.import_xlsx_sheet(file = file_path, sheet_name = sheet_name)
 
-        if response['message'] == 'SUCCESS':
+        if response.message == 'SUCCESS':
+            logger.info('Successfully loaded sheet')
+            logger.info(f"Sheet can be found at {response.result.permalink}")
 
-            pass
-        elif response['message'] == 'PARTIAL_SUCCESS':
-            pass
+        elif response.message == 'PARTIAL_SUCCESS':
+            logger.warning('Sheet has been partially loaded')
+            sys.exit(ss.EXIT_CODE_UPLOAD_ERROR)
 
-
+    except FileNotFoundError as fne:
+        logger.error(f"File {file_path} not found. Ensure that the file name and folder name (if supplied) is correct")
     except Exception as e:
-        pass
+        logger.error("Error in uploading sheet")
+        logger.error(str(e))
 
 if __name__ == "__main__":
     main()
