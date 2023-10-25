@@ -10,7 +10,7 @@ class HightouchClient(Etl):
             "authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json",
         }
-        super().__init__(access_token = access_token)
+        super().__init__(access_token=access_token)
 
     def get_sync_status(self, sync_id: str, sync_run_id: str):
         """
@@ -90,9 +90,11 @@ class HightouchClient(Etl):
             self.logger.error(f"Sync run {run_id} failed. {error_info}")
             return self.EXIT_CODE_FINAL_STATUS_ERRORED
 
-        elif status == 'warning':
-            warning_info = sync_run_data['error']
-            self.logger.warning(f"Sync run {run_id} had the following warning: {warning_info}")
+        elif status == "warning":
+            warning_info = sync_run_data["error"]
+            self.logger.warning(
+                f"Sync run {run_id} had the following warning: {warning_info}"
+            )
             return self.EXIT_CODE_FINAL_STATUS_INCOMPLETE
         else:
             self.logger.error(f"Unknown Sync status: {status}")
