@@ -109,7 +109,6 @@ class HightouchClient(Etl):
             )
 
             sync_status_code = sync_trigger_response.status_code
-            print(sync_trigger_response.json())
             # check if successful, if not return error message
             if sync_status_code == requests.codes.ok:
                 self.logger.info(
