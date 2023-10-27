@@ -8,6 +8,7 @@ from shipyard_templates import ExitCodeException, Spreadsheets as ss
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
+
 @dataclass
 class DataRow:
     index:int
@@ -114,8 +115,6 @@ def main():
         if args.insert_method == 'append':
             # handle replace
             pass
-
-
 
         # handle the file types
         if args.file_type == "csv":
