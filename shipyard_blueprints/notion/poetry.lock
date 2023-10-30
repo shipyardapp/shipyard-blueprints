@@ -577,16 +577,14 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "shipyard-templates"
-version = "0.3.1"
+version = "0.4.1"
 description = "Super classes for blueprint development"
 optional = false
-python-versions = "^3.9"
-files = []
-develop = true
-
-[package.source]
-type = "directory"
-url = "../../shipyard-templates"
+python-versions = ">=3.9,<4.0"
+files = [
+    {file = "shipyard_templates-0.4.1-py3-none-any.whl", hash = "sha256:42212f4fd3ab523b57f03f89fe9c72bb9fa9fd8e91b7543c987df43b5a5765c0"},
+    {file = "shipyard_templates-0.4.1.tar.gz", hash = "sha256:75a84c53d2c391222fea2d56d6deb2a9ad284930f2e34b149362e405b9a93084"},
+]
 
 [[package]]
 name = "six"
@@ -652,4 +650,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "4ae9561f17752586c4dfd926172cf8a1110f4eb268373830359e3fb49664a405"
+content-hash = "d07a66e15b5821631be5724454b609a43703e179b2e91c590704fb827f28c727"
