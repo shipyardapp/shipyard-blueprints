@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-templates"
-version = "0.4.1a1"
+version = "0.4.1"
 description = "Super classes for blueprint development"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache License 2.0"
