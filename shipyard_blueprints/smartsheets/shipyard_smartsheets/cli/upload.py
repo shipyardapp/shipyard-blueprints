@@ -12,9 +12,8 @@ from dataclasses import dataclass
 
 @dataclass
 class DataRow:
-    index:int
-    values:List[smartsheet.Smartsheet.models.Row]
-
+    index: int
+    values: List[smartsheet.Smartsheet.models.Row]
 
 
 def get_logger():
@@ -58,23 +57,30 @@ def get_args():
         default="csv",
         choices={"xlsx", "csv"},
     )
-    parser.add_argument('--insert-method', dest = 'insert_method', required = False, default = 'replace', choices = {'replace','append'})
-    parser.add_argument('--sheet-id', dest = 'sheet_id', required = False, default = '')
+    parser.add_argument(
+        "--insert-method",
+        dest="insert_method",
+        required=False,
+        default="replace",
+        choices={"replace", "append"},
+    )
+    parser.add_argument("--sheet-id", dest="sheet_id", required=False, default="")
     return parser.parse_args()
 
-def map_columns(smart:smartsheet.Smartsheet, sheet_id:str) -> Dict[str,str]:
-    """ Helper function to produce a quick lookup table for column ids. 
+
+def map_columns(smart: smartsheet.Smartsheet, sheet_id: str) -> Dict[str, str]:
+    """Helper function to produce a quick lookup table for column ids.
 
     Args:
         smart: The Smartsheet client
         sheet_id: The ID of the sheet to pull
 
-    Returns: The column mapping in the form of a dictionary where the key is the column name and the value is the ID 
-        
+    Returns: The column mapping in the form of a dictionary where the key is the column name and the value is the ID
+
     """
     try:
         mapping = {}
-        sheet_data = smart.Sheets.get_sheet(sheet_id, page_size = 1)
+        sheet_data = smart.Sheets.get_sheet(sheet_id, page_size=1)
         columns = sheet_data.columns
         for col in columns:
             title = col.title
@@ -84,10 +90,15 @@ def map_columns(smart:smartsheet.Smartsheet, sheet_id:str) -> Dict[str,str]:
         raise ExitCodeException(f"Error in mapping columns: {str(e)}", 1)
     else:
         return mapping
-    
 
-def form_rows(smart:smartsheet.Smartsheet,column_mapping:Dict[str,str], data:pd.DataFrame, insert_method = 'append') -> List[Any]:
-    """ Helper function to generate a list of Rows to sent to Smartsheet. This is used to udpate an existing sheet (whether that is an overwrite, or an append)
+
+def form_rows(
+    smart: smartsheet.Smartsheet,
+    column_mapping: Dict[str, str],
+    data: pd.DataFrame,
+    insert_method="append",
+) -> List[Any]:
+    """Helper function to generate a list of Rows to sent to Smartsheet. This is used to udpate an existing sheet (whether that is an overwrite, or an append)
 
 
     Args:
@@ -97,27 +108,31 @@ def form_rows(smart:smartsheet.Smartsheet,column_mapping:Dict[str,str], data:pd.
         data: Pandas Dataframe to upload
 
     Returns:
-        
+
     """
-    all_rows = [] # this will be a list of DataRow objects
+    all_rows = []  # this will be a list of DataRow objects
     columns = data.columns
     try:
         for index in range(len(data)):
-            single_row = [] # this will be a list of smartsheet.Smartsheet.models.Row objects
+            single_row = (
+                []
+            )  # this will be a list of smartsheet.Smartsheet.models.Row objects
             new_row = smart.models.Row()
             for column in columns:
                 row_value = data[column].iloc[index]
                 column_id = column_mapping.get(column)
                 # specify whether the rows will be appended to an existing sheet or replaced at the top
-                if insert_method == 'append':
-                    new_row.to_bottom = True  
-                elif insert_method == 'replace':
+                if insert_method == "append":
+                    new_row.to_bottom = True
+                elif insert_method == "replace":
                     new_row.to_top = True
                 cell = smart.models.Cell()
                 cell.column_id = column_id
                 if isinstance(row_value, np.bool_):
                     if row_value:
-                        cell.value = bool(row_value) # this is to properly set the cell value when it is false
+                        cell.value = bool(
+                            row_value
+                        )  # this is to properly set the cell value when it is false
                     else:
                         cell.value = not True
                 elif isinstance(row_value, np.int64):
@@ -130,27 +145,33 @@ def form_rows(smart:smartsheet.Smartsheet,column_mapping:Dict[str,str], data:pd.
             single_row.append(new_row)
             all_rows.append(new_row)
     except Exception as e:
-        raise ExitCodeException(f"Error in forming rows to be loaded: {str(e)}", ss.EXIT_CODE_UPLOAD_ERROR)
+        raise ExitCodeException(
+            f"Error in forming rows to be loaded: {str(e)}", ss.EXIT_CODE_UPLOAD_ERROR
+        )
 
     else:
         return all_rows
 
-def read_data(file_path:str, file_type:str = 'csv'):
-    """ Helper function to read in data from either csv or xlsx format
+
+def read_data(file_path: str, file_type: str = "csv"):
+    """Helper function to read in data from either csv or xlsx format
 
     Args:
         file_path: The file path to read in
         file_type: csv or xlsx
 
     Returns: A Pandas Datafram
-        
+
     """
-    if file_type == 'xlsx':
+    if file_type == "xlsx":
         return pd.read_excel(file_path)
     return pd.read_csv(file_path)
 
-def upload_append(smart:smartsheet.Smartsheet,file_path:str,sheet_id:str,file_type:str = 'csv'):
-    """ Function to upload append jobs to an existing Sheet in Smartsheet.
+
+def upload_append(
+    smart: smartsheet.Smartsheet, file_path: str, sheet_id: str, file_type: str = "csv"
+):
+    """Function to upload append jobs to an existing Sheet in Smartsheet.
 
     Args:
         smart: The smartsheet client
@@ -160,23 +181,36 @@ def upload_append(smart:smartsheet.Smartsheet,file_path:str,sheet_id:str,file_ty
 
 
     Returns: The response from the Smartsheet API
-        
+
     """
     df = read_data(file_path, file_type)
     column_mapping = map_columns(smart, sheet_id)
-    rows = form_rows(smart,column_mapping, df, insert_method =  'append')
+    rows = form_rows(smart, column_mapping, df, insert_method="append")
     sheet = smart.Sheets.get_sheet(sheet_id)
     try:
         resp = smart.Sheets.add_rows(sheet.id, rows)
     except FileNotFoundError:
-        raise(ExitCodeException(f'Error when trying to read in data, file {file_path} was not found', exit_code = ss.EXIT_CODE_FILE_NOT_FOUND))
+        raise (
+            ExitCodeException(
+                f"Error when trying to read in data, file {file_path} was not found",
+                exit_code=ss.EXIT_CODE_FILE_NOT_FOUND,
+            )
+        )
     except Exception as e:
-        raise(ExitCodeException(f'Error when trying to append rows to sheet: {str(e)}', exit_code= ss.EXIT_CODE_UPLOAD_ERROR))
+        raise (
+            ExitCodeException(
+                f"Error when trying to append rows to sheet: {str(e)}",
+                exit_code=ss.EXIT_CODE_UPLOAD_ERROR,
+            )
+        )
     else:
         return resp
 
-def delete_sheet_contents(smart:smartsheet.Smartsheet, logger:logging.Logger ,sheet_id:str):
-    """ Helper function to delete all the row content in an existing sheet
+
+def delete_sheet_contents(
+    smart: smartsheet.Smartsheet, logger: logging.Logger, sheet_id: str
+):
+    """Helper function to delete all the row content in an existing sheet
 
     Args:
         smart: The smartsheet client
@@ -187,17 +221,26 @@ def delete_sheet_contents(smart:smartsheet.Smartsheet, logger:logging.Logger ,sh
         sheet = smart.Sheets.get_sheet(sheet_id)
         row_ids = [row.id for row in sheet.rows]
         for i in range(0, len(row_ids), 100):
-            smart.Sheets.delete_rows(sheet.id, row_ids[i:i+100])
+            smart.Sheets.delete_rows(sheet.id, row_ids[i : i + 100])
     except Exception as e:
         logger.error("Error encoutered when deleting rows")
-        raise ExitCodeException(f"Error in deleting rows {str(e)}", ss.EXIT_CODE_BAD_REQUEST)
+        raise ExitCodeException(
+            f"Error in deleting rows {str(e)}", ss.EXIT_CODE_BAD_REQUEST
+        )
 
     else:
         logger.info("Successfully deleted sheet rows")
 
 
-def upload_replace(smart:smartsheet.Smartsheet, logger:logging.Logger ,file_path:str,name:str,file_type:str, sheet_id:Optional[str] = None):
-    """ This function uploads a file (read in as a pandas dataframe) to Smartsheet. If the sheet_id is provided, the existing sheet will be overwritten (if the datatypes) match, otherwise a new sheet will be created
+def upload_replace(
+    smart: smartsheet.Smartsheet,
+    logger: logging.Logger,
+    file_path: str,
+    name: str,
+    file_type: str,
+    sheet_id: Optional[str] = None,
+):
+    """This function uploads a file (read in as a pandas dataframe) to Smartsheet. If the sheet_id is provided, the existing sheet will be overwritten (if the datatypes) match, otherwise a new sheet will be created
     Args:
         smart: The smartsheet client
         logger: The logger to STDOUT
@@ -207,36 +250,52 @@ def upload_replace(smart:smartsheet.Smartsheet, logger:logging.Logger ,file_path
         sheet_id: The ID of the sheet to be overwritten
 
     Returns: The response from the smartsheet API
-        
+
     """
     try:
         data = read_data(file_path, file_type)
         sheet = smart.Sheets.get_sheet(sheet_id)
-        column_mapping = map_columns(smart,sheet_id)
-        new_rows = form_rows(smart,column_mapping, data, insert_method= 'replace')
-        if file_type == 'csv':
+        column_mapping = map_columns(smart, sheet_id)
+        new_rows = form_rows(smart, column_mapping, data, insert_method="replace")
+        if file_type == "csv":
             # NOTE: if sheet exists, then update the rows, otherwise create a new one
             if sheet_id:
                 # clear the existing sheet content
-                delete_sheet_contents(smart, logger ,sheet_id)
+                delete_sheet_contents(smart, logger, sheet_id)
                 response = smart.Sheets.add_rows(sheet.id, new_rows)
-            else :
-                response = smart.Sheets.import_csv_sheet(file = file_path, sheet_name = name, header_row_index = 0, primary_column_index = 0)
-        elif file_type == 'xlsx':
+            else:
+                response = smart.Sheets.import_csv_sheet(
+                    file=file_path,
+                    sheet_name=name,
+                    header_row_index=0,
+                    primary_column_index=0,
+                )
+        elif file_type == "xlsx":
             if sheet_id:
                 # get the sheet_data
                 response = smart.Sheets.add_rows(sheet.id, new_rows)
             else:
                 response = smart.Sheets.import_xlsx_sheet(
                     file=file_path, sheet_name=name
-                    )
+                )
     except FileNotFoundError:
-        raise(ExitCodeException(f'Error when trying to read in data, file {file_path} was not found', exit_code = ss.EXIT_CODE_FILE_NOT_FOUND))
+        raise (
+            ExitCodeException(
+                f"Error when trying to read in data, file {file_path} was not found",
+                exit_code=ss.EXIT_CODE_FILE_NOT_FOUND,
+            )
+        )
 
     except Exception as e:
-        raise(ExitCodeException(f'Error in running replace job. {str(e)}', exit_code = ss.EXIT_CODE_UPLOAD_ERROR))
+        raise (
+            ExitCodeException(
+                f"Error in running replace job. {str(e)}",
+                exit_code=ss.EXIT_CODE_UPLOAD_ERROR,
+            )
+        )
     else:
         return response
+
 
 def main():
     args = get_args()
@@ -250,24 +309,35 @@ def main():
         # establish client and check cif access token is valid
         smart = smartsheet.Smartsheet(args.access_token)
         sheet_name = args.sheet_name if args.sheet_name != "" else None
-        sheet_id = args.sheet_id if args.sheet_id != '' else None
+        sheet_id = args.sheet_id if args.sheet_id != "" else None
         if connect(logger, smart) == 1:
             sys.exit(ss.EXIT_CODE_INVALID_TOKEN)
 
-        if args.insert_method == 'append':
-           # handle append
+        if args.insert_method == "append":
+            # handle append
             if not sheet_id:
-                logger.error('A Sheet ID is required in order to append')
+                logger.error("A Sheet ID is required in order to append")
                 sys.exit(ss.EXIT_CODE_BAD_REQUEST)
-            response = upload_append(smart, file_path = file_path , sheet_id = sheet_id, file_type = args.file_type)
+            response = upload_append(
+                smart, file_path=file_path, sheet_id=sheet_id, file_type=args.file_type
+            )
 
         else:
-            response = upload_replace(smart,logger = logger, file_path = file_path, name = sheet_name, file_type = args.file_type, sheet_id = sheet_id )
+            response = upload_replace(
+                smart,
+                logger=logger,
+                file_path=file_path,
+                name=sheet_name,
+                file_type=args.file_type,
+                sheet_id=sheet_id,
+            )
 
         if response.message == "SUCCESS":
             logger.info("Successfully loaded sheet")
 
-        elif response.message == "PARTIAL_SUCCESS": # this shouldn't ever be reached, but just for precautions
+        elif (
+            response.message == "PARTIAL_SUCCESS"
+        ):  # this shouldn't ever be reached, but just for precautions
             logger.warning("Sheet has been partially loaded")
             sys.exit(ss.EXIT_CODE_UPLOAD_ERROR)
 
@@ -276,7 +346,9 @@ def main():
             f"File {file_path} not found. Ensure that the file name and folder name (if supplied) is correct"
         )
     except ExitCodeException as ec:
-        logger.error(f"Error encountered when attemtping to upload sheet via {args.insert_method}: {ec.message}")
+        logger.error(
+            f"Error encountered when attemtping to upload sheet via {args.insert_method}: {ec.message}"
+        )
     except Exception as e:
         logger.error("Error in uploading sheet")
         logger.error(str(e))
