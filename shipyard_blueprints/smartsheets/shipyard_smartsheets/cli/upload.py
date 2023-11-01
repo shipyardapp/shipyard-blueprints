@@ -10,12 +10,6 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
 
-@dataclass
-class DataRow:
-    index: int
-    values: List[smartsheet.Smartsheet.models.Row]
-
-
 def get_logger():
     logger = logging.getLogger("Shipyard")
     logger.setLevel(logging.DEBUG)
