@@ -460,7 +460,7 @@ requests = ">=2.0.1,<3.0.0"
 
 [[package]]
 name = "shipyard-templates"
-version = "0.4.1a0"
+version = "0.4.1"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = "^3.9"
@@ -546,4 +546,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d99dab171b64de95c6548288aa1d844374da88f18f83fafd1751c011d4fa982a"
+content-hash = "095c1a1b93f7f4fe8161041eb43d673ff50ef48865d77aeb689191181e2c4751"
