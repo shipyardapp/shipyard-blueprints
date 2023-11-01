@@ -247,31 +247,31 @@ def upload_replace(
 
     """
     try:
-        data = read_data(file_path, file_type)
-        sheet = smart.Sheets.get_sheet(sheet_id)
-        column_mapping = map_columns(smart, sheet_id)
-        new_rows = form_rows(smart, column_mapping, data, insert_method="replace")
-        if file_type == "csv":
-            # NOTE: if sheet exists, then update the rows, otherwise create a new one
-            if sheet_id:
-                # clear the existing sheet content
-                delete_sheet_contents(smart, logger, sheet_id)
-                response = smart.Sheets.add_rows(sheet.id, new_rows)
-            else:
+        # NOTE: if sheet exists, then update the rows, otherwise create a new one
+        if not sheet_id:
+            if file_type == "csv":
                 response = smart.Sheets.import_csv_sheet(
                     file=file_path,
                     sheet_name=name,
                     header_row_index=0,
                     primary_column_index=0,
                 )
-        elif file_type == "xlsx":
-            if sheet_id:
-                # get the sheet_data
-                response = smart.Sheets.add_rows(sheet.id, new_rows)
             else:
                 response = smart.Sheets.import_xlsx_sheet(
                     file=file_path, sheet_name=name
                 )
+        else:
+            data = read_data(file_path, file_type)
+            sheet = smart.Sheets.get_sheet(sheet_id)
+            column_mapping = map_columns(smart, sheet_id)
+            new_rows = form_rows(smart, column_mapping, data, insert_method="replace")
+            if file_type == "csv":
+                # clear the existing sheet content
+                delete_sheet_contents(smart, logger, sheet_id)
+                response = smart.Sheets.add_rows(sheet.id, new_rows)
+            elif file_type == "xlsx":
+                # get the sheet_data
+                response = smart.Sheets.add_rows(sheet.id, new_rows)
     except FileNotFoundError:
         raise (
             ExitCodeException(
