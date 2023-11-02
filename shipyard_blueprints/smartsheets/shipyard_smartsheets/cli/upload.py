@@ -64,9 +64,10 @@ def get_args():
     parser.add_argument("--sheet-id", dest="sheet_id", required=False, default="")
     return parser.parse_args()
 
-def is_valid_sheet(smart:smartsheet.Smartsheet, sheet_id:str) -> bool:
+
+def is_valid_sheet(smart: smartsheet.Smartsheet, sheet_id: str) -> bool:
     try:
-        response = smart.Sheets.get_sheet(sheet_id, page_size = 1)
+        response = smart.Sheets.get_sheet(sheet_id, page_size=1)
         if isinstance(response, smart.models.error.Error):
             return False
     except Exception as e:
@@ -316,7 +317,7 @@ def main():
         # establish client and check cif access token is valid
         smart = smartsheet.Smartsheet(args.access_token)
         sheet_name = args.sheet_name if args.sheet_name != "" else None
-        sheet_id = args.sheet_id if args.sheet_id != "" else None
+        sheet_id = None if args.sheet_id == "" else args.sheet_id
         if connect(logger, smart) == 1:
             sys.exit(ss.EXIT_CODE_INVALID_TOKEN)
 

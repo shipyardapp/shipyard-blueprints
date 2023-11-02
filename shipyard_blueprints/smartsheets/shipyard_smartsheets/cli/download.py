@@ -11,6 +11,7 @@ from typing import Dict, List, Any
 # custom exit code
 EXIT_CODE_INVALID_SHEET_ID = 220
 
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--access-token", dest="access_token", required=True)
@@ -54,15 +55,17 @@ def get_logger():
     logger.addHandler(console)
     return logger
 
-def is_valid_sheet(smart:smartsheet.Smartsheet, sheet_id:str) -> bool:
+
+def is_valid_sheet(smart: smartsheet.Smartsheet, sheet_id: str) -> bool:
     try:
-        response = smart.Sheets.get_sheet(sheet_id, page_size = 1)
+        response = smart.Sheets.get_sheet(sheet_id, page_size=1)
         if isinstance(response, smart.models.error.Error):
             return False
     except Exception as e:
         return False
     else:
         return True
+
 
 def flatten_json(json_data: Dict[Any, Any]) -> Dict[str, List[Any]]:
     try:
@@ -113,7 +116,6 @@ def main():
         if not is_valid_sheet(smart, sheet_id):
             logger.error("Error: sheet ID provided is not valid")
             sys.exit(EXIT_CODE_INVALID_SHEET_ID)
-
 
         if args.folder_name != "":
             file_path = os.path.join(args.folder_name, args.file_name)
