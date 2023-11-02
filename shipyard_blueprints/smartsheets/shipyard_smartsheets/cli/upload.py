@@ -9,6 +9,9 @@ from shipyard_templates import ExitCodeException, Spreadsheets as ss
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
+# custom exit code
+EXIT_CODE_INVALID_SHEET_ID = 220
+
 
 def get_logger():
     logger = logging.getLogger("Shipyard")
@@ -60,6 +63,16 @@ def get_args():
     )
     parser.add_argument("--sheet-id", dest="sheet_id", required=False, default="")
     return parser.parse_args()
+
+def is_valid_sheet(smart:smartsheet.Smartsheet, sheet_id:str) -> bool:
+    try:
+        response = smart.Sheets.get_sheet(sheet_id, page_size = 1)
+        if isinstance(response, smart.models.error.Error):
+            return False
+    except Exception as e:
+        return False
+    else:
+        return True
 
 
 def map_columns(smart: smartsheet.Smartsheet, sheet_id: str) -> Dict[str, str]:
@@ -306,6 +319,12 @@ def main():
         sheet_id = args.sheet_id if args.sheet_id != "" else None
         if connect(logger, smart) == 1:
             sys.exit(ss.EXIT_CODE_INVALID_TOKEN)
+
+        # check to see if the sheet id provided is valid, fail if not
+        if sheet_id:
+            if not is_valid_sheet(smart, sheet_id):
+                logger.error("Error: sheet ID provided is not valid")
+                sys.exit(EXIT_CODE_INVALID_SHEET_ID)
 
         if args.insert_method == "append":
             # handle append
