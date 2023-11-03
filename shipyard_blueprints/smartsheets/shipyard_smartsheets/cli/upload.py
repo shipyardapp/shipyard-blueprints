@@ -59,7 +59,7 @@ def get_args():
         dest="insert_method",
         required=False,
         default="replace",
-        choices={"replace", "append"},
+        choices={"replace", "append", "create"},
     )
     parser.add_argument("--sheet-id", dest="sheet_id", required=False, default="")
     return parser.parse_args()
@@ -248,6 +248,42 @@ def delete_sheet_contents(
     else:
         logger.info("Successfully deleted sheet rows")
 
+def upload_create(
+    smart: smartsheet.Smartsheet,
+    logger: logging.Logger,
+    file_path: str,
+    name: str,
+    file_type: str,
+):
+    try:
+        if file_type == "csv":
+            response = smart.Sheets.import_csv_sheet(
+                file=file_path,
+                sheet_name=name,
+                header_row_index=0,
+                primary_column_index=0,
+            )
+        else:
+            response = smart.Sheets.import_xlsx_sheet(
+                file=file_path, sheet_name=name
+            )
+    except FileNotFoundError:
+        raise (
+            ExitCodeException(
+                f"Error when trying to read in data, file {file_path} was not found",
+                exit_code=ss.EXIT_CODE_FILE_NOT_FOUND,
+            )
+        )
+
+    except Exception as e:
+        raise (
+            ExitCodeException(
+                f"Error in running replace job. {str(e)}",
+                exit_code=ss.EXIT_CODE_UPLOAD_ERROR,
+            )
+        )
+    else:
+        return response
 
 def upload_replace(
     smart: smartsheet.Smartsheet,
@@ -255,7 +291,7 @@ def upload_replace(
     file_path: str,
     name: str,
     file_type: str,
-    sheet_id: Optional[str] = None,
+    sheet_id: Optional[str],
 ):
     """This function uploads a file (read in as a pandas dataframe) to Smartsheet. If the sheet_id is provided, the existing sheet will be overwritten (if the datatypes) match, otherwise a new sheet will be created
     Args:
@@ -270,31 +306,21 @@ def upload_replace(
 
     """
     try:
-        # NOTE: if sheet exists, then update the rows, otherwise create a new one
         if not sheet_id:
-            if file_type == "csv":
-                response = smart.Sheets.import_csv_sheet(
-                    file=file_path,
-                    sheet_name=name,
-                    header_row_index=0,
-                    primary_column_index=0,
-                )
-            else:
-                response = smart.Sheets.import_xlsx_sheet(
-                    file=file_path, sheet_name=name
-                )
-        else:
-            data = read_data(file_path, file_type)
-            sheet = smart.Sheets.get_sheet(sheet_id)
-            column_mapping = map_columns(smart, sheet_id)
-            new_rows = form_rows(smart, column_mapping, data, insert_method="replace")
-            if file_type == "csv":
-                # clear the existing sheet content
-                delete_sheet_contents(smart, logger, sheet_id)
-                response = smart.Sheets.add_rows(sheet.id, new_rows)
-            elif file_type == "xlsx":
-                # get the sheet_data
-                response = smart.Sheets.add_rows(sheet.id, new_rows)
+            raise ExitCodeException('In order to replace an existing sheet, a sheet ID is required', ss.EXIT_CODE_UPLOAD_ERROR)
+
+        data = read_data(file_path, file_type)
+        sheet = smart.Sheets.get_sheet(sheet_id)
+        column_mapping = map_columns(smart, sheet_id)
+        new_rows = form_rows(smart, column_mapping, data, insert_method="replace")
+        if file_type == "csv":
+            # clear the existing sheet content
+            delete_sheet_contents(smart, logger, sheet_id)
+            response = smart.Sheets.add_rows(sheet.id, new_rows)
+        elif file_type == "xlsx":
+            # get the sheet_data
+            response = smart.Sheets.add_rows(sheet.id, new_rows)
+
     except FileNotFoundError:
         raise (
             ExitCodeException(
@@ -335,7 +361,10 @@ def main():
             logger.error("Error: sheet ID provided is not valid")
             sys.exit(EXIT_CODE_INVALID_SHEET_ID)
 
-        if args.insert_method == "append":
+        if args.insert_method == 'create':
+            response = upload_create(smart, logger = logger, file_path = file_path, name = sheet_name, file_type = args.file_type )
+
+        elif args.insert_method == "append":
             response = upload_append(
                 smart,
                 logger=logger,
@@ -362,6 +391,10 @@ def main():
         ):  # this shouldn't ever be reached, but just for precautions
             logger.warning("Sheet has been partially loaded")
             sys.exit(ss.EXIT_CODE_UPLOAD_ERROR)
+        else:
+            logger.warning(f"Unknown response status from Smartsheet API: {response.message}")
+            sys.exit(ss.EXIT_CODE_UNKNOWN_ERROR)
+
 
     except FileNotFoundError as fne:
         logger.error(
@@ -370,7 +403,7 @@ def main():
         sys.exit(ss.EXIT_CODE_FILE_NOT_FOUND)
     except ExitCodeException as ec:
         logger.error(
-            f"Error encountered when attemtping to upload sheet via {args.insert_method}: {ec.message}"
+            f"Error encountered when attemtping to upload sheet via {args.insert_method} method: {ec.message}"
         )
         sys.exit(ec.exit_code)
     except Exception as e:
