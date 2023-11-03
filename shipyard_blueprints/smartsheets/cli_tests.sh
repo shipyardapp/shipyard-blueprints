@@ -45,3 +45,13 @@ if [ "$1" = 'invalid_id' ]; then
     python3 ./shipyard_smartsheets/cli/upload.py --access-token $SMARTSHEET_ACCESS_TOKEN --sheet-id "1243lkasdfl" --source-file-name sheet.csv --insert-method replace 
 
 fi
+
+if [ "$1" = 'down_bad_token' ]; then 
+    python3 ./shipyard_smartsheets/cli/download.py --access-token 'mybadid' --sheet-id $SMALL --destination-file-name download.csv
+fi
+
+if [ "$1" = 'down_bad_id' ]; then 
+    python3 ./shipyard_smartsheets/cli/download.py --access-token $SMARTSHEET_ACCESS_TOKEN --sheet-id 'mybadid' --destination-file-name download.csv
+fi
+
+
