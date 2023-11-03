@@ -248,6 +248,7 @@ def delete_sheet_contents(
     else:
         logger.info("Successfully deleted sheet rows")
 
+
 def upload_create(
     smart: smartsheet.Smartsheet,
     logger: logging.Logger,
@@ -264,9 +265,7 @@ def upload_create(
                 primary_column_index=0,
             )
         else:
-            response = smart.Sheets.import_xlsx_sheet(
-                file=file_path, sheet_name=name
-            )
+            response = smart.Sheets.import_xlsx_sheet(file=file_path, sheet_name=name)
     except FileNotFoundError:
         raise (
             ExitCodeException(
@@ -284,6 +283,7 @@ def upload_create(
         )
     else:
         return response
+
 
 def upload_replace(
     smart: smartsheet.Smartsheet,
@@ -307,7 +307,10 @@ def upload_replace(
     """
     try:
         if not sheet_id:
-            raise ExitCodeException('In order to replace an existing sheet, a sheet ID is required', ss.EXIT_CODE_UPLOAD_ERROR)
+            raise ExitCodeException(
+                "In order to replace an existing sheet, a sheet ID is required",
+                ss.EXIT_CODE_UPLOAD_ERROR,
+            )
 
         data = read_data(file_path, file_type)
         sheet = smart.Sheets.get_sheet(sheet_id)
@@ -361,8 +364,14 @@ def main():
             logger.error("Error: sheet ID provided is not valid")
             sys.exit(EXIT_CODE_INVALID_SHEET_ID)
 
-        if args.insert_method == 'create':
-            response = upload_create(smart, logger = logger, file_path = file_path, name = sheet_name, file_type = args.file_type )
+        if args.insert_method == "create":
+            response = upload_create(
+                smart,
+                logger=logger,
+                file_path=file_path,
+                name=sheet_name,
+                file_type=args.file_type,
+            )
 
         elif args.insert_method == "append":
             response = upload_append(
@@ -392,9 +401,10 @@ def main():
             logger.warning("Sheet has been partially loaded")
             sys.exit(ss.EXIT_CODE_UPLOAD_ERROR)
         else:
-            logger.warning(f"Unknown response status from Smartsheet API: {response.message}")
+            logger.warning(
+                f"Unknown response status from Smartsheet API: {response.message}"
+            )
             sys.exit(ss.EXIT_CODE_UNKNOWN_ERROR)
-
 
     except FileNotFoundError as fne:
         logger.error(
