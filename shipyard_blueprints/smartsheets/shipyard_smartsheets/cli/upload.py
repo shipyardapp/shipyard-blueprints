@@ -177,12 +177,13 @@ def read_data(file_path: str, file_type: str = "csv"):
 
 
 def upload_append(
-    smart: smartsheet.Smartsheet, file_path: str, sheet_id: str, file_type: str = "csv"
+        smart: smartsheet.Smartsheet, logger:logging.Logger, file_path: str, sheet_id: str, file_type: str = "csv"
 ):
     """Function to upload append jobs to an existing Sheet in Smartsheet.
 
     Args:
         smart: The smartsheet client
+        logger: The logger to STDOUT
         file_path: The file path of the data to load
         sheet_id: The ID of the existing sheet to append to
         file_type: csv or xlsx file
@@ -191,6 +192,8 @@ def upload_append(
     Returns: The response from the Smartsheet API
 
     """
+    if not sheet_id:
+        raise ExitCodeException('A Sheet ID is required in order to append', ss.EXIT_CODE_BAD_REQUEST)
     df = read_data(file_path, file_type)
     column_mapping = map_columns(smart, sheet_id)
     rows = form_rows(smart, column_mapping, df, insert_method="append")
@@ -317,23 +320,18 @@ def main():
         # establish client and check cif access token is valid
         smart = smartsheet.Smartsheet(args.access_token)
         sheet_name = args.sheet_name if args.sheet_name != "" else None
-        sheet_id = None if args.sheet_id == "" else args.sheet_id
+        sheet_id = args.sheet_id if args.sheet_id != "" else None
         if connect(logger, smart) == 1:
             sys.exit(ss.EXIT_CODE_INVALID_TOKEN)
 
         # check to see if the sheet id provided is valid, fail if not
-        if sheet_id:
-            if not is_valid_sheet(smart, sheet_id):
-                logger.error("Error: sheet ID provided is not valid")
-                sys.exit(EXIT_CODE_INVALID_SHEET_ID)
+        if sheet_id and not is_valid_sheet(smart, sheet_id):
+            logger.error("Error: sheet ID provided is not valid")
+            sys.exit(EXIT_CODE_INVALID_SHEET_ID)
 
         if args.insert_method == "append":
-            # handle append
-            if not sheet_id:
-                logger.error("A Sheet ID is required in order to append")
-                sys.exit(ss.EXIT_CODE_BAD_REQUEST)
             response = upload_append(
-                smart, file_path=file_path, sheet_id=sheet_id, file_type=args.file_type
+                smart, logger = logger, file_path=file_path, sheet_id=sheet_id, file_type=args.file_type
             )
 
         else:
@@ -359,13 +357,16 @@ def main():
         logger.error(
             f"File {file_path} not found. Ensure that the file name and folder name (if supplied) is correct"
         )
+        sys.exit(ss.EXIT_CODE_FILE_NOT_FOUND)
     except ExitCodeException as ec:
         logger.error(
             f"Error encountered when attemtping to upload sheet via {args.insert_method}: {ec.message}"
         )
+        sys.exit(ec.exit_code)
     except Exception as e:
         logger.error("Error in uploading sheet")
         logger.error(str(e))
+        sys.exit(ss.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":
