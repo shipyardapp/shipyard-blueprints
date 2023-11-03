@@ -30,15 +30,16 @@ def get_args():
     return parser.parse_args()
 
 
-def connect(logger: logging.Logger, smartsheet: smartsheet.Smartsheet):
-    try:
-        test = smartsheet.Users.get_current_user()
-    except Exception as e:
-        logger.error("Error in connecting to Smartsheet")
-        logger.error(str(e))
-        return 1
-    else:
+def connect(logger: logging.Logger,token:str):
+    url = 'https://api.smartsheet.com/2.0/users/me'
+    headers = {'Authorization': f"Bearer {token}", 'Accept': 'application/json'}
+    response = requests.get(url, headers = headers)
+    if response.ok:
         return 0
+
+    logger.error("Error in connecting to Smartsheet")
+    logger.error(response.text)
+    return 1
 
 
 def get_logger():
@@ -105,14 +106,14 @@ def main():
     args = get_args()
     logger = get_logger()
     try:
-        # establish client and check if access token is valid
-        smart = smartsheet.Smartsheet(args.access_token)
-        if connect(logger, smart) == 1:
-            sys.exit(ss.EXIT_CODE_INVALID_TOKEN)
 
         token = args.access_token
         sheet_id = args.sheet_id
+        # check to see if access token is valid
+        if connect(logger, token) == 1:
+            sys.exit(ss.EXIT_CODE_INVALID_TOKEN)
 
+        smart = smartsheet.Smartsheet(args.access_token)
         if not is_valid_sheet(smart, sheet_id):
             logger.error("Error: sheet ID provided is not valid")
             sys.exit(EXIT_CODE_INVALID_SHEET_ID)
@@ -122,13 +123,13 @@ def main():
         else:
             file_path = args.file_name
 
-        url = url = f"https://api.smartsheet.com/2.0/sheets/{sheet_id}"
+        url = f"https://api.smartsheet.com/2.0/sheets/{sheet_id}"
         headers = {"Authorization": f"Bearer {token}", "Accpet": "text/csv"}
 
         response = requests.get(url, headers=headers)
 
         # check the status code of the response
-        if response.status_code == 200:
+        if response.ok:
             logger.info("Fetched data from Smartsheet, parsing now...")
             flat = flatten_json(response.json())
             df = pd.DataFrame(flat)
@@ -137,6 +138,12 @@ def main():
             else:
                 df.to_excel(file_path, index=False)
             logger.info(f"Successfully downloaded sheet to {file_path}")
+
+        elif response.status_code == 404:
+            logger.error('Invalid sheet ID')
+            logger.error(response.text)
+            sys.exit(EXIT_CODE_INVALID_SHEET_ID)
+
         else:
             logger.error(
                 f"Error in downloading sheet. Response from API is {response.text}"
