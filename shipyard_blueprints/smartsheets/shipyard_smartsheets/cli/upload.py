@@ -180,7 +180,7 @@ def upload_append(
     smart: smartsheet.Smartsheet,
     logger: logging.Logger,
     file_path: str,
-    sheet_id: str,
+    sheet_id: Optional[str],
     file_type: str = "csv",
 ):
     """Function to upload append jobs to an existing Sheet in Smartsheet.
@@ -252,7 +252,7 @@ def upload_create(
     smart: smartsheet.Smartsheet,
     logger: logging.Logger,
     file_path: str,
-    name: str,
+    name: Optional[str],
     file_type: str,
 ):
     try:
@@ -289,7 +289,7 @@ def upload_replace(
     smart: smartsheet.Smartsheet,
     logger: logging.Logger,
     file_path: str,
-    name: str,
+    name: Optional[str],
     file_type: str,
     sheet_id: Optional[str],
 ):
