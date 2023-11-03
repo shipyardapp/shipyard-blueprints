@@ -400,6 +400,16 @@ def main():
         ):  # this shouldn't ever be reached, but just for precautions
             logger.warning("Sheet has been partially loaded")
             sys.exit(ss.EXIT_CODE_UPLOAD_ERROR)
+        elif response.message == "ERROR":
+            error_json = response.to_dict()["response"]
+            reason = error_json["reason"]
+            message = error_json["content"]["message"]
+            status_code = error_json["statusCode"]
+            logger.error(
+                f"Upload returned a {status_code} for signifying a {reason}. Error message reads: {message}"
+            )
+            sys.exit(ss.EXIT_CODE_UPLOAD_ERROR)
+
         else:
             logger.warning(
                 f"Unknown response status from Smartsheet API: {response.message}"
