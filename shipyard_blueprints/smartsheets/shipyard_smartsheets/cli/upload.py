@@ -177,7 +177,11 @@ def read_data(file_path: str, file_type: str = "csv"):
 
 
 def upload_append(
-        smart: smartsheet.Smartsheet, logger:logging.Logger, file_path: str, sheet_id: str, file_type: str = "csv"
+    smart: smartsheet.Smartsheet,
+    logger: logging.Logger,
+    file_path: str,
+    sheet_id: str,
+    file_type: str = "csv",
 ):
     """Function to upload append jobs to an existing Sheet in Smartsheet.
 
@@ -193,7 +197,9 @@ def upload_append(
 
     """
     if not sheet_id:
-        raise ExitCodeException('A Sheet ID is required in order to append', ss.EXIT_CODE_BAD_REQUEST)
+        raise ExitCodeException(
+            "A Sheet ID is required in order to append", ss.EXIT_CODE_BAD_REQUEST
+        )
     df = read_data(file_path, file_type)
     column_mapping = map_columns(smart, sheet_id)
     rows = form_rows(smart, column_mapping, df, insert_method="append")
@@ -331,7 +337,11 @@ def main():
 
         if args.insert_method == "append":
             response = upload_append(
-                smart, logger = logger, file_path=file_path, sheet_id=sheet_id, file_type=args.file_type
+                smart,
+                logger=logger,
+                file_path=file_path,
+                sheet_id=sheet_id,
+                file_type=args.file_type,
             )
 
         else:

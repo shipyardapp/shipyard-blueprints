@@ -30,10 +30,10 @@ def get_args():
     return parser.parse_args()
 
 
-def connect(logger: logging.Logger,token:str):
-    url = 'https://api.smartsheet.com/2.0/users/me'
-    headers = {'Authorization': f"Bearer {token}", 'Accept': 'application/json'}
-    response = requests.get(url, headers = headers)
+def connect(logger: logging.Logger, token: str):
+    url = "https://api.smartsheet.com/2.0/users/me"
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+    response = requests.get(url, headers=headers)
     if response.ok:
         return 0
 
@@ -106,7 +106,6 @@ def main():
     args = get_args()
     logger = get_logger()
     try:
-
         token = args.access_token
         sheet_id = args.sheet_id
         # check to see if access token is valid
@@ -140,7 +139,7 @@ def main():
             logger.info(f"Successfully downloaded sheet to {file_path}")
 
         elif response.status_code == 404:
-            logger.error('Invalid sheet ID')
+            logger.error("Invalid sheet ID")
             logger.error(response.text)
             sys.exit(EXIT_CODE_INVALID_SHEET_ID)
 
