@@ -316,13 +316,9 @@ def upload_replace(
         sheet = smart.Sheets.get_sheet(sheet_id)
         column_mapping = map_columns(smart, sheet_id)
         new_rows = form_rows(smart, column_mapping, data, insert_method="replace")
-        if file_type == "csv":
-            # clear the existing sheet content
-            delete_sheet_contents(smart, logger, sheet_id)
-            response = smart.Sheets.add_rows(sheet.id, new_rows)
-        elif file_type == "xlsx":
-            # get the sheet_data
-            response = smart.Sheets.add_rows(sheet.id, new_rows)
+        # clear the existing sheet content
+        delete_sheet_contents(smart, logger, sheet_id)
+        response = smart.Sheets.add_rows(sheet.id, new_rows)
 
     except FileNotFoundError:
         raise (
