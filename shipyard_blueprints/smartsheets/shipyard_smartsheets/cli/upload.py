@@ -5,12 +5,13 @@ import sys
 import logging
 import pandas as pd
 import numpy as np
+import requests
 from shipyard_templates import ExitCodeException, Spreadsheets as ss
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass
 
 # custom exit code
 EXIT_CODE_INVALID_SHEET_ID = 220
+EXIT_CODE_COLUMN_UPDATE_ERROR = 221
 
 
 def get_logger():
@@ -100,10 +101,40 @@ def map_columns(smart: smartsheet.Smartsheet, sheet_id: str) -> Dict[str, str]:
         return mapping
 
 
+def update_column(
+    smart: smartsheet.Smartsheet, sheet_id: str, column_id: str, column_name: str
+):
+    """Helper function to update the column name to the name provided in the dataframe
+
+    Args:
+        smart: The Smartsheet client
+        sheet_id: The ID of the sheet
+        column_id: The ID of the column to update
+        column_name: The new name for the column to have
+
+    Raises:
+        ExitCodeException:
+
+    Returns: The resposne from the Smartsheet API
+
+    """
+    col_spec = smart.models.Column({"title": column_name})
+    try:
+        resp = smart.Sheets.update_column(sheet_id, column_id, col_spec)
+    except Exception as e:
+        raise ExitCodeException(
+            f"Error in updating Smartsheet column: {str(e)}",
+            EXIT_CODE_COLUMN_UPDATE_ERROR,
+        )
+    else:
+        return resp
+
+
 def form_rows(
     smart: smartsheet.Smartsheet,
     column_mapping: Dict[str, str],
     data: pd.DataFrame,
+    sheet_id: str,
     insert_method="append",
 ) -> List[Any]:
     """Helper function to generate a list of Rows to sent to Smartsheet. This is used to udpate an existing sheet (whether that is an overwrite, or an append)
@@ -114,6 +145,7 @@ def form_rows(
         smart: the smartsheet client
         column_mapping: The mapping of column name to column ID (can be obtained by the map_columns function)
         data: Pandas Dataframe to upload
+        sheet_id: The ID of the related sheet
 
     Returns:
 
@@ -126,9 +158,26 @@ def form_rows(
                 []
             )  # this will be a list of smartsheet.Smartsheet.models.Row objects
             new_row = smart.models.Row()
-            for column in columns:
+            for column, ss_col in zip(columns, column_mapping):
                 row_value = data[column].iloc[index]
                 column_id = column_mapping.get(column)
+                if (
+                    not column_id
+                ):  # if for some reason there is a change in column names, then grab the id by index
+                    column_id = column_mapping.get(ss_col)
+                    # update the column name in smartsheet to match the column name from the file
+                    temp = update_column(
+                        smart,
+                        sheet_id=sheet_id,
+                        column_id=column_id,
+                        column_name=column,
+                    )
+                    if temp.message != "SUCCESS":
+                        raise ExitCodeException(
+                            "Error in updating column names in Sheet",
+                            EXIT_CODE_COLUMN_UPDATE_ERROR,
+                        )
+
                 # specify whether the rows will be appended to an existing sheet or replaced at the top
                 if insert_method == "append":
                     new_row.to_bottom = True
@@ -173,6 +222,7 @@ def read_data(file_path: str, file_type: str = "csv"):
     """
     if file_type == "xlsx":
         return pd.read_excel(file_path)
+
     return pd.read_csv(file_path)
 
 
@@ -202,8 +252,10 @@ def upload_append(
         )
     df = read_data(file_path, file_type)
     column_mapping = map_columns(smart, sheet_id)
-    rows = form_rows(smart, column_mapping, df, insert_method="append")
     sheet = smart.Sheets.get_sheet(sheet_id)
+    rows = form_rows(
+        smart, column_mapping, df, insert_method="append", sheet_id=sheet.id
+    )
     try:
         resp = smart.Sheets.add_rows(sheet.id, rows)
     except FileNotFoundError:
@@ -224,6 +276,22 @@ def upload_append(
         return resp
 
 
+def delete_columns(column_id: str, sheet_id, token):
+    url = f"https://api.smartsheet.com/2.0/sheets/{sheet_id}/columns/{column_id}"
+    headers = {"Authorization": f"Bearer {token}"}
+    return requests.delete(url=url, headers=headers)
+
+
+def validate_columns(df_colnames: List[Any], api_colnames: List[Any]):
+    # check to see if the column names from the dataframe match the column names in the sheet already
+    bad_map = {}
+    if len(df_colnames) != len(api_colnames):
+        msg = f"There is an error in the "
+    for df_col, api_col in zip(df_colnames, api_colnames):
+        if df_col != api_col:
+            bad_map[api_col] = df_col
+
+
 def delete_sheet_contents(
     smart: smartsheet.Smartsheet, logger: logging.Logger, sheet_id: str
 ):
@@ -234,11 +302,21 @@ def delete_sheet_contents(
         logger: The logger to STDOUT
         sheet_id: The ID for the sheet to modify
     """
+    # NOTE: May need to delete columns as well as rows
     try:
         sheet = smart.Sheets.get_sheet(sheet_id)
+        # cols = smart.Sheets.get_columns(sheet_id)
         row_ids = [row.id for row in sheet.rows]
+        # col_ids = [col.id for col in sheet.columns]
         for i in range(0, len(row_ids), 100):
             smart.Sheets.delete_rows(sheet.id, row_ids[i : i + 100])
+
+        # # deleting the columns after deleting the rows
+        # for col in col_ids:
+        #     test = delete_columns(sheet_id = sheet.id, column_id= col, token = TOKEN)
+        #     print('successfully deleted column')
+        #     # smart.Sheets.delete_column(sheet.id, col)
+
     except Exception as e:
         logger.error("Error encoutered when deleting rows")
         raise ExitCodeException(
@@ -315,7 +393,9 @@ def upload_replace(
         data = read_data(file_path, file_type)
         sheet = smart.Sheets.get_sheet(sheet_id)
         column_mapping = map_columns(smart, sheet_id)
-        new_rows = form_rows(smart, column_mapping, data, insert_method="replace")
+        new_rows = form_rows(
+            smart, column_mapping, data, insert_method="replace", sheet_id=sheet.id
+        )
         # clear the existing sheet content
         delete_sheet_contents(smart, logger, sheet_id)
         response = smart.Sheets.add_rows(sheet.id, new_rows)
