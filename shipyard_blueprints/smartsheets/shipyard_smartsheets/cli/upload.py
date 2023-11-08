@@ -311,12 +311,6 @@ def delete_sheet_contents(
         for i in range(0, len(row_ids), 100):
             smart.Sheets.delete_rows(sheet.id, row_ids[i : i + 100])
 
-        # # deleting the columns after deleting the rows
-        # for col in col_ids:
-        #     test = delete_columns(sheet_id = sheet.id, column_id= col, token = TOKEN)
-        #     print('successfully deleted column')
-        #     # smart.Sheets.delete_column(sheet.id, col)
-
     except Exception as e:
         logger.error("Error encoutered when deleting rows")
         raise ExitCodeException(
@@ -343,7 +337,13 @@ def upload_create(
                 primary_column_index=0,
             )
         else:
-            response = smart.Sheets.import_xlsx_sheet(file=file_path, sheet_name=name)
+            response = smart.Sheets.import_xlsx_sheet(
+                file=file_path,
+                sheet_name=name,
+                header_row_index=0,
+                primary_column_index=0,
+            )
+
     except FileNotFoundError:
         raise (
             ExitCodeException(

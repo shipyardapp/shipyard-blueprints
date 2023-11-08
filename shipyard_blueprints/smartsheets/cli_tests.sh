@@ -54,4 +54,8 @@ if [ "$1" = 'down_bad_id' ]; then
     python3 ./shipyard_smartsheets/cli/download.py --access-token $SMARTSHEET_ACCESS_TOKEN --sheet-id 'mybadid' --destination-file-name download.csv
 fi
 
+if [ "$1" = 'xl_create' ]; then
+    python3 ./shipyard_smartsheets/cli/upload.py --access-token $SMARTSHEET_ACCESS_TOKEN --insert-method create --source-file-name small.xlsx --sheet-name "Excel Create" --file-type xlsx
+fi
+
 
