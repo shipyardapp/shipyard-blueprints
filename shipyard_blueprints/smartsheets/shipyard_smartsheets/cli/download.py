@@ -112,11 +112,6 @@ def main():
         if connect(logger, token) == 1:
             sys.exit(ss.EXIT_CODE_INVALID_TOKEN)
 
-        smart = smartsheet.Smartsheet(args.access_token)
-        if not is_valid_sheet(smart, sheet_id):
-            logger.error("Error: sheet ID provided is not valid")
-            sys.exit(EXIT_CODE_INVALID_SHEET_ID)
-
         if args.folder_name != "":
             file_path = os.path.join(args.folder_name, args.file_name)
         else:
