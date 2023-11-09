@@ -10,7 +10,7 @@ class HightouchClient(Etl):
             "authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json",
         }
-        super().__init__(access_token)
+        super().__init__(access_token=access_token)
 
     def get_sync_status(self, sync_id: str, sync_run_id: str):
         """
@@ -32,7 +32,7 @@ class HightouchClient(Etl):
                 if len(sync_run_json["data"]) != 0:
                     return sync_run_json["data"][0]
                 raise ExitCodeException(
-                    f"Invalid Sync ID: {sync_id}", self.EXIT_CODE_SYNC_INVALID_ID
+                    f"Invalid Sync ID: {sync_id}", self.EXIT_CODE_SYNC_INVALID_SOURCE_ID
                 )
 
             elif sync_status_code == 400:  # Bad request
@@ -90,6 +90,12 @@ class HightouchClient(Etl):
             self.logger.error(f"Sync run {run_id} failed. {error_info}")
             return self.EXIT_CODE_FINAL_STATUS_ERRORED
 
+        elif status == "warning":
+            warning_info = sync_run_data["error"]
+            self.logger.warning(
+                f"Sync run {run_id} had the following warning: {warning_info}"
+            )
+            return self.EXIT_CODE_FINAL_STATUS_INCOMPLETE
         else:
             self.logger.error(f"Unknown Sync status: {status}")
             return self.EXIT_CODE_UNKNOWN_ERROR
@@ -103,7 +109,6 @@ class HightouchClient(Etl):
             )
 
             sync_status_code = sync_trigger_response.status_code
-            print(sync_trigger_response.json())
             # check if successful, if not return error message
             if sync_status_code == requests.codes.ok:
                 self.logger.info(

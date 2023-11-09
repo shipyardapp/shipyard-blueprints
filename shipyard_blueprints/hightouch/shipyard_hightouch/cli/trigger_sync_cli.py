@@ -59,6 +59,7 @@ def main():
         while status not in (
             hightouch.EXIT_CODE_FINAL_STATUS_COMPLETED,
             hightouch.EXIT_CODE_FINAL_STATUS_ERRORED,
+            hightouch.EXIT_CODE_FINAL_STATUS_INCOMPLETE,
         ):
             hightouch.logger.info(f"Waiting {args.poke_interval} minute(s)...")
             time.sleep(int(args.poke_interval) * 60)

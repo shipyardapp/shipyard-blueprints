@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-hightouch"
-version = "0.1.0"
+version = "0.1.1"
 description = "A local client for connecting and working with Hightouch"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
@@ -13,6 +13,9 @@ requests = "2.31.0"
 shipyard-templates = "^0.2.0"
 shipyard-utils = "^0.1.4"
 
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.10.1"
 
 [build-system]
 requires = ["poetry-core"]
