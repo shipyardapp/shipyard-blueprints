@@ -1,5 +1,5 @@
 import os
-import smartsheet
+import requests
 import logging
 import sys
 
@@ -19,22 +19,21 @@ def get_logger():
     return logger
 
 
-def connect(logger: logging.Logger, smartsheet: smartsheet.Smartsheet):
-    try:
-        conn = smartsheet.Users.get_current_user()
-    except Exception as e:
-        logger.error("Error in connecting to Smartsheet")
-        logger.error(str(e))
-        return 1
-    else:
-        logger.info("Successfully connected to Smartsheet")
+def connect(logger: logging.Logger, token: str):
+    url = "https://api.smartsheet.com/2.0/users/me"
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+    response = requests.get(url, headers=headers)
+    if response.ok:
         return 0
+
+    logger.error("Error in connecting to Smartsheet")
+    logger.error(response.text)
+    return 1
 
 
 def main():
     logger = get_logger()
-    smart = smartsheet.Smartsheet(os.getenv("SMARTSHEET_ACCESS_TOKEN"))
-    sys.exit(connect(logger, smart))
+    sys.exit(connect(logger, token=os.getenv("SMARTSHEET_ACCESS_TOKEN")))
 
 
 if __name__ == "__main__":

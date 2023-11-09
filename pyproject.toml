@@ -111,6 +111,10 @@ pandas = "1.5.3"
 mysql-connector-python = "8.0.21"
 sqlalchemy = "2.0.0"
 
+[tool.poetry.group.notion.dependencies]
+requests = "2.31"
+pandas = "1.5.3"
+notion-client = "^2.0.0"
 
 [tool.poetry.group.postgresql.dependencies]
 pandas = "1.5.3"
@@ -138,6 +142,8 @@ paramiko = "2.11.0"
 [tool.poetry.group.slack.dependencies]
 slackclient = "2.9.4"
 
+[tool.poetry.group.smartsheets.dependencies]
+requests = "2.31"
 
 [tool.poetry.group.snowflake.dependencies]
 pandas = "1.5.3"
