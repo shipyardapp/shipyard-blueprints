@@ -9,19 +9,19 @@ class CloudStorage(ABC):
         self.logger = ShipyardLogger().logger
 
     @abstractmethod
-    def download_files(self):
+    def download(self):
         pass
 
     @abstractmethod
-    def move_or_rename_files(self):
+    def move(self):
         pass
 
     @abstractmethod
-    def remove_files(self):
+    def remove(self):
         pass
 
     @abstractmethod
-    def upload_files(self):
+    def upload(self):
         pass
 
     @abstractmethod
