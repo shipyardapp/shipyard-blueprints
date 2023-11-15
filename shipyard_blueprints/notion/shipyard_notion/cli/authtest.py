@@ -17,6 +17,7 @@ def main():
             f"Could not connect to Notion with the provided access token: {resp.text}"
         )
         sys.exit(1)
+    print("Successfully connected to Notion!")
     sys.exit(0)
 
 
