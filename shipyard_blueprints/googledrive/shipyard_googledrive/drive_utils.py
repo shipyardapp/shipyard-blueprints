@@ -1,10 +1,13 @@
 import os
 from typing import Optional, Union, List, Any
+import logging
 
 from shipyard_templates import ExitCodeException
 
 
-def is_folder_shared(service_account_email: str, folder_id: str, drive_service) -> bool:
+def is_folder_shared(
+    logger: logging.Logger, service_account_email: str, folder_id: str, drive_service
+) -> bool:
     """Helper function to see if a provided folder is shared with the service account
 
     Args:
@@ -24,14 +27,22 @@ def is_folder_shared(service_account_email: str, folder_id: str, drive_service) 
                 return True
 
     except Exception as e:
+        logger.warning(
+            f"An exception was found during this call most likely indicating that no folder ID exists, returning False. Exception message: {str(e)}"
+        )
         return False
 
     else:
+        logger.warning("Folder ID is not shared with service account")
         return False
 
 
 def does_file_exist(
-    parent_folder_id: str, file_name: str, service, drive_id: Optional[str] = None
+    logger: logging.Logger,
+    parent_folder_id: str,
+    file_name: str,
+    service,
+    drive_id: Optional[str] = None,
 ) -> bool:
     """Helper function to see if the file already exists in the accessible Google Drive
 
@@ -64,8 +75,12 @@ def does_file_exist(
             return True
     except Exception as e:
         # this means that the file was not found
+        logger.warning(
+            f"An exception was thrown and now file was found, returning False: {str(e)}"
+        )
         return False
     else:
+        logger.warning("No file was found, returning false")
         return False
 
 

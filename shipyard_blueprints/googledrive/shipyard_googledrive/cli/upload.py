@@ -1,6 +1,7 @@
 import os
 import sys
 import argparse
+import re
 
 from shipyard_templates import ExitCodeException
 from shipyard_googledrive import GoogleDriveClient, utils
@@ -74,16 +75,6 @@ def main():
     # for single file uploads
     else:
         try:
-            drive_folder = (
-                args.destination_folder_name
-                if args.destination_folder_name != ""
-                else None
-            )
-            drive_file_name = (
-                args.destination_file_name if args.destination_file_name != "" else None
-            )
-            drive_name = args.drive if args.drive != "" else None
-
             client.upload(
                 file_path=source_path,
                 drive_folder=drive_folder,

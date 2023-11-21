@@ -137,6 +137,7 @@ class GoogleDriveClient(CloudStorage):
             # check to see if the file exists or not
             update = False
             if drive_utils.does_file_exist(
+                logger=self.logger,
                 parent_folder_id=self.folder_id,
                 file_name=drive_file_name,
                 service=self.service,
