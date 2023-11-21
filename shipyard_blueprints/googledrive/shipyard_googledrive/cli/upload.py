@@ -73,7 +73,7 @@ def main():
             )
 
     # for single file uploads
-    else:
+    else:  # handles the case for exact_match, any other option will receive an argument error
         try:
             client.upload(
                 file_path=source_path,

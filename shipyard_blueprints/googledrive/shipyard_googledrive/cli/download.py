@@ -92,7 +92,7 @@ def main():
                     drive_folder=folder_id,
                 )
         # for single file downloads
-        else:
+        else:  # handles the case for exact_match, any other option will receive an argument error
             file_id = drive_utils.get_file_id(
                 file_name=args.source_file_name,
                 drive_id=drive_id,
