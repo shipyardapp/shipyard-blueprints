@@ -4,7 +4,7 @@ import argparse
 import re
 
 from shipyard_templates import ExitCodeException
-from shipyard_googledrive import GoogleDriveClient, utils
+from shipyard_googledrive import GoogleDriveClient
 from shipyard_bp_utils import files
 
 
