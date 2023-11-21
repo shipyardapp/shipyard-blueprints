@@ -1,14 +1,11 @@
 import json
 import tempfile
 import os
-import google.auth
-import io
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
 from shipyard_templates import CloudStorage, ExitCodeException
 from typing import Optional, Dict, List, Any, Union
-from shipyard_googledrive import utils
 from googleapiclient.http import MediaIoBaseDownload
 from shipyard_googledrive import drive_utils
 

@@ -12,7 +12,7 @@ def is_folder_shared(service_account_email: str, folder_id: str, drive_service) 
         service_account_email: The email of the service account
         folder_id: The ID of the folder in Google Drive
 
-    Returns:
+    Returns: True if folder is shared, False if not
     """
     try:
         permissions = drive_service.permissions().list(fileId=folder_id).execute()
@@ -122,7 +122,21 @@ def create_remote_folder(
     service,
     parent_id: Optional[str] = None,
     drive_id: Optional[str] = None,
-):
+) -> str:
+    """Helper function to create a folder in Google Drive
+
+    Args:
+        service (): The google service connection
+        folder_name: The name of the folder to create
+        parent_id: The optional folder to place the newly created folder within
+        drive_id: The optional drive to create the folder in
+
+    Raises:
+        ExitCodeException:
+
+    Returns: The ID of the newly created folder
+
+    """
     body = {"name": folder_name, "mimeType": "application/vnd.google-apps.folder"}
     if parent_id:
         body["parents"] = [parent_id]
@@ -152,7 +166,7 @@ def get_folder_id(
         service (): The Google Drive service connection
         folder_identifier: The name of the folder or the ID from the URL
 
-    Returns: The folder ID
+    Returns: The folder ID or None if nonexistent
 
     """
     if not folder_identifier:
@@ -186,7 +200,7 @@ def get_drive_id(drive_id: str, service) -> Union[str, None]:
         service (): The Google Drive service connection
         drive_id:  The name of the drive or the ID from the URL
 
-    Returns:
+    Returns: The ID of the drive or None if not found
 
     """
     try:
@@ -219,14 +233,6 @@ def is_folder_id(folder_identifier: str) -> bool:
     if len(folder_identifier) == 33 and str(folder_identifier).startswith("1"):
         return True
     return False
-
-
-def get_all_folder_ids(service, drive_id: Optional[str]):
-    pass
-    # if drive_id:
-    #     pass
-    # else:
-    #     pass
 
 
 def get_file_matches(

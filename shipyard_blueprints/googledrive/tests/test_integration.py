@@ -27,7 +27,7 @@ def test_download():
     dest_folder = "downloaded"
     print(f"Attempting to download {file_name} from {gc.shared_drive_name}")
     gc.download(
-        file_id=file_name,
+        drive_file_name=file_name,
         drive="0AJOXmPCbxECLUk9PVA",
         destination_path=dest_folder,
         destination_file_name="downloaded_file.csv",
