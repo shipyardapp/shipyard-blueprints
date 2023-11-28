@@ -180,7 +180,7 @@ class GoogleDriveClient(CloudStorage):
                     )
                     .execute()
                 )
-                print(upload_file.get("id"))
+                self.logger.info(f"Newly created file is {upload_file.get('id')}")
         except FileNotFoundError as fe:
             raise ExitCodeException(
                 message=str(fe), exit_code=self.EXIT_CODE_FILE_NOT_FOUND

@@ -6,8 +6,11 @@ source .env set +o allexport
 sa="$GOOGLE_APPLICATION_CREDENTIALS"
 
 if [ "$1" = "upload" ]; then
-    echo "Starting upload"
-    python3 ./shipyard_googledrive/cli/upload.py --service-account $GOOGLE_APPLICATION_CREDENTIALS --source-file-name sample.csv  --source-file-name-match-type exact_match
+    echo "Starting upload with no destination folder, no rename and exact match"
+    python3 ./shipyard_googledrive/cli/upload.py --service-account "$sa" --source-file-name sample.csv  --source-file-name-match-type exact_match --drive "0ADIj7rHQKNmWUk9PVA"
+
+    echo "Starting upload with destination folder and regex match"
+    python3 ./shipyard_googledrive/cli/upload.py  --service-account "$sa" --source-folder-name reg2 --source-file-name-match-type regex_match --source-file-name csv --drive "0ADIj7rHQKNmWUk9PVA"
 fi
 
 

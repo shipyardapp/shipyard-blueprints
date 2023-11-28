@@ -81,7 +81,6 @@ def does_file_exist(
         )
         return False
     else:
-        logger.warning("No file was found, returning false")
         return False
 
 
@@ -220,7 +219,7 @@ def get_drive_id(drive_id: str, service) -> Union[str, None]:
 
     """
     try:
-        if len(drive_id) == 33 and str(drive_id).startswith("OAJ"):
+        if len(drive_id) == 19 and str(drive_id).startswith("0A"):
             return drive_id
         else:
             results = (

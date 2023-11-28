@@ -93,6 +93,7 @@ def main():
                     drive=drive_id,
                     drive_folder=folder_id,
                 )
+                client.logger.info(f"Processed {dest_name}")
         # for single file downloads
         else:  # handles the case for exact_match, any other option will receive an argument error
             file_id = drive_utils.get_file_id(
@@ -126,7 +127,7 @@ def main():
         sys.exit(client.EXIT_CODE_UNKNOWN_ERROR)
 
     else:
-        client.logger.info("Successfully downloaded from Google Drive")
+        client.logger.info("Successfully downloaded file(s) from Google Drive")
 
 
 if __name__ == "__main__":
