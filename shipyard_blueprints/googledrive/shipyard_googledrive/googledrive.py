@@ -199,6 +199,7 @@ class GoogleDriveClient(CloudStorage):
 
     def download(
         self,
+        file_id: str,
         drive_file_name: str,
         drive_folder: Optional[str] = None,
         drive: Optional[str] = None,
@@ -208,6 +209,7 @@ class GoogleDriveClient(CloudStorage):
         """Downloads a file from Google Drive locally
 
         Args:
+            file_id: The ID of the file to download
             drive_file_name: The name of the file to download
             drive_folder: The optional name of the folder or the ID of folder. If not provided, then it will look for the file within the root directory of the drive
             drive: The optional name or ID of the shared drive
@@ -225,7 +227,9 @@ class GoogleDriveClient(CloudStorage):
             )
 
         if destination_path:
-            os.mkdir(destination_path)
+            # if exists, then skip
+            if not os.path.exists(destination_path):
+                os.mkdir(destination_path)
         else:
             destination_path = os.getcwd()
 
@@ -235,12 +239,12 @@ class GoogleDriveClient(CloudStorage):
             destination_path = os.path.join(destination_path, drive_file_name)
 
         try:
-            file_id = drive_utils.get_file_id(
-                file_name=drive_file_name,
-                service=self.service,
-                drive_id=self.drive_id,
-                folder_id=self.folder_id,
-            )
+            # file_id = drive_utils.get_file_id(
+            #     file_name=drive_file_name,
+            #     service=self.service,
+            #     drive_id=self.drive_id,
+            #     folder_id=self.folder_id,
+            # )
             request = self.service.files().get_media(fileId=file_id)
             fh = open(destination_path, "wb")
             downloader = MediaIoBaseDownload(fh, request)

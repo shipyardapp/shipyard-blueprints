@@ -21,4 +21,13 @@ if [ "$1" = "download" ]; then
     sleep 1
     echo "Starting download with destination folder, no source folder, regex match, and destination rename"
     python3 ./shipyard_googledrive/cli/download.py --service-account "$sa" --source-file-name-match-type "regex_match" --source-file-name "csv" --destination-folder-name "reg2" --drive "Blueprint Shared Drive" --destination-file-name "gdata.csv"
+    sleep 1
+
+    echo "Starting download with source folder, regex match, destination folder name, and destination rename"
+    python3 ./shipyard_googledrive/cli/download.py --service-account "$sa" --source-file-name-match-type 'regex_match' --source-file-name "csv" --destination-folder-name "reg3" --drive "Blueprint Shared Drive" --destination-file-name "reg_gdata.csv"
+
+    sleep 1
+    echo "Starting download of single file with source folder and destination rename"
+    python3 ./shipyard_googledrive/cli/download.py  --service-account "$sa" --source-file-name-match-type 'exact_match' --source-folder-name test_hidden --source-file-name hidden.csv --destination-folder-name gdrive_hidden --destination-file-name newhidden.csv
+
 fi
