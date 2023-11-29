@@ -92,24 +92,28 @@ class GoogleDriveClient(CloudStorage):
                     self.EXIT_CODE_DRIVE_ACCESS_ERROR,
                 )
 
-        if drive_folder:
-            self.folder_name = drive_folder
-            # self.folder_id = self._get_folder_id(self.folder_name)
-            self.folder_id = drive_utils.get_folder_id(
-                service=self.service, folder_identifier=self.folder_name
-            )
-            if not self.folder_id and not drive_utils.is_folder_id(self.folder_name):
-                folder_results = drive_utils.create_remote_folder(
-                    folder_name=self.folder_name,
+        try:
+            if drive_folder:
+                self.folder_name = drive_folder
+                # self.folder_id = self._get_folder_id(self.folder_name)
+                self.folder_id = drive_utils.get_folder_id(
                     service=self.service,
+                    folder_identifier=self.folder_name,
                     drive_id=self.drive_id,
                 )
-                self.folder_id = folder_results
-            # else:
-            #     if not drive_utils.is_folder_shared(service_account_email=self.email,folder_id = self.folder_id, drive_service= self.service):
-            #         raise ExitCodeException(f'Error: The folder {self.folder_name} exists in Google Drive but has not been shared with the service account associated with {self.email}. Share the folder, then retry the upload', self.EXIT_CODE_FOLDER_ACCESS_ERROR)
+                if not self.folder_id and not drive_utils.is_folder_id(
+                    self.folder_name
+                ):
+                    folder_results = drive_utils.create_remote_folder(
+                        folder_name=self.folder_name,
+                        service=self.service,
+                        drive_id=self.drive_id,
+                    )
+                    self.folder_id = folder_results
+                # else:
+                #     if not drive_utils.is_folder_shared(service_account_email=self.email,folder_id = self.folder_id, drive_service= self.service):
+                #         raise ExitCodeException(f'Error: The folder {self.folder_name} exists in Google Drive but has not been shared with the service account associated with {self.email}. Share the folder, then retry the upload', self.EXIT_CODE_FOLDER_ACCESS_ERROR)
 
-        try:
             # use the base name of the file if not provided
             if not drive_file_name:
                 drive_file_name = os.path.basename(file_path)
@@ -186,6 +190,8 @@ class GoogleDriveClient(CloudStorage):
             raise ExitCodeException(
                 message=str(fe), exit_code=self.EXIT_CODE_FILE_NOT_FOUND
             )
+        except ExitCodeException as ec:
+            raise ExitCodeException(message=ec.message, exit_code=ec.exit_code)
         except Exception as e:
             raise ExitCodeException(
                 message=f"Error in uploading file to google drive: {str(e)}",
@@ -224,7 +230,9 @@ class GoogleDriveClient(CloudStorage):
 
         if drive_folder:
             self.folder_id = drive_utils.get_folder_id(
-                folder_identifier=drive_folder, service=self.service
+                folder_identifier=drive_folder,
+                service=self.service,
+                drive_id=self.drive_id,
             )
 
         if destination_path:

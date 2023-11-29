@@ -175,6 +175,7 @@ def create_remote_folder(
 def get_folder_id(
     service,
     folder_identifier: Optional[str] = None,
+    drive_id: Optional[str] = None,
 ) -> Union[str, None]:
     """Helper function to grab the folder ID when provided either the name of the folder or the ID (preferred). This is instituted for backwards compatibility in the Shipyard blueprint
 
@@ -192,19 +193,35 @@ def get_folder_id(
         if is_folder_id(folder_identifier):
             return folder_identifier
         else:
-            results = (
-                service.files()
-                .list(
-                    q=f"name = '{folder_identifier}' and mimeType = 'application/vnd.google-apps.folder'",
-                    fields="files(id)",
+            if not drive_id:
+                results = service.files().list()
+            else:
+                results = (
+                    service.files()
+                    .list(
+                        q=f"name = '{folder_identifier}' and mimeType = 'application/vnd.google-apps.folder'",
+                        fields="files(id)",
+                        supportsAllDrives=True,
+                        includeItemsFromAllDrives=True,
+                        corpora="drive",
+                        driveId=drive_id,
+                    )
+                    .execute()
                 )
-                .execute()
-            )
             folders = results.get("files", [])
+            if len(folders) > 1:
+                raise ExitCodeException(
+                    f"Multiple folders with name {folder_identifier} found, please use the folder ID instead",
+                    204,
+                )
+
             if folders:
                 return folders[0]["id"]
             else:
                 return None
+
+    except ExitCodeException as ec:
+        raise (ExitCodeException(ec.message, ec.exit_code))
     except Exception as e:
         return None
 

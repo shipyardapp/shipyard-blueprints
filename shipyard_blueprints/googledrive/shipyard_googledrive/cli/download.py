@@ -61,7 +61,7 @@ def main():
             else None
         )
         folder_id = drive_utils.get_folder_id(
-            folder_identifier=source_folder, service=client.service
+            folder_identifier=source_folder, service=client.service, drive_id=drive_id
         )
 
         # for downloading multiple file names
