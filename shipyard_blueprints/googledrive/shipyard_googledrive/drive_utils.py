@@ -1,6 +1,7 @@
 import os
-from typing import Optional, Union, List, Any
 import logging
+import re
+from typing import Optional, Union, List, Any, Set
 
 from shipyard_templates import ExitCodeException
 
@@ -55,7 +56,8 @@ def does_file_exist(
     Returns: True if exists, False if not
 
     """
-    query = f"name='{file_name}' and '{parent_folder_id}' in parents"
+    # query = f"name='{file_name}' and '{parent_folder_id}' in parents"
+    query = f"'{parent_folder_id}' in parents and name='{file_name}'"
     try:
         if drive_id:
             results = (
@@ -80,7 +82,6 @@ def does_file_exist(
         )
         return False
     else:
-        logger.warning("No file was found, returning false")
         return False
 
 
@@ -106,7 +107,7 @@ def get_file_id(
     """
     query = f"name='{file_name}'"
     if folder_id:
-        query += f"and '{folder_id} in parents"
+        query += f"and '{folder_id}' in parents"
     try:
         if drive_id:
             results = (
@@ -174,6 +175,7 @@ def create_remote_folder(
 def get_folder_id(
     service,
     folder_identifier: Optional[str] = None,
+    drive_id: Optional[str] = None,
 ) -> Union[str, None]:
     """Helper function to grab the folder ID when provided either the name of the folder or the ID (preferred). This is instituted for backwards compatibility in the Shipyard blueprint
 
@@ -191,20 +193,36 @@ def get_folder_id(
         if is_folder_id(folder_identifier):
             return folder_identifier
         else:
-            results = (
-                service.files()
-                .list(
-                    q=f"name = '{folder_identifier} and mimeType = 'application/vnd.google-apps.folder'",
-                    fields="files(id)",
+            if not drive_id:
+                results = service.files().list()
+            else:
+                results = (
+                    service.files()
+                    .list(
+                        q=f"name = '{folder_identifier}' and mimeType = 'application/vnd.google-apps.folder'",
+                        fields="files(id)",
+                        supportsAllDrives=True,
+                        includeItemsFromAllDrives=True,
+                        corpora="drive",
+                        driveId=drive_id,
+                    )
+                    .execute()
                 )
-                .execute()
-            )
             folders = results.get("files", [])
+            if len(folders) > 1:
+                raise ExitCodeException(
+                    f"Multiple folders with name {folder_identifier} found, please use the folder ID instead",
+                    204,
+                )
+
             if folders:
                 return folders[0]["id"]
             else:
                 return None
-    except Exception:
+
+    except ExitCodeException as ec:
+        raise ExitCodeException(ec.message, ec.exit_code)
+    except Exception as e:
         return None
 
 
@@ -219,7 +237,7 @@ def get_drive_id(drive_id: str, service) -> Union[str, None]:
 
     """
     try:
-        if len(drive_id) == 33 and str(drive_id).startswith("OAJ"):
+        if len(drive_id) == 19 and str(drive_id).startswith("0A"):
             return drive_id
         else:
             results = (
@@ -262,6 +280,7 @@ def get_file_matches(
         service (): The google service connection
         pattern: The pattern to search for
         folder_id: The folder to search within. If omitted, all file matches across all folders will be returned
+        drive_id: The shared drive to search within
 
     Raises:
         ExitCodeException:
@@ -269,15 +288,123 @@ def get_file_matches(
     Returns: The list of the matches
 
     """
-    folder_id = get_folder_id(folder_id, service=service)
     try:
-        query = f"name contains '{pattern}'"
+        query = None
         if folder_id:
-            query += f" and '{folder_id}' in parents"
-        results = service.files().list(q=query).execute()
-        files = results.get("files", [])
+            query = f"'{folder_id}' in parents"
+            if drive_id:
+                if query:
+                    results = (
+                        service.files()
+                        .list(
+                            q=query,
+                            supportsAllDrives=True,
+                            includeItemsFromAllDrives=True,
+                            corpora="drive",
+                            driveId=drive_id,
+                        )
+                        .execute()
+                    )
+                else:
+                    results = (
+                        service.files()
+                        .list(
+                            supportsAllDrives=True,
+                            includeItemsFromAllDrives=True,
+                            corpora="drive",
+                            driveId=drive_id,
+                        )
+                        .execute()
+                    )
+            else:
+                if query:
+                    results = service.files().list(q=query).execute()
+                else:
+                    results = service.files().list().execute()
+
+            files = results.get("files", [])
+        else:
+            files = []
+            all_folder_ids = get_all_folder_ids(service, drive_id=drive_id)
+            for f_id in all_folder_ids:
+                query = f"'{f_id}' in parents"
+                if drive_id:
+                    results = (
+                        service.files()
+                        .list(
+                            q=query,
+                            supportsAllDrives=True,
+                            includeItemsFromAllDrives=True,
+                            corpora="drive",
+                            driveId=drive_id,
+                        )
+                        .execute()
+                    )
+                else:
+                    results = service.files().list(q=query).execute()
+
+                files.extend(results.get("files", []))
+
+            # grab the files in the root
+            if drive_id:
+                root_results = (
+                    service.files()
+                    .list(
+                        q="trashed=false and mimeType!='application/vnd.google-apps.folder'",
+                        supportsAllDrives=True,
+                        includeItemsFromAllDrives=True,
+                        corpora="drive",
+                        driveId=drive_id,
+                    )
+                    .execute()
+                )
+            else:
+                root_results = (
+                    service.files()
+                    .list(
+                        q="trashed=false and mimeType!='application/vnd.google-apps.folder'"
+                    )
+                    .execute()
+                )
+
+            files.extend(root_results.get("files", []))
+
+        matches = []
+        id_set = set()
+        for f in files:
+            if re.search(pattern, f["name"]) and f["id"] not in id_set:
+                matches.append(f)
+                id_set.add(f["id"])
     except Exception as e:
         raise ExitCodeException(f"Error in finding matching files: {str(e)}", 210)
 
     else:
-        return results.get("files", [])
+        return matches
+
+
+def get_all_folder_ids(service, drive_id: Optional[str] = None) -> List[Any]:
+    # Set the query to retrieve all folders
+    query = "mimeType='application/vnd.google-apps.folder' and trashed=false"
+
+    # Execute the query to get the list of folders
+    if drive_id:
+        results = (
+            service.files()
+            .list(
+                q=query,
+                supportsAllDrives=True,
+                includeItemsFromAllDrives=True,
+                corpora="drive",
+                driveId=drive_id,
+            )
+            .execute()
+        )
+    else:
+        results = service.files().list(q=query).execute()
+
+    folders = results.get("files", [])
+
+    # Extract and return the folder IDs
+    folder_ids = [folder["id"] for folder in folders]
+    # folder_ids.append('root') # add so that the files not within a folder will be returned as well
+    return folder_ids

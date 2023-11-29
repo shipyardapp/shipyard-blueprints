@@ -705,7 +705,7 @@ url = "../shipyard-bp-utils"
 
 [[package]]
 name = "shipyard-templates"
-version = "0.4.2a0"
+version = "0.4.2a1"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = "^3.9"
@@ -800,4 +800,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "16b3c1aa0e911c284012e934d7defe5297ba00ea3437a0a850c783ddfaa667ae"
+content-hash = "2662c3a95cb548202cf4f7043141d4d262b492785ec362d9a9cf925bfb39f5c6"

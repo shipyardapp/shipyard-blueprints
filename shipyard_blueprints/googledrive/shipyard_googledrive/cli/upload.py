@@ -4,7 +4,7 @@ import argparse
 import re
 
 from shipyard_templates import ExitCodeException
-from shipyard_googledrive import GoogleDriveClient, utils
+from shipyard_googledrive import GoogleDriveClient
 from shipyard_bp_utils import files
 
 
@@ -41,9 +41,10 @@ def main():
         service_account=args.service_account, shared_drive_name=args.drive
     )
     if args.source_folder_name != "":
-        source_path = args.source_file_name
-    else:
+        # source_path = args.source_file_name
         source_path = os.path.join(args.source_folder_name, args.source_file_name)
+    else:
+        source_path = args.source_file_name
 
     drive_folder = (
         args.destination_folder_name if args.destination_folder_name != "" else None
@@ -54,23 +55,32 @@ def main():
     drive_name = args.drive if args.drive != "" else None
 
     # for multiple file uploads
+
     if args.source_file_name_match_type == "regex_match":
+        files_listed = files.find_all_local_file_names(
+            args.source_folder_name if args.source_folder_name != "" else None
+        )
         file_matches = files.find_all_file_matches(
-            file_names=args.source_file_name,
+            file_names=files_listed,
             file_name_re=re.compile(args.source_file_name),
         )
         for index, file in enumerate(file_matches, start=1):
+            if args.source_folder_name:
+                file_path = os.path.join(args.source_folder_name, file)
+            else:
+                file_path = os.path.join(os.getcwd(), file)
             new_file_name = files.determine_destination_file_name(
-                source_full_path=source_path,
+                source_full_path=file,
                 destination_file_name=drive_file_name,
                 file_number=index,
             )
             client.upload(
-                file_path=source_path,
+                file_path=file_path,
                 drive_folder=drive_folder,
                 drive=drive_name,
                 drive_file_name=new_file_name,
             )
+            client.logger.info(f"Processed {file_path}")
 
     # for single file uploads
     else:  # handles the case for exact_match, any other option will receive an argument error
@@ -89,7 +99,7 @@ def main():
             client.logger.exception(str(e))
             sys.exit(client.EXIT_CODE_UPLOAD_ERROR)
         else:
-            client.logger.info("Successfully loaded file to Google Drive!")
+            client.logger.info("Successfully loaded file(s) to Google Drive!")
 
 
 if __name__ == "__main__":

@@ -61,7 +61,7 @@ def main():
             else None
         )
         folder_id = drive_utils.get_folder_id(
-            folder_identifier=source_folder, service=client.service
+            folder_identifier=source_folder, service=client.service, drive_id=drive_id
         )
 
         # for downloading multiple file names
@@ -70,6 +70,7 @@ def main():
                 service=client.service,
                 pattern=args.source_file_name,
                 folder_id=folder_id,
+                drive_id=drive_id,
             )
 
             client.logger.info(
@@ -85,12 +86,14 @@ def main():
                     file_number=index,
                 )
                 client.download(
+                    file_id=file_id,
                     drive_file_name=file_name,
                     destination_file_name=dest_name,
                     destination_path=dest_folder_name,
                     drive=drive_id,
                     drive_folder=folder_id,
                 )
+                client.logger.info(f"Processed {dest_name}")
         # for single file downloads
         else:  # handles the case for exact_match, any other option will receive an argument error
             file_id = drive_utils.get_file_id(
@@ -99,8 +102,14 @@ def main():
                 folder_id=folder_id,
                 service=client.service,
             )
+            if not file_id:
+                client.logger.error(
+                    f"File {args.source_file_name} not found or is not accessible to {client.email}. Ensure that the file exists in Google Drive and is shared with the service account"
+                )
+                sys.exit(client.EXIT_CODE_FILE_ACCESS_ERROR)
 
             client.download(
+                file_id=file_id,
                 drive_file_name=args.source_file_name,
                 destination_file_name=dest_file_name,
                 destination_path=dest_folder_name,
@@ -118,7 +127,7 @@ def main():
         sys.exit(client.EXIT_CODE_UNKNOWN_ERROR)
 
     else:
-        client.logger.info("Successfully downloaded from Google Drive")
+        client.logger.info("Successfully downloaded file(s) from Google Drive")
 
 
 if __name__ == "__main__":

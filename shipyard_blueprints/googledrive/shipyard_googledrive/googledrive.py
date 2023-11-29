@@ -21,7 +21,6 @@ class GoogleDriveClient(CloudStorage):
     ) -> None:
         self.service_account = service_account
         self.shared_drive_name = shared_drive_name
-        # self.folder_name = None
         self.service = self.connect()
         self.drive_id = None
         self.folder_id = None
@@ -81,7 +80,6 @@ class GoogleDriveClient(CloudStorage):
         # NOTE: check to see that the folder is shared with the service account
         if drive:
             self.shared_drive_name = drive
-            # self.drive_id = self._get_drive_id(self.shared_drive_name)
             self.drive_id = drive_utils.get_drive_id(
                 service=self.service, drive_id=self.shared_drive_name
             )
@@ -92,24 +90,27 @@ class GoogleDriveClient(CloudStorage):
                     self.EXIT_CODE_DRIVE_ACCESS_ERROR,
                 )
 
-        if drive_folder:
-            self.folder_name = drive_folder
-            # self.folder_id = self._get_folder_id(self.folder_name)
-            self.folder_id = drive_utils.get_folder_id(
-                service=self.service, folder_identifier=self.folder_name
-            )
-            if not self.folder_id and not drive_utils.is_folder_id(self.folder_name):
-                folder_results = drive_utils.create_remote_folder(
-                    folder_name=self.folder_name,
+        try:
+            if drive_folder:
+                self.folder_name = drive_folder
+                self.folder_id = drive_utils.get_folder_id(
                     service=self.service,
+                    folder_identifier=self.folder_name,
                     drive_id=self.drive_id,
                 )
-                self.folder_id = folder_results
-            # else:
-            #     if not drive_utils.is_folder_shared(service_account_email=self.email,folder_id = self.folder_id, drive_service= self.service):
-            #         raise ExitCodeException(f'Error: The folder {self.folder_name} exists in Google Drive but has not been shared with the service account associated with {self.email}. Share the folder, then retry the upload', self.EXIT_CODE_FOLDER_ACCESS_ERROR)
+                if not self.folder_id and not drive_utils.is_folder_id(
+                    self.folder_name
+                ):
+                    folder_results = drive_utils.create_remote_folder(
+                        folder_name=self.folder_name,
+                        service=self.service,
+                        drive_id=self.drive_id,
+                    )
+                    self.folder_id = folder_results
+                # else:
+                #     if not drive_utils.is_folder_shared(service_account_email=self.email,folder_id = self.folder_id, drive_service= self.service):
+                #         raise ExitCodeException(f'Error: The folder {self.folder_name} exists in Google Drive but has not been shared with the service account associated with {self.email}. Share the folder, then retry the upload', self.EXIT_CODE_FOLDER_ACCESS_ERROR)
 
-        try:
             # use the base name of the file if not provided
             if not drive_file_name:
                 drive_file_name = os.path.basename(file_path)
@@ -168,6 +169,7 @@ class GoogleDriveClient(CloudStorage):
                     )
                     .execute()
                 )
+                self.logger.info(f"Updated file {file_id}")
 
             else:
                 upload_file = (
@@ -180,11 +182,13 @@ class GoogleDriveClient(CloudStorage):
                     )
                     .execute()
                 )
-                print(upload_file.get("id"))
+                self.logger.info(f"Newly created file is {upload_file.get('id')}")
         except FileNotFoundError as fe:
             raise ExitCodeException(
                 message=str(fe), exit_code=self.EXIT_CODE_FILE_NOT_FOUND
             )
+        except ExitCodeException as ec:
+            raise ExitCodeException(message=ec.message, exit_code=ec.exit_code)
         except Exception as e:
             raise ExitCodeException(
                 message=f"Error in uploading file to google drive: {str(e)}",
@@ -199,6 +203,7 @@ class GoogleDriveClient(CloudStorage):
 
     def download(
         self,
+        file_id: str,
         drive_file_name: str,
         drive_folder: Optional[str] = None,
         drive: Optional[str] = None,
@@ -208,6 +213,7 @@ class GoogleDriveClient(CloudStorage):
         """Downloads a file from Google Drive locally
 
         Args:
+            file_id: The ID of the file to download
             drive_file_name: The name of the file to download
             drive_folder: The optional name of the folder or the ID of folder. If not provided, then it will look for the file within the root directory of the drive
             drive: The optional name or ID of the shared drive
@@ -220,12 +226,19 @@ class GoogleDriveClient(CloudStorage):
             )
 
         if drive_folder:
-            self.folder_id = drive_utils.get_folder_id(
-                folder_identifier=drive_folder, service=self.service
-            )
+            try:
+                self.folder_id = drive_utils.get_folder_id(
+                    folder_identifier=drive_folder,
+                    service=self.service,
+                    drive_id=self.drive_id,
+                )
+            except ExitCodeException as ec:
+                raise ExitCodeException(ec.message, ec.exit_code)
 
         if destination_path:
-            os.mkdir(destination_path)
+            # if exists, then skip
+            if not os.path.exists(destination_path):
+                os.mkdir(destination_path)
         else:
             destination_path = os.getcwd()
 
@@ -235,12 +248,6 @@ class GoogleDriveClient(CloudStorage):
             destination_path = os.path.join(destination_path, drive_file_name)
 
         try:
-            file_id = drive_utils.get_file_id(
-                file_name=drive_file_name,
-                service=self.service,
-                drive_id=self.drive_id,
-                folder_id=self.folder_id,
-            )
             request = self.service.files().get_media(fileId=file_id)
             fh = open(destination_path, "wb")
             downloader = MediaIoBaseDownload(fh, request)
