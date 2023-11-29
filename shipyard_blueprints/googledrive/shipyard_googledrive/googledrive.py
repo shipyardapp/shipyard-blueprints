@@ -21,7 +21,6 @@ class GoogleDriveClient(CloudStorage):
     ) -> None:
         self.service_account = service_account
         self.shared_drive_name = shared_drive_name
-        # self.folder_name = None
         self.service = self.connect()
         self.drive_id = None
         self.folder_id = None
@@ -81,7 +80,6 @@ class GoogleDriveClient(CloudStorage):
         # NOTE: check to see that the folder is shared with the service account
         if drive:
             self.shared_drive_name = drive
-            # self.drive_id = self._get_drive_id(self.shared_drive_name)
             self.drive_id = drive_utils.get_drive_id(
                 service=self.service, drive_id=self.shared_drive_name
             )
@@ -95,7 +93,6 @@ class GoogleDriveClient(CloudStorage):
         try:
             if drive_folder:
                 self.folder_name = drive_folder
-                # self.folder_id = self._get_folder_id(self.folder_name)
                 self.folder_id = drive_utils.get_folder_id(
                     service=self.service,
                     folder_identifier=self.folder_name,
@@ -251,12 +248,6 @@ class GoogleDriveClient(CloudStorage):
             destination_path = os.path.join(destination_path, drive_file_name)
 
         try:
-            # file_id = drive_utils.get_file_id(
-            #     file_name=drive_file_name,
-            #     service=self.service,
-            #     drive_id=self.drive_id,
-            #     folder_id=self.folder_id,
-            # )
             request = self.service.files().get_media(fileId=file_id)
             fh = open(destination_path, "wb")
             downloader = MediaIoBaseDownload(fh, request)
