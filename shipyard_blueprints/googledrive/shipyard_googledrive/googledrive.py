@@ -229,11 +229,14 @@ class GoogleDriveClient(CloudStorage):
             )
 
         if drive_folder:
-            self.folder_id = drive_utils.get_folder_id(
-                folder_identifier=drive_folder,
-                service=self.service,
-                drive_id=self.drive_id,
-            )
+            try:
+                self.folder_id = drive_utils.get_folder_id(
+                    folder_identifier=drive_folder,
+                    service=self.service,
+                    drive_id=self.drive_id,
+                )
+            except ExitCodeException as ec:
+                raise ExitCodeException(ec.message, ec.exit_code)
 
         if destination_path:
             # if exists, then skip

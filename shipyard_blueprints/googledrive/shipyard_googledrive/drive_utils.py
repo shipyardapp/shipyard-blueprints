@@ -221,7 +221,7 @@ def get_folder_id(
                 return None
 
     except ExitCodeException as ec:
-        raise (ExitCodeException(ec.message, ec.exit_code))
+        raise ExitCodeException(ec.message, ec.exit_code)
     except Exception as e:
         return None
 
@@ -280,6 +280,7 @@ def get_file_matches(
         service (): The google service connection
         pattern: The pattern to search for
         folder_id: The folder to search within. If omitted, all file matches across all folders will be returned
+        drive_id: The shared drive to search within
 
     Raises:
         ExitCodeException:
@@ -288,10 +289,8 @@ def get_file_matches(
 
     """
     try:
-        # query = f"name contains '{pattern}'"
         query = None
         if folder_id:
-            # query += f" and '{folder_id}' in parents"
             query = f"'{folder_id}' in parents"
             if drive_id:
                 if query:
@@ -328,7 +327,6 @@ def get_file_matches(
             files = []
             all_folder_ids = get_all_folder_ids(service, drive_id=drive_id)
             for f_id in all_folder_ids:
-                # query += f" and '{f_id}' in parents"
                 query = f"'{f_id}' in parents"
                 if drive_id:
                     results = (
@@ -382,26 +380,6 @@ def get_file_matches(
 
     else:
         return matches
-
-    # if folder_id:
-    #     folder_query = f"'{folder_id}' in parents and trashed=false"
-    # else:
-    #     folder_query = f"'root' in parents and trashed=false"
-    #
-    # matches = []
-    # stack = [folder_query]
-    # while stack:
-    #     current_query = stack.pop()
-    #     results = service.files().list(q=current_query).execute()
-    #     files = results.get('files', [])
-    #
-    #     for file in files:
-    #         if re.search(pattern, file['name']):
-    #             matches.append(file)
-    #         if file['mimeType'] == 'application/vnd.google-apps.folder':
-    #             stack.append(f"'{file['id']}' in parents and trashed=false")
-    #
-    # return matches
 
 
 def get_all_folder_ids(service, drive_id: Optional[str] = None) -> List[Any]:
