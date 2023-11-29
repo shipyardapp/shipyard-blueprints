@@ -56,7 +56,8 @@ def does_file_exist(
     Returns: True if exists, False if not
 
     """
-    query = f"name='{file_name}' and '{parent_folder_id}' in parents"
+    # query = f"name='{file_name}' and '{parent_folder_id}' in parents"
+    query = f"'{parent_folder_id}' in parents and name='{file_name}'"
     try:
         if drive_id:
             results = (
@@ -106,7 +107,7 @@ def get_file_id(
     """
     query = f"name='{file_name}'"
     if folder_id:
-        query += f"and '{folder_id} in parents"
+        query += f"and '{folder_id}' in parents"
     try:
         if drive_id:
             results = (
@@ -194,7 +195,7 @@ def get_folder_id(
             results = (
                 service.files()
                 .list(
-                    q=f"name = '{folder_identifier} and mimeType = 'application/vnd.google-apps.folder'",
+                    q=f"name = '{folder_identifier}' and mimeType = 'application/vnd.google-apps.folder'",
                     fields="files(id)",
                 )
                 .execute()
@@ -204,7 +205,7 @@ def get_folder_id(
                 return folders[0]["id"]
             else:
                 return None
-    except Exception:
+    except Exception as e:
         return None
 
 

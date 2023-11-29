@@ -168,6 +168,7 @@ class GoogleDriveClient(CloudStorage):
                     )
                     .execute()
                 )
+                self.logger.info(f"Updated file {file_id}")
 
             else:
                 upload_file = (

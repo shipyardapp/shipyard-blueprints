@@ -11,6 +11,9 @@ if [ "$1" = "upload" ]; then
 
     echo "Starting upload with destination folder and regex match"
     python3 ./shipyard_googledrive/cli/upload.py  --service-account "$sa" --source-folder-name reg2 --source-file-name-match-type regex_match --source-file-name csv --drive "0ADIj7rHQKNmWUk9PVA"
+
+    echo "Starting upload with local folder, exact match, drive folder, and rename"
+    python3 ./shipyard_googledrive/cli/upload.py --service-account "$sa" --source-file-name-match-type 'exact_match' --source-folder-name reg2 --source-file-name gdata_1.csv --destination-folder-name "1OiKjcPUomfGyIt-sco_5cryAJoh16yzr" --destination-file-name comptability_file.csv --drive "0ADIj7rHQKNmWUk9PVA"
 fi
 
 
