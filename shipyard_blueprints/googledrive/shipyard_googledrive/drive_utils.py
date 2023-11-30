@@ -3,6 +3,7 @@ import logging
 import re
 import glob
 from typing import Optional, Union, List, Any, Set
+from pathlib import Path
 
 from shipyard_templates import ExitCodeException
 
@@ -411,8 +412,8 @@ def get_all_folder_ids(service, drive_id: Optional[str] = None) -> List[Any]:
     return folder_ids
 
 
-def list_local_files(dirname: Optional[str]) -> List[str]:
-    """Returns all the files located within the directory path. If the dirname is not provided, then the current working directory will be used
+def list_local_files(directory: Optional[str] = None) -> List[str]:
+    """Returns all the files located within the directory path. If the dirname is not provided, then the current working directory will be used and it will span all subdirectories
 
     Args:
         dirname: The optional directory to span
@@ -420,8 +421,13 @@ def list_local_files(dirname: Optional[str]) -> List[str]:
     Returns: List of all the files
 
     """
-    cwd = os.getcwd()
-    if dirname:
-        cwd = os.path.join(cwd, dirname)
-    files = os.listdir(cwd)
-    return [file for file in files if os.path.isfile(file)]
+    if directory is None:
+        directory = os.getcwd()
+
+    files = []
+    for root, _, filenames in os.walk(directory):
+        for filename in filenames:
+            file_path = os.path.join(root, filename)
+            files.append(file_path)
+
+    return files
