@@ -4,7 +4,7 @@ import argparse
 import re
 
 from shipyard_templates import ExitCodeException
-from shipyard_googledrive import GoogleDriveClient
+from shipyard_googledrive import GoogleDriveClient, drive_utils
 from shipyard_bp_utils import files
 
 
@@ -41,7 +41,6 @@ def main():
         service_account=args.service_account, shared_drive_name=args.drive
     )
     if args.source_folder_name != "":
-        # source_path = args.source_file_name
         source_path = os.path.join(args.source_folder_name, args.source_file_name)
     else:
         source_path = args.source_file_name
@@ -57,13 +56,18 @@ def main():
     # for multiple file uploads
 
     if args.source_file_name_match_type == "regex_match":
-        files_listed = files.find_all_local_file_names(
+        files_listed = drive_utils.list_local_files(
             args.source_folder_name if args.source_folder_name != "" else None
         )
         file_matches = files.find_all_file_matches(
             file_names=files_listed,
             file_name_re=re.compile(args.source_file_name),
         )
+        if len(file_matches) == 0:
+            client.logger.error(
+                f"No files found matching regex {args.source_file_name}"
+            )
+            sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
         for index, file in enumerate(file_matches, start=1):
             if args.source_folder_name:
                 file_path = os.path.join(args.source_folder_name, file)
