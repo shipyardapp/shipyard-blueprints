@@ -69,10 +69,6 @@ def main():
             )
             sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
         for index, file in enumerate(file_matches, start=1):
-            # if args.source_folder_name:
-            #     file_path = os.path.join(args.source_folder_name, file)
-            # else:
-            #     file_path = os.path.join(os.getcwd(), file)
             new_file_name = files.determine_destination_file_name(
                 source_full_path=file,
                 destination_file_name=drive_file_name,
