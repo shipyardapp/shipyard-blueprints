@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-googledrive"
-version = "0.1.1"
+version = "0.1.2"
 description = "A local client for connecting and working with Google Drive"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
@@ -11,7 +11,7 @@ packages = [{include = "shipyard_googledrive"}]
 python = "^3.9"
 google-api-python-client = "2.7"
 google-auth-httplib2 = "0.1.0"
-shipyard-templates = "0.4.2a1"
+shipyard-templates = "0.4.2"
 shipyard-bp-utils = "^0.1.1"
 
 [tool.poetry.group.dev.dependencies]
