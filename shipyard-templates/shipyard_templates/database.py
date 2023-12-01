@@ -69,3 +69,41 @@ class GoogleDatabase:
     @abstractmethod
     def upload(self, **kwargs):
         pass
+
+
+class DatabricksDatabase:
+    EXIT_CODE_INVALID_CREDENTIALS = 200
+    EXIT_CODE_INVALID_WAREHOUSE = 202
+    EXIT_CODE_INVALID_DATABASE = 203
+    EXIT_CODE_INVALID_SCHEMA = 204  # snowflake specific
+    EXIT_CODE_INVALID_QUERY = 205
+    EXIT_CODE_NO_RESULTS = 206
+    EXIT_CODE_FILE_NOT_FOUND = 205
+    EXIT_CODE_INVALID_UPLOAD_VALUE = 206
+    EXIT_CODE_INVALID_UPLOAD_COLUMNS = 207
+    EXIT_CODE_INVALID_ARGUMENTS = 208
+    EXIT_CODE_INVALID_DATA_TYPES = 209
+
+    def __init__(
+        self, server_host: str, http_path: str, access_token: str, **kwargs
+    ) -> None:
+        self.server_host = server_host
+        self.http_path = http_path
+        self.access_token = access_token
+        self.logger = ShipyardLogger().logger
+
+    @abstractmethod
+    def connect(self):
+        pass
+
+    @abstractmethod
+    def execute_query(self, **kwargs):
+        pass
+
+    @abstractmethod
+    def fetch(self, **kwargs):
+        pass
+
+    @abstractmethod
+    def upload(self, **kwargs):
+        pass
