@@ -1,4 +1,5 @@
 import polars as pl
+import pandas as pd
 from http import server
 import databricks
 from databricks.sql.client import Connection
@@ -48,11 +49,17 @@ class DatabricksSqlClient(DatabricksDatabase):
         http_path: str,
         access_token: str,
         port: Optional[int] = 443,
+        catalog: Optional[
+            str
+        ] = None,  # will default to the default catalog (typically hive metastore)
+        schema: Optional[str] = None,  # will default to the 'default' schema
     ) -> None:
         self.server_host = server_host
         self.http_path = http_path
         self.access_token = access_token
         self.port = port
+        self.catalog = catalog
+        self.schema = schema
         super().__init__(server_host, http_path, access_token, port=port)
 
     def connect(self) -> Connection:
@@ -60,6 +67,8 @@ class DatabricksSqlClient(DatabricksDatabase):
             server_hostname=self.server_host,
             http_path=self.http_path,
             access_token=self.access_token,
+            catalog=self.catalog,
+            schema=self.schema,
         )
 
     @property
@@ -77,6 +86,7 @@ class DatabricksSqlClient(DatabricksDatabase):
         schema: Dict[Any, Any],
         insert_method: str = "replace",
     ):
+        # NOTE: Need to have a create table function that creates a databricks table (if it doesn't exist) with the associated datatypes
         pass
 
     def fetch(self, query: str) -> pl.DataFrame:
@@ -85,15 +95,13 @@ class DatabricksSqlClient(DatabricksDatabase):
         Args:
             query:
 
-        Raises:
-            ExitCodeException:
-            ExitCodeException:
 
         Returns:
 
         """
         try:
             query_results = self.execute_query(query)
+            self.logger.info(f"Results are {query_results}")
             df = pl.DataFrame(query_results)
         except ExitCodeException as ec:
             raise ExitCodeException(ec.message, ec.exit_code)
@@ -115,14 +123,16 @@ class DatabricksSqlClient(DatabricksDatabase):
             ExitCodeException:
         """
         try:
-            self.cursor.execute(query)
-            self.logger.info("Successfully executed query")
+            results = self.cursor.execute(query)
         except Exception as e:
             self.logger.error("Error in executing query")
             raise ExitCodeException(
                 f"Could not execute query in Databricks: {str(e)}",
                 self.EXIT_CODE_INVALID_QUERY,
             )
+        else:
+            self.logger.info("Successfully executed query")
+            return results
 
     def __exit__(self):
         self.connection.close()
