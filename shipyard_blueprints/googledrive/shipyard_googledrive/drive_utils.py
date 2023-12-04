@@ -195,32 +195,40 @@ def get_folder_id(
         if is_folder_id(folder_identifier):
             return folder_identifier
         else:
-            if not drive_id:
-                results = service.files().list()
-            else:
-                results = (
-                    service.files()
-                    .list(
-                        q=f"name = '{folder_identifier}' and mimeType = 'application/vnd.google-apps.folder'",
-                        fields="files(id)",
-                        supportsAllDrives=True,
-                        includeItemsFromAllDrives=True,
-                        corpora="drive",
-                        driveId=drive_id,
+            folder_names = folder_identifier.split("/")
+            tmp_id = "root"  # this will be iteratively updated
+            for folder_name in folder_names:
+                if tmp_id == "root":
+                    query = f"trashed=false and mimeType='application/vnd.google-apps.folder' and name='{folder_name}'"
+                else:
+                    query = f"'{tmp_id}' in parents and trashed=false and mimeType='application/vnd.google-apps.folder' and name='{folder_name}'"
+                if not drive_id:
+                    results = service.files().list(q=query).execute()
+                else:
+                    results = (
+                        service.files()
+                        .list(
+                            # q=f"name = '{folder_identifier}' and mimeType = 'application/vnd.google-apps.folder'",
+                            q=query,
+                            fields="files(id)",
+                            supportsAllDrives=True,
+                            includeItemsFromAllDrives=True,
+                            corpora="drive",
+                            driveId=drive_id,
+                        )
+                        .execute()
                     )
-                    .execute()
-                )
-            folders = results.get("files", [])
-            if len(folders) > 1:
-                raise ExitCodeException(
-                    f"Multiple folders with name {folder_identifier} found, please use the folder ID instead",
-                    204,
-                )
-
-            if folders:
-                return folders[0]["id"]
-            else:
-                return None
+                folders = results.get("files", [])
+                if len(folders) > 1:
+                    raise ExitCodeException(
+                        f"Multiple folders with name {folder_identifier} found, please use the folder ID instead",
+                        204,
+                    )
+                if folders:
+                    tmp_id = folders[0]["id"]
+                else:
+                    return None
+            return tmp_id
 
     except ExitCodeException as ec:
         raise ExitCodeException(ec.message, ec.exit_code)
