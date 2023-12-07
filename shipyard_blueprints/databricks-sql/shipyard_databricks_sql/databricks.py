@@ -1,6 +1,6 @@
 import pandas as pd
 from databricks.sql.client import Connection
-from shipyard_templates import CloudStorage, DatabricksDatabase, ExitCodeException
+from shipyard_templates import DatabricksDatabase, ExitCodeException
 from databricks import sql
 from databricks.sql.client import Connection  # for type hints
 from typing import Optional, Dict, List, Any

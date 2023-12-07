@@ -83,6 +83,9 @@ class DatabricksDatabase:
     EXIT_CODE_INVALID_UPLOAD_COLUMNS = 207
     EXIT_CODE_INVALID_ARGUMENTS = 208
     EXIT_CODE_INVALID_DATA_TYPES = 209
+    EXIT_CODE_INSERT_STATEMENT_ERROR = 210
+    EXIT_CODE_CREATE_STATEMENT_ERROR = 211
+    EXIT_CODE_UNKNOWN_ERROR = 249
 
     def __init__(
         self, server_host: str, http_path: str, access_token: str, **kwargs

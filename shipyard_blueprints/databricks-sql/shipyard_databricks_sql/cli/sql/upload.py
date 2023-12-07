@@ -17,7 +17,12 @@ def get_args():
     parser.add_argument("--schema", dest="schema", required=False, default="")
     parser.add_argument("--table-name", dest="table_name", required=True)
     parser.add_argument("--data-types", dest="data_types", required=False, default="")
-    parser.add_argument("--insert-method", dest="insert_method", required=True)
+    parser.add_argument(
+        "--insert-method",
+        dest="insert_method",
+        required=True,
+        choices={"replace", "append"},
+    )
     parser.add_argument(
         "--file-type",
         dest="file_type",
