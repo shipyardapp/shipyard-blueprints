@@ -840,7 +840,7 @@ testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jar
 
 [[package]]
 name = "shipyard-templates"
-version = "0.4.2"
+version = "0.4.3a0"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = "^3.9"
@@ -1028,4 +1028,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "529b08ac949d74a82fb8e0a0653d3fd987fbff99a67c091009f10516945c2e06"
+content-hash = "94259b68b6294eb34d1bf71cb040bf71dd152d082b5f3b286a98e1066f3230d0"
