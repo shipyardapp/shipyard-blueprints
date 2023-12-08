@@ -33,6 +33,8 @@ def main():
     schema = args.schema if args.schema != "" else None
     folder_name = args.folder_name if args.folder_name != "" else None
     if folder_name:
+        if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
+            os.mkdir(folder_name)
         full_path = os.path.join(os.getcwd(), folder_name, args.file_name)
     else:
         full_path = os.path.join(os.getcwd(), args.file_name)
@@ -49,10 +51,10 @@ def main():
         client.logger.info(f"Successfully fetched {data.shape[0]} rows")
 
         if args.file_type == "csv":
-            data.to_csv(full_path)
+            data.to_csv(full_path, index=False)
         # for parquet files
         else:
-            data.to_parquet(full_path)
+            data.to_parquet(index=False)
 
     except ExitCodeException as ec:
         client.logger.error(
@@ -63,7 +65,9 @@ def main():
         client.logger.error(f"Error in attempting to fetch query results:{str(e)}")
         sys.exit(client.EXIT_CODE_INVALID_QUERY)
     else:
-        pass
+        client.logger.info(f"Downloaded results to {full_path}")
+    finally:
+        client.close()
 
 
 if __name__ == "__main__":

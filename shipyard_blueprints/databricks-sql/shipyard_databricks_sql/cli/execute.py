@@ -41,6 +41,9 @@ def main():
         )
         sys.exit(client.EXIT_CODE_INVALID_QUERY)
 
+    finally:
+        client.close()
+
 
 if __name__ == "__main__":
     main()

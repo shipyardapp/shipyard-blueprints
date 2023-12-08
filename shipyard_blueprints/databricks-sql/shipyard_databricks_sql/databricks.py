@@ -132,7 +132,6 @@ class DatabricksSqlClient(DatabricksDatabase):
         """
         try:
             query_results = self.execute_query(query)
-            self.logger.info(f"Results are {query_results}")
             df = pd.DataFrame(query_results)
         except ExitCodeException as ec:
             raise ExitCodeException(ec.message, ec.exit_code)
@@ -159,7 +158,6 @@ class DatabricksSqlClient(DatabricksDatabase):
                 self.EXIT_CODE_INVALID_QUERY,
             )
         else:
-            self.logger.info("Successfully executed query")
             return results
 
     def __exit__(self):
@@ -290,45 +288,52 @@ class DatabricksSqlClient(DatabricksDatabase):
         Returns: The SQL statement
 
         """
-        # Start building the insert statement
-        insert_statement = f"INSERT INTO {table_name} ("
+        try:
+            # Start building the insert statement
+            insert_statement = f"INSERT INTO {table_name} ("
 
-        # Extract column names
-        columns = df.columns.tolist()
+            # Extract column names
+            columns = df.columns.tolist()
 
-        # Join column names with commas and append to the insert statement
-        insert_statement += ", ".join(columns)
+            # Join column names with commas and append to the insert statement
+            insert_statement += ", ".join(columns)
 
-        # Continue building the insert statement
-        insert_statement += ") VALUES\n"
+            # Continue building the insert statement
+            insert_statement += ") VALUES\n"
 
-        # Iterate through the DataFrame rows and format the values
-        for index, row in df.iterrows():
-            values = []
+            # Iterate through the DataFrame rows and format the values
+            for index, row in df.iterrows():
+                values = []
 
-            # Iterate through columns and format values based on datatype
-            for col in columns:
-                value = row[col]
-                data_type = datatypes.get(col, "string")
-                # Format the value based on data type
-                if data_type in [
-                    "int",
-                    "decimal",
-                    "bigint",
-                    "double",
-                    "smallint",
-                    "tinyint",
-                ]:
-                    values.append(str(value))
-                else:
-                    values.append(f"'{value}'")
-            # Join values with commas, wrap in parentheses, and append to the insert statement
-            insert_statement += f"({', '.join(values)}),\n"
+                # Iterate through columns and format values based on datatype
+                for col in columns:
+                    value = row[col]
+                    data_type = datatypes.get(col, "string")
+                    # Format the value based on data type
+                    if data_type in [
+                        "int",
+                        "decimal",
+                        "bigint",
+                        "double",
+                        "smallint",
+                        "tinyint",
+                    ]:
+                        values.append(str(value))
+                    else:
+                        values.append(f"'{value}'")
+                # Join values with commas, wrap in parentheses, and append to the insert statement
+                insert_statement += f"({', '.join(values)}),\n"
 
-        # Remove the trailing comma and newline
-        insert_statement = insert_statement.rstrip(",\n")
+            # Remove the trailing comma and newline
+            insert_statement = insert_statement.rstrip(",\n")
+        except Exception as e:
+            raise ExitCodeException(
+                message=f"Error in generating insert statement {str(e)}",
+                exit_code=self.EXIT_CODE_INSERT_STATEMENT_ERROR,
+            )
 
-        return insert_statement + ";"
+        else:
+            return insert_statement + ";"
 
     def _table_exists(self, table_name: str) -> bool:
         """Helper function to determine if the table exists

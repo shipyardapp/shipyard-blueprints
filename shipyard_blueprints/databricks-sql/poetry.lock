@@ -839,6 +839,20 @@ testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8-2020", "ini2toml[l
 testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "packaging (>=23.1)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
+name = "shipyard-bp-utils"
+version = "0.1.1"
+description = "Utility functions for blueprints"
+optional = false
+python-versions = ">=3.9,<4.0"
+files = [
+    {file = "shipyard_bp_utils-0.1.1-py3-none-any.whl", hash = "sha256:f306113a4677950ec0f462be0921ea597a46c43709f36f3d9f50905e47b2d947"},
+    {file = "shipyard_bp_utils-0.1.1.tar.gz", hash = "sha256:8ae1317abecb36dc53a4e35498d2d890a74714181218577673acf80843c35dc5"},
+]
+
+[package.dependencies]
+python-dateutil = ">=2.8.2,<3.0.0"
+
+[[package]]
 name = "shipyard-templates"
 version = "0.4.3a0"
 description = "Super classes for blueprint development"
@@ -1028,4 +1042,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "94259b68b6294eb34d1bf71cb040bf71dd152d082b5f3b286a98e1066f3230d0"
+content-hash = "afd471659b7e1de301383d93a689cdd3c02c357d096608892535ec15dff395aa"
