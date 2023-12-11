@@ -32,14 +32,14 @@ def main():
     catalog = args.catalog if args.catalog != "" else None
     schema = args.schema if args.schema != "" else None
     folder_name = args.folder_name if args.folder_name != "" else None
-    if folder_name:
-        if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
-            os.mkdir(folder_name)
-        full_path = os.path.join(os.getcwd(), folder_name, args.file_name)
-    else:
-        full_path = os.path.join(os.getcwd(), args.file_name)
-
     try:
+        if folder_name:
+            if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
+                os.mkdir(folder_name)
+            full_path = os.path.join(os.getcwd(), folder_name, args.file_name)
+        else:
+            full_path = os.path.join(os.getcwd(), args.file_name)
+
         client = DatabricksSqlClient(
             server_host=args.server_host,
             http_path=args.http_path,
