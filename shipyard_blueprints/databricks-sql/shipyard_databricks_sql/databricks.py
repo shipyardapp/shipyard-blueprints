@@ -132,7 +132,9 @@ class DatabricksSqlClient(DatabricksDatabase):
         """
         try:
             query_results = self.execute_query(query)
-            df = pd.DataFrame(query_results)
+            results = query_results.fetchall()
+            cols = results[0].asDict().keys()
+            df = pd.DataFrame(results, columns=cols)
         except ExitCodeException as ec:
             raise ExitCodeException(ec.message, ec.exit_code)
         except Exception as e:

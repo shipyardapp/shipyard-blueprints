@@ -54,7 +54,7 @@ def main():
             data.to_csv(full_path, index=False)
         # for parquet files
         else:
-            data.to_parquet(index=False)
+            data.to_parquet(full_path, index=False)
 
     except ExitCodeException as ec:
         client.logger.error(
