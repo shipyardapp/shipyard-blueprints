@@ -1,1 +1,1 @@
-from .databricks import DatabricksClient, DatabricksSqlClient
+from .databricks import DatabricksClient
