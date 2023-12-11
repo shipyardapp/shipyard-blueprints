@@ -15,14 +15,13 @@ from shipyard_blueprints.athena.shipyard_athena import AthenaClient
 from shipyard_blueprints.mysql.shipyard_mysql import MySqlClient
 from shipyard_blueprints.postgresql.shipyard_postgresql import PostgresqlClient
 from shipyard_blueprints.redshift.shipyard_redshift import RedshiftClient
-from shipyard_blueprints.sqlserver.shipyard_sqlserver import SqlServerClient
 from shipyard_blueprints.bigquery.shipyard_bigquery import BigQueryClient
 
 # cloud storage
 from shipyard_blueprints.s3.shipyard_s3 import S3Client
 from shipyard_blueprints.azureblob.shipyard_azureblob import AzureBlobClient
-from shipyard_blueprints.googlecloud.shipyard_googlecloud import GoogleCloudClient
 from shipyard_blueprints.ftp.shipyard_ftp import FtpClient
+from shipyard_blueprints.googlecloud.shipyard_googlecloud import GoogleCloudClient
 from shipyard_blueprints.sftp.shipyard_sftp import SftpClient
 from shipyard_blueprints.box.shipyard_box import BoxClient
 from shipyard_blueprints.googledrive.shipyard_googledrive import GoogleDriveClient

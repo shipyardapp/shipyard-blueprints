@@ -1,13 +1,15 @@
+import os
 import json
 import tempfile
-import os
+
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
 from shipyard_templates import CloudStorage, ExitCodeException
 from typing import Optional, Dict, List, Any, Union
 from googleapiclient.http import MediaIoBaseDownload
-from shipyard_googledrive import drive_utils
+
+from shipyard_blueprints.googledrive.shipyard_googledrive import drive_utils
 
 
 class GoogleDriveClient(CloudStorage):

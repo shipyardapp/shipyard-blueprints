@@ -4,9 +4,9 @@ from shipyard_blueprints import GoogleSheetsClient
 
 
 def main():
+
     client = GoogleSheetsClient(
-        service_account=os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    )
+        service_account=os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
     try:
         client.connect()
         client.logger.info("Successfully connected to google sheets")
