@@ -12,9 +12,6 @@ python = "^3.9"
 databricks-cli = "^0.17.6"
 databricks-sdk = "^0.2.1"
 shipyard-templates = "^0.4.2"
-databricks-sql-connector = {version = "^3.0.0", extras = ["sqlalchemy"]}
-polars = "^0.19.18"
-pandas = "1.5.3"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-templates = {path = "../../shipyard-templates", develop = true}
