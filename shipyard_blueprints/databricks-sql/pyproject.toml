@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "shipyard-databricks-sql"
-version = "0.1.1"
+version = "0.1.2"
 description = ""
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-shipyard-templates = "0.4.3a0"
+shipyard-templates = "0.4.3"
 databricks-sql-connector = {version = "^3.0.0", extras = ["sqlalchemy"]}
 pandas = "1.5.3"
 shipyard-bp-utils = "^0.1.1"

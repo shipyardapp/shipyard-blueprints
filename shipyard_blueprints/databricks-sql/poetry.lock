@@ -854,7 +854,7 @@ python-dateutil = ">=2.8.2,<3.0.0"
 
 [[package]]
 name = "shipyard-templates"
-version = "0.4.3a0"
+version = "0.4.3"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = "^3.9"
@@ -1042,4 +1042,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "afd471659b7e1de301383d93a689cdd3c02c357d096608892535ec15dff395aa"
+content-hash = "76009684e3b76e68e973293cd87d342957f4e2b549453d0bf5a87d18057073b5"
