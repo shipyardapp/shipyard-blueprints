@@ -37,4 +37,3 @@ class GoogleSheetsClient(Spreadsheets):
 
     def upload(self):
         pass
-
