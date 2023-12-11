@@ -1,14 +1,9 @@
 import os
-import re
 import json
-import csv
 import tempfile
-import argparse
-import socket
-import glob
+
 
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
 from shipyard_templates import Spreadsheets
 
@@ -36,3 +31,9 @@ class GoogleSheetsClient(Spreadsheets):
         service = build("sheets", "v4", credentials=creds)
         drive_service = build("drive", "v3", credentials=creds)
         return service, drive_service
+
+    def fetch(self):
+        pass
+
+    def upload(self):
+        pass

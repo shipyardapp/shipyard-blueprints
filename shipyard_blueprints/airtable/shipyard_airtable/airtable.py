@@ -1,6 +1,5 @@
 import requests
 from shipyard_templates import Spreadsheets
-from pyairtable import Table
 
 
 class AirtableClient(Spreadsheets):
@@ -17,3 +16,9 @@ class AirtableClient(Spreadsheets):
         headers = {"Authorization": f"Bearer {self.api_key}"}
         response = requests.get(url, headers=headers)
         return response.status_code
+
+    def fetch(self):
+        pass
+
+    def upload(self):
+        pass
