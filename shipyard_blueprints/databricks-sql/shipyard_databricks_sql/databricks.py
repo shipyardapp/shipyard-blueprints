@@ -65,19 +65,17 @@ class DatabricksSqlClient(DatabricksDatabase):
         self,
         data: pd.DataFrame,
         table_name: str,
-        datatypes: Optional[Dict[Any, Any]] = None,
+        datatypes: Optional[Dict[str, str]] = None,
         insert_method: str = "replace",
     ):
         """
+        Uploads a pandas dataframe to a table in Databricks SQL Warehouse.
 
         Args:
-            data:
-            table_name:
-            datatypes:
-            insert_method:
-
-        Raises:
-            ExitCodeException:
+            data: The dataframe to load
+            table_name: The name of the table in Databricks to write to
+            datatypes: The optional Spark SQL data types to use. If omitted, the schema will be inferred
+            insert_method: Whether a table should be overwritten or appended to. If creating a new table, provide the `replace` option
         """
         try:
             if not datatypes:
