@@ -344,7 +344,13 @@ class DatabricksSqlClient(DatabricksDatabase):
         Returns: True if exists, False if not
 
         """
-
-        query = f"SHOW TABLES like '{table_name}'"
-        results = self.fetch(query)
-        return results.shape[0] == 1
+        try:
+            tables = self.cursor.tables(
+                catalog_name=self.catalog, schema_name=self.schema
+            ).fetchall()
+            for table in tables:
+                if table["TABLE_NAME"] == table_name:
+                    return True
+            return False
+        except Exception as e:
+            return False

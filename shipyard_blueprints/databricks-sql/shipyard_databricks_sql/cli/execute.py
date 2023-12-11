@@ -40,6 +40,8 @@ def main():
             f"Error in attempting to execute query in Databricks:{str(e)}"
         )
         sys.exit(client.EXIT_CODE_INVALID_QUERY)
+    else:
+        client.logger.info("Query executed successfully")
 
     finally:
         client.close()
