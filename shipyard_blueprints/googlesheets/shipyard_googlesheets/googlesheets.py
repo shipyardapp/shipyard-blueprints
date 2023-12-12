@@ -11,7 +11,9 @@ class GoogleSheetsClient(Spreadsheets):
 
     def connect(self):
         service_account_str = self.service_account.replace("\n", "\\n")
-        service_account.Credentials.from_service_account_info(json.loads(service_account_str))
+        service_account.Credentials.from_service_account_info(
+            json.loads(service_account_str)
+        )
 
     def fetch(self):
         pass
