@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import GoogleDriveClient
+from shipyard_googledrive import GoogleDriveClient
 
 
 def main():
