@@ -25,7 +25,8 @@ from shipyard_blueprints.googlecloud.shipyard_googlecloud import GoogleCloudClie
 from shipyard_blueprints.ftp.shipyard_ftp import FtpClient
 from shipyard_blueprints.sftp.shipyard_sftp import SftpClient
 from shipyard_blueprints.box.shipyard_box import BoxClient
-from shipyard_blueprints.googledrive.shipyard_googledrive import GoogleDriveClient
+
+# from shipyard_blueprints.googledrive.shipyard_googledrive import GoogleDriveClient
 from shipyard_blueprints.databricks.shipyard_databricks import DatabricksClient
 from shipyard_blueprints.dropbox.shipyard_dropbox import DropboxClient
 
