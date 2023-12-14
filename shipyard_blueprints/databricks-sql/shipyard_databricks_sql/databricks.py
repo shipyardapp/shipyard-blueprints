@@ -43,8 +43,16 @@ class DatabricksSqlClient(DatabricksDatabase):
         self.port = port
         self.catalog = catalog
         self.schema = schema
-        self.user_agent = os.environ.get("USER_AGENT_ENTRY", None)
-        super().__init__(server_host, http_path, access_token, port=port)
+        self.user_agent = os.environ.get("SHIPYARD_USER_AGENT", None)
+        super().__init__(
+            server_host,
+            http_path,
+            access_token,
+            port=port,
+            catalog=catalog,
+            schema=schema,
+            user_agent=self.user_agent,
+        )
 
     def connect(self) -> Connection:
         return sql.connect(
