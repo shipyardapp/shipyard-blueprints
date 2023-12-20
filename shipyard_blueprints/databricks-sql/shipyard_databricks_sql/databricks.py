@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from databricks.sql.client import Connection
 from shipyard_templates import DatabricksDatabase, ExitCodeException
 from databricks import sql
@@ -42,7 +43,16 @@ class DatabricksSqlClient(DatabricksDatabase):
         self.port = port
         self.catalog = catalog
         self.schema = schema
-        super().__init__(server_host, http_path, access_token, port=port)
+        self.user_agent = os.environ.get("SHIPYARD_USER_AGENT", None)
+        super().__init__(
+            server_host,
+            http_path,
+            access_token,
+            port=port,
+            catalog=catalog,
+            schema=schema,
+            user_agent=self.user_agent,
+        )
 
     def connect(self) -> Connection:
         return sql.connect(
@@ -51,6 +61,7 @@ class DatabricksSqlClient(DatabricksDatabase):
             access_token=self.access_token,
             catalog=self.catalog,
             schema=self.schema,
+            _user_agent_entry=self.user_agent,
         )
 
     @property
