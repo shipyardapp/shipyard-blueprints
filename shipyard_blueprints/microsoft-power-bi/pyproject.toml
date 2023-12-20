@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "shipyard-microsoft-power-bi"
+version = "0.1.1a0"
+description = ""
+authors = ["johnathan-rodriguez <johnathan.rodriguez@shipyardapp.com>"]
+readme = "README.md"
+packages = [{include = "shipyard_microsoft_power_bi"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+msal = "^1.26.0"
+shipyard-templates = "^0.4.4a1"
+
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
