@@ -11,11 +11,11 @@ packages = [{include = "shipyard_airtable"}]
 python = "^3.9"
 pyairtable = "^1.4.0"
 pandas = "^1.5.3"
+shipyard-templates = "^0.4.3"
 
 
 [tool.poetry.group.dev.dependencies]
 shipyard-templates = {path = "../../shipyard-templates"}
-shipyard-bp-utils = {path = "../shipyard-bp-utils"}
 
 [build-system]
 requires = ["poetry-core"]

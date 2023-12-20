@@ -252,22 +252,6 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
-name = "shipyard-bp-utils"
-version = "0.1.1"
-description = "Utility functions for blueprints"
-optional = false
-python-versions = "^3.9"
-files = []
-develop = false
-
-[package.dependencies]
-python-dateutil = "^2.8.2"
-
-[package.source]
-type = "directory"
-url = "../shipyard-bp-utils"
-
-[[package]]
 name = "shipyard-templates"
 version = "0.4.4a1"
 description = "Super classes for blueprint development"
@@ -310,4 +294,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "0070b8d0d011540916cc937689b4d1ffe4bf36ce7e72e025ad47dc1ff1ce5149"
+content-hash = "40b23fb233d1cc334208c05d5879cef35800b919eb6a110e930e13ceb7fd3a8d"
