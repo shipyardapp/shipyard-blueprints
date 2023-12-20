@@ -2,9 +2,7 @@ import json
 
 from requests import request
 from shipyard_templates import DataVisualization, ExitCodeException
-from shipyard_microsoft_power_bi.microsoft_power_bi_utils import PowerBiUtils
-
-BASE_URL = "https://api.powerbi.com/v1.0/myorg"
+import microsoft_power_bi_utils as PowerBiUtils
 
 
 class MicrosoftPowerBiClient(DataVisualization):
@@ -14,9 +12,12 @@ class MicrosoftPowerBiClient(DataVisualization):
     This class provides methods to authenticate, refresh datasets, manage dataflows, and retrieve data.
 
     Attributes:
+        BASE_URL (str): The base URL for the Power BI API.
         EXIT_CODE_FAILED_REFRESH_JOB (int): Exit code for failed refresh job.
+        EXIT_CODE_DATAFLOW_REFRESH_ALREADY_IN_PROGRESS (int): Exit code for when a dataflow refresh is already in progress.
     """
 
+    BASE_URL = "https://api.powerbi.com/v1.0/myorg"
     EXIT_CODE_FAILED_REFRESH_JOB = 101
     EXIT_CODE_DATAFLOW_REFRESH_ALREADY_IN_PROGRESS = 102
 
@@ -140,7 +141,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         """
 
         response = self._request(
-            f"{BASE_URL}/groups/{group_id}/datasets/{dataset_id}/refreshes",
+            f"{self.BASE_URL}/groups/{group_id}/datasets/{dataset_id}/refreshes",
             method="POST",
         )
         if wait_for_completion:
@@ -171,7 +172,7 @@ class MicrosoftPowerBiClient(DataVisualization):
 
         data = {"refreshRequest": "ShipyardRefresh"}
         response = self._request(
-            f"{BASE_URL}/groups/{group_id}/dataflows/{dataflow_id}/refreshes",
+            f"{self.BASE_URL}/groups/{group_id}/dataflows/{dataflow_id}/refreshes",
             method="POST",
             data=json.dumps(data),
         )
@@ -192,7 +193,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         @return: response from the request
         """
         return self._request(
-            f"{BASE_URL}/groups/{group_id}/dataflows/{dataflow_id}/transactions",
+            f"{self.BASE_URL}/groups/{group_id}/dataflows/{dataflow_id}/transactions",
             method="GET",
         )
 
@@ -215,7 +216,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         @return: Response from the request.
         """
         response = self._request(
-            f"{BASE_URL}/groups/{group_id}/datasets/{dataset_id}/refreshes?$top={number_of_refreshes}",
+            f"{self.BASE_URL}/groups/{group_id}/datasets/{dataset_id}/refreshes?$top={number_of_refreshes}",
             method="GET",
         )
         jobs = response.get("value")
@@ -242,7 +243,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         @return: response from the request
         """
         return self._request(
-            f"{BASE_URL}/groups/{group_id}/datasets/{dataset_id}/refreshes/{refresh_id}",
+            f"{self.BASE_URL}/groups/{group_id}/datasets/{dataset_id}/refreshes/{refresh_id}",
             method="GET",
         )
 
@@ -256,7 +257,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         @return: Response from the request
         """
         return self._request(
-            f"{BASE_URL}/groups/{group_id}/datasets/{dataset_id}", method="GET"
+            f"{self.BASE_URL}/groups/{group_id}/datasets/{dataset_id}", method="GET"
         )
 
     def get_datasets(self, group_id: str):
@@ -267,7 +268,9 @@ class MicrosoftPowerBiClient(DataVisualization):
         @param group_id: Group/Workspace ID
         @return: Response from the request
         """
-        return self._request(f"{BASE_URL}/groups/{group_id}/datasets", method="GET")
+        return self._request(
+            f"{self.BASE_URL}/groups/{group_id}/datasets", method="GET"
+        )
 
     def get_dataflows(self, group_id: str):
         """
@@ -277,4 +280,6 @@ class MicrosoftPowerBiClient(DataVisualization):
         @param group_id: Group/Workspace ID
         @return: Response from the request
         """
-        return self._request(f"{BASE_URL}/groups/{group_id}/dataflows", method="GET")
+        return self._request(
+            f"{self.BASE_URL}/groups/{group_id}/dataflows", method="GET"
+        )

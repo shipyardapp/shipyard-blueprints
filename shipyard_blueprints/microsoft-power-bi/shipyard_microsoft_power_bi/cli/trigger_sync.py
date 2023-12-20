@@ -20,8 +20,29 @@ def get_args():
     return parser.parse_args()
 
 
-def main():
-    args = get_args()
+def validate_args(args):
+    """
+    Handle datatype conversions and validations for arguments
+
+    @param args: Namespace object containing arguments
+    @return: Tuple containing wait_for_completion and wait_time
+    """
+
+    if args.poke_interval is None or args.poke_interval == "":
+        wait_time = 1
+    else:
+        wait_time = int(args.poke_interval * 60)
+
+    if wait_time < 0:
+        raise ExitCodeException(
+            "Error: poke-interval must be greater than 0",
+            MicrosoftPowerBiClient.EXIT_CODE_INVALID_INPUT,
+        )
+    elif wait_time > 60:
+        raise ExitCodeException(
+            "Error: poke-interval must be less than or equal to 60",
+            MicrosoftPowerBiClient.EXIT_CODE_INVALID_INPUT,
+        )
 
     wait_for_completion = None
     if type(args.wait_for_completion) is str:
@@ -29,10 +50,19 @@ def main():
             wait_for_completion = True
         elif args.wait_for_completion.upper() == "FALSE":
             wait_for_completion = False
+
     elif type(args.wait_for_completion) is bool:
         wait_for_completion = args.wait_for_completion
 
+    return wait_for_completion, wait_time
+
+
+def main():
+    args = get_args()
+
     try:
+        wait_for_completion, wait_time = validate_args(args)
+
         client = MicrosoftPowerBiClient(
             client_id=args.client_id,
             client_secret=args.client_secret,
@@ -44,10 +74,10 @@ def main():
             object_id=args.object_id,
             group_id=args.group_id,
             wait_for_completion=wait_for_completion,
-            wait_time=int(args.poke_interval),
+            wait_time=wait_time,
         )
     except ExitCodeException as e:
-        print(e)
+        client.logger.error(e)
         sys.exit(e.exit_code)
     except Exception as e:
         print(f"Unexpected error: {e}")
