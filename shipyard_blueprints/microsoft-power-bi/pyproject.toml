@@ -9,7 +9,7 @@ packages = [{include = "shipyard_microsoft_power_bi"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 msal = "^1.26.0"
-shipyard-templates = "^0.4.4a1"
+shipyard-templates = "^0.4.4"
 
 
 [tool.poetry.group.dev.dependencies]
