@@ -9,7 +9,7 @@ packages = [{include = "shipyard_s3"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-boto3 = "1.26"
+boto3 = "1.14.26"
 shipyard-templates = "0.4.3"
 shipyard-utils = "^0.1.4"
 
