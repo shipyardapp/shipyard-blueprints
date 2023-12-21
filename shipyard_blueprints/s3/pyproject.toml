@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{include = "shipyard_s3"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.7,<3.10"
 boto3 = "1.26"
 shipyard-templates = "0.4.3"
 shipyard-utils = "^0.1.4"
