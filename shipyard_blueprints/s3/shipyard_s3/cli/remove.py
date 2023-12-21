@@ -8,11 +8,7 @@ import glob
 from ast import literal_eval
 import sys
 import shipyard_utils as shipyard
-
-try:
-    import exit_codes as ec
-except BaseException:
-    from . import exit_codes as ec
+from shipyard_s3.cli import exit_codes as ec
 
 
 def get_args():
