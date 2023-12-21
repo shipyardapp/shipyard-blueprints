@@ -155,7 +155,7 @@ def wait_for_dataset_refresh_completion(
         else:
             raise ExitCodeException(
                 f"Unknown job status {job_status}",
-                bi_instance.EXIT_CODE_UNKNOWN_ERROR,
+                bi_instance.EXIT_CODE_UNKNOWN_REFRESH_JOB_STATUS,
             )
 
 
@@ -197,3 +197,8 @@ def wait_for_dataflow_refresh_completion(
                 f"Job currently in {job_status}. Waiting {wait_time} seconds before checking again."
             )
             time.sleep(wait_time)
+        else:
+            raise ExitCodeException(
+                f"Unknown job status {job_status}",
+                bi_instance.EXIT_CODE_UNKNOWN_REFRESH_JOB_STATUS,
+            )

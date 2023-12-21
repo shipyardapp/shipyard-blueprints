@@ -20,6 +20,7 @@ class MicrosoftPowerBiClient(DataVisualization):
     BASE_URL = "https://api.powerbi.com/v1.0/myorg"
     EXIT_CODE_FAILED_REFRESH_JOB = 101
     EXIT_CODE_DATAFLOW_REFRESH_ALREADY_IN_PROGRESS = 102
+    EXIT_CODE_UNKNOWN_REFRESH_JOB_STATUS = 103
 
     def __init__(self, client_id: str, client_secret: str, tenant_id: str, **kwargs):
         """
