@@ -1,4 +1,0 @@
-pandas==1.5.3
-redshift-connector
-shipyard-templates==0.4.3
-sqlalchemy-redshift
