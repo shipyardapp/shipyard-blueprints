@@ -11,10 +11,10 @@ packages = [{include = "shipyard_redshift"}]
 python = "^3.9"
 pandas = "1.5.3"
 redshift-connector = "2.0.913"
+shipyard-templates = "0.4.3"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-bp-utils = {path = "../shipyard-bp-utils"}
-shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]
