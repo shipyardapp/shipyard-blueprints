@@ -2,36 +2,41 @@
 
 [[package]]
 name = "boto3"
-version = "1.14.26"
+version = "1.26.0"
 description = "The AWS SDK for Python"
 optional = false
-python-versions = "*"
+python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.14.26-py2.py3-none-any.whl", hash = "sha256:4735fdf490094537ea0cb93ba4237db442195c37f974ea4ad44b9a5af98e6d7b"},
-    {file = "boto3-1.14.26.tar.gz", hash = "sha256:838cea329851e11b9a9dae1c00cd5ef2f3b29ac83c061733b2e93b64c333750f"},
+    {file = "boto3-1.26.0-py3-none-any.whl", hash = "sha256:0a19d07a39d69b8e84e24d75474bbf4e737b1749d0c665503dfc2446f321e1f0"},
+    {file = "boto3-1.26.0.tar.gz", hash = "sha256:8f0e4eb5c26f927c09bc03302d38156af578b816f1e4f8ca4f0f734d134b9d4f"},
 ]
 
 [package.dependencies]
-botocore = ">=1.17.26,<1.18.0"
-jmespath = ">=0.7.1,<1.0.0"
-s3transfer = ">=0.3.0,<0.4.0"
+botocore = ">=1.29.0,<1.30.0"
+jmespath = ">=0.7.1,<2.0.0"
+s3transfer = ">=0.6.0,<0.7.0"
+
+[package.extras]
+crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.17.63"
+version = "1.29.165"
 description = "Low-level, data-driven core of boto 3."
 optional = false
-python-versions = "*"
+python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.17.63-py2.py3-none-any.whl", hash = "sha256:aa88eafc6295132f4bc606f1df32b3248e0fa611724c0a216aceda767948ac75"},
-    {file = "botocore-1.17.63.tar.gz", hash = "sha256:40f13f6c9c29c307a9dc5982739e537ddce55b29787b90c3447b507e3283bcd6"},
+    {file = "botocore-1.29.165-py3-none-any.whl", hash = "sha256:6f35d59e230095aed7cd747604fe248fa384bebb7d09549077892f936a8ca3df"},
+    {file = "botocore-1.29.165.tar.gz", hash = "sha256:988b948be685006b43c4bbd8f5c0cb93e77c66deb70561994e0c5b31b5a67210"},
 ]
 
 [package.dependencies]
-docutils = ">=0.10,<0.16"
-jmespath = ">=0.7.1,<1.0.0"
+jmespath = ">=0.7.1,<2.0.0"
 python-dateutil = ">=2.1,<3.0.0"
-urllib3 = {version = ">=1.20,<1.26", markers = "python_version != \"3.4\""}
+urllib3 = ">=1.25.4,<1.27"
+
+[package.extras]
+crt = ["awscrt (==0.16.9)"]
 
 [[package]]
 name = "colorama"
@@ -42,18 +47,6 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
-]
-
-[[package]]
-name = "docutils"
-version = "0.15.2"
-description = "Docutils -- Python Documentation Utilities"
-optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-files = [
-    {file = "docutils-0.15.2-py2-none-any.whl", hash = "sha256:9e4d7ecfc600058e07ba661411a2b7de2fd0fafa17d1a7f7361cd47b1175c827"},
-    {file = "docutils-0.15.2-py3-none-any.whl", hash = "sha256:6c4f696463b79f1fb8ba0c594b63840ebd41f059e92b31957c46b74a4599b6d0"},
-    {file = "docutils-0.15.2.tar.gz", hash = "sha256:a2aeea129088da402665e92e0b25b04b073c04b2dce4ab65caaa38b7ce2e1a99"},
 ]
 
 [[package]]
@@ -156,17 +149,20 @@ six = ">=1.5"
 
 [[package]]
 name = "s3transfer"
-version = "0.3.7"
+version = "0.6.2"
 description = "An Amazon S3 Transfer Manager"
 optional = false
-python-versions = "*"
+python-versions = ">= 3.7"
 files = [
-    {file = "s3transfer-0.3.7-py2.py3-none-any.whl", hash = "sha256:efa5bd92a897b6a8d5c1383828dca3d52d0790e0756d49740563a3fb6ed03246"},
-    {file = "s3transfer-0.3.7.tar.gz", hash = "sha256:35627b86af8ff97e7ac27975fe0a98a312814b46c6333d8a6b889627bcd80994"},
+    {file = "s3transfer-0.6.2-py3-none-any.whl", hash = "sha256:b014be3a8a2aab98cfe1abc7229cc5a9a0cf05eb9c1f2b86b230fd8df3f78084"},
+    {file = "s3transfer-0.6.2.tar.gz", hash = "sha256:cab66d3380cca3e70939ef2255d01cd8aece6a4907a9528740f668c4b0611861"},
 ]
 
 [package.dependencies]
 botocore = ">=1.12.36,<2.0a.0"
+
+[package.extras]
+crt = ["botocore[crt] (>=1.20.29,<2.0a.0)"]
 
 [[package]]
 name = "shipyard-bp-utils"
@@ -250,4 +246,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "0df863ff4bb3d1f356e392010268d5db12ee8ebbb3dbe1fb84f65ece8b95cae9"
+content-hash = "213d5aa92637c930a8209cb5c330b4a1803ec17505f946c3bb470046384fc07e"
