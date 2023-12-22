@@ -2,7 +2,7 @@ import json
 
 from requests import request
 from shipyard_templates import DataVisualization, ExitCodeException
-import microsoft_power_bi_utils as PowerBiUtils
+from shipyard_microsoft_power_bi import microsoft_power_bi_utils as bi_utils
 
 
 class MicrosoftPowerBiClient(DataVisualization):
@@ -20,6 +20,7 @@ class MicrosoftPowerBiClient(DataVisualization):
     BASE_URL = "https://api.powerbi.com/v1.0/myorg"
     EXIT_CODE_FAILED_REFRESH_JOB = 101
     EXIT_CODE_DATAFLOW_REFRESH_ALREADY_IN_PROGRESS = 102
+    EXIT_CODE_UNKNOWN_REFRESH_JOB_STATUS = 103
 
     def __init__(self, client_id: str, client_secret: str, tenant_id: str, **kwargs):
         """
@@ -50,7 +51,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         @return: The response from the request.
         """
         if self.access_token is None:
-            self.access_token = PowerBiUtils.generate_access_token(self)
+            self.access_token = bi_utils.generate_access_token(self)
 
         self.logger.debug(f"Attempting to {method} {endpoint}")
 
@@ -79,7 +80,7 @@ class MicrosoftPowerBiClient(DataVisualization):
                 self.logger.debug("No Content")
                 return response
         else:
-            PowerBiUtils.handle_error_response(self, response)
+            bi_utils.handle_error_response(self, response)
 
     def connect(self):
         """
@@ -88,7 +89,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         @return: 1 if the connection fails, 0 otherwise.
         """
         try:
-            PowerBiUtils.generate_access_token(self)
+            bi_utils.generate_access_token(self)
         except ExitCodeException as e:
             self.logger.error(e)
             return 1
@@ -139,17 +140,19 @@ class MicrosoftPowerBiClient(DataVisualization):
         @param wait_time: if wait_for_completion is True, the number of seconds to wait for the refresh job to complete.
         @return: response from the request or None if wait_for_completion is True.
         """
-
+        self.logger.info("Triggering dataset refresh...")
         response = self._request(
             f"{self.BASE_URL}/groups/{group_id}/datasets/{dataset_id}/refreshes",
             method="POST",
         )
+        self.logger.info("Dataset refresh triggered")
         if wait_for_completion:
             request_id = response.headers.get("RequestId")
-            PowerBiUtils.wait_for_dataset_refresh_completion(
+            bi_utils.wait_for_dataset_refresh_completion(
                 self, group_id, dataset_id, request_id, wait_time=wait_time
             )
         else:
+            self.logger.info("Dataset refresh triggered")
             return response
 
     def refresh_dataflow(
@@ -171,16 +174,18 @@ class MicrosoftPowerBiClient(DataVisualization):
         """
 
         data = {"refreshRequest": "ShipyardRefresh"}
+        self.logger.info("Triggering dataflow refresh...")
         response = self._request(
             f"{self.BASE_URL}/groups/{group_id}/dataflows/{dataflow_id}/refreshes",
             method="POST",
             data=json.dumps(data),
         )
         if wait_for_completion:
-            PowerBiUtils.wait_for_dataflow_refresh_completion(
+            bi_utils.wait_for_dataflow_refresh_completion(
                 self, group_id, dataflow_id, wait_time=wait_time
             )
         else:
+            self.logger.info("Dataflow refresh triggered")
             return response
 
     def get_dataflow_transactions(self, group_id: str, dataflow_id: str):
@@ -227,7 +232,7 @@ class MicrosoftPowerBiClient(DataVisualization):
                 return job
         raise ExitCodeException(
             f"Request ID {request_id} not found within the last {number_of_refreshes} refreshes",
-            self.ERROR_CODE_INVALID_INPUT,
+            self.EXIT_CODE_INVALID_INPUT,
         )
 
     def check_dataset_refresh_by_refresh_id(
