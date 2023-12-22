@@ -8,11 +8,10 @@ readme = "README.md"
 packages = [{include = "shipyard_email"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.7, <3.10"
+shipyard-templates = "0.5.0a0"
 
 [tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = {path = "../shipyard-bp-utils"}
-shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]
