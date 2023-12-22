@@ -89,9 +89,7 @@ def get_artifact_details(
 ):
     get_artifact_details_url = f"https://cloud.getdbt.com/api/v2/accounts/{account_id}/runs/{run_id}/artifacts/"
     print(f"Grabbing artifact details for run {run_id}")
-    artifact_details_req = execute_request.execute_request(
-        "GET", get_artifact_details_url, headers
-    )
+    artifact_details_req = execute_request("GET", get_artifact_details_url, headers)
     artifact_details_response = json.loads(artifact_details_req.text)
     shipyard.files.create_folder_if_dne(folder_name)
     combined_name = shipyard.files.combine_folder_and_file_name(folder_name, file_name)
@@ -125,7 +123,7 @@ def download_artifact(account_id, run_id, artifact_name, headers, folder_name):
         full_folder, artifact_file_name
     )
     try:
-        artifact_details_req = download_file.download_file(
+        artifact_details_req = download_file(
             get_artifact_details_url, full_file_name, headers
         )
     except BaseException:

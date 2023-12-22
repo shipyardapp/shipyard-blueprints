@@ -39,7 +39,7 @@ def get_run_details(
     )
     params = {"include_related": "['run_steps','debug_logs']"}
     print(f"Grabbing run details for run {run_id}.")
-    run_details_req = execute_request.execute_request(
+    run_details_req = execute_request(
         "GET", get_run_details_url, headers=headers, params=params
     )
     run_details_response = json.loads(run_details_req.text)

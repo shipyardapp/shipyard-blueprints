@@ -91,9 +91,7 @@ def execute_job(
 
     body = {"cause": f"Run by {os.environ['USER']} - {source_information}"}
     print(f"Kicking off job {job_id} on account {account_id}")
-    job_run_req = execute_request.execute_request(
-        "POST", execute_job_url, headers, body
-    )
+    job_run_req = execute_request("POST", execute_job_url, headers, body)
     job_run_response = json.loads(job_run_req.text)
     shipyard.files.create_folder_if_dne(folder_name)
     combined_name = shipyard.files.combine_folder_and_file_name(folder_name, file_name)
