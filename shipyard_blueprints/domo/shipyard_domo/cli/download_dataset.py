@@ -4,7 +4,7 @@ import argparse
 from pydomo import Domo
 import shipyard_utils as shipyard
 import pandas as pd
-from shipyard_domo.cli import erros as ec
+from shipyard_domo.cli import errors as ec
 
 
 def get_args():
