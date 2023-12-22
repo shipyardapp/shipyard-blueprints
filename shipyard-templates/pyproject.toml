@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "shipyard-templates"
-version = "0.4.4"
+version = "0.5.0a0"
 description = "Super classes for blueprint development"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache License 2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.7, <3.10"
 
 
 [build-system]
