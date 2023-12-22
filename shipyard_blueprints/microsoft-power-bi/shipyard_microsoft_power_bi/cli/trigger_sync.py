@@ -31,7 +31,7 @@ def validate_args(args):
     if args.poke_interval is None or args.poke_interval == "":
         wait_time = 1
     else:
-        wait_time = int(args.poke_interval * 60)
+        wait_time = int(args.poke_interval) * 60
 
     if wait_time < 0:
         raise ExitCodeException(
@@ -58,16 +58,23 @@ def validate_args(args):
 
 
 def main():
-    args = get_args()
-
-    try:
-        wait_for_completion, wait_time = validate_args(args)
+    try:  # Initialize client to ensure client.logger is available
+        args = get_args()
 
         client = MicrosoftPowerBiClient(
             client_id=args.client_id,
             client_secret=args.client_secret,
             tenant_id=args.tenant_id,
         )
+    except ExitCodeException as e:
+        print(e)
+        sys.exit(e.exit_code)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        sys.exit(MicrosoftPowerBiClient.EXIT_CODE_UNKNOWN_ERROR)
+
+    try:
+        wait_for_completion, wait_time = validate_args(args)
 
         client.refresh(
             object_type=args.object_type,
@@ -80,5 +87,5 @@ def main():
         client.logger.error(e)
         sys.exit(e.exit_code)
     except Exception as e:
-        print(f"Unexpected error: {e}")
-        sys.exit(1)
+        client.logger.error(f"Unexpected error: {e}")
+        sys.exit(client.EXIT_CODE_UNKNOWN_ERROR)
