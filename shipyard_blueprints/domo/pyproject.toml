@@ -8,9 +8,12 @@ readme = "README.md"
 packages = [{include = "shipyard_domo"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-requests = "2.28.0"
+python = ">=3.7, < 3.10"
+requests = "2.31.0"
 pydomo = "^0.3.0.9"
+shipyard-templates = "0.5.0a0"
+pandas = "1.5.3"
+shipyard-utils = "0.1.4"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-templates = {path = "../../shipyard-templates"}
