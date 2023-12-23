@@ -12,6 +12,7 @@ python = "^3.9"
 pandas = "1.5.3"
 google-cloud-bigquery = "3.10.0"
 db-dtypes = "1.1.1"
+shipyard-utils = "^0.1.4"
 
 
 [tool.poetry.group.dev.dependencies]
