@@ -8,15 +8,14 @@ readme = "README.md"
 packages = [{include = "shipyard_googlesheets"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.7,<3.10"
 google-api-python-client = "2.95.0"
 google-auth-httplib2 = "0.1.0"
 google-auth-oauthlib = "1.0.0"
-shipyard-templates = "^0.2.0"
+shipyard-templates = "0.5.0a0"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-templates = {path = "../../shipyard-templates", develop = true}
-python-dotenv = "^1.0.0"
 pytest = "^7.4.0"
 
 [build-system]

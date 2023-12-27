@@ -7,14 +7,16 @@ readme = "README.md"
 packages = [{include = "shipyard_dbt"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.7, <3.10"
 requests = "2.31.0"
+shipyard-templates = "0.5.0a0"
+shipyard-utils = "^0.1.4"
 
 
 [tool.poetry.group.dev.dependencies]
-shipyard-templates = {path = "../../shipyard-templates", develop = true}
+# shipyard-templates = {path = "../../shipyard-templates", develop = true}
 pytest = "^7.4.0"
-python-dotenv = "^1.0.0"
+# python-dotenv = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]

@@ -8,10 +8,12 @@ readme = "README.md"
 packages = [{include = "shipyard_bigquery"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.9, <3.10"
 pandas = "1.5.3"
 google-cloud-bigquery = "3.10.0"
 db-dtypes = "1.1.1"
+shipyard-utils = "^0.1.4"
+shipyard-templates = "0.5.0a0"
 
 
 [tool.poetry.group.dev.dependencies]
