@@ -8,8 +8,8 @@ readme = "README.md"
 packages = [{include = "shipyard_slack"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-slackclient = "2.9.4"
+python = "^3.7"
+slackclient = "2.9.3"
 
 [tool.poetry.group.dev.dependencies]
 shipyard-bp-utils = {path = "../shipyard-bp-utils"}

@@ -60,7 +60,7 @@ def generate_access_token(bi_instance):
             error_description = token_data.get("error_description")
             if error_type in {"invalid_grant", "invalid_client"}:
                 raise ExitCodeException(
-                    error_description, bi_instance.ERROR_CODE_INVALID_CREDENTIALS
+                    error_description, bi_instance.EXIT_CODE_INVALID_INPUT
                 )
             else:
                 raise ExitCodeException(
