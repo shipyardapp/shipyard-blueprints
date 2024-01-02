@@ -6,9 +6,9 @@ authors = ["wrp801 <wespoulsen@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-pandas = "1.5.3"
-XlsxWriter = "3.1.9"
+python = ">=3.7,<4.0"
+pandas = "1.0.5"
+XlsxWriter = "1.2.9"
 pyarrow = "0.17.1"
 tables = "3.6.1"
 
