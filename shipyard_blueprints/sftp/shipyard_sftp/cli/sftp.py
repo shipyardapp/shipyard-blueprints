@@ -4,7 +4,7 @@ from shipyard_templates import CloudStorage
 
 class SftpClient(CloudStorage):
     def __init__(
-            self, host: str, port: int, key: str = None, user: str = None, pwd: str = None
+        self, host: str, port: int, key: str = None, user: str = None, pwd: str = None
     ) -> None:
         self.host = host
         self.port = port
@@ -43,7 +43,6 @@ class SftpClient(CloudStorage):
         pass
 
     def upload(self):
-
         pass
 
     def move(self):

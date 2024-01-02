@@ -8,9 +8,11 @@ import tempfile
 import asyncssh
 import paramiko
 
-from exit_codes import (EXIT_CODE_INCORRECT_CREDENTIALS,
-                        EXIT_CODE_SFTP_DOWNLOAD_ERROR,
-                        EXIT_CODE_NO_MATCHES_FOUND)
+from exit_codes import (
+    EXIT_CODE_INCORRECT_CREDENTIALS,
+    EXIT_CODE_SFTP_DOWNLOAD_ERROR,
+    EXIT_CODE_NO_MATCHES_FOUND,
+)
 
 
 def get_args():
@@ -61,7 +63,7 @@ def enumerate_destination_file_name(destination_file_name, file_number):
 
 
 def determine_destination_file_name(
-        *, source_full_path, destination_file_name, file_number=None
+    *, source_full_path, destination_file_name, file_number=None
 ):
     """
     Determine if the destination_file_name was provided, or should be extracted from the source_file_name,
@@ -100,7 +102,7 @@ def combine_folder_and_file_name(folder_name, file_name):
 
 
 def determine_destination_name(
-        destination_folder_name, destination_file_name, source_full_path, file_number=None
+    destination_folder_name, destination_file_name, source_full_path, file_number=None
 ):
     """
     Determine the final destination name of the file being downloaded.
@@ -273,9 +275,13 @@ def download_with_paramiko():
                 client.close()
                 time.sleep(1)
                 if key:
-                    client = get_client(host=host, port=port, username=username, key=key)
+                    client = get_client(
+                        host=host, port=port, username=username, key=key
+                    )
                 if password:
-                    client = get_client(host=host, port=port, username=username, password=password)
+                    client = get_client(
+                        host=host, port=port, username=username, password=password
+                    )
                 time.sleep(1)
     else:  # exact match handling
         try:
@@ -310,23 +316,23 @@ def is_openssh_key(filename):
 
 
 async def download_files(
-        hostname,
-        username,
-        client_keys,
-        remote_dir,
-        pattern,
-        local_dir,
-        port=22,
-        match_type="exact_match",
+    hostname,
+    username,
+    client_keys,
+    remote_dir,
+    pattern,
+    local_dir,
+    port=22,
+    match_type="exact_match",
 ):
     try:
         print("Attempting to connect to SFTP server...")
         async with asyncssh.connect(
-                hostname,
-                username=username,
-                client_keys=client_keys,
-                port=port,
-                known_hosts=None,
+            hostname,
+            username=username,
+            client_keys=client_keys,
+            port=port,
+            known_hosts=None,
         ) as conn:
             print("Connected to SFTP server.")
             async with conn.start_sftp_client() as sftp:
