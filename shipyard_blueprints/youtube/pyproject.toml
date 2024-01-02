@@ -8,6 +8,7 @@ packages = [{include = "shipyard_youtube"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+pytube = "^15.0.0"
 
 
 [build-system]
