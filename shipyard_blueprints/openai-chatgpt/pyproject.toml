@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-openai-chatgpt"
-version = "0.1.0"
+version = "0.1.1a0"
 description = ""
 authors = ["johnathan-rodriguez <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"
@@ -9,6 +9,7 @@ packages = [{include = "shipyard_openai_chatgpt"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 openai = "0.28.1"
+pandas = "1.5.3"
 
 
 [build-system]

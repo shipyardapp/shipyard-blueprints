@@ -1,6 +1,7 @@
 # test
 .vscode
 env
+*.env
 .DS_Store
 *.egg-info/
 wespoulsen-artifacts*
