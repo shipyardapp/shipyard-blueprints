@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-openai-whisper"
-version = "0.1.0"
+version = "0.1.1a0"
 description = ""
 authors = ["johnathan-rodriguez <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"
@@ -8,6 +8,8 @@ packages = [{include = "shipyard_openai_whisper"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+#openai-whisper = {git = "https://github.com/openai/whisper.git"}
+openai = "^1.6.1"
 
 
 [build-system]
