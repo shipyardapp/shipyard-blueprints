@@ -2,11 +2,7 @@ import shipyard_utils as shipyard
 import looker_sdk
 from looker_sdk import api_settings
 import sys
-
-try:
-    import exit_codes as ec
-except BaseException:
-    from shipyard_blueprints.looker.shipyard_looker.cli import exit_codes as ec
+from shipyard_looker.cli import exit_codes as ec
 
 # create Artifacts folder paths
 base_folder_name = shipyard.logs.determine_base_artifact_folder("looker")

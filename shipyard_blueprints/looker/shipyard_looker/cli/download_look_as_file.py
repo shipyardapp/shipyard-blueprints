@@ -2,15 +2,7 @@ import argparse
 import sys
 import os
 import shipyard_utils as shipyard
-
-try:
-    import helpers
-except BaseException:
-    from . import helpers
-try:
-    import exit_codes as ec
-except BaseException:
-    from . import exit_codes as ec
+from shipyard_looker.cli import helpers, exit_codes as ec
 
 
 def get_args():

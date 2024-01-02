@@ -1,16 +1,7 @@
 import argparse
 import sys
 import shipyard_utils as shipyard
-
-try:
-    import helpers
-except BaseException:
-    from . import helpers
-try:
-    import exit_codes as ec
-except BaseException:
-    from . import exit_codes as ec
-from looker_sdk import methods40, models40
+from shipyard_looker.cli import exit_codes as ec, helpers
 
 
 def get_args():

@@ -8,13 +8,10 @@ readme = "README.md"
 packages = [{include = "shipyard_looker"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.7,<3.10"
 looker-sdk = "22.20.0"
-shipyard-bp-utils= "0.1.1"
-[tool.poetry.group.dev.dependencies]
+shipyard-templates = "0.5.0a0"
 shipyard-utils="0.1.4"
-
-shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]
