@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "file-manipulation"
+version = "0.1.0"
+description = ""
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pandas = "1.5.3"
+XlsxWriter = '1.4.5'
+pyarrow = '0.17.1'
+tables = '3.6.1'
+
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
