@@ -8,9 +8,9 @@ import tempfile
 import asyncssh
 import paramiko
 
-from sftp_blueprints.exit_codes import (EXIT_CODE_INCORRECT_CREDENTIALS,
-                                        EXIT_CODE_SFTP_DOWNLOAD_ERROR,
-                                        EXIT_CODE_NO_MATCHES_FOUND)
+from exit_codes import (EXIT_CODE_INCORRECT_CREDENTIALS,
+                        EXIT_CODE_SFTP_DOWNLOAD_ERROR,
+                        EXIT_CODE_NO_MATCHES_FOUND)
 
 
 def get_args():
