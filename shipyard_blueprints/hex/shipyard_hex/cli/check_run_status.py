@@ -4,11 +4,7 @@ import shipyard_utils as shipyard
 import argparse
 import sys
 import re
-
-try:
-    import exit_codes as ec
-except BaseException:
-    from . import exit_codes as ec
+from shipyard_hex.cli import exit_codes as ec
 
 
 @dataclass

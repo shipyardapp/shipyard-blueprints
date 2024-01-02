@@ -6,11 +6,7 @@ import requests
 import shipyard_utils as shipyard
 
 from dataclasses import dataclass
-
-try:
-    import exit_codes as ec
-except BaseException:
-    from . import exit_codes as ec
+from shipyard_hex.cli import exit_codes as ec
 
 BASE_URL = "https://app.hex.tech/api/v1"
 UUID_PATTERN = re.compile(
