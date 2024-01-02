@@ -28,3 +28,6 @@ def main():
             with open(destination_name, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=(16 * 1024 * 1024)):
                     f.write(chunk)
+
+if __name__ == '__main__':
+    main()
