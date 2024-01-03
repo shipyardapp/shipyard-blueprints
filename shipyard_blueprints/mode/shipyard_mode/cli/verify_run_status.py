@@ -3,11 +3,7 @@ import sys
 import requests
 from requests.auth import HTTPBasicAuth
 import shipyard_utils as shipyard
-
-try:
-    import errors
-except BaseException:
-    from . import errors
+from shipyard_mode.cli import errors
 
 # create Artifacts folder paths
 base_folder_name = shipyard.logs.determine_base_artifact_folder("mode")
