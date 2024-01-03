@@ -91,8 +91,6 @@ def combine_folder_and_file_name(folder_name, file_name):
     return combined_name
 
 
-# FIXME: This doesn't work for SQLAlchemy 2.0.0. This needs to be modified slightly
-# this needs to be adjusted like so: https://appdividend.com/2023/07/27/attributeerror-optionengine-object-has-no-attribute-execute/
 def create_csv(query, db_connection, destination_file_path, file_header=True):
     """
     Read in data from a SQL query. Store the data as a csv.
