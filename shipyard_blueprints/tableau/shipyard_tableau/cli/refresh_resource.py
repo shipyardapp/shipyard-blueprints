@@ -2,18 +2,7 @@ import tableauserverclient as TSC
 import argparse
 import sys
 import shipyard_utils as shipyard
-
-# Handle import difference between local and github install
-try:
-    import job_status
-    import errors
-    import authorization
-    import lookup
-except BaseException:
-    from . import job_status
-    from . import errors
-    from . import authorization
-    from . import lookup
+from shipyard_tableau.cli import job_status, errors, authorization, lookup
 
 
 def get_args():

@@ -2,13 +2,7 @@ import tableauserverclient as TSC
 import argparse
 import sys
 import shipyard_utils as shipyard
-
-try:
-    import errors
-    import authorization
-except BaseException:
-    from . import errors
-    from . import authorization
+from shipyard_tableau.cli import errors, authorization
 
 
 def get_args():

@@ -3,15 +3,7 @@ import sys
 import shipyard_utils as shipyard
 
 import tableauserverclient as TSC
-
-try:
-    import authorization
-    import errors
-    import lookup
-except BaseException:
-    from . import authorization
-    from . import errors
-    from . import lookup
+from shipyard_tableau.cli import authorization, errors, lookup
 
 
 def get_args():
