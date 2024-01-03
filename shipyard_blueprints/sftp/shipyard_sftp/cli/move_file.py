@@ -5,11 +5,7 @@ import argparse
 import sys
 import shipyard_utils as shipyard
 import paramiko
-
-try:
-    import exit_codes as ec
-except BaseException:
-    from . import exit_codes as ec
+from shipyard_sftp.cli import exit_codes as ec
 
 
 def get_args():
