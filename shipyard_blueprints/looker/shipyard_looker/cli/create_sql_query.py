@@ -2,6 +2,7 @@ import argparse
 import sys
 import shipyard_utils as shipyard
 from shipyard_looker.cli import exit_codes as ec, helpers
+from looker_sdk import methods40, models40
 
 
 def get_args():
