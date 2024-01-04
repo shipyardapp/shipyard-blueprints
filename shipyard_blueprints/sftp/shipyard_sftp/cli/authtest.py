@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import SftpClient
+from sftp import SftpClient
 
 
 def main():

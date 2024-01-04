@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "shipyard-openai-dalle-e2"
+version = "0.1.1a0"
+description = ""
+authors = ["johnathan-rodriguez <johnathan.rodriguez@shipyardapp.com>"]
+readme = "README.md"
+packages = [{include = "shipyard_openai_dalle_e2"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+openai = "^1.6.1"
+requests = "^2.31.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

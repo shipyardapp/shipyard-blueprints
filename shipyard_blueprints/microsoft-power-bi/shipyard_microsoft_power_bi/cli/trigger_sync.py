@@ -89,3 +89,7 @@ def main():
     except Exception as e:
         client.logger.error(f"Unexpected error: {e}")
         sys.exit(client.EXIT_CODE_UNKNOWN_ERROR)
+
+
+if __name__ == "__main__":
+    main()

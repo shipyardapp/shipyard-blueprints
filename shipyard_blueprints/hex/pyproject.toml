@@ -8,12 +8,14 @@ readme = "README.md"
 packages = [{include = "shipyard_hex"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-requests = "2.28.0"
+python = ">=3.7,<3.10"
+requests = "2.28.1"
+shipyard-utils = "0.1.4"
+shipyard-templates = "0.5.0a0"
 
 [tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = {path = "../shipyard-bp-utils"}
-shipyard-templates = {path = "../../shipyard-templates"}
+#shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+#shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]

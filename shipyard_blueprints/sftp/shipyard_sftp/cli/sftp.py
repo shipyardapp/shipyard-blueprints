@@ -38,3 +38,18 @@ class SftpClient(CloudStorage):
 
     def download_files(self):
         pass
+
+    def download(self):
+        pass
+
+    def upload(self):
+        pass
+
+    def move(self):
+        pass
+
+    def remove(self):
+        pass
+
+    def upload(self):
+        pass

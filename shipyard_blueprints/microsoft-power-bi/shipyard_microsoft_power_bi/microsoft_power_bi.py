@@ -65,7 +65,6 @@ class MicrosoftPowerBiClient(DataVisualization):
             },
             **kwargs,
         )
-
         self.logger.debug(f"Response Code: {response.status_code}")
         self.logger.debug(response.text)
 
@@ -152,7 +151,6 @@ class MicrosoftPowerBiClient(DataVisualization):
                 self, group_id, dataset_id, request_id, wait_time=wait_time
             )
         else:
-            self.logger.info("Dataset refresh triggered")
             return response
 
     def refresh_dataflow(

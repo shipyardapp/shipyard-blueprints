@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import SlackClient
+from shipyard_slack.slack import SlackClient
 
 
 def main():

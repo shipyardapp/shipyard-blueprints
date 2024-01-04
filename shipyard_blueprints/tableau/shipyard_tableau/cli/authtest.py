@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import TableauClient
+from shipyard_tableau.tableau import TableauClient
 
 
 def main():

@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "shipyard-http"
+version = "0.1.0a1"
+description = ""
+authors = ["johnathan-rodriguez <johnathan.rodriguez@shipyardapp.com>"]
+readme = "README.md"
+packages = [{include = "shipyard_http"}]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+requests = "^2.31.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,6 +1,6 @@
 import os
 import unittest
-from shipyard_slack import SlackClient
+from shipyard_slack.slack import SlackClient
 
 
 class SlackClientConnectTestCase(unittest.TestCase):

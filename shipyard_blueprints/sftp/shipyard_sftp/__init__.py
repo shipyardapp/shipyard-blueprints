@@ -1,1 +1,1 @@
-from .sftp import SftpClient
+from shipyard_sftp.cli.sftp import SftpClient

@@ -8,13 +8,15 @@ readme = "README.md"
 packages = [{include = "shipyard_tableau"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-tableauserverclient = "^0.25"
+python = ">3.7,<3.10"
 requests = "2.28.0"
+tableauserverclient="0.19.0"
+shipyard_utils="0.1.2"
+shipyard-templates="0.5.0a0"
 
 [tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = {path = "../shipyard-bp-utils"}
-shipyard-templates = {path = "../../shipyard-templates"}
+#shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+#shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]
