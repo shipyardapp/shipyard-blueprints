@@ -11,7 +11,7 @@ packages = [{ include = "shipyard_sftp" }]
 python = "^3.9"
 paramiko = "3.3.1"
 shipyard-utils = "0.1.4"
-asyncssh = "2.13.2"
+asyncssh = "2.14.2"
 shipyard-bp-utils = "^0.1.1"
 shipyard-templates = "^0.4.4"
 
