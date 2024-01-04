@@ -9,7 +9,7 @@ packages = [{ include = "shipyard_sftp" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-paramiko = "3.3.1"
+paramiko = "3.4.0"
 shipyard-utils = "0.1.4"
 asyncssh = "2.13.2"
 shipyard-bp-utils = "^0.1.1"
