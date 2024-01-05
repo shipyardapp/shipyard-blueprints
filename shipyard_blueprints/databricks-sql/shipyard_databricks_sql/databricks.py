@@ -14,6 +14,7 @@ class DatabricksSqlClient(DatabricksDatabase):
     EXIT_CODE_VOLUME_UPLOAD_ERROR = 103
     EXIT_CODE_COPY_INTO_ERROR = 104
     EXIT_CODE_REMOVE_VOLUME_ERROR = 105
+    EXIT_CODE_SCHEMA_CREATION_ERROR = 106
     SPARK_TYPES = {
         "array": "numpy.ndarray",
         "bigint": "int",
@@ -85,59 +86,47 @@ class DatabricksSqlClient(DatabricksDatabase):
 
     def upload(
         self,
-        data: pd.DataFrame,
+        file_path: str,
         table_name: str,
+        file_format: str,
         datatypes: Optional[Dict[str, str]] = None,
         insert_method: str = "replace",
     ):
         """
-        Uploads a pandas dataframe to a table in Databricks SQL Warehouse.
+        Uploads a pandas dataframe to a table in Databricks SQL Warehouse. If the volume is provided upon instantiation (which is the recommended approach), the file(s) will be uploaded via a volume,
+        otherwise it will be uploaded via an insert statement through the SQL connector
 
         Args:
-            data: The dataframe to load
+            file_path: The location of the file to load
             table_name: The name of the table in Databricks to write to
             datatypes: The optional Spark SQL data types to use. If omitted, the schema will be inferred
             insert_method: Whether a table should be overwritten or appended to. If creating a new table, provide the `replace` option
+            file_format: The format of the file (choices are csv and parquet at the moment)
+
         """
         try:
-            if not datatypes:
-                # need to infer datatypes
-                datatypes = {}
-                pd_types = dict(data.dtypes)
-                for column, dtype in pd_types.items():
-                    str_dtype = str(dtype)
-                    if str_dtype == "object":
-                        datatypes[column] = "string"
-                    else:
-                        spark_type = self.convert_to_spark_type(str_dtype)
-                        datatypes[column] = spark_type
-            else:
-                # check to see that the datatypes are valid
-                for key, value in datatypes.items():
-                    if str(value).lower() not in self.SPARK_TYPES.keys():
-                        raise ExitCodeException(
-                            f"Error: {value} is not a valid spark data type. Please provide a valid data type",
-                            self.EXIT_CODE_INVALID_DATA_TYPES,
-                        )
-            if insert_method == "replace":
-                self._replace_table(
-                    table_name=table_name, data_types=datatypes, df=data
+            if self.schema:
+                self._create_schema()
+
+            if self.volume:
+                self.load_via_volume(
+                    file_path=file_path, table_name=table_name, file_format=file_format
                 )
 
-            elif insert_method == "append":
-                self._append_table(table_name=table_name, data_types=datatypes, df=data)
-
             else:
-                raise ExitCodeException(
-                    "Invalid insert_method provided. Options are `replace` and `append`",
-                    self.EXIT_CODE_INVALID_ARGUMENTS,
+                self.load_via_insert(
+                    table_name=table_name,
+                    file_format=file_format,
+                    datatypes=datatypes,
+                    file_path=file_path,
+                    insert_method=insert_method,
                 )
         except ExitCodeException as ec:
             raise ExitCodeException(ec.message, ec.exit_code)
         except Exception as e:
             raise ExitCodeException(
-                message=f"Error in attempting to upload data to databricks {str(e)}",
-                exit_code=self.EXIT_CODE_INVALID_UPLOAD_VALUE,
+                f"Error in upload process encountered: {str(e)}",
+                self.EXIT_CODE_UNKNOWN_ERROR,
             )
 
     def fetch(self, query: str) -> pd.DataFrame:
@@ -546,4 +535,62 @@ class DatabricksSqlClient(DatabricksDatabase):
             raise ExitCodeException(
                 f"Unknown error in loading volume: {str(e)}",
                 exit_code=self.EXIT_CODE_VOLUME_UPLOAD_ERROR,
+            )
+
+    def load_via_insert(
+        self,
+        table_name: str,
+        file_format: str,
+        file_path: str,
+        datatypes: Optional[Dict[Any, Any]],
+        insert_method: str = "replace",
+    ):
+        if file_format == "csv":
+            data = pd.read_csv(file_path)
+        elif file_format == "parquet":
+            data = pd.read_parquet(file_path)
+        else:
+            raise ExitCodeException(
+                f"Invalid file type provided. Must be either csv or parquet",
+                self.EXIT_CODE_FILE_NOT_FOUND,
+            )
+        try:
+            if not datatypes:
+                # need to infer datatypes
+                datatypes = {}
+                pd_types = dict(data.dtypes)
+                for column, dtype in pd_types.items():
+                    str_dtype = str(dtype)
+                    if str_dtype == "object":
+                        datatypes[column] = "string"
+                    else:
+                        spark_type = self.convert_to_spark_type(str_dtype)
+                        datatypes[column] = spark_type
+            else:
+                # check to see that the datatypes are valid
+                for key, value in datatypes.items():
+                    if str(value).lower() not in self.SPARK_TYPES.keys():
+                        raise ExitCodeException(
+                            f"Error: {value} is not a valid spark data type. Please provide a valid data type",
+                            self.EXIT_CODE_INVALID_DATA_TYPES,
+                        )
+            if insert_method == "replace":
+                self._replace_table(
+                    table_name=table_name, data_types=datatypes, df=data
+                )
+
+            elif insert_method == "append":
+                self._append_table(table_name=table_name, data_types=datatypes, df=data)
+
+            else:
+                raise ExitCodeException(
+                    "Invalid insert_method provided. Options are `replace` and `append`",
+                    self.EXIT_CODE_INVALID_ARGUMENTS,
+                )
+        except ExitCodeException as ec:
+            raise ExitCodeException(ec.message, ec.exit_code)
+        except Exception as e:
+            raise ExitCodeException(
+                message=f"Error in attempting to upload data to databricks {str(e)}",
+                exit_code=self.EXIT_CODE_INVALID_UPLOAD_VALUE,
             )
