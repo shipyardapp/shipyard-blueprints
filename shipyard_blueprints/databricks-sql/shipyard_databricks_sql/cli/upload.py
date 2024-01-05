@@ -98,10 +98,13 @@ def main():
                     insert_method = "append"
                 if args.file_type == "csv":
                     data = pd.read_csv(file_match)
+                    file_format = "csv"
                 else:
                     data = pd.read_parquet(file_match)
+                    file_format = "parquet"
                 client.upload(
-                    data=data,
+                    file_path=file_match,
+                    file_format=file_format,
                     table_name=args.table_name,
                     datatypes=data_types,
                     insert_method=insert_method,
@@ -111,12 +114,15 @@ def main():
             # only two choices are csv and parquet at this time
             if args.file_type == "csv":
                 data = pd.read_csv(full_path)
+                file_format = "csv"
             # for parquet files
             else:
                 data = pd.read_parquet(full_path)
+                file_format = "parquet"
 
             client.upload(
-                data=data,
+                file_path=full_path,
+                file_format=file_format,
                 table_name=args.table_name,
                 datatypes=data_types,
                 insert_method=args.insert_method,
