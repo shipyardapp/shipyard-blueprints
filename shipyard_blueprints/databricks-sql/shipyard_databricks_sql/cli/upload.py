@@ -20,6 +20,7 @@ def get_args():
     parser.add_argument("--catalog", dest="catalog", required=False, default="")
     parser.add_argument("--schema", dest="schema", required=False, default="")
     parser.add_argument("--table-name", dest="table_name", required=True)
+    parser.add_argument("--volume", dest="volume", required=False, default=None)
     parser.add_argument("--data-types", dest="data_types", required=False, default="")
     parser.add_argument(
         "--insert-method",
@@ -67,6 +68,7 @@ def main():
     args = get_args()
     catalog = args.catalog if args.catalog != "" else None
     schema = args.schema if args.schema != "" else None
+    volume = args.volume if args.volume != "" else None
     folder_name = args.folder_name if args.folder_name != "" else None
     data_types = ast.literal_eval(args.data_types) if args.data_types != "" else None
 
@@ -76,12 +78,15 @@ def main():
         else:
             full_path = os.path.join(os.getcwd(), args.file_name)
 
+        real_path = os.path.realpath(full_path)
         client = DatabricksSqlClient(
             server_host=args.server_host,
             http_path=args.http_path,
             access_token=args.access_token,
             catalog=catalog,
             schema=schema,
+            volume=volume,
+            staging_allowed_local_path=real_path,
         )
         if args.match_type == "regex_match":
             local_files = list_local_files(directory=folder_name)

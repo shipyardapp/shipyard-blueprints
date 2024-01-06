@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 shipyard-templates = "0.4.3"
-databricks-sql-connector = {version = "^3.0.0", extras = ["sqlalchemy"]}
+databricks-sql-connector = {version = "^3.0.1", extras = ["sqlalchemy"]}
 pandas = "1.5.3"
 shipyard-bp-utils = "^0.1.1"
 

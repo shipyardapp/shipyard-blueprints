@@ -44,6 +44,7 @@ class DatabricksSqlClient(DatabricksDatabase):
         ] = None,  # will default to the default catalog (typically hive metastore)
         schema: Optional[str] = None,  # will default to the 'default' schema
         volume: Optional[str] = None,
+        staging_allowed_local_path: Optional[str] = None,
     ) -> None:
         self.server_host = server_host
         self.http_path = http_path
@@ -54,6 +55,7 @@ class DatabricksSqlClient(DatabricksDatabase):
         self.volume = volume
         self.volume_path = None
         self.user_agent = os.environ.get("SHIPYARD_USER_AGENT", None)
+        self.staging_allowed_local_path = staging_allowed_local_path
         super().__init__(
             server_host,
             http_path,
@@ -64,6 +66,7 @@ class DatabricksSqlClient(DatabricksDatabase):
             volume=volume,
             volume_path=self.volume_path,
             user_agent=self.user_agent,
+            staging_allowed_local_path=staging_allowed_local_path,
         )
 
     def connect(self) -> Connection:
@@ -74,6 +77,7 @@ class DatabricksSqlClient(DatabricksDatabase):
             catalog=self.catalog,
             schema=self.schema,
             _user_agent_entry=self.user_agent,
+            staging_allowed_local_path=self.staging_allowed_local_path,
         )
 
     @property
@@ -397,14 +401,14 @@ class DatabricksSqlClient(DatabricksDatabase):
             )
 
         if not self.catalog and self.schema:
-            return f"CREATE VOLUME {self.schema}.{self.volume}"
+            return f"CREATE VOLUME IF NOT EXISTS {self.schema}.{self.volume}"
         elif not self.schema:
             raise ExitCodeException(
                 "Schema must be provided if the catalog is provided",
                 exit_code=self.EXIT_CODE_VOLUME_SQL,
             )
         else:
-            return f"CREATE VOLUME {self.catalog}.{self.schema}.{self.volume}"
+            return f"CREATE VOLUME IF NOT EXISTS {self.catalog}.{self.schema}.{self.volume}"
 
     def _create_volume(self, volume_sql: str):
         """Creates a volume for uploading files to
@@ -453,7 +457,7 @@ class DatabricksSqlClient(DatabricksDatabase):
                 self.EXIT_CODE_VOLUME_UPLOAD_ERROR,
             )
 
-        upload_sql = f"PUT {file_path} INTO '{self.volume_path}' OVERWRITE"
+        upload_sql = f"PUT '{file_path}' INTO '{self.volume_path}' OVERWRITE"
         try:
             self.cursor.execute(upload_sql)
 
