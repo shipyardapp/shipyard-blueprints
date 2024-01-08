@@ -6,6 +6,7 @@ from shipyard_templates import DatabricksDatabase, ExitCodeException
 from databricks import sql
 from databricks.sql.client import Connection  # for type hints
 from typing import Optional, Dict, List, Any
+from databricks.sdk import WorkspaceClient
 
 
 class DatabricksSqlClient(DatabricksDatabase):
@@ -56,6 +57,9 @@ class DatabricksSqlClient(DatabricksDatabase):
         self.volume_path = None
         self.user_agent = os.environ.get("SHIPYARD_USER_AGENT", None)
         self.staging_allowed_local_path = staging_allowed_local_path
+        # NOTE: May need to delete the next two lines
+        self.workspace = WorkspaceClient(host=self.server_host, token=self.access_token)
+        self.fs = self.workspace.dbutils.fs
         super().__init__(
             server_host,
             http_path,
@@ -447,7 +451,9 @@ class DatabricksSqlClient(DatabricksDatabase):
                 exit_code=self.EXIT_CODE_VOLUME_SQL,
             )
         else:
-            volume_path = f"/Volumes/{self.catalog}/{self.schema}/{self.volume}/{tmp_table}/{file_name}"
+            volume_path = (
+                f"/Volumes/{self.catalog}/{self.schema}/{self.volume}/{file_name}"
+            )
             self.volume_path = volume_path
 
         # one last check that the volume path is legit
