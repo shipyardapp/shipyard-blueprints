@@ -8,8 +8,6 @@ def get_args():
     parser.add_argument(
         "--send-method",
         dest="send_method",
-        choices={"ssl", "tls"},
-        default="tls",
         required=False,
     )
     parser.add_argument("--smtp-host", dest="smtp_host", required=True)
@@ -107,7 +105,7 @@ def main():
     )
 
     if EmailClient.should_message_be_sent(
-        conditional_send, file_paths, source_file_name_match_type
+            conditional_send, file_paths, source_file_name_match_type
     ):
         if include_shipyard_footer:
             shipyard_link = shipyard.args.create_shipyard_link()
