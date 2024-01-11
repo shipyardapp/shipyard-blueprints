@@ -17,12 +17,12 @@ class EmailClient(Messaging):
     EXIT_CODE_INVALID_METHOD = 200
 
     def __init__(
-            self,
-            smtp_host: str = None,
-            smtp_port: str = None,
-            username: str = None,
-            password: str = None,
-            send_method: str = "tls",
+        self,
+        smtp_host: str = None,
+        smtp_port: str = None,
+        username: str = None,
+        password: str = None,
+        send_method: str = "tls",
     ) -> None:
         self.smtp_host = smtp_host
         self.smtp_port = smtp_port
@@ -59,7 +59,7 @@ class EmailClient(Messaging):
         elif self.send_method == "ssl":
             try:
                 with smtplib.SMTP_SSL(
-                        self.smtp_host, self.smtp_port, context=context
+                    self.smtp_host, self.smtp_port, context=context
                 ) as server:
                     server.login(self.username, self.password)
                     self.logger.info("Successfully connected via ssl")
