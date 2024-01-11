@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import EmailClient
+from shipyard_email import EmailClient
 
 
 def main():
