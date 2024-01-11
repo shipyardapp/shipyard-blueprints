@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import DomoClient
+from shipyard_domo import DomoClient
 
 
 def main():
