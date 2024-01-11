@@ -122,7 +122,7 @@ def create_message_object(
     sender_address, message, sender_name=None, to=None, cc=None, bcc=None, subject=None
 ):
     """
-    Create an Message object, msg, by using the provided send parameters.
+    Create a Message object, msg, by using the provided send parameters.
     """
     msg = MIMEMultipart()
 
