@@ -57,9 +57,6 @@ class DatabricksSqlClient(DatabricksDatabase):
         self.volume_path = None
         self.user_agent = os.environ.get("SHIPYARD_USER_AGENT", None)
         self.staging_allowed_local_path = staging_allowed_local_path
-        # NOTE: May need to delete the next two lines
-        self.workspace = WorkspaceClient(host=self.server_host, token=self.access_token)
-        self.fs = self.workspace.dbutils.fs
         super().__init__(
             server_host,
             http_path,
