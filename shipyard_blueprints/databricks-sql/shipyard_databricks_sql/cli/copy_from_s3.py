@@ -51,6 +51,13 @@ def main():
     table_name = args.table_name
     folder_name = args.folder_name if args.folder_name != "" else None
 
+    if folder_name:
+        full_path = os.path.join(folder_name, args.file_name)
+    else:
+        full_path = args.file_name
+
+    s3_path = os.path.join(bucket_path, full_path)
+
     client = DatabricksSqlClient(
         server_host=args.server_host,
         http_path=args.http_path,
@@ -58,15 +65,10 @@ def main():
         catalog=catalog,
         schema=schema,
     )
-    if folder_name:
-        full_path = os.path.join(os.getcwd(), folder_name, args.file_name)
-    else:
-        full_path = os.path.join(os.getcwd(), args.file_name)
 
-    s3_path = os.path.join(bucket_path, full_path)
-    query = f"""COPY INTO {table_name} FROM '{bucket_path}' WITH (CREDENTIAL {storage_credential})
+    query = f"""COPY INTO {table_name} FROM '{s3_path}' WITH (CREDENTIAL `{storage_credential}`)
     FILEFORMAT = {file_type}
-    FORMAT_OPTIONS ('mergeSchema' = 'true') 
+    FORMAT_OPTIONS ('mergeSchema' = 'true')
     COPY_OPTIONS ('mergeSchema' = 'true')
     """
 
