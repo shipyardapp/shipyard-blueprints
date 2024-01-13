@@ -51,29 +51,54 @@ def main():
     table_name = args.table_name
     folder_name = args.folder_name if args.folder_name != "" else None
 
-    if folder_name:
-        full_path = os.path.join(folder_name, args.file_name)
-    else:
-        full_path = args.file_name
-
-    s3_path = os.path.join(bucket_path, full_path)
-
-    client = DatabricksSqlClient(
-        server_host=args.server_host,
-        http_path=args.http_path,
-        access_token=args.access_token,
-        catalog=catalog,
-        schema=schema,
-    )
-
-    query = f"""COPY INTO {table_name} FROM '{s3_path}' WITH (CREDENTIAL `{storage_credential}`)
-    FILEFORMAT = {file_type}
-    FORMAT_OPTIONS ('mergeSchema' = 'true')
-    COPY_OPTIONS ('mergeSchema' = 'true')
-    """
+    # if the insert method is append, create a temp table, copy into temp table, insert into target table from temp table, drop temp table
+    if insert_method == "append":
+        pass
 
     try:
-        client.execute_query(query)
+        if folder_name:
+            full_path = os.path.join(folder_name, args.file_name)
+        else:
+            full_path = args.file_name
+
+        s3_path = os.path.join(bucket_path, full_path)
+
+        client = DatabricksSqlClient(
+            server_host=args.server_host,
+            http_path=args.http_path,
+            access_token=args.access_token,
+            catalog=catalog,
+            schema=schema,
+        )
+        if insert_method == "append":
+            # create the temp table
+            tmp_table_name = f"tmp_{table_name}"
+            create_sql = f"CREATE TABLE IF NOT EXISTS {tmp_table_name}"
+            client.execute_query(create_sql)
+            # copy data into tmp table
+            copy_query = f"""COPY INTO {table_name} FROM '{s3_path}' WITH (CREDENTIAL `{storage_credential}`)
+            FILEFORMAT = {file_type}
+            FORMAT_OPTIONS ('mergeSchema' = 'true')
+            COPY_OPTIONS ('mergeSchema' = 'true')
+            """
+            client.execute_query(copy_query)
+            # insert the data from the temp table
+            insert_sql = (
+                f"INSERT INTO {table_name} FROM (SELECT * FROM {tmp_table_name})"
+            )
+            client.execute_query(insert_sql)
+
+            # drop the tmp table
+            drop_query = f"DROP TABLE {tmp_table_name}"
+            client.execute_query(drop_query)
+
+        else:
+            query = f"""COPY INTO {table_name} FROM '{s3_path}' WITH (CREDENTIAL `{storage_credential}`)
+            FILEFORMAT = {file_type}
+            FORMAT_OPTIONS ('mergeSchema' = 'true')
+            COPY_OPTIONS ('mergeSchema' = 'true')
+            """
+            client.execute_query(query)
     except ExitCodeException as ec:
         client.logger.error(ec.message)
         sys.exit(ec.exit_code)
@@ -82,7 +107,7 @@ def main():
         sys.exit(client.EXIT_CODE_UNKNOWN_ERROR)
 
     else:
-        client.logger.info("Successfully executed query")
+        client.logger.info(f"Successfully copied data from {bucket_path} to Databricks")
 
 
 if __name__ == "__main__":
