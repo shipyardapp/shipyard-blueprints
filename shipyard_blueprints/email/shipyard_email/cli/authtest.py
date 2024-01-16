@@ -10,7 +10,6 @@ def main():
             smtp_port=os.getenv("EMAIL_SMTP_PORT"),
             username=os.getenv("EMAIL_USERNAME"),
             password=os.getenv("EMAIL_PASSWORD"),
-            send_method=os.getenv("EMAIL_SEND_METHOD"),
         ).connect()
     )
 
