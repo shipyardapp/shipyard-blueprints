@@ -34,10 +34,12 @@ class ShipyardLogger:
     def get_logger(cls):
         if cls._logger is None:
             cls._logger = logging.getLogger("Shipyard")
-            addLoggingLevel('AUTHTEST', cls.AUTHTEST_LEVEL)
+            addLoggingLevel("AUTHTEST", cls.AUTHTEST_LEVEL)
 
             console = logging.StreamHandler()
-            formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s -%(lineno)d: %(message)s")
+            formatter = logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s -%(lineno)d: %(message)s"
+            )
             console.setFormatter(formatter)
             cls._logger.addHandler(console)
             cls._logger.setLevel(logging.INFO)

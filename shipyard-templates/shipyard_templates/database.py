@@ -85,7 +85,7 @@ class DatabricksDatabase:
     EXIT_CODE_UNKNOWN_ERROR = 249
 
     def __init__(
-            self, server_host: str, http_path: str, access_token: str, **kwargs
+        self, server_host: str, http_path: str, access_token: str, **kwargs
     ) -> None:
         self.server_host = server_host
         self.http_path = http_path
