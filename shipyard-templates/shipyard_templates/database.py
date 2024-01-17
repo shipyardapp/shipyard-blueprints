@@ -16,9 +16,6 @@ class Database(ABC):
     EXIT_CODE_INVALID_ARGUMENTS = 208
     EXIT_CODE_INVALID_DATA_TYPES = 209
 
-    # def __init__(self, user: str, pwd: str, **kwargs) -> None:
-    #     self.logger = ShipyardLogger().get_logger()
-
     @abstractmethod
     def connect(self):
         pass
@@ -88,7 +85,7 @@ class DatabricksDatabase:
     EXIT_CODE_UNKNOWN_ERROR = 249
 
     def __init__(
-        self, server_host: str, http_path: str, access_token: str, **kwargs
+            self, server_host: str, http_path: str, access_token: str, **kwargs
     ) -> None:
         self.server_host = server_host
         self.http_path = http_path
