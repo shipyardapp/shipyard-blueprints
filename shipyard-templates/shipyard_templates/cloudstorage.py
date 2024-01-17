@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from .shipyard_logger import ShipyardLogger
 
 
 class CloudStorage(ABC):
@@ -12,9 +11,6 @@ class CloudStorage(ABC):
     EXIT_CODE_FOLDER_CREATION_ERROR = 208
     EXIT_CODE_FILE_MATCH_ERROR = 210
     EXIT_CODE_UNKNOWN_ERROR = 249
-
-    def __init__(self, **kwargs) -> None:
-        self.logger = ShipyardLogger().logger
 
     @abstractmethod
     def download(self):

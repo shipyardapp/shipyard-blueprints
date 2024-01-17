@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from .shipyard_logger import ShipyardLogger
 
 
 class ExitCodeError(Exception):
@@ -20,7 +19,6 @@ class ProjectManagement(ABC):
     EXIT_CODE_UNKNOWN_ERROR = 299
 
     def __init__(self, access_token: str, **kwargs) -> None:
-        self.logger = ShipyardLogger().logger
         self.access_token = access_token
 
     @abstractmethod
