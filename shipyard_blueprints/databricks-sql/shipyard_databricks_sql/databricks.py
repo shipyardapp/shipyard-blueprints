@@ -546,6 +546,12 @@ class DatabricksSqlClient(DatabricksDatabase):
             self.logger.info(f"Successfully removed volume {self.volume_path}")
 
     def _append_from_volume(self, table_name: str, file_format: str):
+        """Helper function to append to an existing delta table
+
+        Args:
+            table_name: The name of the delta table to append to
+            file_format: The format of the data in the volume (either parquet or csv)
+        """
         # create the temp table
         tmp_table = f"tmp_{table_name}"
         self.execute_query(f"CREATE TABLE {tmp_table}")
