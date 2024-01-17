@@ -117,6 +117,22 @@ if [ "$1" = 'dl2' ]; then
 
 fi
 
+if [ "$1" = 'demo-up' ]; then
+    echo "Starting upload for demo"
+    python3 ./shipyard_databricks_sql/cli/upload.py --access-token $token \
+    --server-host $DATABRICKS_SERVER_HOST \
+    --http-path $DATABRICKS_HTTP_PATH \
+    --catalog $DEMO_CATALOG \
+    --schema $DEMO_SCHEMA \
+    --volume $DEMO_VOLUME \
+    --table-name $DEMO_TABLE \
+    --insert-method "append" \
+    --file-type "parquet" \
+    --file-name $DEMO_FILE \
+    --match-type "exact_match" 
+
+fi
+
 
  
 
