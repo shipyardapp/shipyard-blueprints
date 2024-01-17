@@ -71,14 +71,17 @@ def main():
     volume = args.volume if args.volume != "" else None
     folder_name = args.folder_name if args.folder_name != "" else None
     data_types = ast.literal_eval(args.data_types) if args.data_types != "" else None
+    dir_path = None
 
     try:
         if folder_name:
             full_path = os.path.join(os.getcwd(), folder_name, args.file_name)
+            dir_path = os.path.join(os.getcwd(), folder_name)
+            real_path = os.path.realpath(dir_path)
         else:
             full_path = os.path.join(os.getcwd(), args.file_name)
+            real_path = os.path.realpath(full_path)
 
-        real_path = os.path.realpath(full_path)
         client = DatabricksSqlClient(
             server_host=args.server_host,
             http_path=args.http_path,
@@ -89,13 +92,14 @@ def main():
             staging_allowed_local_path=real_path,
         )
         if args.match_type == "regex_match":
-            local_files = list_local_files(directory=folder_name)
-            if len(local_files) == 0:
-                client.logger.error(f"No files found matching {args.file_name} pattern")
-                sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
+            local_files = list_local_files(directory=dir_path)
             file_matches = files.find_all_file_matches(
                 file_names=local_files, file_name_re=re.compile(args.file_name)
             )
+            if len(file_matches) == 0:
+                client.logger.error(f"No files found matching {args.file_name} pattern")
+                sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
+
             insert_method = args.insert_method
             for i, file_match in enumerate(file_matches, start=1):
                 client.logger.info(f"Uploading {i} of {len(file_matches)} files")
