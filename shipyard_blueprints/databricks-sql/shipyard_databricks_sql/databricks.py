@@ -516,7 +516,7 @@ class DatabricksSqlClient(DatabricksDatabase):
         """
 
         if file_format == "csv":
-            copy_sql += " FORMAT_OPTIONS ('mergeSchema' = 'true', 'header' = 'true', inferSchema = 'true') COPY_OPTIONS ('mergeSchema' = 'true')"
+            copy_sql += " FORMAT_OPTIONS ('mergeSchema' = 'true', 'header' = 'true', 'inferSchema' = 'true') COPY_OPTIONS ('mergeSchema' = 'true')"
             if files:
                 copy_sql += "\n PATTERN = {files}"
         elif file_format == "parquet":
