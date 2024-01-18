@@ -8,7 +8,6 @@ import ast
 from shipyard_templates import ExitCodeException
 from shipyard_databricks_sql import DatabricksSqlClient
 from typing import Dict, List, Optional
-from shipyard_bp_utils import files
 
 
 def get_args():
@@ -64,6 +63,18 @@ def list_local_files(directory: Optional[str] = None) -> List[str]:
     return files
 
 
+def find_all_file_matches(file_names, file_name_re):
+    """
+    Return a list of all matching_file_names that matched the regular expression.
+    """
+    matching_file_names = []
+    for file in file_names:
+        if re.search(file_name_re, file):
+            matching_file_names.append(file)
+
+    return matching_file_names
+
+
 def main():
     args = get_args()
     catalog = args.catalog if args.catalog != "" else None
@@ -93,7 +104,7 @@ def main():
         )
         if args.match_type == "regex_match":
             local_files = list_local_files(directory=dir_path)
-            file_matches = files.find_all_file_matches(
+            file_matches = find_all_file_matches(
                 file_names=local_files, file_name_re=re.compile(args.file_name)
             )
             if len(file_matches) == 0:
@@ -101,23 +112,32 @@ def main():
                 sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
 
             insert_method = args.insert_method
-            for i, file_match in enumerate(file_matches, start=1):
-                client.logger.info(f"Uploading {i} of {len(file_matches)} files")
-                if i > 1:
-                    insert_method = "append"
-                if args.file_type == "csv":
-                    data = pd.read_csv(file_match)
-                    file_format = "csv"
-                else:
-                    data = pd.read_parquet(file_match)
-                    file_format = "parquet"
-                client.upload(
-                    file_path=file_match,
-                    file_format=file_format,
-                    table_name=args.table_name,
-                    datatypes=data_types,
-                    insert_method=insert_method,
-                )
+            client.upload(
+                file_path=file_matches,
+                file_format=args.file_type,
+                table_name=args.table_name,
+                datatypes=data_types,
+                insert_method=insert_method,
+                match_type=args.match_type,
+                pattern=args.file_name,
+            )
+            # for i, file_match in enumerate(file_matches, start=1):
+            #     client.logger.info(f"Uploading {i} of {len(file_matches)} files")
+            #     if i > 1:
+            #         insert_method = "append"
+            #     if args.file_type == "csv":
+            #         data = pd.read_csv(file_match)
+            #         file_format = "csv"
+            #     else:
+            #         data = pd.read_parquet(file_match)
+            #         file_format = "parquet"
+            #     client.upload(
+            #         file_path=file_match,
+            #         file_format=file_format,
+            #         table_name=args.table_name,
+            #         datatypes=data_types,
+            #         insert_method=insert_method,
+            #     )
 
         else:
             # only two choices are csv and parquet at this time

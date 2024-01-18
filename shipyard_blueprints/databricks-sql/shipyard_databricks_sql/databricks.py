@@ -5,7 +5,7 @@ from databricks.sql.client import Connection
 from shipyard_templates import DatabricksDatabase, ExitCodeException
 from databricks import sql
 from databricks.sql.client import Connection  # for type hints
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Union
 
 
 class DatabricksSqlClient(DatabricksDatabase):
@@ -90,11 +90,13 @@ class DatabricksSqlClient(DatabricksDatabase):
 
     def upload(
         self,
-        file_path: str,
+        file_path: Union[str, List[str]],
         table_name: str,
         file_format: str,
         datatypes: Optional[Dict[str, str]] = None,
         insert_method: str = "replace",
+        match_type: str = "exact_match",
+        pattern: Optional[str] = None,
     ):
         """
         Uploads a pandas dataframe to a table in Databricks SQL Warehouse. If the volume is provided upon instantiation (which is the recommended approach), the file(s) will be uploaded via a volume,
@@ -119,6 +121,8 @@ class DatabricksSqlClient(DatabricksDatabase):
                     file_format=file_format,
                     data_types=datatypes,
                     insert_method=insert_method,
+                    match_type=match_type,
+                    pattern=pattern,
                 )
 
             else:
@@ -447,7 +451,13 @@ class DatabricksSqlClient(DatabricksDatabase):
         else:
             self.logger.info(f"Successfully created volume {self.volume}")
 
-    def _load_volume(self, file_path: str, table_name: str, file_type: str):
+    def _load_volume(
+        self,
+        file_path: Union[str, List[str]],
+        table_name: str,
+        file_type: str,
+        match_type: str = "exact_match",
+    ):
         """Helper function to load a file into a volume in Databricks
 
         Args:
@@ -456,45 +466,80 @@ class DatabricksSqlClient(DatabricksDatabase):
             file_type: The file type (choices are CSV and PARQUET at the moment)
         """
         tmp_table = f"{table_name}_tmp"
-        file_name = Path(file_path).name
-        if not self.catalog and self.schema:
-            volume_path = (
-                f"/Volumes/{self.schema}/{self.volume}/{tmp_table}/{file_name}"
-            )
-            self.volume_path = volume_path
-        elif not self.schema:
-            raise ExitCodeException(
-                "Schema must be provided if the catalog is provided",
-                exit_code=self.EXIT_CODE_VOLUME_SQL,
-            )
+        if match_type == "regex_match":
+            self.volume_path = []
+            self.volume_dir = f"/Volumes/{self.schema}/{self.volume}/{tmp_table}/"
+            for file in file_path:
+                if not self.catalog and self.schema:
+                    volume_path = (
+                        f"/Volumes/{self.schema}/{self.volume}/{tmp_table}/{file}"
+                    )
+                    self.volume_path.append(volume_path)
+                elif not self.schema:
+                    raise ExitCodeException(
+                        "Schema must be provided if the catalog is provided",
+                        exit_code=self.EXIT_CODE_VOLUME_SQL,
+                    )
+                else:
+                    volume_path = f"/Volumes/{self.catalog}/{self.schema}/{self.volume}/{tmp_table}/{file}"
+                    self.volume_path.append(volume_path)
+
+                    upload_sql = f"PUT '{file}' INTO '{volume_path}' OVERWRITE"
+                    try:
+                        self.cursor.execute(upload_sql)
+
+                    except Exception as e:
+                        raise ExitCodeException(
+                            f"Error when trying to load file to volume: {str(e)}",
+                            self.EXIT_CODE_VOLUME_UPLOAD_ERROR,
+                        )
+                    else:
+                        self.logger.info("Successfully loaded volume")
+
+        # for exact match cases
         else:
-            volume_path = (
-                f"/Volumes/{self.catalog}/{self.schema}/{self.volume}/{file_name}"
-            )
-            self.volume_path = volume_path
+            file_name = Path(file_path).name
+            if not self.catalog and self.schema:
+                volume_path = (
+                    f"/Volumes/{self.schema}/{self.volume}/{tmp_table}/{file_name}"
+                )
+                self.volume_path = volume_path
+            elif not self.schema:
+                raise ExitCodeException(
+                    "Schema must be provided if the catalog is provided",
+                    exit_code=self.EXIT_CODE_VOLUME_SQL,
+                )
+            else:
+                volume_path = f"/Volumes/{self.catalog}/{self.schema}/{self.volume}/{tmp_table}/{file_name}"
+                self.volume_path = volume_path
 
-        # one last check that the volume path is legit
-        if self.volume_path is None:
-            raise ExitCodeException(
-                "The volume path cannot be None, aborting upload",
-                self.EXIT_CODE_VOLUME_UPLOAD_ERROR,
-            )
+                upload_sql = f"PUT '{file_path}' INTO '{self.volume_path}' OVERWRITE"
+                try:
+                    self.cursor.execute(upload_sql)
 
-        upload_sql = f"PUT '{file_path}' INTO '{self.volume_path}' OVERWRITE"
-        try:
-            self.cursor.execute(upload_sql)
+                except Exception as e:
+                    raise ExitCodeException(
+                        f"Error when trying to load file to volume: {str(e)}",
+                        self.EXIT_CODE_VOLUME_UPLOAD_ERROR,
+                    )
 
-        except Exception as e:
-            raise ExitCodeException(
-                f"Error when trying to load file to volume: {str(e)}",
-                self.EXIT_CODE_VOLUME_UPLOAD_ERROR,
-            )
+                else:
+                    self.logger.info("Successfully loaded volume")
 
-        else:
-            self.logger.info("Successfully loaded volume")
+        # # one last check that the volume path is legit
+        # if self.volume_path is None:
+        #     raise ExitCodeException(
+        #         "The volume path cannot be None, aborting upload",
+        #         self.EXIT_CODE_VOLUME_UPLOAD_ERROR,
+        #     )
 
     def _copy_into(
-        self, table_name: str, file_format: str, files: Optional[str] = None
+        self,
+        table_name: str,
+        file_format: str,
+        pattern: Optional[str] = None,
+        datatypes: Optional[Dict[str, str]] = None,
+        match_type: Optional[str] = "exact_match",
     ):
         """Helper function that executes a COPY INTO statement from a volume into a destination table
 
@@ -511,14 +556,20 @@ class DatabricksSqlClient(DatabricksDatabase):
         else:
             table_path = f"{self.catalog}.{self.schema}.{table_name}"
 
-        copy_sql = f"""COPY INTO {table_path} FROM '{self.volume_path}' 
-        FILEFORMAT = {file_format}
-        """
+        if match_type == "regex_match":
+            copy_sql = f"""COPY INTO {table_path} FROM '{self.volume_dir}' 
+            FILEFORMAT = {file_format}
+            PATTERN = '{pattern}'
+            """
 
+        else:
+            copy_sql = f"""COPY INTO {table_path} FROM '{self.volume_path}' 
+            FILEFORMAT = {file_format}
+            """
+
+        # TODO: Make sure this works for uploading multiple csvs and parquets. The pattern option should be used
         if file_format == "csv":
             copy_sql += " FORMAT_OPTIONS ('mergeSchema' = 'true', 'header' = 'true', 'inferSchema' = 'true') COPY_OPTIONS ('mergeSchema' = 'true')"
-            if files:
-                copy_sql += "\n PATTERN = {files}"
         elif file_format == "parquet":
             copy_sql += " FORMAT_OPTIONS ('mergeSchema' = 'true') COPY_OPTIONS('mergeSchema' = 'true')"
 
@@ -535,7 +586,11 @@ class DatabricksSqlClient(DatabricksDatabase):
     def _remove_volume(self):
         """Helper function to remove the volume that was used for ingestion. This should be wiped after a a successful run of _copy_into()."""
         try:
-            self.cursor.execute(f"REMOVE '{self.volume_path}'")
+            if isinstance(self.volume_path, list):
+                for vol in self.volume_path:
+                    self.cursor.execute(f"REMOVE '{vol}'")
+            else:
+                self.cursor.execute(f"REMOVE '{self.volume_path}'")
         except Exception as e:
             raise ExitCodeException(
                 f"Error in removing volume {self.volume_path}: {str(e)}",
@@ -543,7 +598,9 @@ class DatabricksSqlClient(DatabricksDatabase):
             )
 
         else:
-            self.logger.info(f"Successfully removed volume {self.volume_path}")
+            self.logger.info(
+                f"Successfully removed files from volume {self.volume_path}"
+            )
 
     def _append_from_volume(self, table_name: str, file_format: str):
         """Helper function to append to an existing delta table
@@ -569,33 +626,61 @@ class DatabricksSqlClient(DatabricksDatabase):
 
     def load_via_volume(
         self,
-        file_path: str,
+        file_path: Union[str, List[str]],
         table_name: str,
         file_format: str,
         data_types: Optional[Dict[str, str]] = None,
         insert_method: Optional[str] = "replace",
+        match_type: str = "exact_match",
+        pattern: Optional[str] = None,
     ):
         """This function calls four separate helper functions to create the volume, load the file into that volume,
         copy the data from the volume to the destination table, remove the volume
 
         Args:
-            file_path: The file path of the file to be loaded
+            file_path: The file path of the file to be loaded.
             table_name: The name of the destination table
             file_format: The format of the file (choices are CSV and PARQUET at the moment)
         """
-        volume_sql = self._volume_sql()
+
         try:
+            volume_sql = self._volume_sql()
             self._create_volume(volume_sql)
             self._create_table(self._create_table_sql(table_name, data_types))
-            self._load_volume(
-                file_path=file_path, table_name=table_name, file_type=file_format
-            )
-            if insert_method == "replace":
-                self._copy_into(table_name=table_name, file_format=file_format)
+            if match_type == "regex_match":
+                self._load_volume(
+                    file_path=file_path,
+                    table_name=table_name,
+                    file_type=file_format,
+                    match_type=match_type,
+                )
+                self._copy_into(
+                    table_name=table_name,
+                    file_format=file_format,
+                    pattern=pattern,
+                    match_type=match_type,
+                )
+                self._remove_volume()
+
             else:
-                # append to table by using an insert statement
-                self._append_from_volume(table_name=table_name, file_format=file_format)
-            self._remove_volume()
+                self._load_volume(
+                    file_path=file_path,
+                    table_name=table_name,
+                    file_type=file_format,
+                    match_type=match_type,
+                )
+                if insert_method == "replace":
+                    self._copy_into(
+                        table_name=table_name,
+                        file_format=file_format,
+                        match_type=match_type,
+                    )
+                else:
+                    # append to table by using an insert statement
+                    self._append_from_volume(
+                        table_name=table_name, file_format=file_format
+                    )
+                self._remove_volume()
 
         except ExitCodeException as ec:
             self.logger.error(ec.message)
