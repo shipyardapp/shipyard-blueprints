@@ -615,6 +615,7 @@ def main():
                 schema=args.schema,
                 role=user_role,
                 private_key=private_key,
+                application="Shipyard_SnowflakeBlueprints",
             )
 
             db_connection = create_engine("snowflake://", creator=lambda: con)
@@ -630,6 +631,7 @@ def main():
                         schema=args.schema,
                         warehouse=args.warehouse,
                         role=user_role,
+                        application="Shipyard_SnowflakeBlueprints",
                     )
                 )
             else:
@@ -641,6 +643,7 @@ def main():
                         database=args.database,
                         schema=args.schema,
                         warehouse=args.warehouse,
+                        application="Shipyard_SnowflakeBlueprints",
                     )
                 )
         db_connection.connect()

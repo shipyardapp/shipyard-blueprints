@@ -67,6 +67,7 @@ def main():
                 schema=schema,
                 role=user_role,
                 private_key=private_key,
+                application="Shipyard_SnowflakeBlueprints",
             )
         else:
             if user_role != "":
@@ -78,6 +79,7 @@ def main():
                     database=database,
                     schema=schema,
                     role=user_role,
+                    application="Shipyard_SnowflakeBlueprints",
                 )
             else:
                 con = snowflake.connector.connect(
@@ -87,6 +89,7 @@ def main():
                     warehouse=warehouse,
                     database=database,
                     schema=schema,
+                    application="Shipyard_SnowflakeBlueprints",
                 )
 
         cur = con.cursor()

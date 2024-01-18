@@ -137,6 +137,7 @@ def main():
                 schema=schema,
                 private_key=private_key,
                 role=user_role,
+                application="Shipyard_SnowflakeBlueprints",
             )
         else:
             if user_role != "":
@@ -148,6 +149,7 @@ def main():
                     database=database,
                     schema=schema,
                     role=user_role,
+                    application="Shipyard_SnowflakeBlueprints",
                 )
             else:
                 con = snowflake.connector.connect(
@@ -157,6 +159,7 @@ def main():
                     warehouse=warehouse,
                     database=database,
                     schema=schema,
+                    application="Shipyard_SnowflakeBlueprints",
                 )
     except ForbiddenError as f_e:
         if f_e.errno == 250001:
