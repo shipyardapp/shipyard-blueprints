@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import AirtableClient
+from shipyard_airtable import AirtableClient
 
 
 def main():

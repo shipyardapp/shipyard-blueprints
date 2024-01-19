@@ -1,7 +1,7 @@
 import os
 import sys
 import requests
-from shipyard_blueprints import DatabricksClient
+from shipyard_databricks import DatabricksClient
 
 
 def main():

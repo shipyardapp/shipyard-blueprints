@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import GoogleSheetsClient
+from shipyard_googlesheets import GoogleSheetsClient
 
 
 def main():

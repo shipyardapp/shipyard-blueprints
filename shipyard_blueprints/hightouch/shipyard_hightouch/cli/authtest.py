@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import HightouchClient
+from shipyard_hightouch import HightouchClient
 
 
 def main():

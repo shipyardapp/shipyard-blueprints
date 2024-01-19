@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import DbtClient
+from shipyard_dbt import DbtClient
 
 
 def main():

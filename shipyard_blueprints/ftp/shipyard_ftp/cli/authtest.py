@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import FtpClient
+from shipyard_ftp import FtpClient
 
 
 def get_args():

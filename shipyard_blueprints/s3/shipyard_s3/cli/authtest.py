@@ -1,7 +1,7 @@
 import os
 import sys
 import boto3
-from shipyard_blueprints import S3Client
+from shipyard_s3 import S3Client
 
 
 def main():

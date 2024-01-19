@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import ClickupClient
+from shipyard_clickup import ClickupClient
 
 
 def main():

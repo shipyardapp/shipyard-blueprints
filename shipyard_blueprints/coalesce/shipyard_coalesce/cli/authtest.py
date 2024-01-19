@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import CoalesceClient
+from shipyard_coalesce import CoalesceClient
 
 
 def main():

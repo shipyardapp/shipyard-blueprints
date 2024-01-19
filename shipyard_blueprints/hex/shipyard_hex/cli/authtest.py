@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import HexClient
+from shipyard_hex import HexClient
 
 
 def main():
