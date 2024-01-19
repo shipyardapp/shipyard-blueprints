@@ -1,29 +1,29 @@
 import logging
 
 
-def addLoggingLevel(levelName, levelNum, methodName=None):
+def add_logging_level(level_name, level_num, method_name=None):
     """
     Adds a new logging level to the logging module and the currently configured logging class.
     """
-    if not methodName:
-        methodName = levelName.lower()
+    if not method_name:
+        method_name = level_name.lower()
 
-    def logForLevel(self, message, *args, **kwargs):
-        if self.isEnabledFor(levelNum):
-            self._log(levelNum, message, args, **kwargs)
+    def log_for_level(self, message, *args, **kwargs):
+        if self.isEnabledFor(level_num):
+            self._log(level_num, message, args, **kwargs)
 
-    def logToRoot(message, *args, **kwargs):
-        logging.log(levelNum, message, *args, **kwargs)
+    def log_to_root(message, *args, **kwargs):
+        logging.log(level_num, message, *args, **kwargs)
 
-    if not hasattr(logging, levelName):
-        logging.addLevelName(levelNum, levelName)
-        setattr(logging, levelName, levelNum)
+    if not hasattr(logging, level_name):
+        logging.addLevelName(level_num, level_name)
+        setattr(logging, level_name, level_num)
 
-    if not hasattr(logging.getLoggerClass(), methodName):
-        setattr(logging.getLoggerClass(), methodName, logForLevel)
+    if not hasattr(logging.getLoggerClass(), method_name):
+        setattr(logging.getLoggerClass(), method_name, log_for_level)
 
-    if not hasattr(logging, methodName):
-        setattr(logging, methodName, logToRoot)
+    if not hasattr(logging, method_name):
+        setattr(logging, method_name, log_to_root)
 
 
 class ShipyardLogger:
@@ -34,7 +34,7 @@ class ShipyardLogger:
     def get_logger(cls):
         if cls._logger is None:
             cls._logger = logging.getLogger("Shipyard")
-            addLoggingLevel("AUTHTEST", cls.AUTHTEST_LEVEL)
+            add_logging_level("AUTHTEST", cls.AUTHTEST_LEVEL)
 
             console = logging.StreamHandler()
             formatter = logging.Formatter(
