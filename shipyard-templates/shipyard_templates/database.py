@@ -16,9 +16,6 @@ class Database(ABC):
     EXIT_CODE_INVALID_ARGUMENTS = 208
     EXIT_CODE_INVALID_DATA_TYPES = 209
 
-    def __init__(self, user: str, pwd: str, **kwargs) -> None:
-        self.logger = ShipyardLogger().logger
-
     @abstractmethod
     def connect(self):
         pass
