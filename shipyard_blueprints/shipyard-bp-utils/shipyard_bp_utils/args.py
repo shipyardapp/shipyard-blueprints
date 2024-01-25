@@ -18,16 +18,13 @@ def convert_to_boolean(string: str) -> bool:
     """
     logger.debug(f"Converting {string} to boolean...")
 
-    clean = string.upper().strip()
-
-    if clean in {"TRUE", "FALSE"}:
-        result = clean == "TRUE"
+    bool_string = string.upper().strip()
+    if bool_string == "TRUE":
+        result = True
+    elif bool_string == "FALSE":
+        result = False
     else:
-        logger.error(f"String {string} is not a valid boolean.")
-        raise ValueError(
-            f"String {string} is not a valid boolean. Expected Rrue or False. Case-insensitive."
-        )
-
+        raise ValueError(f"Invalid value for boolean: {string}")
     logger.debug(f"Converted {string} to {result} boolean.")
     return result
 
@@ -76,4 +73,4 @@ def create_shipyard_link() -> str:
 
 if __name__ == "__main__":
     logger.setLevel("DEBUG")
-    print(create_shipyard_link())
+    print(convert_to_boolean("true "))

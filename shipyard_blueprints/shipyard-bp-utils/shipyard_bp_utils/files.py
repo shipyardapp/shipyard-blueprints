@@ -1,5 +1,6 @@
 import os
 import re
+import csv
 import glob
 import json
 import tarfile
@@ -7,6 +8,7 @@ import fnmatch
 
 from zipfile import ZipFile
 from shipyard_templates import ShipyardLogger
+from pandas import DataFrame
 
 logger = ShipyardLogger.get_logger()
 
@@ -27,7 +29,7 @@ def enumerate_destination_file_name(destination_file_name: str, file_number: int
 
 
 def determine_destination_file_name(
-    *, source_full_path: str, destination_file_name: str, file_number: int = None
+        *, source_full_path: str, destination_file_name: str, file_number: int = None
 ) -> str:
     """
     Determines the destination file name based on provided parameters.
@@ -91,10 +93,10 @@ def combine_folder_and_file_name(folder_name: str, file_name: str) -> str:
 
 
 def determine_destination_full_path(
-    destination_folder_name: str,
-    destination_file_name: str,
-    source_full_path: str,
-    file_number: int = None,
+        destination_folder_name: str,
+        destination_file_name: str,
+        source_full_path: str,
+        file_number: int = None,
 ) -> str:
     """
     Determines the full destination path of a file based on provided parameters.
@@ -291,10 +293,102 @@ def find_matching_files(search_term: str, directory: str, match_type: str) -> li
 
 # Functions for Writing Files
 def write_json_to_file(json_object: dict, file_name: str) -> None:
+    """
+    Write a JSON object to a file.
+
+    Args:
+    json_object (dict): The JSON object to be written to a file.
+    file_name (str): The name of the file to be written to.
+
+    Returns:
+    None
+    """
+    logger.debug(f"Writing JSON file: {file_name}, JSON Object: {json_object}...")
     with open(file_name, "w") as f:
         f.write(json.dumps(json_object, ensure_ascii=False, indent=4))
     logger.info(f"JSON data stored at {file_name}")
     return
+
+
+def read_json_file(filename: str) -> dict:
+    """
+    Read a JSON file and return the contents as a dictionary.
+
+    Args:
+    filename (str): The name of the file to be read.
+
+    Returns:
+    dict: The contents of the JSON file as a dictionary.
+    """
+    logger.debug(f"Reading JSON file: {filename}...")
+    with open(filename, "r") as f:
+        return json.load(f)
+
+
+def open_file(file_path: str) -> str:
+    """
+    Open a file and return the contents as a string.
+
+    Args:
+    file_path (str): The path of the file to be opened.
+
+    Returns:
+    str: The contents of the file as a string.
+    """
+    logger.debug(f"Opening file: {file_path}...")
+    with open(file_path, "r") as f:
+        return f.read()
+
+
+def write_file(file_path: str, contents: str) -> None:
+    """
+    Write contents to a file.
+
+    Args:
+    file_path (str): The path of the file to be written to.
+    contents (str): The contents to be written to the file.
+
+    Returns:
+    None
+    """
+    logger.debug(f"Writing file: {file_path}...")
+    with open(file_path, "w") as f:
+        f.write(contents)
+    logger.info(f"File written to {file_path}")
+    return
+
+
+def write_csv_to_file(csv_object: list, file_name: str) -> None:
+    """
+    Write a CSV object to a file.
+
+    Args:
+    csv_object (list): The CSV object to be written to a file.
+    file_name (str): The name of the file to be written to.
+
+    Returns:
+    None
+    """
+    logger.debug(f"Writing CSV file: {file_name}...")
+    with open(file_name, "w") as f:
+        writer = csv.writer(f)
+        writer.writerows(csv_object)
+    logger.info(f"CSV data stored at {file_name}")
+    return
+
+
+def read_csv_file(filename: str) -> DataFrame:
+    """
+    Read a CSV file and return the contents as a DataFrame.
+
+    Args:
+    filename (str): The name of the file to be read.
+
+    Returns:
+    DataFrame: The contents of the CSV file as a DataFrame.
+    """
+    logger.debug(f"Reading CSV file: {filename}...")
+    return DataFrame.from_csv(filename)
 
 
 if __name__ == "__main__":

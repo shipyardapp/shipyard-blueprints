@@ -11,6 +11,26 @@ class Artifact:
         def __init__(self, path):
             self.path = path
 
+        def read(self, filename, file_type):
+            if file_type == "json":
+                return self.read_json(filename)
+            elif file_type == "pickle":
+                return self.read_pickle(filename)
+            elif file_type == "csv":
+                return self.read_csv(filename)
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+
+        def write(self, filename, file_type, data):
+            if file_type == "json":
+                return self.write_json(filename, data)
+            elif file_type == "pickle":
+                return self.create_pickle(filename, data)
+            elif file_type == "csv":
+                return self.write_csv(filename, data)
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+
         def create_pickle(self, filename, data):
             logger.debug(f"Creating pickle file: {filename}...")
             pickle_file_name = os.path.join(self.path, f"{filename}.pickle")
@@ -31,6 +51,27 @@ class Artifact:
                 data = pickle.load(f)
             logger.debug(f"Pickle file read. Data: {data}")
             return data
+
+        def read_json(self, filename):
+            logger.debug(f"Reading JSON file: {filename}...")
+            json_file_name = os.path.join(self.path, f"{filename}.json")
+            data = files.read_json_file(json_file_name)
+            logger.debug(f"JSON file read. Data: {data}")
+            return data
+
+
+        def read_csv(self, filename):
+            logger.debug(f"Reading CSV file: {filename}...")
+            csv_file_name = os.path.join(self.path, f"{filename}.csv")
+            data = files.read_csv_file(csv_file_name)
+            logger.debug(f"CSV file read. Data: {data}")
+            return data
+
+        def write_csv(self, filename, data):
+            logger.debug(f"Writing CSV file: {filename}...")
+            csv_file_name = os.path.join(self.path, f"{filename}.csv")
+            files.write_csv_to_file(data, csv_file_name)
+            logger.debug("CSV file written.")
 
     def __init__(self, vendor):
         self.vendor = vendor
