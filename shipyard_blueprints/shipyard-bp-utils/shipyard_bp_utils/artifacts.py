@@ -59,7 +59,6 @@ class Artifact:
             logger.debug(f"JSON file read. Data: {data}")
             return data
 
-
         def read_csv(self, filename):
             logger.debug(f"Reading CSV file: {filename}...")
             csv_file_name = os.path.join(self.path, f"{filename}.csv")
