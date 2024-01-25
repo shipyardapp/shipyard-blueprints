@@ -24,8 +24,3 @@ def hash_text(text_var: str, hash_algorithm="sha256"):
     logger.debug(f"Successfully hashed: {hashed_text}")
 
     return hashed_text
-
-
-if __name__ == "__main__":
-    logger.setLevel("DEBUG")
-    print(hash_text("test"))

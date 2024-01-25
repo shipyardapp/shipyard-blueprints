@@ -389,8 +389,3 @@ def read_csv_file(filename: str) -> DataFrame:
     """
     logger.debug(f"Reading CSV file: {filename}...")
     return DataFrame.from_csv(filename)
-
-
-if __name__ == "__main__":
-    logger.setLevel("DEBUG")
-    print(find_all_local_file_names())

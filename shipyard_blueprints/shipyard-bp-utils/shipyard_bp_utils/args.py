@@ -69,8 +69,3 @@ def create_shipyard_link() -> str:
     logger.debug(f"Created Shipyard link: {shipyard_link}")
 
     return shipyard_link
-
-
-if __name__ == "__main__":
-    logger.setLevel("DEBUG")
-    print(convert_to_boolean("true "))
