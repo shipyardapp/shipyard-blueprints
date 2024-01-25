@@ -16,17 +16,18 @@ def enumerate_destination_file_name(destination_file_name: str, file_number: int
     Append a number to the end of the provided destination file name, before the file extension.
     Only used when multiple files are matched to, preventing the destination file from being continuously overwritten.
     """
-    if re.search(r'\.', destination_file_name):
+    if re.search(r"\.", destination_file_name):
         destination_file_name = re.sub(
-            r'\.', f'_{file_number}.', destination_file_name, 1)
+            r"\.", f"_{file_number}.", destination_file_name, 1
+        )
     else:
-        destination_file_name = f'{destination_file_name}_{file_number}'
+        destination_file_name = f"{destination_file_name}_{file_number}"
     logger.debug(f"Enumerated destination file name: {destination_file_name}")
     return destination_file_name
 
 
 def determine_destination_file_name(
-        *, source_full_path: str, destination_file_name: str, file_number: int = None
+    *, source_full_path: str, destination_file_name: str, file_number: int = None
 ) -> str:
     """
     Determines the destination file name based on provided parameters.
@@ -90,10 +91,10 @@ def combine_folder_and_file_name(folder_name: str, file_name: str) -> str:
 
 
 def determine_destination_full_path(
-        destination_folder_name: str,
-        destination_file_name: str,
-        source_full_path: str,
-        file_number: int = None,
+    destination_folder_name: str,
+    destination_file_name: str,
+    source_full_path: str,
+    file_number: int = None,
 ) -> str:
     """
     Determines the full destination path of a file based on provided parameters.
