@@ -50,7 +50,9 @@ class ShipyardLogger:
                 cls._logger.setLevel(log_level)
             except ValueError:
                 cls._logger.setLevel(logging.INFO)
-                cls._logger.warning(f"Invalid log level {log_level}. Defaulting to INFO.")
+                cls._logger.warning(
+                    f"Invalid log level {log_level}. Defaulting to INFO."
+                )
             else:
                 cls._logger.debug(f"Log level set to {log_level}")
         return cls._logger
