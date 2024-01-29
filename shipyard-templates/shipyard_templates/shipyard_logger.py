@@ -1,3 +1,4 @@
+import os
 import logging
 
 
@@ -34,6 +35,8 @@ class ShipyardLogger:
     def get_logger(cls):
         if cls._logger is None:
             cls._logger = logging.getLogger("Shipyard")
+            log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+
             add_logging_level("AUTHTEST", cls.AUTHTEST_LEVEL)
 
             console = logging.StreamHandler()
@@ -42,5 +45,14 @@ class ShipyardLogger:
             )
             console.setFormatter(formatter)
             cls._logger.addHandler(console)
-            cls._logger.setLevel(logging.INFO)
+
+            try:
+                cls._logger.setLevel(log_level)
+            except ValueError:
+                cls._logger.setLevel(logging.INFO)
+                cls._logger.warning(
+                    f"Invalid log level {log_level}. Defaulting to INFO."
+                )
+            else:
+                cls._logger.debug(f"Log level set to {log_level}")
         return cls._logger
