@@ -162,12 +162,16 @@ class SnowflakeClient(Database):
             file_path: The file to load
             table_name: The table in Snowflake to write to
         """
-        put_statement = f"""PUT file://{file_path}* '@%"{table_name}"' """
+        put_statement = f"""PUT file:///{file_path}* '@%"{table_name}"' """
         self.execute_query(conn, put_statement)
 
     def copy_into(self, conn: snowflake.connector.SnowflakeConnection, table_name: str):
         """
         Executes a COPY INTO command to load a file from internal staging to a table
+
+        Args:
+            conn: The established snowflake connection
+            table_name: The name of the destination table to copy into
         """
         copy_statement = f"""COPY INTO "{table_name}" FROM '@%\"{table_name}\"' PURGE=TRUE FILE_FORMAT=(TYPE=CSV FIELD_DELIMITER=',' COMPRESSION=GZIP, PARSE_HEADER=TRUE) MATCH_BY_COLUMN_NAME=CASE_INSENSITIVE"""
         self.execute_query(conn, copy_statement)
@@ -175,13 +179,18 @@ class SnowflakeClient(Database):
     def _create_table(
         self,
         table_name: str,
-        columns=None,
+        columns: Union[List[List[str]], Dict[str, str]],
     ) -> str:
         """Returns the SQL for to create or replace a table in Snowflake
         Args:
             table_name (str): The name of the table to create
             columns (List[List[str,str]]): A list of lists of the column name and the data type. Example: [("column1","varchar(100)"),("column2","varchar(100)")]. Defaults to None
         """
-        column_string = ",".join([f"{col[0]} {col[1]}" for col in columns])
+        if columns:
+            if isinstance(columns, list):
+                column_string = ",".join([f"{col[0]} {col[1]}" for col in columns])
+            else:
+                column_string = ",".join([f"{k} {v}" for k, v in columns.items()])
+
         create_statement = f"""CREATE OR REPLACE TABLE {table_name} ({column_string})"""
         return create_statement

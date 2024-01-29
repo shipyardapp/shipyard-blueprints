@@ -1,6 +1,8 @@
+import re
 import psutil
 import os
 import pandas as pd
+from datetime import datetime
 from dask import dataframe as dd
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -68,7 +70,10 @@ def _decode_rsa(rsa_key: str):
         return None
 
 
-def map_snowflake_to_pandas(snowflake_data_types: List[List]) -> Union[Dict, None]:
+def map_snowflake_to_pandas(
+    snowflake_data_types: Optional[Union[List[List], Dict[str, str]]]
+) -> Union[Dict, None]:
+    # TODO: modify this to accept a list of lists (old way) and a JSON representation of datatypes (new way)
     """Helper function to map a snowflake data type to the associated pandas data type
 
     Args:
@@ -202,7 +207,16 @@ def reservoir_sample(iterable, k=1):
             return values
 
 
-def infer_schema(file_name: str, k=10000) -> dict:
+def _parse_dates(df: pd.DataFrame) -> pd.DataFrame:
+    for col in df.columns:
+        # Check if the column contains date-like values
+        if df[col].apply(lambda x: bool(re.match(r"\d{4}-\d{2}-\d{2}", str(x)))).all():
+            df[col] = pd.to_datetime(df[col])
+
+    return df
+
+
+def infer_schema(file_name: str, k=10000) -> Dict[str, str]:
     """Randomly samples a csv file and infers the schema based off of the k rows sampled
 
     Args:
@@ -229,8 +243,9 @@ def infer_schema(file_name: str, k=10000) -> dict:
         with open(file_name, "r") as f:
             header = next(f)
             result = [header] + reservoir_sample(f, k)
-        df = pd.read_csv(StringIO("".join(result)))
-        return df.dtypes.to_dict()
+        df = pd.read_csv(StringIO("".join(result)), parse_dates=True)
+        df = _parse_dates(df)  # parse the date and datetime fields
+        return {k: str(v) for k, v in df.dtypes.to_dict().items()}
 
 
 def map_pandas_to_snowflake(data_type_dict: dict):
