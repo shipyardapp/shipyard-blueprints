@@ -111,21 +111,40 @@ def map_snowflake_to_pandas(
     }
 
     pandas_dtypes = {}
-    for item in snowflake_data_types:
-        field = item[0]
-        dtype = item[1]
-        try:
-            converted = snowflake_to_pandas[str(dtype).upper()]
-            if converted is None:
-                raise Exception(
-                    f"Invalid datatypes: the datatype {dtype} is not a recognized snowflake datatype"
-                )
+    if isinstance(snowflake_data_types, list):
+        for item in snowflake_data_types:
+            field = item[0]
+            dtype = item[1]
+            try:
+                converted = snowflake_to_pandas[str(dtype).upper()]
+                if converted is None:
+                    raise Exception(
+                        f"Invalid datatypes: the datatype {dtype} is not a recognized snowflake datatype"
+                    )
 
-            pandas_dtypes[field] = converted
-        except KeyError as e:
-            raise Exception(
-                f"Invalid datatype: the datatype {dtype} is not a recognized snowflake datatype"
-            )
+                pandas_dtypes[field] = converted
+            except KeyError as e:
+                raise Exception(
+                    f"Invalid datatype: the datatype {dtype} is not a recognized snowflake datatype"
+                )
+    elif isinstance(snowflake_data_types, dict):
+        for field, dtype in snowflake_data_types.items():
+            try:
+                converted = snowflake_to_pandas[str(dtype).upper()]
+                if converted is None:
+                    raise Exception(
+                        f"Invalid datatypes: the datatype {dtype} is not a recognized snowflake datatype"
+                    )
+
+                pandas_dtypes[field] = converted
+            except KeyError as e:
+                raise Exception(
+                    f"Invalid datatype: the datatype {dtype} is not a recognized snowflake datatype"
+                )
+    else:
+        raise Exception(
+            "Unsupported format. Supplied datatypes should be either an array of arrays, or JSON "
+        )
 
     return pandas_dtypes
 
@@ -248,7 +267,7 @@ def infer_schema(file_name: str, k=10000) -> Dict[str, str]:
         return {k: str(v) for k, v in df.dtypes.to_dict().items()}
 
 
-def map_pandas_to_snowflake(data_type_dict: dict):
+def map_pandas_to_snowflake(data_type_dict: Dict[str, str]) -> Dict[str, str]:
     """Helper function to map the the pandas data types to the snowflake data types
 
     Args:
@@ -266,12 +285,10 @@ def map_pandas_to_snowflake(data_type_dict: dict):
         "timedelta64[ns]": "TIME",
     }
 
-    # snowflake_columns = {}
-    snowflake_columns = []
+    snowflake_columns = {}
     for column_name, pandas_data_type in data_type_dict.items():
-        snowflake_data_type = snowflake_data_types.get(str(pandas_data_type), "STRING")
-        snowflake_columns.append([column_name, snowflake_data_type])
-        # snowflake_columns[column_name] = snowflake_data_type
-        # snowflake_columns.append(f"{column_name} {snowflake_data_type}")
+        snowflake_columns[column_name] = snowflake_data_types.get(
+            str(pandas_data_type), "STRING"
+        )
 
     return snowflake_columns

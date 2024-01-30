@@ -48,16 +48,27 @@ def test_put():
         warehouse=warehouse,
     )
 
+    conn = client.connect()
+
+    table_name = "test_put"
     file_path = "/Users/wespoulsen/Repos/Blueprints/shipyard-blueprints/shipyard_blueprints/snowflake/snowflake.csv"
 
-    df = pd.read_csv(file_path, parse_dates=True)
-    # df2 = utils._parse_dates(df)
+    # get the datatypes
+    dts = utils.infer_schema(file_path)
+    snowflake_dts = utils.map_pandas_to_snowflake(dts)
 
-    datatypes = utils.infer_schema(file_path, 100)
+    # create the table
+    create_table_sql = client._create_table(
+        table_name=table_name, columns=snowflake_dts
+    )
 
-    snowflake_datatypes = utils.map_pandas_to_snowflake(datatypes)
+    client.execute_query(conn=conn, query=create_table_sql)
 
-    print(snowflake_datatypes)
+    client.put(conn=conn, file_path=file_path, table_name=table_name)
+
+    client.copy_into(conn=conn, table_name=table_name)
+
+    print("Completed put")
 
 
 if __name__ == "__main__":
