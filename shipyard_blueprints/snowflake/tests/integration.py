@@ -51,7 +51,7 @@ def test_put():
     conn = client.connect()
 
     table_name = "test_put"
-    file_path = "/Users/wespoulsen/Repos/Blueprints/shipyard-blueprints/shipyard_blueprints/snowflake/snowflake.csv"
+    file_path = os.getenv("LOCAL_FILE")
 
     # get the datatypes
     dts = utils.infer_schema(file_path)
