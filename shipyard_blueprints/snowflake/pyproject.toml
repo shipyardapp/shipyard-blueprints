@@ -16,9 +16,9 @@ snowflake-connector-python = {version = "^3.0.4", extras = ["pandas"]}
 shipyard-bp-utils = "^0.1.0"
 shipyard-templates = "0.2.0"
 snowflake-snowpark-python = "1.8.0"
-[tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
-shipyard-templates = {path = "../../shipyard-templates", develop = true}
+#[tool.poetry.group.dev.dependencies]
+#shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
+#shipyard-templates = {path = "../../shipyard-templates", develop = true}
 pytest = "^7.4.0"
 python-dotenv = "^1.0.0"
 black = "^23.9.1"
