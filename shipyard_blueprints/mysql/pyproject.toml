@@ -8,11 +8,11 @@ readme = "README.md"
 packages = [{include = "shipyard_mysql"}]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.10"
+python = ">=3.9,<3.10"
 pandas = "1.1.0"
 SQLAlchemy = "1.3.18"
 mysql-connector-python = "8.0.21"
-shipyard-templates = "0.5.0a0"
+shipyard-templates = "0.6.0"
 
 [build-system]
 requires = ["poetry-core"]
