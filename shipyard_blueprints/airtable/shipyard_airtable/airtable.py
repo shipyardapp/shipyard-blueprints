@@ -12,9 +12,7 @@ class AirtableClient(Spreadsheets):
     EXIT_CODE_INVALID_TABLE = 202
     EXIT_CODE_INVALID_VIEW = 203
 
-    def __init__(
-            self, api_key: str
-    ) -> None:
+    def __init__(self, api_key: str) -> None:
         self.api = Api(api_key)
 
     def _handle_error(self, error: HTTPError):
@@ -108,6 +106,7 @@ class AirtableClient(Spreadsheets):
         try:
             table = self.api.table(base, table)
             table.batch_upsert(records=data, key_fields=key_fields, typecast=typecast)
+
         except HTTPError as err:
             self._handle_error(err)
         else:

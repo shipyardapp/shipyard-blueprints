@@ -63,8 +63,8 @@ def main():
 
         if destination_folder_name:
             create_folder_if_dne(destination_folder_name)
-        airtable_client = AirtableClient(api_key, base_id, table_name)
-        records = airtable_client.fetch(view_name)
+        airtable_client = AirtableClient(api_key)
+        records = airtable_client.fetch(base_id, table_name, view_name)
 
         df = pd.DataFrame.from_records(row["fields"] for row in records)
         if include_record_id:
