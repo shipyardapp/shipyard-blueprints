@@ -111,7 +111,6 @@ class SnowflakeClient(Database):
         """Uploads a pandas dataframe to a snowflake table
 
         Args:
-            conn (snowflake.connector.SnowflakeConnection): The snowflake connection object
             df (pd.DataFrame): The dataframe to be uploaded
             table_name (str): The name of the Snowflake Table to, if it doesn't exist, it will be created
             insert_method (str): The method to use when inserting the data into the table. Options are replace or append Defaults to 'replace'
