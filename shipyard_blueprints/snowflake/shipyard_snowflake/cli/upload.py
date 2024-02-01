@@ -81,30 +81,6 @@ def create_if_not_exists(
         client.logger.info("Table exists, beginning append job")
 
 
-def upload_multiple(
-    client: SnowflakeClient,
-    files: list,
-    table_name: str,
-    insert_method: str,
-    pandas_dtypes: Optional[Dict[str, str]] = None,
-):
-    """Uploads multiple files to a snowflake table
-
-    Args:
-        client (SnowflakeClient): The snowflake client object
-        insert_method (str): The method to use when inserting the data into the table. Options are replace or append. Defaults to 'append'
-        index (int, optional): The index of the file to upload. Defaults to 0.
-    """
-    total_files = len(files)
-    for i, file_match in enumerate(files, start=1):
-        client.logger.info(f"Uploading file {i} of {total_files}")
-        try:
-            client.upload(file_match, table_name, insert_method)
-        except ExitCodeException as ec:
-            client.logger.error(ec.message)
-            sys.exit(ec.exit_code)
-
-
 def main():
     args = get_args()
     client_args = {
@@ -223,7 +199,7 @@ def main():
             else:
                 create_if_not_exists(
                     client=snowflake_client,
-                    table_name=args.tabel_name,
+                    table_name=args.table_name,
                     snowflake_data_types=snowflake_data_types,
                 )
 

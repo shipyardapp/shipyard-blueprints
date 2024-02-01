@@ -1,21 +1,29 @@
-from pytest import ExitCode
 import snowflake.connector
 import pandas as pd
-from dask import dataframe as dd
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 from shipyard_templates import Database, ExitCodeException
 from snowflake.connector import pandas_tools as pt
-from .utils import (
-    _decode_rsa,
-    _file_fits_in_memory,
-    _get_file_size,
-    _get_memory,
-    map_snowflake_to_pandas,
-    read_file,
+from shipyard_snowflake.utils.exceptions import (
+    SnowflakeToPandasError,
+    PandasToSnowflakeError,
+    SchemaInferenceError,
+    PutError,
+    CopyIntoError,
+    QueryExecutionError,
+    DownloadError,
+    CreateTableError,
 )
 
 
 class SnowflakeClient(Database):
+    EXIT_CODE_PUT_ERROR = 101
+    EXIT_CODE_COPY_INTO_ERROR = 102
+    EXIT_CODE_SCHEMA_INFERENCE_ERROR = 103
+    EXIT_CODE_PANDAS_TO_SNOWFLAKE_CONVERSION_ERROR = 104
+    EXIT_CODE_SNOWFLAKE_TO_PANDAS_CONVERSION_ERROR = 105
+    EXIT_CODE_CREATE_TABLE_ERROR = 106
+    EXIT_CODE_DOWNLOAD_ERROR = 107
+
     def __init__(
         self,
         username,
@@ -114,6 +122,12 @@ class SnowflakeClient(Database):
         try:
             self.put(file_path=file_path, table_name=table_name)
             self.copy_into(table_name=table_name, insert_method=insert_method)
+        except PutError as ec:
+            self.logger.error(ec.message)
+            raise ExitCodeException(ec.message, ec.exit_code)
+        except CopyIntoError as ec:
+            raise ExitCodeException(ec.message, ec.exit_code)
+
         except ExitCodeException as ec:
             self.logger.error("Error in uploading file")
             raise ExitCodeException(ec.message, ec.exit_code)
@@ -121,39 +135,31 @@ class SnowflakeClient(Database):
             self.logger.error(f"Unknown error in uploading file: {str(e)}")
             raise ExitCodeException(str(e), self.EXIT_CODE_INVALID_UPLOAD_VALUE)
 
-        # if insert_method == "replace":
-        #     self.logger.info("Uploading data to Snowflake via replace")
-        #     self.execute_query(self.conn, f"DROP TABLE IF EXISTS {table_name}")
-        #     success, nchunks, nrows, output = pt.write_pandas(
-        #         conn=self.conn, df=df, table_name=table_name, auto_create_table=True
-        #     )
-        # else:
-        #     self.logger.info("Uploading data to Snowflake via append")
-        #     success, nchunks, nrows, output = pt.write_pandas(
-        #         conn=self.conn, df=df, table_name=table_name
-        #     )
-        # self.logger.info("Successfully uploaded data to Snowflake")
-        # return success, nchunks, nrows, output
-
-    def execute_query(
-        self, query: str, message: Optional[str] = None
-    ) -> snowflake.connector.cursor.SnowflakeCursor:
+    def execute_query(self, query: str) -> snowflake.connector.cursor.SnowflakeCursor:
         try:
             cursor = self.conn.cursor()
             res = cursor.execute(query)
             self.logger.debug(f"Successfully executed query: `{query}` in Snowflake")
             return res
         except Exception as e:
-            if not message:
-                self.logger.error("Could not execute the provided query in Snowflake")
-            else:
-                self.logger.error(message)
+            self.logger.error(
+                f"Could not execute the provided query in Snowflake due to : {str(e)}"
+            )
             raise ExitCodeException(e, self.EXIT_CODE_INVALID_QUERY)
 
     def fetch(self, query: str) -> pd.DataFrame:
-        cursor = self.execute_query(query)
-        results = cursor.fetchall()
-        return pd.DataFrame(results, columns=[desc[0] for desc in cursor.description])
+        try:
+            cursor = self.execute_query(query)
+            results = cursor.fetchall()
+        except ExitCodeException as ec:
+            raise DownloadError(
+                f"Error in fetching query results. Message from snowflake includes: {ec.message}",
+                exit_code=self.EXIT_CODE_INVALID_QUERY,
+            )
+        else:
+            return pd.DataFrame(
+                results, columns=[desc[0] for desc in cursor.description]
+            )
 
     def put(
         self,
@@ -167,7 +173,13 @@ class SnowflakeClient(Database):
             table_name: The table in Snowflake to write to
         """
         put_statement = f"""PUT file://{file_path} '@%{table_name}' OVERWRITE=TRUE """
-        self.execute_query(put_statement, "Could not execute PUT statement")
+        try:
+            self.execute_query(put_statement)
+        except ExitCodeException as ec:
+            raise PutError(
+                message=f"Error in executing PUT query. Message from snowflake includes: {ec.message}",
+                exit_code=self.EXIT_CODE_PUT_ERROR,
+            )
 
     def copy_into(self, table_name: str, insert_method: str):
         """
@@ -180,7 +192,13 @@ class SnowflakeClient(Database):
         copy_statement = f"""COPY INTO {table_name} FROM '@%{table_name}' PURGE=TRUE FILE_FORMAT=(TYPE=CSV FIELD_DELIMITER=',' COMPRESSION=GZIP, PARSE_HEADER=TRUE) MATCH_BY_COLUMN_NAME=CASE_INSENSITIVE"""
         if insert_method == "append":
             copy_statement += f" ON_ERROR = CONTINUE"
-        self.execute_query(copy_statement, "Could not copy into")
+        try:
+            self.execute_query(copy_statement)
+        except ExitCodeException as ec:
+            raise CopyIntoError(
+                message=f"Could not execute COPY INTO statement to target table. Message from Snowflake includes: {str(ec.message)}",
+                exit_code=self.EXIT_CODE_COPY_INTO_ERROR,
+            )
 
     def _create_table_sql(
         self,
@@ -204,9 +222,10 @@ class SnowflakeClient(Database):
     def create_table(self, sql: str):
         try:
             self.execute_query(query=sql)
-        except Exception as e:
-            raise ExitCodeException(
-                "Error in creating table", exit_code=self.EXIT_CODE_INVALID_QUERY
+        except ExitCodeException as ec:
+            raise CreateTableError(
+                f"Error in creating table. Message from Snowflake includes: {ec.message}",
+                exit_code=self.EXIT_CODE_CREATE_TABLE_ERROR,
             )
 
     def _exists(self, table_name: str) -> bool:
@@ -218,12 +237,12 @@ class SnowflakeClient(Database):
         Returns: True if exists, False if not
         """
         query = f"""SELECT * FROM INFORMATION_SCHEMA.TABLES 
-        WHERE TABLE_NAME = {str(table_name).upper()}
+        WHERE TABLE_NAME = '{str(table_name).upper()}'
         """
         if self.database:
-            query += f" AND TABLE_CATALOG = {str(self.database).upper()}"
+            query += f" AND TABLE_CATALOG = '{str(self.database).upper()}'"
         if self.schema:
-            query += f" AND TABLE_SCHEMA = {str(self.schema).upper()}"
+            query += f" AND TABLE_SCHEMA = '{str(self.schema).upper()}'"
 
         res = self.fetch(query)
 
