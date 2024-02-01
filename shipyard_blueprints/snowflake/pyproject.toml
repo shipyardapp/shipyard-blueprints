@@ -18,7 +18,7 @@ snowflake-connector-python = {version = "^3.7", extras = ["pandas"]}
 
 
 shipyard-bp-utils = "^0.1.0"
-shipyard-templates = "0.2.0"
+shipyard-templates = "0.6.0"
 # snowflake-snowpark-python = "1.8.0"
 snowflake-snowpark-python = "1.11.1"
 
