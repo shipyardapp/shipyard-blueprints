@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from .shipyard_logger import ShipyardLogger
 
 
 class Spreadsheets(ABC):
@@ -11,9 +10,6 @@ class Spreadsheets(ABC):
     EXIT_CODE_BAD_REQUEST = 205
     EXIT_CODE_FILE_NOT_FOUND = 206
     EXIT_CODE_UNKNOWN_ERROR = 249
-
-    def __init__(self, **kwargs) -> None:
-        self.logger = ShipyardLogger().logger
 
     @abstractmethod
     def connect(self):

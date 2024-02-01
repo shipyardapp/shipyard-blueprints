@@ -28,7 +28,7 @@ class EmailClient(Messaging):
         self.smtp_port = smtp_port
         self.username = username
         self.password = password
-        self.send_method = send_method.lower()
+        self.send_method = send_method.lower() if send_method else "tls"
         super().__init__(
             smtp_host=smtp_host,
             smtp_port=smtp_port,
@@ -37,207 +37,86 @@ class EmailClient(Messaging):
             send_method=send_method,
         )
 
-    def connect(self):
-        context = ssl.create_default_context()
-        if self.send_method == "tls":
-            try:
-                server = smtplib.SMTP(self.smtp_host, self.smtp_port)
-                server.starttls(context=context)
-                server.login(self.username, self.password)
-                self.logger.info("Successfully connected via tls")
-            except Exception as e:
-                self.logger.error(
-                    "Could not successfully connect via tls. Ensure that the host, port, and credentials are correct"
-                )
-                return 1
-            else:
-                return 0
-
-        elif self.send_method == "ssl":
-            try:
-                with smtplib.SMTP_SSL(
-                    self.smtp_host, self.smtp_port, context=context
-                ) as server:
-                    server.login(self.username, self.password)
-                    self.logger.info("Successfully connected via ssl")
-            except Exception as e:
-                self.logger.error(
-                    "Could not successfully connect via ssl. Ensure that the host, port, and credentials are correct"
-                )
-                return 1
-            else:
-                return 0
-        else:
-            self.logger.error("Signin method provided was not tls or ssl")
-            return 1
-
-    def _has_file(self, message: str) -> bool:
-        """Returns true if a message string has the {{file.txt}} pattern
-
-        Args:
-            message (str): The message
-
-        Returns:
-            bool:
-        """
-        pattern = r"\{\{[^\{\}]+\}\}"
-        res = re.search(pattern, message)
-        if res is not None:
-            return True
-        return False
-
-    def _extract_file(self, message: str) -> str:
-        pattern = r"\{\{[^\{\}]+\}\}"
-        res = re.search(pattern, message).group()
-        file_pattern = re.compile(r"[{}]+")
-        return re.sub(file_pattern, "", res)
-
-    def create_message_object(
-        self,
-        sender_address: str,
-        message: str,
-        sender_name: str = None,
-        to: str = None,
-        cc: str = None,
-        bcc: str = None,
-        subject: str = None,
-    ) -> MIMEMultipart:
-        """Create a message object that is populated with the provided parameters
-
-        Args:
-            sender_address (str): Email address of the sender
-            message (str): The email message itself
-            sender_name (str, optional): The name of the sender
-            to (str, optional): Email address of the recipient . Defaults to None.
-            cc (str, optional): Email address of anyone cc'd. Defaults to None.
-            bcc (str, optional): Email address of anyone bcc'd. Defaults to None.
-            subject (str, optional): Title of the subject. Defaults to None.
-        """
-        # Check to see if the
-        if self._has_file(message):
-            file = self._extract_file(message)
-            with open(file, "r") as f:
-                content = f.read()
-                f.close()
-            pattern = r"\{\{[^\{\}]+\}\}"
-            message = f"{re.sub(pattern, '', message)} \n {content}"
-
-        msg = MIMEMultipart()
-        msg["Subject"] = subject
-        msg["From"] = f"{sender_name}<{sender_address}>"
-        msg["To"] = to
-        msg["Cc"] = cc
-        msg["Bcc"] = bcc
-        msg.attach(MIMEText(message, "html"))
-
-        return msg
-
-    def add_attachment_to_message(self, msg: MIMEMultipart, file_path: str):
+    def connect_with_tls(self):
+        self.logger.info(
+            "Attempting to establish a connection using TLS (Transport Layer Security). TLS is the preferred protocol for its advanced encryption and security features."
+        )
         try:
-            upload_record = MIMEBase("application", "octet-stream")
-            upload_record.set_payload((open(file_path, "rb").read()))
-            encoders.encode_base64(upload_record)
-            upload_record.add_header(
-                "Content-Disposition",
-                "attachment",
-                filename=os.path.basename(file_path),
+            context = ssl.create_default_context()
+
+            server = smtplib.SMTP(self.smtp_host, self.smtp_port)
+            server.starttls(context=context)
+            server.login(self.username, self.password)
+        except Exception:
+            self.logger.error("Failed connect via tls.")
+            raise
+        else:
+            self.logger.info(
+                "Connection successfully established using TLS (Transport Layer Security)."
             )
-            msg.attach(upload_record)
-            return msg
-        except Exception as e:
-            print(e)
-            self.logger.exception("Could not attach the files to the email")
+            self.send_method = "tls"
 
-    def send_message(self, msg: MIMEMultipart) -> None:
-        """Sends an email message based on the method (either tls or ssl) defined
-        at the instantiation of the object.
+    def connect_with_ssl(self):
+        self.logger.info(
+            "Attempting to establish a connection using SSL (Secure Sockets Layer)."
+        )
 
-        Args:
-            msg (MIMEMultipart): The email message constructed.
-        """
-        context = ssl.create_default_context()
+        try:
+            context = ssl.create_default_context()
+            server = smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, context=context)
+            server.login(self.username, self.password)
+        except Exception:
+            self.logger.error("Failed to connect via ssl")
+            raise
+        else:
+            self.logger.warning(
+                "Note: SSL is an older legacy protocol. Consider upgrading the server to support TLS (Transport Layer Security), the more advanced and secure protocol."
+            )
+            self.send_method = "ssl"
+
+    def connect_with_fallback(self):
         if self.send_method == "tls":
             try:
-                server = smtplib.SMTP(self.smtp_host, self.smtp_port)
-                server.starttls(context=context)
-                server.login(self.username, self.password)
-                server.send_message(msg)
-                server.quit()
-                self.logger.info("Message successfully sent")
-            except Exception as e:
-                self.logger.exception("Message could not be sent")
-                raise (e)
+                self.connect_with_tls()
+            except Exception:
+                self.logger.warning(
+                    "TLS connection unsuccessful. Fallback to SSL (Secure Sockets Layer) initiated. Note: SSL is an older legacy protocol, but it's being used to ensure message delivery where TLS is not supported."
+                )
+                try:
+                    self.connect_with_ssl()
+                    self.logger.warning(
+                        "Connection successfully established using SSL (Secure Sockets Layer). To bypass the initial TLS attempt, you can update the send method from its default setting. Additionally, for enhanced security in future communications, we recommend upgrading the server to support TLS (Transport Layer Security), the more advanced and secure protocol."
+                    )
+                except Exception:
+                    self.logger.error("Failed to establish connection.")
+                    raise
         elif self.send_method == "ssl":
             try:
-                with smtplib.SMTP_SSL(
-                    self.smtp_host, self.smtp_port, context=context
-                ) as server:
-                    server.login(self.username, self.password)
-                    server.send_message(msg)
-                    self.logger.info("Message successfully sent")
-            except Exception as e:
-                self.logger.exception("Message could not be sent")
-                raise (e)
+                self.connect_with_ssl()
+            except Exception:
+                self.logger.warning(
+                    "SSL connection unsuccessful. Fallback to TLS (Transport Layer Security) initiated. TLS is the preferred protocol for its advanced encryption and security features."
+                )
+                try:
+                    self.connect_with_tls()
+                    self.logger.warning(
+                        "Connection successfully established using TLS (Transport Layer Security). To bypass the initial SSL attempt, you can update the send method to TLS."
+                    )
+                except Exception:
+                    self.logger.error("Failed to establish connection.")
+                    raise
 
-    def add_shipyard_link_to_message(
-        self, message: MIMEMultipart, shipyard_link: str
-    ) -> MIMEMultipart:
-        """
-        Create a "signature" at the bottom of the email that links back to Shipyard.
-        """
-        message = f"{message}<br><br>---<br>Sent by <a href=https://www.shipyardapp.com> Shipyard</a> | <a href={shipyard_link}>Click Here</a> to Edit"
-        return message
-
-    @staticmethod
-    def determine_file_to_upload(
-        source_file_name_match_type: str, source_folder_name: str, source_file_name: str
-    ):
-        """
-        Determine whether the file name being uploaded to email
-        will be named archive_file_name or will be the source_file_name provided.
-        """
-        if source_file_name_match_type == "regex_match":
-            file_names = shipyard.files.find_all_local_file_names(source_folder_name)
-            matching_file_names = shipyard.files.find_all_file_matches(
-                file_names, re.compile(source_file_name)
+    def connect(self):
+        if self.send_method not in ["tls", "ssl"]:
+            self.logger.error("Invalid send method provided")
+            # return self.EXIT_CODE_INVALID_METHOD
+            return 1
+        try:
+            self.connect_with_fallback()
+        except Exception:
+            self.logger.error(
+                "Could not connect to the email server.Ensure that the host, port, and credentials are correct"
             )
-
-            files_to_upload = matching_file_names
+            return 1
         else:
-            source_full_path = shipyard.files.combine_folder_and_file_name(
-                folder_name=source_folder_name, file_name=source_file_name
-            )
-            files_to_upload = [source_full_path]
-        return files_to_upload
-
-    @staticmethod
-    def should_message_be_sent(
-        conditional_send, source_full_path, source_file_name_match_type
-    ):
-        """
-        Determine if an email message should be sent based on the parameters provided.
-        """
-        if source_file_name_match_type == "exact_match":
-            if (
-                (
-                    conditional_send == "file_exists"
-                    and os.path.exists(source_full_path[0])
-                )
-                or (
-                    conditional_send == "file_dne"
-                    and not os.path.exists(source_full_path[0])
-                )
-                or (conditional_send == "always")
-            ):
-                return True
-            else:
-                return False
-        elif source_file_name_match_type == "regex_match":
-            if (
-                (conditional_send == "file_exists" and len(source_full_path) > 0)
-                or (conditional_send == "file_dne" and len(source_full_path) == 0)
-                or (conditional_send == "always")
-            ):
-                return True
-            else:
-                return False
+            return 0

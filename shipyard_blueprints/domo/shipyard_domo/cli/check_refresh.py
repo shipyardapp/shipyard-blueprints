@@ -2,11 +2,7 @@ import argparse
 import sys
 import pydomo
 import shipyard_utils as shipyard
-
-try:
-    import errors
-except BaseException:
-    from . import errors
+from shipyard_domo.cli import errors
 
 
 def get_args():
@@ -39,7 +35,7 @@ def get_execution_details(dataset_id, execution_id, domo):
                 execution_data = streams.get_execution(stream["id"], execution_id)
                 return execution_data
             except Exception as e:
-                print(f"Error occured - {e}")
+                print(f"Error occurred - {e}")
                 sys.exit(errors.EXIT_CODE_EXECUTION_ID_NOT_FOUND)
     else:
         print(f"stream with dataSet id:{dataset_id} not found!")

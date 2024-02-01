@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from .shipyard_logger import ShipyardLogger
 
 
 class Crm(ABC):
@@ -23,7 +22,6 @@ class Crm(ABC):
     TIMEOUT = 30
 
     def __init__(self, access_token: str, **kwargs) -> None:
-        self.logger = ShipyardLogger().logger
         self.access_token = access_token
 
     @abstractmethod

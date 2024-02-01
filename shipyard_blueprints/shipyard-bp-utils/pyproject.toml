@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-bp-utils"
-version = "0.1.1"
+version = "1.0.0a1"
 description = "Utility functions for blueprints"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 readme = "README.md"

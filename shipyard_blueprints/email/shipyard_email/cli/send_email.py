@@ -11,6 +11,7 @@ from email.mime.text import MIMEText
 from email import encoders
 import shipyard_utils as shipyard
 from tabulate import tabulate
+from shipyard_email.email import EmailClient
 
 EXIT_CODE_INCORRECT_PARAM = 200
 
@@ -122,7 +123,7 @@ def create_message_object(
     sender_address, message, sender_name=None, to=None, cc=None, bcc=None, subject=None
 ):
     """
-    Create an Message object, msg, by using the provided send parameters.
+    Create a Message object, msg, by using the provided send parameters.
     """
     msg = MIMEMultipart()
 
@@ -269,6 +270,13 @@ def main():
 
     if not username:
         username = sender_address
+
+    client = EmailClient(smtp_host, smtp_port, username, password, send_method)
+    if client.connect() == 1:
+        print("Invalid credentials. Message not sent.")
+        sys.exit(1)
+
+    send_method = client.send_method
 
     source_file_name = args.source_file_name
     source_folder_name = shipyard.files.clean_folder_name(args.source_folder_name)
