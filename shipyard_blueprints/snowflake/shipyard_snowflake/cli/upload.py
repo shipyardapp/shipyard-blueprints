@@ -87,7 +87,7 @@ def main():
     args = get_args()
     client_args = {
         "username": args.username,
-        "pwd": None if args.password == "" else args.password,
+        "password": None if args.password == "" else args.password,
         "account": None if args.account == "" else args.account,
         "warehouse": args.warehouse,
         "schema": None if args.schema == "" else args.schema,
@@ -96,29 +96,27 @@ def main():
         "role": None if args.user_role == "" else args.user_role,
     }
     snowflake_client = SnowflakeClient(**client_args)
+
+    private_key_passphrase = (
+        None if args.private_key_passphrase == "" else args.private_key_passphrase
+    )
+
+    if snowflake_client.rsa_key and not private_key_passphrase:
+        logger.error(
+            "Error: A private key passphrase must be provided if using a private key"
+        )
+        sys.exit(snowflake_client.EXIT_CODE_INVALID_ARGUMENTS)
+    if not snowflake_client.password and not snowflake_client.rsa_key:
+        logger.error(
+            "Error: Either a username and password must be provided, or a username and private key file"
+        )
+        sys.exit(snowflake_client.EXIT_CODE_INVALID_CREDENTIALS)
+
     try:
         snowflake_client.connect()
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)
-
-    # TODO: put this above the initialization of the client and adjust the logger to use the
-    # shipyard logger from the newest version of shipyard-templates
-
-    # private_key_passphrase = (
-    #     None if args.private_key_passphrase == "" else args.private_key_passphrase
-    # )
-    #
-    # if snowflake_client.rsa_key and not private_key_passphrase:
-    #     logger.error(
-    #         "Error: A private key passphrase must be provided if using a private key"
-    #     )
-    #     sys.exit(snowflake_client.EXIT_CODE_INVALID_ARGUMENTS)
-    # if not snowflake_client.pwd and not snowflake_client.rsa_key:
-    #     logger.error(
-    #         "Error: Either a username and password must be provided, or a username and private key file"
-    #     )
-    #     sys.exit(snowflake_client.EXIT_CODE_INVALID_CREDENTIALS)
 
     try:
         if args.snowflake_data_types != "":
@@ -168,7 +166,7 @@ def main():
             )
 
         # upload each file to the target
-        # NOTE: This should be reworked to both PUT multiple files at once using a glob pattern, and COPY INTO multiple
+        # NOTE: This should be reworked to PUT multiple files at once using a glob pattern, and COPY INTO multiple
         # files at once using the FILES() parameter
         for i, file_match in enumerate(matching_file_names, start=1):
             insert_method = args.insert_method

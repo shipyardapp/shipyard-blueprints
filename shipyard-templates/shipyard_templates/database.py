@@ -17,6 +17,8 @@ class Database(ABC):
     EXIT_CODE_INVALID_ARGUMENTS = 208
     EXIT_CODE_INVALID_DATA_TYPES = 209
 
+    EXIT_CODE_UNKNWOON_ERROR = 249
+
     def __init__(self, username: str, password: Optional[str] = None, **kwargs) -> None:
         self.username = username
         self.password = password

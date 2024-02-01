@@ -32,7 +32,7 @@ def main():
     args = get_args()
     client_args = {
         "username": args.username,
-        "pwd": None if args.password == "" else args.password,
+        "password": None if args.password == "" else args.password,
         "account": None if args.account == "" else args.account,
         "warehouse": args.warehouse,
         "schema": None if args.schema == "" else args.schema,
