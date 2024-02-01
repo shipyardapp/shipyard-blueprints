@@ -58,7 +58,7 @@ def test_put():
     snowflake_dts = utils.map_pandas_to_snowflake(dts)
 
     # create the table
-    create_table_sql = client._create_table(
+    create_table_sql = client._create_table_sql(
         table_name=table_name, columns=snowflake_dts
     )
 

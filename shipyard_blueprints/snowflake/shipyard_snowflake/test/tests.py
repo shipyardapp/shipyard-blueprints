@@ -28,7 +28,7 @@ def upload_test():
     df_path = "shipyard_snowflake/test/simple.csv"
     conn = client.connect()
     df = client.read_file(df_path)
-    client.upload(conn, df=df, table_name="NEW_DATATYPES", if_exists="replace")
+    client.upload(conn, df=df, table_name="NEW_DATATYPES", insert_method="replace")
     print("Successfully uploaded file")
 
 
@@ -46,7 +46,7 @@ def upload_dtypes_test():
     ]
 
     df = read_file(df_path, snowflake_dtypes=snowflake_dtypes)
-    client.upload(conn, df=df, table_name="NEW_DATATYPES", if_exists="replace")
+    client.upload(conn, df=df, table_name="NEW_DATATYPES", insert_method="replace")
 
 
 def fetch_test():

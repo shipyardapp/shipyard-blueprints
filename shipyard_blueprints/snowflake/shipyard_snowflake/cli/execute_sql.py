@@ -48,8 +48,8 @@ def main():
         )
         sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
     try:
-        conn = client.connect()
-        client.execute_query(conn=conn, query=args.query)
+        client.connect()
+        client.execute_query(query=args.query)
     except ExitCodeException as e:
         client.logger.error(e)
         sys.exit(e.exit_code)
