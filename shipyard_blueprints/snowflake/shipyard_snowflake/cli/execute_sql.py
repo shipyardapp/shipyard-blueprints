@@ -53,6 +53,8 @@ def main():
     except ExitCodeException as e:
         logger.error(str(e.message))
         sys.exit(e.exit_code)
+    else:
+        logger.info("Successfully executed query")
 
 
 if __name__ == "__main__":

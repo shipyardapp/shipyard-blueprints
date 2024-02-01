@@ -152,10 +152,7 @@ class SnowflakeClient(Database):
             logger.debug(f"Successfully executed query: `{query}` in Snowflake")
             return res
         except Exception as e:
-            logger.error(
-                f"Could not execute the provided query in Snowflake due to : {str(e)}"
-            )
-            raise ExitCodeException(e, self.EXIT_CODE_INVALID_QUERY)
+            raise ExitCodeException(str(e), self.EXIT_CODE_INVALID_QUERY)
 
     def fetch(self, query: str) -> pd.DataFrame:
         """Fetches the results of a Snowflake SQL query as a pandas dataframe
@@ -173,7 +170,12 @@ class SnowflakeClient(Database):
         except ExitCodeException as ec:
             raise DownloadError(
                 f"Error in fetching query results. Message from snowflake includes: {ec.message}",
-                exit_code=self.EXIT_CODE_INVALID_QUERY,
+                exit_code=self.EXIT_CODE_DOWNLOAD_ERROR,
+            )
+        except Exception as e:
+            raise DownloadError(
+                f"Error in fetching query results. Message from snowflake includes: {str(e)}",
+                exit_code=self.EXIT_CODE_DOWNLOAD_ERROR,
             )
         else:
             return pd.DataFrame(

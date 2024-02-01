@@ -79,6 +79,7 @@ def create_if_not_exists(
             table_name=table_name, columns=snowflake_data_types
         )
         client.create_table(create_statement)
+        logger.info("Successfully created table")
     else:
         logger.info("Table exists, beginning append job")
 
@@ -121,11 +122,13 @@ def main():
     try:
         if args.snowflake_data_types != "":
             snowflake_data_types = ast.literal_eval(args.snowflake_data_types)
+            logger.debug(f"Inputted data types are: {snowflake_data_types}")
         else:
             snowflake_data_types = None
     except Exception as e:
         try:
             snowflake_data_types = json.dumps(args.snowflake_data_types)
+            logger.debug(f"Inputted data types as json are: {snowflake_data_types}")
         except Exception as e:
             logger.error(
                 "Error in reading in datatypes. Ensure that the provided input is an array of arrays, or a JSON representation"
@@ -150,13 +153,17 @@ def main():
             pandas_datatypes = utils.infer_schema(
                 matching_file_names[0]
             )  # take the first file
+            logger.debug(f"Converted pandas data types are: {pandas_datatypes}")
+
             snowflake_data_types = utils.map_pandas_to_snowflake(pandas_datatypes)
 
+        logger.debug(f"Converted snowflake data types are {snowflake_data_types}")
         # create the table if it doesn't exist
         if args.insert_method == "replace":
             create_table_sql = snowflake_client._create_table_sql(
                 table_name=args.table_name, columns=snowflake_data_types
             )
+            logger.debug(f"SQL to create table is {create_table_sql}")
             snowflake_client.create_table(create_table_sql)
         else:
             create_if_not_exists(
@@ -184,17 +191,21 @@ def main():
             fp = shipyard.combine_folder_and_file_name(
                 args.source_folder_name, args.source_file_name
             )
+            logger.debug(f"File name is {fp}")
             # if the datatypes are not provided, then infer them
             if not snowflake_data_types:
                 pandas_datatypes = utils.infer_schema(fp)
                 snowflake_data_types = utils.map_pandas_to_snowflake(pandas_datatypes)
+            logger.debug(f"Converted snowflake data types are {snowflake_data_types}")
 
             if args.insert_method == "replace":
                 create_table_sql = snowflake_client._create_table_sql(
                     table_name=args.table_name, columns=snowflake_data_types
                 )
+                logger.debug(f"Create Table SQL is {create_table_sql}")
                 snowflake_client.create_table(create_table_sql)
             else:
+                # for appends, create the table if it doesn't exist
                 create_if_not_exists(
                     client=snowflake_client,
                     table_name=args.table_name,
@@ -213,7 +224,6 @@ def main():
             logger.error(
                 f"An error occurred when attempting to upload to Snowflake: {str(e)}"
             )
-            # TODO: this should be an unknown error code
             sys.exit(snowflake_client.EXIT_CODE_UNKNOWN_ERROR)
         else:
             logger.info(

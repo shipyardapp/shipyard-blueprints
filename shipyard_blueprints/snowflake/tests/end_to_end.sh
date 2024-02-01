@@ -1,10 +1,10 @@
 set -o allexport 
 source .env set +o allexport
 
+TABLE="end_to_end"
+TABLE_MULTIPLE="multiple_upload"
 
-# upload single file to replace table
-
-
+# Upload section
 if [ "$1" =  'up1' ]; then 
     echo "Starting upload of single file to replace table"
     python3 ./shipyard_snowflake/cli/upload.py --username $SNOWFLAKE_USERNAME \
@@ -15,7 +15,7 @@ if [ "$1" =  'up1' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name $LOCAL_FILE \
     --insert-method "replace" \
-    --table-name "end_to_end"
+    --table-name $TABLE
 
 fi
 
@@ -29,7 +29,7 @@ if [ "$1" = 'up2' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name $LOCAL_FILE \
     --insert-method "append" \
-    --table-name "end_to_end"
+    --table-name "$TABLE"
 fi
 
  
@@ -44,7 +44,7 @@ if [ "$1" = 'up3' ]; then
     --source-file-name $NESTED_FILE \
     --source-folder-name "test_folder" \
     --insert-method "replace" \
-    --table-name "end_to_end"
+    --table-name "$TABLE"
 fi
 
  
@@ -59,7 +59,7 @@ if [ "$1" = 'up4' ]; then
     --source-file-name $NESTED_FILE \
     --source-folder-name "test_folder" \
     --insert-method "append" \
-    --table-name "end_to_end"
+    --table-name "$TABLE"
 fi
 
 
@@ -73,7 +73,7 @@ if [ "$1" = 'up5' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name $LOCAL_FILE \
     --insert-method "replace" \
-    --table-name "end_to_end_dts" \
+    --table-name "$TABLE_dts" \
     --snowflake-data-types '{"string_col": "String", "char_col": "Char", "int_col": "Int", "float_col": "Number", "bool_col": "Boolean", "date_col": "Date", "datetime_col": "Timestamp"}'
 fi
 
@@ -89,7 +89,7 @@ if [ "$1" = 'up6' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name $LOCAL_FILE \
     --insert-method "replace" \
-    --table-name "end_to_end_dts" \
+    --table-name "$TABLE_dts" \
     --snowflake-data-types '[["string_col", "string"], ["char_col", "char"], ["int_col", "INT"], ["float_col", "float"], ["bool_col","boolean"], ["date_col", "date"], ["datetime_col", "timestamp"]]'
 fi
 
@@ -103,7 +103,7 @@ if [ "$1" = 'up7' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name $LOCAL_FILE \
     --insert-method "append" \
-    --table-name "end_to_end_dts" \
+    --table-name "$TABLE_dts" \
     --snowflake-data-types '{"string_col": "String", "char_col": "Char", "int_col": "Int", "float_col": "Number", "bool_col": "Boolean", "date_col": "Date", "datetime_col": "Timestamp"}'
 fi
 
@@ -117,7 +117,7 @@ if [ "$1" = 'up8' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name $LOCAL_FILE \
     --insert-method "append" \
-    --table-name "end_to_end_dts" \
+    --table-name "$TABLE_dts" \
     --snowflake-data-types '[["string_col", "string"], ["char_col", "char"], ["int_col", "INT"], ["float_col", "float"], ["bool_col","boolean"], ["date_col", "date"], ["datetime_col", "timestamp"]]'
 fi
 
@@ -135,7 +135,7 @@ if [ "$1" = 'up9' ]; then
     --source-file-name "mult"\
     --source-folder-name "test_folder" \
     --insert-method "replace" \
-    --table-name "multiple_upload" \
+    --table-name "$TABLE_MULTIPLE" \
     --source-file-name-match-type "regex_match"
 fi
 
@@ -151,7 +151,7 @@ if [ "$1" = 'up10' ]; then
     --source-file-name "mult"\
     --source-folder-name "test_folder" \
     --insert-method "append" \
-    --table-name "multiple_upload" \
+    --table-name "$TABLE_MULTIPLE" \
     --source-file-name-match-type "regex_match"
 fi
 
@@ -165,7 +165,7 @@ if [ "$1" = 'up11' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name "mult"\
     --insert-method "replace" \
-    --table-name "multiple_upload" \
+    --table-name "$TABLE_MULTIPLE" \
     --source-file-name-match-type "regex_match"
 fi
 
@@ -179,7 +179,7 @@ if [ "$1" = 'up12' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name "mult"\
     --insert-method "replace" \
-    --table-name "multiple_upload" \
+    --table-name "$TABLE_MULTIPLE" \
     --source-file-name-match-type "regex_match" \
     --snowflake-data-types '[["string_col", "string"], ["char_col", "char"], ["int_col", "INT"], ["float_col", "float"], ["bool_col","boolean"], ["date_col", "date"], ["datetime_col", "timestamp"]]'
 fi
@@ -194,7 +194,7 @@ if [ "$1" = 'up13' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name "mult"\
     --insert-method "append" \
-    --table-name "multiple_upload" \
+    --table-name "$TABLE_MULTIPLE" \
     --source-file-name-match-type "regex_match" \
     --snowflake-data-types '[["string_col", "string"], ["char_col", "char"], ["int_col", "INT"], ["float_col", "float"], ["bool_col","boolean"], ["date_col", "date"], ["datetime_col", "timestamp"]]'
 fi
@@ -210,7 +210,7 @@ if [ "$1" = 'up14' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name "mult"\
     --insert-method "replace" \
-    --table-name "multiple_upload" \
+    --table-name "$TABLE_MULTIPLE" \
     --source-file-name-match-type "regex_match" \
     --snowflake-data-types '{"string_col": "String", "char_col": "Char", "int_col": "Int", "float_col": "Number", "bool_col": "Boolean", "date_col": "Date", "datetime_col": "Timestamp"}'
 fi
@@ -226,20 +226,45 @@ if [ "$1" = 'up15' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name "mult"\
     --insert-method "append" \
-    --table-name "multiple_upload" \
+    --table-name $TABLE_MULTIPLE \
     --source-file-name-match-type "regex_match" \
     --snowflake-data-types '{"string_col": "String", "char_col": "Char", "int_col": "Int", "float_col": "Number", "bool_col": "Boolean", "date_col": "Date", "datetime_col": "Timestamp"}'
 fi
 
 # execute query section
 if [ "$1" = 'ex1' ]; then 
-    echo "Dropping table end_to_end_dts"
+    echo "Dropping table $TABLE"
     python3 ./shipyard_snowflake/cli/execute_sql.py --username $SNOWFLAKE_USERNAME \
     --password $SNOWFLAKE_PASSWORD \
     --account $SNOWFLAKE_ACCOUNT \
     --schema $SNOWFLAKE_SCHEMA \
     --database $SNOWFLAKE_DATABASE \
     --warehouse $SNOWFLAKE_WAREHOUSE \
-    --query "drop table end_to_end_dts;"
+    --query "drop table $TABLE"
 fi
+
+if [ "$1" = 'ex2' ]; then 
+    echo "Dropping table $TABLE_MULTIPLE"
+    python3 ./shipyard_snowflake/cli/execute_sql.py --username $SNOWFLAKE_USERNAME \
+    --password $SNOWFLAKE_PASSWORD \
+    --account $SNOWFLAKE_ACCOUNT \
+    --schema $SNOWFLAKE_SCHEMA \
+    --database $SNOWFLAKE_DATABASE \
+    --warehouse $SNOWFLAKE_WAREHOUSE \
+    --query "drop table $TABLE_MULTIPLE"
+fi
+
+## intentionally bad query 
+if [ "$1" = 'ex3' ]; then 
+    echo "This is a bad query and should fail"
+    python3 ./shipyard_snowflake/cli/execute_sql.py --username $SNOWFLAKE_USERNAME \
+    --password $SNOWFLAKE_PASSWORD \
+    --account $SNOWFLAKE_ACCOUNT \
+    --schema $SNOWFLAKE_SCHEMA \
+    --database $SNOWFLAKE_DATABASE \
+    --warehouse $SNOWFLAKE_WAREHOUSE \
+    --query "slllect * from bad table"
+fi
+
+
 

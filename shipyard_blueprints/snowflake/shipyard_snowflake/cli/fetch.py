@@ -75,17 +75,18 @@ def main():
         sys.exit(client.EXIT_CODE_INVALID_ARGUMENTS)
     try:
         client.connect()
-
+        logger.debug(f"Provided query is {args.query}")
         df = client.fetch(args.query)
         if df.empty:
             logger.error("No results returned from query")
             sys.exit(client.EXIT_CODE_NO_RESULTS)
 
+        logger.debug(f"Shape of dataframe is {df.shape}")
         df.to_csv(destination_full_path, index=False, header=file_header)
         logger.info(f"Successfully wrote file to {destination_full_path}")
     except ExitCodeException as e:
         logger.error(e.message)
-        sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
+        sys.exit(e.exit_code)
     except Exception as e:
         logger.error(f"Error writing file to {destination_full_path}")
         logger.error(str(e))
