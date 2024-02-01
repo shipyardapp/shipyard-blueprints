@@ -214,7 +214,7 @@ def main():
                 f"An error occurred when attempting to upload to Snowflake: {str(e)}"
             )
             # TODO: this should be an unknown error code
-            sys.exit(snowflake_client.EXIT_CODE_INVALID_UPLOAD_VALUE)
+            sys.exit(snowflake_client.EXIT_CODE_UNKNOWN_ERROR)
         else:
             logger.info(
                 f"Successfully loaded file {args.source_file_name} to Snowflake"
