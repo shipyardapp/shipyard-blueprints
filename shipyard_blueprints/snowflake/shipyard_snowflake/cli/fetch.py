@@ -88,7 +88,7 @@ def main():
         sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
     except Exception as e:
         logger.error(f"Error writing file to {destination_full_path}")
-        logger.error(e)
+        logger.error(str(e))
         sys.exit(client.EXIT_CODE_NO_RESULTS)
 
 

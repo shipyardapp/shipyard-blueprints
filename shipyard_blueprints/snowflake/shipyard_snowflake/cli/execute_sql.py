@@ -51,7 +51,7 @@ def main():
         client.connect()
         client.execute_query(query=args.query)
     except ExitCodeException as e:
-        logger.error(e)
+        logger.error(str(e.message))
         sys.exit(e.exit_code)
 
 
