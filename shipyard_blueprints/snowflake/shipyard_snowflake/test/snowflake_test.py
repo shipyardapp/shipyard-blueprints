@@ -1,12 +1,13 @@
 import os
 import pandas as pd
 import pytest
-from shipyard_snowflake import SnowflakeClient, read_file
+from shipyard_snowflake import SnowflakeClient
 from dotenv import load_dotenv, find_dotenv
-from shipyard_snowflake.utils import (
+from shipyard_snowflake.utils.utils import (
     map_pandas_to_snowflake,
     infer_schema,
     reservoir_sample,
+    read_file,
 )
 
 if env_exists := os.path.exists(".env"):
@@ -25,7 +26,7 @@ if env_exists := os.path.exists(".env"):
 
     client = SnowflakeClient(
         username=user,
-        pwd=pwd,
+        password=pwd,
         database=database,
         account=account,
         warehouse=warehouse,

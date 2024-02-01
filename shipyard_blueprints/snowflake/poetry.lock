@@ -937,10 +937,12 @@ version = "0.6.0"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = ">=3.9"
-files = [
-    {file = "shipyard_templates-0.6.0-py3-none-any.whl", hash = "sha256:7fd474f0915cb6d34f07454ae4e881b5956b875cdd82f3756a8b25e60ddac9f3"},
-    {file = "shipyard_templates-0.6.0.tar.gz", hash = "sha256:9c7f94f5e0642819c287f7e855b4e6bf9ffa83126c9ba14aeedffdc7789b4795"},
-]
+files = []
+develop = false
+
+[package.source]
+type = "directory"
+url = "../../shipyard-templates"
 
 [[package]]
 name = "six"
@@ -1153,4 +1155,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.11"
-content-hash = "74675bd3f3535e45d9825660005ddaa32aa00a1742e2a2db50cfb69a99b7e155"
+content-hash = "5979ad5ecd6fd8a092a9ab28ceedfdd18525fa9b8fc7d6125d9352031878e044"

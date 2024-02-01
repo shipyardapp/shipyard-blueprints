@@ -4,9 +4,11 @@ import ast
 import re
 import json
 from shipyard_snowflake import SnowflakeClient, utils
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, ShipyardLogger
 from shipyard_bp_utils import files as shipyard
 from typing import Optional, Dict
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -72,13 +74,13 @@ def create_if_not_exists(
         snowflake_data_types: The optional snowflake datatypes to be used to create the table
     """
     if not client._exists(table_name):
-        client.logger.info(f"Creating new table {table_name}")
+        logger.info(f"Creating new table {table_name}")
         create_statement = client._create_table_sql(
             table_name=table_name, columns=snowflake_data_types
         )
         client.create_table(create_statement)
     else:
-        client.logger.info("Table exists, beginning append job")
+        logger.info("Table exists, beginning append job")
 
 
 def main():
@@ -97,7 +99,7 @@ def main():
     try:
         snowflake_client.connect()
     except ExitCodeException as ec:
-        snowflake_client.logger.error(ec.message)
+        logger.error(ec.message)
         sys.exit(ec.exit_code)
 
     # TODO: put this above the initialization of the client and adjust the logger to use the
@@ -108,12 +110,12 @@ def main():
     # )
     #
     # if snowflake_client.rsa_key and not private_key_passphrase:
-    #     snowflake_client.logger.error(
+    #     logger.error(
     #         "Error: A private key passphrase must be provided if using a private key"
     #     )
     #     sys.exit(snowflake_client.EXIT_CODE_INVALID_ARGUMENTS)
     # if not snowflake_client.pwd and not snowflake_client.rsa_key:
-    #     snowflake_client.logger.error(
+    #     logger.error(
     #         "Error: Either a username and password must be provided, or a username and private key file"
     #     )
     #     sys.exit(snowflake_client.EXIT_CODE_INVALID_CREDENTIALS)
@@ -127,11 +129,11 @@ def main():
         try:
             snowflake_data_types = json.dumps(args.snowflake_data_types)
         except Exception as e:
-            snowflake_client.logger.error(
+            logger.error(
                 "Error in reading in datatypes. Ensure that the provided input is an array of arrays, or a JSON representation"
             )
             sys.exit(snowflake_client.EXIT_CODE_INVALID_ARGUMENTS)
-        snowflake_client.logger.error(
+        logger.error(
             "Error in reading in datatypes. Ensure that the provided input is an array of arrays, or a JSON representation"
         )
         sys.exit(snowflake_client.EXIT_CODE_INVALID_ARGUMENTS)
@@ -143,9 +145,7 @@ def main():
         matching_file_names = shipyard.find_all_file_matches(
             file_names, re.compile(args.source_file_name)
         )
-        snowflake_client.logger.info(
-            f"{len(matching_file_names)} files found. Preparing to upload..."
-        )
+        logger.info(f"{len(matching_file_names)} files found. Preparing to upload...")
 
         # infer the schema from the first file
         if not snowflake_data_types:
@@ -209,16 +209,16 @@ def main():
                 insert_method=args.insert_method,
             )
         except ExitCodeException as ec:
-            snowflake_client.logger.error(ec.message)
+            logger.error(ec.message)
             sys.exit(ec.exit_code)
         except Exception as e:
-            snowflake_client.logger.error(
+            logger.error(
                 f"An error occurred when attempting to upload to Snowflake: {str(e)}"
             )
             # TODO: this should be an unknown error code
             sys.exit(snowflake_client.EXIT_CODE_INVALID_UPLOAD_VALUE)
         else:
-            snowflake_client.logger.info(
+            logger.info(
                 f"Successfully loaded file {args.source_file_name} to Snowflake"
             )
 

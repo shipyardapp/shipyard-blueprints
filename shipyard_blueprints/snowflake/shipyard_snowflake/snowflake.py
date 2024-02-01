@@ -1,8 +1,9 @@
 import snowflake.connector
 import pandas as pd
 from typing import Dict, List, Optional, Union
-from shipyard_templates import Database, ExitCodeException
+from shipyard_templates import Database, ExitCodeException, ShipyardLogger
 from snowflake.connector import pandas_tools as pt
+from shipyard_snowflake.utils import utils
 from shipyard_snowflake.utils.exceptions import (
     SnowflakeToPandasError,
     PandasToSnowflakeError,
@@ -13,6 +14,8 @@ from shipyard_snowflake.utils.exceptions import (
     DownloadError,
     CreateTableError,
 )
+
+logger = ShipyardLogger.get_logger()
 
 
 class SnowflakeClient(Database):
@@ -27,7 +30,7 @@ class SnowflakeClient(Database):
     def __init__(
         self,
         username,
-        pwd,
+        password,
         database=None,
         account=None,
         warehouse=None,
@@ -36,7 +39,7 @@ class SnowflakeClient(Database):
         role=None,
     ) -> None:
         self.username = username
-        self.pwd = pwd
+        self.password = password
         self.account = account
         self.warehouse = warehouse
         self.schema = schema
@@ -45,7 +48,7 @@ class SnowflakeClient(Database):
         self.role = role
         super().__init__(
             username,
-            pwd,
+            password,
             account=account,
             warehouse=warehouse,
             schema=schema,
@@ -56,11 +59,11 @@ class SnowflakeClient(Database):
     def connect(self):
         """Helper function for authentication tests to see if provided credentials are valid"""
         if self.rsa_key:
-            if self.pwd:
-                self.logger.warning(
+            if self.password:
+                logger.warning(
                     "Private Key was provided in addition to Password. Using the Private Key to login"
                 )
-            private_key = _decode_rsa(self.rsa_key)
+            private_key = utils._decode_rsa(self.rsa_key)
             try:
                 con = snowflake.connector.connect(
                     user=self.username,
@@ -71,7 +74,7 @@ class SnowflakeClient(Database):
                     schema=self.schema,
                     role=self.role,
                 )
-                self.logger.info("Successfully connected to Snowflake")
+                logger.info("Successfully connected to Snowflake")
                 self.conn = con
                 return con
             except Exception as e:
@@ -83,14 +86,14 @@ class SnowflakeClient(Database):
             try:
                 con = snowflake.connector.connect(
                     user=self.username,
-                    password=self.pwd,
+                    password=self.password,
                     account=self.account,
                     warehouse=self.warehouse,
                     database=self.database,
                     schema=self.schema,
                     role=self.role,
                 )
-                self.logger.info("Successfully connected to snowflake")
+                logger.info("Successfully connected to snowflake")
                 self.conn = con
                 return con
             except Exception as e:
@@ -123,26 +126,26 @@ class SnowflakeClient(Database):
             self.put(file_path=file_path, table_name=table_name)
             self.copy_into(table_name=table_name, insert_method=insert_method)
         except PutError as ec:
-            self.logger.error(ec.message)
+            logger.error(ec.message)
             raise ExitCodeException(ec.message, ec.exit_code)
         except CopyIntoError as ec:
             raise ExitCodeException(ec.message, ec.exit_code)
 
         except ExitCodeException as ec:
-            self.logger.error("Error in uploading file")
+            logger.error("Error in uploading file")
             raise ExitCodeException(ec.message, ec.exit_code)
         except Exception as e:
-            self.logger.error(f"Unknown error in uploading file: {str(e)}")
+            logger.error(f"Unknown error in uploading file: {str(e)}")
             raise ExitCodeException(str(e), self.EXIT_CODE_INVALID_UPLOAD_VALUE)
 
     def execute_query(self, query: str) -> snowflake.connector.cursor.SnowflakeCursor:
         try:
             cursor = self.conn.cursor()
             res = cursor.execute(query)
-            self.logger.debug(f"Successfully executed query: `{query}` in Snowflake")
+            logger.debug(f"Successfully executed query: `{query}` in Snowflake")
             return res
         except Exception as e:
-            self.logger.error(
+            logger.error(
                 f"Could not execute the provided query in Snowflake due to : {str(e)}"
             )
             raise ExitCodeException(e, self.EXIT_CODE_INVALID_QUERY)

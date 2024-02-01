@@ -3,10 +3,13 @@ import pytest
 from shipyard_snowflake import SnowflakeClient
 from dotenv import load_dotenv, find_dotenv
 from shipyard_snowflake import SnowparkClient
+from shipyard_templates import ShipyardLogger
 from typing import Union
 
 if env_exists := os.path.exists(".env"):
     load_dotenv()
+
+logger = ShipyardLogger.get_logger()
 
 
 def conn_helper(client: Union[SnowflakeClient, SnowparkClient]) -> int:
@@ -14,8 +17,8 @@ def conn_helper(client: Union[SnowflakeClient, SnowparkClient]) -> int:
         client.connect()
         return 0
     except Exception as e:
-        client.logger.error("Could not connect to Snowflake")
-        client.logger.exception(e)
+        logger.error("Could not connect to Snowflake")
+        logger.exception(e)
         return 1
 
 
@@ -25,7 +28,7 @@ def test_good_connection():
     pwd = os.getenv("SNOWFLAKE_PASSWORD")
     account = os.getenv("SNOWFLAKE_ACCOUNT")
 
-    client = SnowflakeClient(username=user, pwd=pwd, account=account)
+    client = SnowflakeClient(username=user, password=pwd, account=account)
 
     assert conn_helper(client) == 0
 
@@ -36,7 +39,7 @@ def test_bad_user():
     pwd = os.getenv("SNOWFLAKE_PASSWORD")
     account = os.getenv("SNOWFLAKE_ACCOUNT")
 
-    client = SnowflakeClient(username=user, pwd=pwd, account=account)
+    client = SnowflakeClient(username=user, password=pwd, account=account)
 
     assert conn_helper(client) == 1
 
@@ -47,7 +50,7 @@ def test_bad_pwd():
     pwd = "bad_password"
     account = os.getenv("SNOWFLAKE_ACCOUNT")
 
-    client = SnowflakeClient(username=user, pwd=pwd, account=account)
+    client = SnowflakeClient(username=user, password=pwd, account=account)
 
     assert conn_helper(client) == 1
 
@@ -58,7 +61,7 @@ def test_bad_account():
     pwd = os.getenv("SNOWFLAKE_PASSWORD")
     account = "bad_account"
 
-    client = SnowflakeClient(username=user, pwd=pwd, account=account)
+    client = SnowflakeClient(username=user, password=pwd, account=account)
 
     assert conn_helper(client) == 1
 

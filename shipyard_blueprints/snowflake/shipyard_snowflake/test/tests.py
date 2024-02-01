@@ -15,7 +15,7 @@ role = os.getenv("SNOWFLAKE_ROLE")
 
 client = SnowflakeClient(
     username=user,
-    pwd=pwd,
+    password=pwd,
     database=database,
     account=account,
     warehouse=warehouse,
@@ -58,7 +58,7 @@ def fetch_test():
 def rsa_test():
     rsa_client = SnowflakeClient(
         username="BPUSER",
-        pwd=None,
+        password=None,
         rsa_key=rsa_key,
         database=database,
         account=account,

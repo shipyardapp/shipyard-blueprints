@@ -1,7 +1,9 @@
 import argparse
 import sys
 from shipyard_snowflake import SnowflakeClient
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -43,15 +45,13 @@ def main():
     )
     client = SnowflakeClient(**client_args)
     if client.rsa_key and not private_key_passphrase:
-        client.logger.error(
-            "Private key passphrase is required when using a private key"
-        )
+        logger.error("Private key passphrase is required when using a private key")
         sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
     try:
         client.connect()
         client.execute_query(query=args.query)
     except ExitCodeException as e:
-        client.logger.error(e)
+        logger.error(e)
         sys.exit(e.exit_code)
 
 

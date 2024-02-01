@@ -2,7 +2,9 @@ import argparse
 import shipyard_bp_utils as shipyard
 import sys
 from shipyard_snowflake import SnowflakeClient
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -67,26 +69,26 @@ def main():
 
     # check to make sure that if a private key is provided, a passphrase is also provided
     if client.rsa_key and not private_key_passphrase:
-        client.logger.error(
+        logger.error(
             "Error: A private key passphrase must be provided if using a private key"
         )
         sys.exit(client.EXIT_CODE_INVALID_ARGUMENTS)
     try:
-        conn = client.connect()
-    except ExitCodeException as e:
-        client.logger.error(e.message)
-        sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
+        client.connect()
 
-    df = client.fetch(conn, args.query)
-    if df.empty:
-        client.logger.error("No results returned from query")
-        sys.exit(client.EXIT_CODE_NO_RESULTS)
-    try:
+        df = client.fetch(args.query)
+        if df.empty:
+            logger.error("No results returned from query")
+            sys.exit(client.EXIT_CODE_NO_RESULTS)
+
         df.to_csv(destination_full_path, index=False, header=file_header)
-        client.logger.info(f"Successfully wrote file to {destination_full_path}")
+        logger.info(f"Successfully wrote file to {destination_full_path}")
+    except ExitCodeException as e:
+        logger.error(e.message)
+        sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
     except Exception as e:
-        client.logger.error(f"Error writing file to {destination_full_path}")
-        client.logger.error(e)
+        logger.error(f"Error writing file to {destination_full_path}")
+        logger.error(e)
         sys.exit(client.EXIT_CODE_NO_RESULTS)
 
 

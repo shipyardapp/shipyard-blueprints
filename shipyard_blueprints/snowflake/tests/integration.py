@@ -19,7 +19,7 @@ def snowflake():
 
     return SnowflakeClient(
         username=user,
-        pwd=pwd,
+        password=pwd,
         account=account,
         schema=schema,
         database=db,
@@ -41,7 +41,7 @@ def test_put():
 
     client = SnowflakeClient(
         username=user,
-        pwd=pwd,
+        password=pwd,
         account=account,
         schema=schema,
         database=db,
