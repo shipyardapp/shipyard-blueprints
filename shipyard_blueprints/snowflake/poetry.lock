@@ -933,7 +933,7 @@ python-dateutil = ">=2.8.2,<3.0.0"
 
 [[package]]
 name = "shipyard-templates"
-version = "0.6.0"
+version = "0.6.1a2"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = ">=3.9"
@@ -1155,4 +1155,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.11"
-content-hash = "5979ad5ecd6fd8a092a9ab28ceedfdd18525fa9b8fc7d6125d9352031878e044"
+content-hash = "49fd3961e269bf1ad7369f814a795eba905b11033e8d4e64d1cdcbe3e4554309"
