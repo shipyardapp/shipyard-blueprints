@@ -43,15 +43,14 @@ def get_args():
 
 
 def main():
-    artifact = Artifact("airtable")
-
-    args = get_args()
-    api_key = args.api_key
-    table_name = args.table_name
-    base_id = args.base_id
-    view_name = args.view_name
-
     try:
+        artifact = Artifact("airtable")
+
+        args = get_args()
+        api_key = args.api_key
+        table_name = args.table_name
+        base_id = args.base_id
+        view_name = args.view_name
         include_record_id = convert_to_boolean(args.include_record_id)
 
         destination_file_name = clean_folder_name(args.destination_file_name)
