@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import GoogleCloudClient
+from shipyard_googlecloud import GoogleCloudClient
 
 
 def main():

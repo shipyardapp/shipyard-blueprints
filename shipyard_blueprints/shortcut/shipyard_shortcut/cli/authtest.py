@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import ShortcutClient
+from shipyard_shortcut import ShortcutClient
 
 
 def main():

@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import LookerClient
+from shipyard_looker import LookerClient
 
 
 def main():
