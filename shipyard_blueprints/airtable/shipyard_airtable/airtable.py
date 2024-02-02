@@ -6,11 +6,11 @@ logger = ShipyardLogger.get_logger()
 
 
 class AirtableClient(Spreadsheets):
-    EXIT_CODE_UNKNOWN_ERROR = 3
-    EXIT_CODE_INVALID_CREDENTIALS = 200
-    EXIT_CODE_INVALID_BASE = 201
-    EXIT_CODE_INVALID_TABLE = 202
-    EXIT_CODE_INVALID_VIEW = 203
+    EXIT_CODE_UNKNOWN_ERROR = 1
+    EXIT_CODE_INVALID_CREDENTIALS = 100
+    EXIT_CODE_INVALID_BASE = 101
+    EXIT_CODE_INVALID_TABLE = 102
+    EXIT_CODE_INVALID_VIEW = 103
 
     def __init__(self, api_key: str) -> None:
         self.api = Api(api_key)
