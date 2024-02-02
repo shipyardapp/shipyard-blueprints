@@ -6,11 +6,11 @@ logger = ShipyardLogger.get_logger()
 
 
 class AirtableClient(Spreadsheets):
-    EXIT_CODE_UNKNOWN_ERROR = 1
     EXIT_CODE_INVALID_CREDENTIALS = 100
     EXIT_CODE_INVALID_BASE = 101
     EXIT_CODE_INVALID_TABLE = 102
     EXIT_CODE_INVALID_VIEW = 103
+    EXIT_CODE_RESOURCE_NOT_FOUND = 104
 
     def __init__(self, api_key: str) -> None:
         self.api = Api(api_key)
@@ -53,7 +53,7 @@ class AirtableClient(Spreadsheets):
         elif error.response.status_code == 404:
             raise ExitCodeException(
                 error_details.get("message", "The requested resource was not found."),
-                self.EXIT_CODE_UNKNOWN_ERROR,
+                self.EXIT_CODE_RESOURCE_NOT_FOUND,
             )
         elif error.response.status_code == 429:
             raise ExitCodeException(
