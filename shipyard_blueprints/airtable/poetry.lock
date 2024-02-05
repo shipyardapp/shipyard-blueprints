@@ -449,14 +449,14 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "shipyard-bp-utils"
-version = "1.0.1a4"
+version = "1.0.1a5"
 description = "Utility functions for blueprints"
 category = "main"
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "shipyard_bp_utils-1.0.1a4-py3-none-any.whl", hash = "sha256:b80bcf639d5ebb66b5ed3c17eadf6ccdfe89938908d8e6c1e555e9f1c60a2d4e"},
-    {file = "shipyard_bp_utils-1.0.1a4.tar.gz", hash = "sha256:2c196d9f8c8538dd895afad92b4602d55b63e5588559efb74b54515bdc4d3188"},
+    {file = "shipyard_bp_utils-1.0.1a5-py3-none-any.whl", hash = "sha256:44033466c1e7aaa421923589b150e36ca5903a57b18933a4691edee9d130a28e"},
+    {file = "shipyard_bp_utils-1.0.1a5.tar.gz", hash = "sha256:63826f8169b95646423db1fa3bcdfd800c1e5eaea27dc7640d3c8d6148507eeb"},
 ]
 
 [package.dependencies]
@@ -531,4 +531,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "28795c273c8d2f330df41ffb93144230182e2405318c28dc35acd5dcb924319d"
+content-hash = "a33675cebe44086657aa70944648b3b1d0556f1be0f62dfd02042ec299f4e6d7"
