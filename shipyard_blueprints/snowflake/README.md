@@ -24,7 +24,7 @@ The SnowflakeClient class provides methods to interact with Snowflake using the 
 
 ```python
 import pandas as pd
-from shipyard_snowflake import snowflakeclient
+from shipyard_snowflake import SnowflakeClient
 from shipyard_snowflake.utils import utils
 # Initialize the SnowflakeClient with credentials
 client = SnowflakeClient(
@@ -52,12 +52,12 @@ data_types = utils.infer_schema(file_name = "<file_path>")
 sql = client._create_table_sql(table_name = "<table_name>", columns = data_types)
 client.create_table(sql)
 # load the file to the table
-client.upload(file_path = "<file_path>", table_naem = "<table_name>", insert_method = "replace")
+client.upload(file_path = "<file_path>", table_name = "<table_name>", insert_method = "replace")
 
 ``` 
 ### Upload a file to append to an existing table 
 ```python
-client.upload(file_path = "<file_path>", table_naem = "<table_name>", insert_method = "append")
+client.upload(file_path = "<file_path>", table_name = "<table_name>", insert_method = "append")
 
 ### Fetch the results of a query as a pandas dataframe
 ```python

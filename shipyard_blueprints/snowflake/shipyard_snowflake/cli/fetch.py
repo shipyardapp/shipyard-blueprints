@@ -42,41 +42,43 @@ def get_args():
 
 
 def main():
-    args = get_args()
-    client_args = {
-        "username": args.username,
-        "password": None if args.password == "" else args.password,
-        "account": None if args.account == "" else args.account,
-        "warehouse": args.warehouse,
-        "schema": args.schema,
-        "database": args.database,
-        "rsa_key": None if args.private_key_path == "" else args.private_key_path,
-        "role": None if args.user_role == "" else args.user_role,
-    }
-    private_key_passphrase = (
-        None if args.private_key_passphrase == "" else args.private_key_passphrase
-    )
-
-    destination_file_name = args.destination_file_name
-    destination_folder_name = shipyard.files.clean_folder_name(
-        args.destination_folder_name
-    )
-    destination_full_path = shipyard.files.combine_folder_and_file_name(
-        folder_name=destination_folder_name, file_name=destination_file_name
-    )
-    file_header = shipyard.args.convert_to_boolean(args.file_header)
-    client = SnowflakeClient(**client_args)
-
-    # check to make sure that if a private key is provided, a passphrase is also provided
-    if client.rsa_key and not private_key_passphrase:
-        logger.error(
-            "Error: A private key passphrase must be provided if using a private key"
-        )
-        sys.exit(client.EXIT_CODE_INVALID_ARGUMENTS)
     try:
+        args = get_args()
+        client_args = {
+            "username": args.username,
+            "password": None if args.password == "" else args.password,
+            "account": None if args.account == "" else args.account,
+            "warehouse": args.warehouse,
+            "schema": args.schema,
+            "database": args.database,
+            "rsa_key": None if args.private_key_path == "" else args.private_key_path,
+            "role": None if args.user_role == "" else args.user_role,
+        }
+        private_key_passphrase = (
+            None if args.private_key_passphrase == "" else args.private_key_passphrase
+        )
+
+        destination_file_name = args.destination_file_name
+        destination_folder_name = shipyard.files.clean_folder_name(
+            args.destination_folder_name
+        )
+        destination_full_path = shipyard.files.combine_folder_and_file_name(
+            folder_name=destination_folder_name, file_name=destination_file_name
+        )
+        file_header = shipyard.args.convert_to_boolean(args.file_header)
+        client = SnowflakeClient(**client_args)
+
+        # check to make sure that if a private key is provided, a passphrase is also provided
+        if client.rsa_key and not private_key_passphrase:
+            logger.error(
+                "Error: A private key passphrase must be provided if using a private key"
+            )
+            sys.exit(client.EXIT_CODE_INVALID_ARGUMENTS)
+
         client.connect()
         logger.debug(f"Provided query is {args.query}")
         df = client.fetch(args.query)
+
         if df.empty:
             logger.error("No results returned from query")
             sys.exit(client.EXIT_CODE_NO_RESULTS)

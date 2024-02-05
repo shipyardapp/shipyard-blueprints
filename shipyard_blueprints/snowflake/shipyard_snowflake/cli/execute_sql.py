@@ -29,25 +29,25 @@ def get_args():
 
 
 def main():
-    args = get_args()
-    client_args = {
-        "username": args.username,
-        "password": None if args.password == "" else args.password,
-        "account": None if args.account == "" else args.account,
-        "warehouse": args.warehouse,
-        "schema": None if args.schema == "" else args.schema,
-        "database": args.database,
-        "rsa_key": None if args.private_key_path == "" else args.private_key_path,
-        "role": None if args.user_role == "" else args.user_role,
-    }
-    private_key_passphrase = (
-        None if args.private_key_passphrase == "" else args.private_key_passphrase
-    )
-    client = SnowflakeClient(**client_args)
-    if client.rsa_key and not private_key_passphrase:
-        logger.error("Private key passphrase is required when using a private key")
-        sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
     try:
+        args = get_args()
+        client_args = {
+            "username": args.username,
+            "password": None if args.password == "" else args.password,
+            "account": None if args.account == "" else args.account,
+            "warehouse": args.warehouse,
+            "schema": None if args.schema == "" else args.schema,
+            "database": args.database,
+            "rsa_key": None if args.private_key_path == "" else args.private_key_path,
+            "role": None if args.user_role == "" else args.user_role,
+        }
+        private_key_passphrase = (
+            None if args.private_key_passphrase == "" else args.private_key_passphrase
+        )
+        client = SnowflakeClient(**client_args)
+        if client.rsa_key and not private_key_passphrase:
+            logger.error("Private key passphrase is required when using a private key")
+            sys.exit(client.EXIT_CODE_INVALID_CREDENTIALS)
         client.connect()
         client.execute_query(query=args.query)
     except ExitCodeException as e:

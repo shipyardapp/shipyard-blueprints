@@ -84,34 +84,6 @@ def create_if_not_exists(
 
 
 def main():
-    args = get_args()
-    client_args = {
-        "username": args.username,
-        "password": None if args.password == "" else args.password,
-        "account": None if args.account == "" else args.account,
-        "warehouse": args.warehouse,
-        "schema": None if args.schema == "" else args.schema,
-        "database": args.database,
-        "rsa_key": None if args.private_key_path == "" else args.private_key_path,
-        "role": None if args.user_role == "" else args.user_role,
-    }
-    snowflake_client = SnowflakeClient(**client_args)
-
-    private_key_passphrase = (
-        None if args.private_key_passphrase == "" else args.private_key_passphrase
-    )
-
-    if snowflake_client.rsa_key and not private_key_passphrase:
-        logger.error(
-            "Error: A private key passphrase must be provided if using a private key"
-        )
-        sys.exit(snowflake_client.EXIT_CODE_INVALID_ARGUMENTS)
-    if not snowflake_client.password and not snowflake_client.rsa_key:
-        logger.error(
-            "Error: Either a username and password must be provided, or a username and private key file"
-        )
-        sys.exit(snowflake_client.EXIT_CODE_INVALID_CREDENTIALS)
-
     try:
         snowflake_client.connect()
     except ExitCodeException as ec:
@@ -119,6 +91,34 @@ def main():
         sys.exit(ec.exit_code)
 
     try:
+        args = get_args()
+        client_args = {
+            "username": args.username,
+            "password": None if args.password == "" else args.password,
+            "account": None if args.account == "" else args.account,
+            "warehouse": args.warehouse,
+            "schema": None if args.schema == "" else args.schema,
+            "database": args.database,
+            "rsa_key": None if args.private_key_path == "" else args.private_key_path,
+            "role": None if args.user_role == "" else args.user_role,
+        }
+        snowflake_client = SnowflakeClient(**client_args)
+
+        private_key_passphrase = (
+            None if args.private_key_passphrase == "" else args.private_key_passphrase
+        )
+
+        if snowflake_client.rsa_key and not private_key_passphrase:
+            logger.error(
+                "Error: A private key passphrase must be provided if using a private key"
+            )
+            sys.exit(snowflake_client.EXIT_CODE_INVALID_ARGUMENTS)
+        if not snowflake_client.password and not snowflake_client.rsa_key:
+            logger.error(
+                "Error: Either a username and password must be provided, or a username and private key file"
+            )
+            sys.exit(snowflake_client.EXIT_CODE_INVALID_CREDENTIALS)
+
         if args.snowflake_data_types != "":
             snowflake_data_types = ast.literal_eval(args.snowflake_data_types)
             logger.debug(f"Inputted data types are: {snowflake_data_types}")
