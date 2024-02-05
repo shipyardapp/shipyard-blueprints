@@ -1,12 +1,13 @@
 import os
 import pandas as pd
 import pytest
-from shipyard_snowflake import SnowflakeClient, read_file
+from shipyard_snowflake import SnowflakeClient
 from dotenv import load_dotenv, find_dotenv
-from shipyard_snowflake.utils import (
+from shipyard_snowflake.utils.utils import (
     map_pandas_to_snowflake,
     infer_schema,
     reservoir_sample,
+    read_file,
 )
 
 if env_exists := os.path.exists(".env"):
@@ -25,7 +26,7 @@ if env_exists := os.path.exists(".env"):
 
     client = SnowflakeClient(
         username=user,
-        pwd=pwd,
+        password=pwd,
         database=database,
         account=account,
         warehouse=warehouse,
@@ -46,7 +47,9 @@ if env_exists := os.path.exists(".env"):
 @pytest.mark.skipif(not env_exists, reason="No .env file found")
 def test_put():
     conn = client.connect()
-    create_sql = client._create_table(table_name="PUT_TEST", columns=snowflake_dtypes)
+    create_sql = client._create_table_sql(
+        table_name="PUT_TEST", columns=snowflake_dtypes
+    )
     client.execute_query(conn=conn, query=create_sql)
     client.put(conn, file_path=df_path, table_name="PUT_TEST")
     client.copy_into(conn, table_name="PUT_TEST")
@@ -57,7 +60,7 @@ def test_put_no_datatypes():
     conn = client.connect()
     sample = infer_schema(df_path)
     snowflake_dtypes = map_pandas_to_snowflake(sample)
-    create_sql = client._create_table(
+    create_sql = client._create_table_sql(
         table_name="LARGER_TEST", columns=snowflake_dtypes
     )
     client.execute_query(conn, create_sql)

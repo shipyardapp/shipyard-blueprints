@@ -25,6 +25,7 @@ The SnowflakeClient class provides methods to interact with Snowflake using the 
 ```python
 import pandas as pd
 from shipyard_snowflake import SnowflakeClient
+from shipyard_snowflake.utils import utils
 # Initialize the SnowflakeClient with credentials
 client = SnowflakeClient(
     username="your_username",
@@ -38,29 +39,44 @@ client = SnowflakeClient(
 )
 
 # Connect to Snowflake
-connection = client.connect()
-
-# Upload a DataFrame to Snowflake
-df = pd.DataFrame(...)  # Your DataFrame
-success, nchunks, nrows, output = client.upload(
-    conn=connection,
-    df=df,
-    table_name="your_table_name",
-    if_exists="replace" # or append
-)
-
-# Fetch Query
-query = "SELECT * FROM your_table_name"
-result_df = client.execute_query(conn=connection, query=query)
-
-# Execute Query
-query = "DROP TABLE IF EXISTS SALES"
-result_df = client.fetch(conn=connection, query = query)
-
-# Close the connection
-connection.close()
-
+client.connect()
 ```
+
+
+### Upload a file to Create or Replace a Table 
+```python 
+
+# Upload a csv to Snowflake to replace a table
+# create the table first
+data_types = utils.infer_schema(file_name = "<file_path>")
+sql = client._create_table_sql(table_name = "<table_name>", columns = data_types)
+client.create_table(sql)
+# load the file to the table
+client.upload(file_path = "<file_path>", table_name = "<table_name>", insert_method = "replace")
+
+``` 
+### Upload a file to append to an existing table 
+```python
+client.upload(file_path = "<file_path>", table_name = "<table_name>", insert_method = "append")
+
+### Fetch the results of a query as a pandas dataframe
+```python
+query = "SELECT * FROM your_table_name"
+result_df = client.execute_query(query=query)
+```
+
+### Execute a Query
+```python
+query = "DROP TABLE IF EXISTS SALES"
+result_df = client.fetch(query = query)
+```
+
+### Close the connection 
+```python
+# Close the connection
+client.conn.close()
+```
+
 ### SnowparkClient
 
 The SnowparkClient class allows interaction with Snowflake using Snowpark, a modern data processing and scripting framework. It enables data upload and some query execution capabilities. Here's an example of how to use it:

@@ -10,6 +10,7 @@ class Spreadsheets(ABC):
     EXIT_CODE_BAD_REQUEST = 205
     EXIT_CODE_FILE_NOT_FOUND = 206
     EXIT_CODE_UNKNOWN_ERROR = 249
+    EXIT_CODE_RATE_LIMIT = 250
 
     @abstractmethod
     def connect(self):

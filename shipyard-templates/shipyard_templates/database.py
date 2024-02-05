@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from .shipyard_logger import ShipyardLogger
+from typing import Optional
 
 
 class Database(ABC):
@@ -15,6 +16,12 @@ class Database(ABC):
     EXIT_CODE_INVALID_UPLOAD_COLUMNS = 207
     EXIT_CODE_INVALID_ARGUMENTS = 208
     EXIT_CODE_INVALID_DATA_TYPES = 209
+
+    EXIT_CODE_UNKNOWN = 249
+
+    def __init__(self, username: str, password: Optional[str] = None, **kwargs) -> None:
+        self.username = username
+        self.password = password
 
     @abstractmethod
     def connect(self):
