@@ -79,7 +79,6 @@ def create_if_not_exists(
             table_name=table_name, columns=snowflake_data_types
         )
         client.create_table(create_statement)
-        logger.info("Successfully created table")
     else:
         logger.info("Table exists, beginning append job")
 
@@ -184,6 +183,7 @@ def main():
             )
             if i == 1:
                 insert_method = "append"
+        logger.info("Successfully loaded all files into Snowflake.")
 
     # for single file uploads
     else:
