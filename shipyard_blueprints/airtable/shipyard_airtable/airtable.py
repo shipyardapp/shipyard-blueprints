@@ -15,7 +15,15 @@ class AirtableClient(Spreadsheets):
     def __init__(self, api_key: str) -> None:
         self.api = Api(api_key)
 
-    def _handle_error(self, error: HTTPError):
+    def _handle_error(self, error: HTTPError) -> None:
+        """Handle HTTPError and raise ExitCodeException with appropriate message and exit code.
+
+        Args:
+            error (HTTPError): The HTTPError object.
+
+        Raises:
+            ExitCodeException: The exception with the appropriate message and exit code.
+        """
         logger.debug("Handling HTTPError...")
         logger.debug(f"Error: {error.response.status_code} {error.response.reason}")
         response_details = error.response.json()
@@ -68,7 +76,12 @@ class AirtableClient(Spreadsheets):
                 self.EXIT_CODE_UNKNOWN_ERROR,
             )
 
-    def connect(self):
+    def connect(self) -> int:
+        """Test the connection to Airtable.
+
+        Returns:
+            int: The exit code.
+        """
 
         try:
             self.api.whoami()
@@ -90,7 +103,18 @@ class AirtableClient(Spreadsheets):
             logger.authtest("Success")
             return 0
 
-    def fetch(self, base, table, view=None):
+    def fetch(self, base: str, table: str, view: str = None) -> list:
+        """
+        Fetch data from Airtable.
+
+        Args:
+            base (str): The base ID.
+            table (str): The table name.
+            view (str, optional): The view name. Defaults to None.
+
+        Returns:
+            list: The list of records.
+        """
         logger.debug("Fetching data from Airtable...")
         try:
             table = self.api.table(base, table)
@@ -101,13 +125,100 @@ class AirtableClient(Spreadsheets):
             logger.debug(f"Returned {len(records)} record(s)")
             return records
 
-    def upload(self, base, table, data, key_fields, typecast=True):
-        logger.debug("Uploading data to Airtable...")
+    def upload(
+        self,
+        upload_method: str,
+        base: str,
+        table: str,
+        data: list,
+        key_fields: list = None,
+        typecast: bool = True,
+    ) -> None:
+        """
+        Upload data to Airtable.
+
+        Args:
+            upload_method (str): The method to use for uploading the data. Choose from 'append', 'upsert', or 'replace'.
+            base (str): The base ID.
+            table (str): The table name.
+            data (list): The list of records to upload.
+            key_fields (list, optional): The list of fields to use as keys. Defaults to None.
+            typecast (bool, optional): Whether to typecast the data. Defaults to True.
+        """
+
+        upload_method = upload_method.lower()
+        if upload_method == "append":
+            self.batch_create_records(base, table, data, key_fields, typecast)
+        elif upload_method == "upsert":
+            self.batch_upsert_records(base, table, data, key_fields, typecast)
+        else:
+            raise ExitCodeException(
+                "Invalid upload method. Please choose from 'append', 'upsert', or 'replace'",
+                self.EXIT_CODE_INVALID_INPUT,
+            )
+
+    def batch_create_records(
+        self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
+    ) -> None:
+        """
+        Create records in Airtable.
+
+        Args:
+            base (str): The base ID.
+            table (str): The table name.
+            data (list): The list of records to create.
+            key_fields (list): The list of fields to use as keys.
+            typecast (bool, optional): Whether to typecast the data. Defaults to True.
+        """
+        logger.debug("Inserting data to Airtable...")
         try:
             table = self.api.table(base, table)
             table.batch_upsert(records=data, key_fields=key_fields, typecast=typecast)
+        except HTTPError as err:
+            self._handle_error(err)
+        else:
+            logger.debug("Data inserted successfully")
 
+    def batch_upsert_records(
+        self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
+    ) -> None:
+        """
+        Upsert data to Airtable.
+
+        Args:
+            base (str): The base ID.
+            table (str): The table name.
+            data (list): The list of records to upsert.
+            key_fields (list): The list of fields to use as keys.
+            typecast (bool, optional): Whether to typecast the data. Defaults to True.
+
+        """
+
+        logger.debug("Upserting data to Airtable...")
+        try:
+            table = self.api.table(base, table)
+            table.batch_upsert(records=data, key_fields=key_fields, typecast=typecast)
         except HTTPError as err:
             self._handle_error(err)
         else:
             logger.debug("Data uploaded successfully")
+
+    def clear_table(self, base: str, table: str) -> None:
+        """
+        Delete all records from a table.
+
+        Args:
+            base (str): The base ID.
+            table (str): The table name.
+        """
+        logger.debug("Clearing table...")
+        try:
+            table = self.api.table(base, table)
+            records = table.all()
+            record_ids = [record["id"] for record in records]
+            table.batch_delete(record_ids)
+
+        except HTTPError as err:
+            self._handle_error(err)
+        else:
+            logger.debug("Table cleared successfully")

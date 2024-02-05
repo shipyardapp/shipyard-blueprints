@@ -28,8 +28,9 @@ def get_args():
         required=True,
         default="exact_match",
     )
-    parser.add_argument("--key-fields", dest="key_fields", required=True)
+    parser.add_argument("--key-fields", dest="key_fields", required=False)
     parser.add_argument("--typecast", dest="typecast", required=False, default="FALSE")
+    parser.add_argument("--insert-method", dest="insert_method", required=True)
     return parser.parse_args()
 
 
@@ -57,11 +58,16 @@ def main():
         match_type = args.source_file_name_match_type
         source_folder = args.source_folder_name or "."
         key_fields = args.key_fields = args.key_fields.split(",")
+        upload_method = args.insert_method.lower()
 
-        client = AirtableClient(api_key=args.api_key)
         files_found = files.find_matching_files(
             args.filename_or_pattern, source_folder, match_type
         )
+
+        client = AirtableClient(api_key=args.api_key)
+        if upload_method == "replace":
+            client.clear_table(args.base_id, args.table_id)
+            upload_method = "append"
 
         if len(files_found) == 0:
             logger.error(
@@ -69,19 +75,23 @@ def main():
                 f"with match type: {match_type}"
             )
             sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
+
         failed, success = [], []
         logger.info(f"Uploading {len(files_found)} file(s) to Airtable...")
 
         for file in files_found:
+
             try:
-                records = prepare_data_from_csv(file)
-                client.upload(
-                    base=args.base_id,
-                    table=args.table_id,
-                    data=records,
-                    key_fields=key_fields,
-                    typecast=typecast,
-                )
+                upload_args = {
+                    "base": args.base_id,
+                    "table": args.table_id,
+                    "data": prepare_data_from_csv(file),
+                    "typecast": typecast,
+                    "upload_method": upload_method,
+                }
+                if key_fields:
+                    upload_args["key_fields"] = key_fields
+                client.upload(**upload_args)
 
             except Exception as e:
                 logger.error(f"Error uploading file: {file} to Airtable: {e}")

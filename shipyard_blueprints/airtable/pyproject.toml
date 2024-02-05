@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-airtable"
-version = "0.1.1a16"
+version = "0.1.1a20"
 description = "A local client to work with Airtable"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
@@ -10,9 +10,9 @@ packages = [{ include = "shipyard_airtable" }]
 [tool.poetry.dependencies]
 python = "^3.9"
 pyairtable = "2.2.2"
-pandas = "^1.5.3"
 shipyard-templates = "0.6.1a1"
 shipyard-bp-utils = "1.0.1a4"
+pandas = "^2.2.0"
 
 
 
