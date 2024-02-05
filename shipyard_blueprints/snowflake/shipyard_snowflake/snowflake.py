@@ -1,5 +1,6 @@
 import snowflake.connector
 import pandas as pd
+import os
 from typing import Dict, List, Optional, Union
 from shipyard_templates import Database, ExitCodeException, ShipyardLogger
 from snowflake.connector import pandas_tools as pt
@@ -46,6 +47,7 @@ class SnowflakeClient(Database):
         self.database = database
         self.rsa_key = rsa_key
         self.role = role
+        self.application = os.environ.get("SHIPYARD_USER_AGENT", None)
         super().__init__(
             username,
             password,
@@ -54,6 +56,7 @@ class SnowflakeClient(Database):
             schema=schema,
             database=database,
             rsa_key=rsa_key,
+            application=self.application,
         )
 
     def connect(self):
@@ -166,7 +169,7 @@ class SnowflakeClient(Database):
         """
         try:
             cursor = self.execute_query(query)
-            results = cursor.fetchall()
+            results = cursor.fetch_pandas_all()
         except ExitCodeException as ec:
             raise DownloadError(
                 f"Error in fetching query results. Message from snowflake includes: {ec.message}",
@@ -178,9 +181,7 @@ class SnowflakeClient(Database):
                 exit_code=self.EXIT_CODE_DOWNLOAD_ERROR,
             )
         else:
-            return pd.DataFrame(
-                results, columns=[desc[0] for desc in cursor.description]
-            )
+            return results
 
     def put(
         self,

@@ -266,5 +266,18 @@ if [ "$1" = 'ex3' ]; then
     --query "slllect * from bad table"
 fi
 
+if [ "$1" = 'fe1' ]; then 
+    echo "Fetching query results"
+    python3 ./shipyard_snowflake/cli/fetch.py --username $SNOWFLAKE_USERNAME \
+    --password $SNOWFLAKE_PASSWORD \
+    --account $SNOWFLAKE_ACCOUNT \
+    --schema $SNOWFLAKE_SCHEMA \
+    --database $SNOWFLAKE_DATABASE \
+    --warehouse $SNOWFLAKE_WAREHOUSE \
+    --query "SELECT * FROM RAW_SOCCERRANKINGS" \
+    --destination-file-name "output.csv"
+
+fi
+
 
 
