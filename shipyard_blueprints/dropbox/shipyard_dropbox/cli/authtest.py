@@ -1,6 +1,6 @@
 import sys
 import os
-from shipyard_blueprints import DropboxClient
+from shipyard_dropbox import DropboxClient
 
 
 def main():

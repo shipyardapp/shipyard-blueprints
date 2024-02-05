@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import MySqlClient
+from shipyard_mysql import MySqlClient
 
 
 def get_args():

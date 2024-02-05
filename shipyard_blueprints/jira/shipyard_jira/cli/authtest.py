@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import JiraClient
+from shipyard_jira import JiraClient
 
 
 def main():
