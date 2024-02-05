@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import TrelloClient
+from shipyard_trello import TrelloClient
 
 
 def main():

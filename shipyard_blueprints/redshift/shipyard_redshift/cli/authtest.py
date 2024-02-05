@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import RedshiftClient
+from shipyard_redshift import RedshiftClient
 
 
 def get_args():

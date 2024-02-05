@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import PostgresqlClient
+from shipyard_postgresql import PostgresqlClient
 
 
 def get_args():

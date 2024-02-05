@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import CensusClient
+from shipyard_census import CensusClient
 
 
 def main():

@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import FivetranClient
+from shipyard_fivetran import FivetranClient
 
 
 def main():

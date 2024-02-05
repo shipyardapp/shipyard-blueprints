@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import SqlServerClient
+from shipyard_sqlserver import SqlServerClient
 
 
 def get_args():

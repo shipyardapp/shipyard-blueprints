@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import ModeClient
+from shipyard_mode import ModeClient
 
 
 def main():

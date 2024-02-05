@@ -12,9 +12,9 @@ asana = "^3.2.1"
 shipyard-templates = "^0.1.4"
 
 
-[tool.poetry.group.dev.dependencies]
-shipyard-templates = {path = "../../shipyard-templates", develop = true}
-sanity-loader = {git = "https://github.com/shipyardapp/sanity-loader.git"}
+#[tool.poetry.group.dev.dependencies]
+#shipyard-templates = {path = "../../shipyard-templates", develop = true}
+#sanity-loader = {git = "https://github.com/shipyardapp/sanity-loader.git"}
 
 [build-system]
 requires = ["poetry-core"]
