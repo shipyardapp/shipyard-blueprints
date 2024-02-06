@@ -93,6 +93,8 @@ def main():
         logger.error(f"Error writing file to {destination_full_path}")
         logger.error(str(e))
         sys.exit(client.EXIT_CODE_NO_RESULTS)
+    else:
+        logger.info("Closing Connection")
 
 
 if __name__ == "__main__":

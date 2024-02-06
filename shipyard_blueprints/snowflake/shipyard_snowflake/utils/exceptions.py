@@ -56,3 +56,10 @@ class CreateTableError(ExitCodeException):
         super().__init__(message, exit_code)
         self.message = message
         self.exit_code = exit_code
+
+
+class TableRecordsError(ExitCodeException):
+    def __init__(self, message: str, exit_code: int):
+        super().__init__(message, exit_code)
+        self.message = message
+        self.exit_code = exit_code
