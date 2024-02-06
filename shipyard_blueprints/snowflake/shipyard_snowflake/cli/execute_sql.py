@@ -55,6 +55,7 @@ def main():
         sys.exit(e.exit_code)
     else:
         logger.info("Successfully executed query")
+        logger.info("Closing Connection")
 
 
 if __name__ == "__main__":

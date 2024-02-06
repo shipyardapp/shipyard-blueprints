@@ -53,7 +53,7 @@ def get_args():
     parser.add_argument(
         "--insert-method",
         dest="insert_method",
-        choices={"fail", "replace", "append"},
+        choices={"add", "replace", "append"},
         default="append",
         required=False,
     )
@@ -71,7 +71,7 @@ def create_if_not_exists(
     client: SnowflakeClient, table_name: str, snowflake_data_types: Dict[str, str]
 ):
     """Helper function to create the table if it doesn't already exist. This is only necessary when the
-    append method is used
+    append or add method is used
 
     Args:
         client: The snowflake client
@@ -85,7 +85,7 @@ def create_if_not_exists(
         )
         client.create_table(create_statement)
     else:
-        logger.info("Table exists, beginning append job")
+        logger.info("Table exists, beginning upload")
 
 
 def main():
@@ -164,8 +164,8 @@ def main():
             # upload each file to the target
             # NOTE: This should be reworked to PUT multiple files at once using a glob pattern, and COPY INTO multiple
             # files at once using the FILES() parameter
+            insert_method = args.insert_method
             for i, file_match in enumerate(matching_file_names, start=1):
-                insert_method = args.insert_method
                 snowflake_client.upload(
                     file_path=file_match,
                     table_name=args.table_name,
@@ -217,6 +217,9 @@ def main():
             f"An error occurred when attempting to upload to Snowflake: {str(e)}"
         )
         sys.exit(Database.EXIT_CODE_UNKNOWN)
+    else:
+        logger.info("Closing connection")
+        snowflake_client.close()
 
 
 if __name__ == "__main__":

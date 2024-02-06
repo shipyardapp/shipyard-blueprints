@@ -27,6 +27,7 @@ class SnowflakeClient(Database):
     EXIT_CODE_SNOWFLAKE_TO_PANDAS_CONVERSION_ERROR = 105
     EXIT_CODE_CREATE_TABLE_ERROR = 106
     EXIT_CODE_DOWNLOAD_ERROR = 107
+    EXIT_CODE_NON_EMPTY_TABLE = 108
 
     def __init__(
         self,
@@ -118,13 +119,18 @@ class SnowflakeClient(Database):
             table_name (str): The name of the Snowflake Table to, if it doesn't exist, it will be created
             insert_method (str): The method to use when inserting the data into the table. Options are replace or append Defaults to 'replace'
         """
-        if insert_method not in ["replace", "append"]:
+        if insert_method not in ["replace", "append", "add"]:
             raise ExitCodeException(
                 f"Invalid insert method: {insert_method} is not a valid insert method. Choose between 'replace' or 'append'",
                 self.EXIT_CODE_INVALID_ARGUMENTS,
             )
 
         try:
+            if insert_method == "add" and not self._is_empty(table_name):
+                raise ExitCodeException(
+                    f"Error: The table {table_name} already has data in it. Instead of selecting the `Add Data Only if Table is Empty` option, select either `Replace` or `Append`, or delete all the rows in the target table",
+                    exit_code=self.EXIT_CODE_NON_EMPTY_TABLE,
+                )
             self.put(file_path=file_path, table_name=table_name)
             self.copy_into(table_name=table_name, insert_method=insert_method)
         except PutError as ec:
@@ -278,3 +284,15 @@ class SnowflakeClient(Database):
             return True
 
         return False
+
+    def _is_empty(self, table_name: str):
+        sql = f"SELECT COUNT(*) FROM {table_name}"
+        cur = self.execute_query(sql)
+        result = cur.fetchone()[0]
+        return result == 0
+
+    def close(self):
+        """
+        Closes the database connection
+        """
+        self.conn.close()

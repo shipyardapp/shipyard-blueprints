@@ -122,8 +122,6 @@ if [ "$1" = 'up8' ]; then
     --snowflake-data-types '[["string_col", "string"], ["char_col", "char"], ["int_col", "INT"], ["float_col", "float"], ["bool_col","boolean"], ["date_col", "date"], ["datetime_col", "timestamp"]]'
 fi
 
-#TODO: test to ensure that if append is selected and the table doesn't exist, it gets created and inserted properly
-
 
 if [ "$1" = 'up9' ]; then
     echo "Starting upload of multiple files to replace a table"
@@ -231,6 +229,39 @@ if [ "$1" = 'up15' ]; then
     --source-file-name-match-type "regex_match" \
     --snowflake-data-types '{"string_col": "String", "char_col": "Char", "int_col": "Int", "float_col": "Number", "bool_col": "Boolean", "date_col": "Date", "datetime_col": "Timestamp"}'
 fi
+
+
+if [ "$1" = 'up16' ]; then
+    echo "Starting upload of multiple files using the add insert method"
+    python3 ./shipyard_snowflake/cli/upload.py --username $SNOWFLAKE_USERNAME \
+    --password $SNOWFLAKE_PASSWORD \
+    --account $SNOWFLAKE_ACCOUNT \
+    --schema $SNOWFLAKE_SCHEMA \
+    --database $SNOWFLAKE_DATABASE \
+    --warehouse $SNOWFLAKE_WAREHOUSE \
+    --source-file-name "mult"\
+    --insert-method "add" \
+    --table-name $TABLE_MULTIPLE \
+    --source-file-name-match-type "regex_match" \
+    --snowflake-data-types '{"string_col": "String", "char_col": "Char", "int_col": "Int", "float_col": "Number", "bool_col": "Boolean", "date_col": "Date", "datetime_col": "Timestamp"}'
+fi
+
+if [ "$1" = 'up17' ]; then
+    echo "Starting upload of a single file using the add insert method"
+    python3 ./shipyard_snowflake/cli/upload.py --username $SNOWFLAKE_USERNAME \
+    --password $SNOWFLAKE_PASSWORD \
+    --account $SNOWFLAKE_ACCOUNT \
+    --schema $SNOWFLAKE_SCHEMA \
+    --database $SNOWFLAKE_DATABASE \
+    --warehouse $SNOWFLAKE_WAREHOUSE \
+    --source-file-name $LOCAL_FILE\
+    --insert-method "add" \
+    --table-name $TABLE \
+    --source-file-name-match-type "exact_match" \
+    --snowflake-data-types '{"string_col": "String", "char_col": "Char", "int_col": "Int", "float_col": "Number", "bool_col": "Boolean", "date_col": "Date", "datetime_col": "Timestamp"}'
+fi
+
+
 
 # execute query section
 if [ "$1" = 'ex1' ]; then 
