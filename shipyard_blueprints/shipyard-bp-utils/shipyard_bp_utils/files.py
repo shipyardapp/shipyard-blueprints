@@ -226,10 +226,12 @@ def find_all_local_file_names(source_folder_name: str = None) -> list:
     Returns:
     list: A list of all files that exist in the current working directory.
     """
+    logger.debug(f"Finding all local file names in {source_folder_name}...")
     cwd = os.getcwd()
     cwd_extension = os.path.normpath(f"{cwd}/{source_folder_name}/**")
     all_paths = glob.glob(cwd_extension, recursive=True)
-
+    logger.debug(f"Found {len(all_paths)}.")
+    logger.debug(all_paths)
     return remove_directories_from_path_list(all_paths)
 
 
@@ -260,8 +262,8 @@ def find_all_file_matches(file_names: list, file_name_re: str) -> list:
     """
     matching_file_names = [file for file in file_names if re.search(file_name_re, file)]
 
-    logger.info(f"Found {len(matching_file_names)} file matches.")
-    logger.info(matching_file_names)
+    logger.debug(f"Found {len(matching_file_names)} file matches.")
+    logger.debug(matching_file_names)
     return matching_file_names
 
 
@@ -277,11 +279,14 @@ def find_matching_files(search_term: str, directory: str, match_type: str) -> li
     Returns:
     list: A list of all matching_file_names that matched the regular expression.
     """
+    if match_type == "exact_match":
+        cwd = os.getcwd()
+        full_path = os.path.normpath(f"{cwd}/{directory}/{search_term}")
+        return [full_path] if os.path.exists(full_path) else []
+
     filenames = find_all_local_file_names(directory)
     if match_type == "regex_match":
         return find_all_file_matches(filenames, search_term)
-    elif match_type == "exact_match":
-        return find_all_file_matches(filenames, f"^{search_term}$")
     elif match_type == "glob_match":
         search_term = fnmatch.translate(search_term)
         return find_all_file_matches(filenames, search_term)

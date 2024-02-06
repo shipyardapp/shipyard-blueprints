@@ -11,6 +11,7 @@ class Spreadsheets(ABC):
     EXIT_CODE_FILE_NOT_FOUND = 206
     EXIT_CODE_UNKNOWN_ERROR = 249
     EXIT_CODE_RATE_LIMIT = 250
+    EXIT_CODE_INVALID_INPUT = 251
 
     @abstractmethod
     def connect(self):
