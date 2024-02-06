@@ -3,6 +3,7 @@ source .env set +o allexport
 
 TABLE="end_to_end"
 TABLE_MULTIPLE="multiple_upload"
+TABLE_DTS="end_to_end_dts"
 
 # Upload section
 if [ "$1" =  'up1' ]; then 
@@ -73,7 +74,7 @@ if [ "$1" = 'up5' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name $LOCAL_FILE \
     --insert-method "replace" \
-    --table-name "$TABLE_dts" \
+    --table-name "$TABLE_DTS" \
     --snowflake-data-types '{"string_col": "String", "char_col": "Char", "int_col": "Int", "float_col": "Number", "bool_col": "Boolean", "date_col": "Date", "datetime_col": "Timestamp"}'
 fi
 
@@ -89,7 +90,7 @@ if [ "$1" = 'up6' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name $LOCAL_FILE \
     --insert-method "replace" \
-    --table-name "$TABLE_dts" \
+    --table-name "$TABLE_DTS" \
     --snowflake-data-types '[["string_col", "string"], ["char_col", "char"], ["int_col", "INT"], ["float_col", "float"], ["bool_col","boolean"], ["date_col", "date"], ["datetime_col", "timestamp"]]'
 fi
 
@@ -103,7 +104,7 @@ if [ "$1" = 'up7' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name $LOCAL_FILE \
     --insert-method "append" \
-    --table-name "$TABLE_dts" \
+    --table-name "$TABLE_DTS" \
     --snowflake-data-types '{"string_col": "String", "char_col": "Char", "int_col": "Int", "float_col": "Number", "bool_col": "Boolean", "date_col": "Date", "datetime_col": "Timestamp"}'
 fi
 
@@ -117,7 +118,7 @@ if [ "$1" = 'up8' ]; then
     --warehouse $SNOWFLAKE_WAREHOUSE \
     --source-file-name $LOCAL_FILE \
     --insert-method "append" \
-    --table-name "$TABLE_dts" \
+    --table-name "$TABLE_DTS" \
     --snowflake-data-types '[["string_col", "string"], ["char_col", "char"], ["int_col", "INT"], ["float_col", "float"], ["bool_col","boolean"], ["date_col", "date"], ["datetime_col", "timestamp"]]'
 fi
 
