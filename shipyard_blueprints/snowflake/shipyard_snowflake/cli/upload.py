@@ -4,7 +4,12 @@ import ast
 import re
 import json
 from shipyard_snowflake import SnowflakeClient, utils
-from shipyard_templates import ExitCodeException, ShipyardLogger
+from shipyard_templates import (
+    ExitCodeException,
+    ShipyardLogger,
+    Database,
+    shipyard_logger,
+)
 from shipyard_bp_utils import files as shipyard
 from typing import Optional, Dict
 
@@ -85,12 +90,6 @@ def create_if_not_exists(
 
 def main():
     try:
-        snowflake_client.connect()
-    except ExitCodeException as ec:
-        logger.error(ec.message)
-        sys.exit(ec.exit_code)
-
-    try:
         args = get_args()
         client_args = {
             "username": args.username,
@@ -119,75 +118,65 @@ def main():
             )
             sys.exit(snowflake_client.EXIT_CODE_INVALID_CREDENTIALS)
 
-        if args.snowflake_data_types != "":
+        snowflake_client.connect()
+
+        if args.snowflake_data_types:
             snowflake_data_types = ast.literal_eval(args.snowflake_data_types)
             logger.debug(f"Inputted data types are: {snowflake_data_types}")
         else:
             snowflake_data_types = None
-    except Exception as e:
-        try:
-            snowflake_data_types = json.dumps(args.snowflake_data_types)
-            logger.debug(f"Inputted data types as json are: {snowflake_data_types}")
-        except Exception as e:
-            logger.error(
-                "Error in reading in datatypes. Ensure that the provided input is an array of arrays, or a JSON representation"
+
+        # for loading multiple files
+        if args.source_file_name_match_type == "regex_match":
+            # match files based on pattern
+            file_names = shipyard.find_all_local_file_names(args.source_folder_name)
+            matching_file_names = shipyard.find_all_file_matches(
+                file_names, re.compile(args.source_file_name)
             )
-            sys.exit(snowflake_client.EXIT_CODE_INVALID_ARGUMENTS)
-        logger.error(
-            "Error in reading in datatypes. Ensure that the provided input is an array of arrays, or a JSON representation"
-        )
-        sys.exit(snowflake_client.EXIT_CODE_INVALID_ARGUMENTS)
-
-    # for loading multiple files
-    if args.source_file_name_match_type == "regex_match":
-        # match files based on pattern
-        file_names = shipyard.find_all_local_file_names(args.source_folder_name)
-        matching_file_names = shipyard.find_all_file_matches(
-            file_names, re.compile(args.source_file_name)
-        )
-        logger.info(f"{len(matching_file_names)} files found. Preparing to upload...")
-
-        # infer the schema from the first file
-        if not snowflake_data_types:
-            pandas_datatypes = utils.infer_schema(
-                matching_file_names[0]
-            )  # take the first file
-            logger.debug(f"Converted pandas data types are: {pandas_datatypes}")
-
-            snowflake_data_types = utils.map_pandas_to_snowflake(pandas_datatypes)
-
-        logger.debug(f"Converted snowflake data types are {snowflake_data_types}")
-        # create the table if it doesn't exist
-        if args.insert_method == "replace":
-            create_table_sql = snowflake_client._create_table_sql(
-                table_name=args.table_name, columns=snowflake_data_types
+            logger.info(
+                f"{len(matching_file_names)} files found. Preparing to upload..."
             )
-            logger.debug(f"SQL to create table is {create_table_sql}")
-            snowflake_client.create_table(create_table_sql)
+
+            # infer the schema from the first file
+            if not snowflake_data_types:
+                pandas_datatypes = utils.infer_schema(
+                    matching_file_names[0]
+                )  # take the first file
+                logger.debug(f"Converted pandas data types are: {pandas_datatypes}")
+
+                snowflake_data_types = utils.map_pandas_to_snowflake(pandas_datatypes)
+
+            logger.debug(f"Converted snowflake data types are {snowflake_data_types}")
+            # create the table if it doesn't exist
+            if args.insert_method == "replace":
+                create_table_sql = snowflake_client._create_table_sql(
+                    table_name=args.table_name, columns=snowflake_data_types
+                )
+                logger.debug(f"SQL to create table is {create_table_sql}")
+                snowflake_client.create_table(create_table_sql)
+            else:
+                create_if_not_exists(
+                    client=snowflake_client,
+                    table_name=args.table_name,
+                    snowflake_data_types=snowflake_data_types,
+                )
+
+            # upload each file to the target
+            # NOTE: This should be reworked to PUT multiple files at once using a glob pattern, and COPY INTO multiple
+            # files at once using the FILES() parameter
+            for i, file_match in enumerate(matching_file_names, start=1):
+                insert_method = args.insert_method
+                snowflake_client.upload(
+                    file_path=file_match,
+                    table_name=args.table_name,
+                    insert_method=insert_method,
+                )
+                if i == 1:
+                    insert_method = "append"
+            logger.info("Successfully loaded all files into Snowflake.")
+
+        # for single file uploads
         else:
-            create_if_not_exists(
-                client=snowflake_client,
-                table_name=args.table_name,
-                snowflake_data_types=snowflake_data_types,
-            )
-
-        # upload each file to the target
-        # NOTE: This should be reworked to PUT multiple files at once using a glob pattern, and COPY INTO multiple
-        # files at once using the FILES() parameter
-        for i, file_match in enumerate(matching_file_names, start=1):
-            insert_method = args.insert_method
-            snowflake_client.upload(
-                file_path=file_match,
-                table_name=args.table_name,
-                insert_method=insert_method,
-            )
-            if i == 1:
-                insert_method = "append"
-        logger.info("Successfully loaded all files into Snowflake.")
-
-    # for single file uploads
-    else:
-        try:
             fp = shipyard.combine_folder_and_file_name(
                 args.source_folder_name, args.source_file_name
             )
@@ -217,18 +206,17 @@ def main():
                 table_name=args.table_name,
                 insert_method=args.insert_method,
             )
-        except ExitCodeException as ec:
-            logger.error(ec.message)
-            sys.exit(ec.exit_code)
-        except Exception as e:
-            logger.error(
-                f"An error occurred when attempting to upload to Snowflake: {str(e)}"
-            )
-            sys.exit(snowflake_client.EXIT_CODE_UNKNOWN_ERROR)
-        else:
             logger.info(
                 f"Successfully loaded file {args.source_file_name} to Snowflake"
             )
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
+    except Exception as e:
+        logger.error(
+            f"An error occurred when attempting to upload to Snowflake: {str(e)}"
+        )
+        sys.exit(Database.EXIT_CODE_UNKNOWN)
 
 
 if __name__ == "__main__":

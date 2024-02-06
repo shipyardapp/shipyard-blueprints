@@ -85,7 +85,7 @@ def main():
 
         logger.debug(f"Shape of dataframe is {df.shape}")
         df.to_csv(destination_full_path, index=False, header=file_header)
-        logger.info(f"Successfully wrote file to {destination_full_path}")
+        logger.info(f"Successfully saved query results to {destination_full_path}")
     except ExitCodeException as e:
         logger.error(e.message)
         sys.exit(e.exit_code)
