@@ -262,7 +262,7 @@ def find_all_file_matches(file_names: list, file_name_re: str) -> list:
     """
     matching_file_names = [file for file in file_names if re.search(file_name_re, file)]
 
-    logger.info(f"Found {len(matching_file_names)} file matches.")
+    logger.debug(f"Found {len(matching_file_names)} file matches.")
     logger.debug(matching_file_names)
     return matching_file_names
 
