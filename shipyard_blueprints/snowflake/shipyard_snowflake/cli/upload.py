@@ -120,25 +120,11 @@ def main():
 
         snowflake_client.connect()
 
-        if args.snowflake_data_types != "":
+        if args.snowflake_data_types:
             snowflake_data_types = ast.literal_eval(args.snowflake_data_types)
             logger.debug(f"Inputted data types are: {snowflake_data_types}")
         else:
             snowflake_data_types = None
-
-        # except Exception as e:
-        #     try:
-        #         snowflake_data_types = json.dumps(args.snowflake_data_types)
-        #         logger.debug(f"Inputted data types as json are: {snowflake_data_types}")
-        #     except Exception as e:
-        #         logger.error(
-        #             "Error in reading in datatypes. Ensure that the provided input is an array of arrays, or a JSON representation"
-        #         )
-        #         sys.exit(snowflake_client.EXIT_CODE_INVALID_ARGUMENTS)
-        #     logger.error(
-        #         "Error in reading in datatypes. Ensure that the provided input is an array of arrays, or a JSON representation"
-        #     )
-        #     sys.exit(snowflake_client.EXIT_CODE_INVALID_ARGUMENTS)
 
         # for loading multiple files
         if args.source_file_name_match_type == "regex_match":
