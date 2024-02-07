@@ -449,14 +449,14 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "shipyard-bp-utils"
-version = "1.0.1a6"
+version = "1.0.1"
 description = "Utility functions for blueprints"
 category = "main"
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "shipyard_bp_utils-1.0.1a6-py3-none-any.whl", hash = "sha256:733bfec1547d2b901a075fbeb84f76b31a97b319f10b2a2da5df72dc251135b1"},
-    {file = "shipyard_bp_utils-1.0.1a6.tar.gz", hash = "sha256:fefbe8dd17213e402ae4e7bc3ec50db18a1b90d38679aff73678eee02dd6612e"},
+    {file = "shipyard_bp_utils-1.0.1-py3-none-any.whl", hash = "sha256:46d06ddf775bd9bacc4fe8dd9cda9bb89bcbbf18cdb6f8d54f3e753620b32e96"},
+    {file = "shipyard_bp_utils-1.0.1.tar.gz", hash = "sha256:7654b1f5f71a94caf09ec4f4505eb86ae19da7443274cc07e384bf591bad1008"},
 ]
 
 [package.dependencies]
@@ -464,14 +464,14 @@ python-dateutil = ">=2.8.2,<3.0.0"
 
 [[package]]
 name = "shipyard-templates"
-version = "0.6.1a2"
+version = "0.6.1"
 description = "Super classes for blueprint development"
 category = "main"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "shipyard_templates-0.6.1a2-py3-none-any.whl", hash = "sha256:034c22728f39535c1eb086a0dd8a4774fd6ecdcf8de329f16f08fb6b7a035514"},
-    {file = "shipyard_templates-0.6.1a2.tar.gz", hash = "sha256:30e296a709839f2b43c0f43bc9a9fc5212189fe9824587c841f3e68d0a4e1cd2"},
+    {file = "shipyard_templates-0.6.1-py3-none-any.whl", hash = "sha256:3da200aae78e138394c44b1c6a3a158b8b1c9dd9094b6cc3870982e32d8be4d3"},
+    {file = "shipyard_templates-0.6.1.tar.gz", hash = "sha256:05dd1915dbe656b85893e341b6f6a66a03964d1f66a02168e6759ebea27ec0a0"},
 ]
 
 [[package]]
@@ -531,4 +531,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f7ec6a57cb9b41a763e12f7207e7f4c6e843101336b0f38346c7a914b33d95c8"
+content-hash = "a30ed98bd041a22d16dde68344843080bb459a4f21da0121a3732cc070b6ed1d"

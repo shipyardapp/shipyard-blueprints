@@ -51,20 +51,39 @@ def prepare_data_from_csv(file):
 def main():
     try:
         artifact = Artifact("airtable")
+        responses = []
+
         args = get_args()
+        client = AirtableClient(api_key=args.api_key)
 
         typecast = convert_to_boolean(args.typecast) if args.typecast else False
         search_for = args.filename_or_pattern
         match_type = args.source_file_name_match_type
         source_folder = args.source_folder_name or "."
-        key_fields = args.key_fields = args.key_fields.split(",")
+        if args.key_fields:
+            key_fields = args.key_fields = args.key_fields.split(",")
+        else:
+            key_fields = None
         upload_method = args.insert_method.lower()
+
+        if upload_method not in {"append", "upsert", "replace"}:
+            logger.error(
+                "Invalid upload method. Please choose from 'append', 'upsert', or 'replace'"
+            )
+            sys.exit(client.EXIT_CODE_INVALID_INPUT)
+        if upload_method == "upsert" and not key_fields:
+            logger.error("Key fields are required for upsert method.")
+            sys.exit(client.EXIT_CODE_INVALID_INPUT)
+
+        if upload_method == "append" and key_fields:
+            logger.warning(
+                "Key fields are not required for append method, ignoring the key fields"
+            )
 
         files_found = files.find_matching_files(
             args.filename_or_pattern, source_folder, match_type
         )
 
-        client = AirtableClient(api_key=args.api_key)
         if upload_method == "replace":
             client.clear_table(args.base_id, args.table_id)
             upload_method = "append"
@@ -80,18 +99,21 @@ def main():
         logger.info(f"Uploading {len(files_found)} file(s) to Airtable...")
 
         for file in files_found:
-
             try:
                 upload_args = {
                     "base": args.base_id,
                     "table": args.table_id,
-                    "data": prepare_data_from_csv(file),
                     "typecast": typecast,
                     "upload_method": upload_method,
                 }
-                if key_fields:
+                if upload_method == "upsert":
                     upload_args["key_fields"] = key_fields
-                client.upload(**upload_args)
+                    upload_args["data"] = prepare_data_from_csv(file)
+                else:
+                    upload_args["data"] = pandas.read_csv(file).to_dict(
+                        orient="records"
+                    )
+                responses.append(client.upload(**upload_args))
 
             except Exception as e:
                 logger.error(f"Error uploading file: {file} to Airtable: {e}")
@@ -114,6 +136,8 @@ def main():
         sys.exit(1)
 
     else:
+        if responses:
+            artifact.responses.write_json("airtable_upload_responses", responses)
         artifact.logs.write_json(
             "airtable_upload_status", {"success": success, "failed": failed}
         )
