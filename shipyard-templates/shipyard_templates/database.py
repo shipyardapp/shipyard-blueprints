@@ -56,7 +56,6 @@ class GoogleDatabase:
 
     def __init__(self, service_account: str, **kwargs) -> None:
         self.service_account = service_account
-        self.logger = ShipyardLogger().logger
 
     @abstractmethod
     def connect(self):
@@ -97,7 +96,6 @@ class DatabricksDatabase:
         self.server_host = server_host
         self.http_path = http_path
         self.access_token = access_token
-        self.logger = ShipyardLogger().logger
 
     @abstractmethod
     def connect(self):
