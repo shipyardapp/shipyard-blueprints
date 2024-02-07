@@ -25,7 +25,8 @@ class AirtableClient(Spreadsheets):
             ExitCodeException: The exception with the appropriate message and exit code.
         """
         logger.debug("Handling HTTPError...")
-        logger.debug(f"Error: {error.response.status_code} {error.response.reason}")
+        logger.debug(
+            f"Airtable Server Status Code: {error.response.status_code} \n Server Reason: {error.response.reason}")
         response_details = error.response.json()
         error_details = response_details.get("error", {})
 
@@ -47,17 +48,19 @@ class AirtableClient(Spreadsheets):
                 ),
                 self.EXIT_CODE_INVALID_CREDENTIALS,
             )
-        elif error_details.type == "TABLE_NOT_FOUND":
+        elif error_details.get("type") == "TABLE_NOT_FOUND":
             raise ExitCodeException(
                 error_details.get("message", "The requested table was not found."),
                 self.EXIT_CODE_INVALID_TABLE,
             )
-        elif error_details.type == "VIEW_NAME_NOT_FOUND":
+        elif error_details.get("type") == "VIEW_NAME_NOT_FOUND":
             raise ExitCodeException(
                 error_details.get("message", "The requested view was not found."),
                 self.EXIT_CODE_INVALID_VIEW,
             )
-
+        elif error_details.get("type") == "UNKNOWN_FIELD_NAME":
+            raise ExitCodeException(error_details.get("message", "Unknown field name."),
+                                    self.EXIT_CODE_BAD_REQUEST)
         elif error.response.status_code == 404:
             raise ExitCodeException(
                 error_details.get("message", "The requested resource was not found."),
@@ -126,13 +129,13 @@ class AirtableClient(Spreadsheets):
             return records
 
     def upload(
-        self,
-        upload_method: str,
-        base: str,
-        table: str,
-        data: list,
-        key_fields: list = None,
-        typecast: bool = True,
+            self,
+            upload_method: str,
+            base: str,
+            table: str,
+            data: list,
+            key_fields: list = None,
+            typecast: bool = True,
     ) -> None:
         """
         Upload data to Airtable.
@@ -148,17 +151,19 @@ class AirtableClient(Spreadsheets):
 
         upload_method = upload_method.lower()
         if upload_method == "append":
-            self.batch_create_records(base, table, data, key_fields, typecast)
+
+            response = self.batch_create_records(base, table, data, key_fields, typecast)
         elif upload_method == "upsert":
-            self.batch_upsert_records(base, table, data, key_fields, typecast)
+            response = self.batch_upsert_records(base, table, data, key_fields, typecast)
         else:
             raise ExitCodeException(
                 "Invalid upload method. Please choose from 'append', 'upsert', or 'replace'",
                 self.EXIT_CODE_INVALID_INPUT,
             )
+        return response
 
     def batch_create_records(
-        self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
+            self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
     ) -> None:
         """
         Create records in Airtable.
@@ -173,14 +178,15 @@ class AirtableClient(Spreadsheets):
         logger.debug("Inserting data to Airtable...")
         try:
             table = self.api.table(base, table)
-            table.batch_upsert(records=data, key_fields=key_fields, typecast=typecast)
+            response = table.batch_upsert(records=data, key_fields=key_fields, typecast=typecast)
         except HTTPError as err:
             self._handle_error(err)
         else:
             logger.debug("Data inserted successfully")
+            return response
 
     def batch_upsert_records(
-        self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
+            self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
     ) -> None:
         """
         Upsert data to Airtable.
@@ -197,11 +203,12 @@ class AirtableClient(Spreadsheets):
         logger.debug("Upserting data to Airtable...")
         try:
             table = self.api.table(base, table)
-            table.batch_upsert(records=data, key_fields=key_fields, typecast=typecast)
+            response = table.batch_upsert(records=data, key_fields=key_fields, typecast=typecast)
         except HTTPError as err:
             self._handle_error(err)
         else:
             logger.debug("Data uploaded successfully")
+            return response
 
     def clear_table(self, base: str, table: str) -> None:
         """
@@ -216,9 +223,10 @@ class AirtableClient(Spreadsheets):
             table = self.api.table(base, table)
             records = table.all()
             record_ids = [record["id"] for record in records]
-            table.batch_delete(record_ids)
+            response = table.batch_delete(record_ids)
 
         except HTTPError as err:
             self._handle_error(err)
         else:
             logger.debug("Table cleared successfully")
+            return response

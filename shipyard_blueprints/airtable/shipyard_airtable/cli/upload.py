@@ -51,13 +51,17 @@ def prepare_data_from_csv(file):
 def main():
     try:
         artifact = Artifact("airtable")
-        args = get_args()
+        responses = []
 
+        args = get_args()
         typecast = convert_to_boolean(args.typecast) if args.typecast else False
         search_for = args.filename_or_pattern
         match_type = args.source_file_name_match_type
         source_folder = args.source_folder_name or "."
-        key_fields = args.key_fields = args.key_fields.split(",")
+        if args.key_fields:
+            key_fields = args.key_fields = args.key_fields.split(",")
+        else:
+            key_fields = None
         upload_method = args.insert_method.lower()
 
         files_found = files.find_matching_files(
@@ -91,7 +95,7 @@ def main():
                 }
                 if key_fields:
                     upload_args["key_fields"] = key_fields
-                client.upload(**upload_args)
+                responses.append(client.upload(**upload_args))
 
             except Exception as e:
                 logger.error(f"Error uploading file: {file} to Airtable: {e}")
@@ -114,6 +118,8 @@ def main():
         sys.exit(1)
 
     else:
+        if responses:
+            artifact.responses.write_json("airtable_upload_responses", responses)
         artifact.logs.write_json(
             "airtable_upload_status", {"success": success, "failed": failed}
         )
