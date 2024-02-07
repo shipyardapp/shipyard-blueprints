@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-airtable"
-version = "0.1.1a24"
+version = "0.1.1a25"
 description = "A local client to work with Airtable"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
