@@ -136,7 +136,7 @@ class AirtableClient(Spreadsheets):
             data: list,
             key_fields: list = None,
             typecast: bool = True,
-    ) -> None:
+    ) -> dict:
         """
         Upload data to Airtable.
 
@@ -147,11 +147,13 @@ class AirtableClient(Spreadsheets):
             data (list): The list of records to upload.
             key_fields (list, optional): The list of fields to use as keys. Defaults to None.
             typecast (bool, optional): Whether to typecast the data. Defaults to True.
+
+        Returns:
+            dict: The response from the API.
         """
 
         upload_method = upload_method.lower()
         if upload_method == "append":
-
             response = self.batch_create_records(base, table, data, key_fields, typecast)
         elif upload_method == "upsert":
             response = self.batch_upsert_records(base, table, data, key_fields, typecast)
@@ -164,7 +166,7 @@ class AirtableClient(Spreadsheets):
 
     def batch_create_records(
             self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
-    ) -> None:
+    ) -> dict:
         """
         Create records in Airtable.
 
@@ -174,6 +176,9 @@ class AirtableClient(Spreadsheets):
             data (list): The list of records to create.
             key_fields (list): The list of fields to use as keys.
             typecast (bool, optional): Whether to typecast the data. Defaults to True.
+
+        Returns:
+            dict: The response from the API.
         """
         logger.debug("Inserting data to Airtable...")
         try:
@@ -187,7 +192,7 @@ class AirtableClient(Spreadsheets):
 
     def batch_upsert_records(
             self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
-    ) -> None:
+    ) -> dict:
         """
         Upsert data to Airtable.
 
@@ -198,6 +203,8 @@ class AirtableClient(Spreadsheets):
             key_fields (list): The list of fields to use as keys.
             typecast (bool, optional): Whether to typecast the data. Defaults to True.
 
+        Returns:
+            dict: The response from the API.
         """
 
         logger.debug("Upserting data to Airtable...")
@@ -210,13 +217,16 @@ class AirtableClient(Spreadsheets):
             logger.debug("Data uploaded successfully")
             return response
 
-    def clear_table(self, base: str, table: str) -> None:
+    def clear_table(self, base: str, table: str) -> dict:
         """
         Delete all records from a table.
 
         Args:
             base (str): The base ID.
             table (str): The table name.
+
+        Returns:
+            dict: The response from the API.
         """
         logger.debug("Clearing table...")
         try:
