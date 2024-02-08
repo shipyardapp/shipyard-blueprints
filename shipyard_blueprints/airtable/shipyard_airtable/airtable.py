@@ -150,13 +150,13 @@ class AirtableClient(Spreadsheets):
             return records
 
     def upload(
-            self,
-            upload_method: str,
-            base: str,
-            table: str,
-            data: list,
-            key_fields: list = None,
-            typecast: bool = True,
+        self,
+        upload_method: str,
+        base: str,
+        table: str,
+        data: list,
+        key_fields: list = None,
+        typecast: bool = True,
     ) -> dict:
         """
         Upload data to Airtable.
@@ -188,7 +188,7 @@ class AirtableClient(Spreadsheets):
         return response
 
     def batch_create_records(
-            self, base: str, table: str, data: list, typecast: bool = True
+        self, base: str, table: str, data: list, typecast: bool = True
     ) -> dict:
         """
         Create records in Airtable.
@@ -213,7 +213,7 @@ class AirtableClient(Spreadsheets):
             return response
 
     def batch_upsert_records(
-            self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
+        self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
     ) -> dict:
         """
         Upsert data to Airtable.
