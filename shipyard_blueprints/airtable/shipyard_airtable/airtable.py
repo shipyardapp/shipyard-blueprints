@@ -267,11 +267,13 @@ class AirtableClient(Spreadsheets):
             return response
 
 
-if __name__ == '__main__':
-    client = AirtableClient('pate1LYAQSheKY7e8.170aeede5d7f17659ad4a27f8c59bfd6951ea3d0252a5d90cd4e5b3667edfa6e')
+if __name__ == "__main__":
+    client = AirtableClient(
+        "pate1LYAQSheKY7e8.170aeede5d7f17659ad4a27f8c59bfd6951ea3d0252a5d90cd4e5b3667edfa6e"
+    )
     try:
         # print(client.fetch('app0imdWRWOFTiPP', 'tbl8KdXxlaZWy6BpL'))
-        print(client.fetch('appgpvHcv9wqbPZie', 'Table 1'))
+        print(client.fetch("appgpvHcv9wqbPZie", "Table 1"))
     except ExitCodeException as e:
         print(e.exit_code)
         print(e.message)
