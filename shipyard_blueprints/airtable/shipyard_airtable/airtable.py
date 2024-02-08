@@ -89,6 +89,8 @@ class AirtableClient(Spreadsheets):
                     error_details.get("message", "An unexpected error occurred."),
                     self.EXIT_CODE_UNKNOWN_ERROR,
                 )
+        except ExitCodeException:
+            raise
         except Exception:
             raise ExitCodeException(
                 f"Error encountered while parsing details returned by Airtable."
