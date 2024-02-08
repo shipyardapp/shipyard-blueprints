@@ -28,57 +28,73 @@ class AirtableClient(Spreadsheets):
         logger.debug(
             f"Airtable Server Status Code: {error.response.status_code} \n Server Reason: {error.response.reason}"
         )
-        response_details = error.response.json()
-        error_details = response_details.get("error", {})
 
-        if error.response.status_code == 401:
+        try:
+            response_details = error.response.json()
+
+            error_details = response_details.get("error", {})
+            if isinstance(error_details, str):
+                error_details = {"type": error_details}
+
+            if error.response.status_code == 401:
+                raise ExitCodeException(
+                    error_details.get(
+                        "message",
+                        "The API key provided is incorrect."
+                        "Please double-check for extra spaces or invalid characters.",
+                    ),
+                    self.EXIT_CODE_INVALID_CREDENTIALS,
+                )
+            elif error.response.status_code == 403:
+                raise ExitCodeException(
+                    error_details.get(
+                        "message",
+                        "The provided key does not have access to the requested resource."
+                        "Please check the scope permissions of the API key.",
+                    ),
+                    self.EXIT_CODE_INVALID_CREDENTIALS,
+                )
+            elif error_details.get("type") == "TABLE_NOT_FOUND":
+                raise ExitCodeException(
+                    error_details.get("message", "The requested table was not found."),
+                    self.EXIT_CODE_INVALID_TABLE,
+                )
+            elif error_details.get("type") == "VIEW_NAME_NOT_FOUND":
+                raise ExitCodeException(
+                    error_details.get("message", "The requested view was not found."),
+                    self.EXIT_CODE_INVALID_VIEW,
+                )
+            elif error_details.get("type") == "UNKNOWN_FIELD_NAME":
+                raise ExitCodeException(
+                    error_details.get("message", "Unknown field name."),
+                    self.EXIT_CODE_BAD_REQUEST,
+                )
+            elif error.response.status_code == 404:
+                raise ExitCodeException(
+                    error_details.get(
+                        "message",
+                        "The requested resource was not found. Please verify the base,table, and view IDs.",
+                    ),
+                    self.EXIT_CODE_RESOURCE_NOT_FOUND,
+                )
+            elif error.response.status_code == 429:
+                raise ExitCodeException(
+                    error_details.get(
+                        "message", "The rate limit for the API key has been exceeded."
+                    ),
+                    self.EXIT_CODE_RATE_LIMIT,
+                )
+            else:
+                raise ExitCodeException(
+                    error_details.get("message", "An unexpected error occurred."),
+                    self.EXIT_CODE_UNKNOWN_ERROR,
+                )
+        except Exception:
             raise ExitCodeException(
-                error_details.get(
-                    "message",
-                    "The API key provided is incorrect."
-                    "Please double-check for extra spaces or invalid characters.",
-                ),
-                self.EXIT_CODE_INVALID_CREDENTIALS,
-            )
-        elif error.response.status_code == 403:
-            raise ExitCodeException(
-                error_details.get(
-                    "message",
-                    "The provided key does not have access to the requested resource."
-                    "Please check the scope permissions of the API key.",
-                ),
-                self.EXIT_CODE_INVALID_CREDENTIALS,
-            )
-        elif error_details.get("type") == "TABLE_NOT_FOUND":
-            raise ExitCodeException(
-                error_details.get("message", "The requested table was not found."),
-                self.EXIT_CODE_INVALID_TABLE,
-            )
-        elif error_details.get("type") == "VIEW_NAME_NOT_FOUND":
-            raise ExitCodeException(
-                error_details.get("message", "The requested view was not found."),
-                self.EXIT_CODE_INVALID_VIEW,
-            )
-        elif error_details.get("type") == "UNKNOWN_FIELD_NAME":
-            raise ExitCodeException(
-                error_details.get("message", "Unknown field name."),
-                self.EXIT_CODE_BAD_REQUEST,
-            )
-        elif error.response.status_code == 404:
-            raise ExitCodeException(
-                error_details.get("message", "The requested resource was not found."),
-                self.EXIT_CODE_RESOURCE_NOT_FOUND,
-            )
-        elif error.response.status_code == 429:
-            raise ExitCodeException(
-                error_details.get(
-                    "message", "The rate limit for the API key has been exceeded."
-                ),
-                self.EXIT_CODE_RATE_LIMIT,
-            )
-        else:
-            raise ExitCodeException(
-                error_details.get("message", "An unexpected error occurred."),
+                f"Error encountered while parsing details returned by Airtable."
+                f"For additional insights, consider executing with the parameter 'LOG_LEVEL' set to 'DEBUG'. "
+                f"Should the problem persist, please reach out to our support team for further help\n"
+                f"Airtable Server Response: {error.response.status_code} {error.response.reason}",
                 self.EXIT_CODE_UNKNOWN_ERROR,
             )
 
