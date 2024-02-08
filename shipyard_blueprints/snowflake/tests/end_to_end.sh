@@ -311,5 +311,33 @@ if [ "$1" = 'fe1' ]; then
 
 fi
 
+if [ "$1" = 'fe2' ]; then 
+    echo "Fetching query results"
+    python3 ./shipyard_snowflake/cli/fetch.py --username $SNOWFLAKE_USERNAME \
+    --password $SNOWFLAKE_PASSWORD \
+    --account $SNOWFLAKE_ACCOUNT \
+    --schema $SNOWFLAKE_SCHEMA \
+    --database $SNOWFLAKE_DATABASE \
+    --warehouse $SNOWFLAKE_WAREHOUSE \
+    --query "SELECT * FROM RAW_SOCCERRANKINGS" \
+    --destination-file-name "output.csv" \
+    --destination-folder-name "new_folder"
+fi
+
+
+if [ "$1" = 'fe3' ]; then 
+    echo "Fetching query results"
+    python3 ./shipyard_snowflake/cli/fetch.py --username $SNOWFLAKE_USERNAME \
+    --password $SNOWFLAKE_PASSWORD \
+    --account $SNOWFLAKE_ACCOUNT \
+    --schema $SNOWFLAKE_SCHEMA \
+    --database $SNOWFLAKE_DATABASE \
+    --warehouse $SNOWFLAKE_WAREHOUSE \
+    --query "SELECT * FROM RAW_SOCCERRANKINGS" \
+    --destination-file-name "output.csv" \
+    --destination-folder-name "test_folder"
+fi
+
+
 
 
