@@ -150,13 +150,13 @@ class AirtableClient(Spreadsheets):
             return records
 
     def upload(
-        self,
-        upload_method: str,
-        base: str,
-        table: str,
-        data: list,
-        key_fields: list = None,
-        typecast: bool = True,
+            self,
+            upload_method: str,
+            base: str,
+            table: str,
+            data: list,
+            key_fields: list = None,
+            typecast: bool = True,
     ) -> dict:
         """
         Upload data to Airtable.
@@ -188,7 +188,7 @@ class AirtableClient(Spreadsheets):
         return response
 
     def batch_create_records(
-        self, base: str, table: str, data: list, typecast: bool = True
+            self, base: str, table: str, data: list, typecast: bool = True
     ) -> dict:
         """
         Create records in Airtable.
@@ -213,7 +213,7 @@ class AirtableClient(Spreadsheets):
             return response
 
     def batch_upsert_records(
-        self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
+            self, base: str, table: str, data: list, key_fields: list, typecast: bool = True
     ) -> dict:
         """
         Upsert data to Airtable.
@@ -265,15 +265,3 @@ class AirtableClient(Spreadsheets):
         else:
             logger.debug("Table cleared successfully")
             return response
-
-
-if __name__ == "__main__":
-    client = AirtableClient(
-        "pate1LYAQSheKY7e8.170aeede5d7f17659ad4a27f8c59bfd6951ea3d0252a5d90cd4e5b3667edfa6e"
-    )
-    try:
-        # print(client.fetch('app0imdWRWOFTiPP', 'tbl8KdXxlaZWy6BpL'))
-        print(client.fetch("appgpvHcv9wqbPZie", "Table 1"))
-    except ExitCodeException as e:
-        print(e.exit_code)
-        print(e.message)
