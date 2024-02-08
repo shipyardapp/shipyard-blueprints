@@ -63,8 +63,7 @@ def main():
         destination_folder_name = shipyard.files.clean_folder_name(
             args.destination_folder_name
         )
-        if not os.path.exists(destination_folder_name):
-            os.mkdir(destination_folder_name)
+        shipyard.files.create_folder_if_dne(destination_folder_name)
         destination_full_path = shipyard.files.combine_folder_and_file_name(
             folder_name=destination_folder_name, file_name=destination_file_name
         )
