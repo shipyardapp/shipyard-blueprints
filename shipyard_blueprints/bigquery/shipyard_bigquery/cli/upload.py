@@ -60,10 +60,18 @@ def main():
         schema = None if args.schema == "" else ast.literal_eval(args.schema)
         quoted_newline = shipyard.args.convert_to_boolean(args.quoted_newline)
 
-        skip_header_rows = args.skip_header_rows
+        skip_header_rows = (
+            None if args.skip_header_rows == "" else args.skip_header_rows
+        )
 
         if skip_header_rows:
             skip_header_rows = int(args.skip_header_rows)
+
+        if schema and not skip_header_rows:
+            logger.warning(
+                f"Skip Header Rows was not provided but a schema was defined. Setting the Skip Header Rows to 1 to properly load"
+            )
+            skip_header_rows = 1
 
         client = BigQueryClient(args.service_account)
         client.connect()

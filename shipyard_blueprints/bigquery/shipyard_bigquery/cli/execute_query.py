@@ -20,6 +20,7 @@ def main():
         query = args.query
         logger.debug(f"Query is {query}")
         client = BigQueryClient(args.service_account)
+        client.connect()
         logger.debug(f"Service account email is {client.email}")
         client.execute_query(query)
     except ExitCodeException as ec:

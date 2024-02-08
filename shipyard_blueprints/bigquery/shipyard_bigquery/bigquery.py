@@ -81,7 +81,7 @@ class BigQueryClient(GoogleDatabase):
         dataset: str,
         table: str,
         upload_type: str,
-        skip_header_rows: int,
+        skip_header_rows: Optional[int] = None,
         schema: Optional[Union[List[List], Dict[str, str]]] = None,
         quoted_newline: bool = False,
     ):
@@ -112,6 +112,7 @@ class BigQueryClient(GoogleDatabase):
             # TODO: during validation, identify which datatype is bad
             # if not utils.validate_data_types(schema):
             #     raise InvalidSchema("Schema type provided is invalid")
+            logger.debug(f"Schema is {schema}")
             job_config.autodetect = False
             job_config.schema = self._format_schema(schema)
         if quoted_newline:
@@ -128,10 +129,12 @@ class BigQueryClient(GoogleDatabase):
         formatted_schema = []
         if isinstance(schema, list):
             # handle the case where it is a list
+            logger.debug("Inputted schema was a list, formatting appropriately")
             for item in schema:
                 formatted_schema.append(bigquery.SchemaField(item[0], item[1]))
         elif isinstance(schema, Dict):
             # handle the case where it is a JSON representation
+            logger.debug("Inputted schema was JSON, formatting appropriately")
             for k, v in schema.items():
                 formatted_schema.append(bigquery.SchemaField(k, v))
         else:
@@ -140,4 +143,5 @@ class BigQueryClient(GoogleDatabase):
                 self.EXIT_CODE_INVALID_SCHEMA,
             )
 
+        logger.debug(f"Formatted schema is {formatted_schema}")
         return formatted_schema

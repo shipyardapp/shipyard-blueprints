@@ -6,7 +6,6 @@ def validate_data_types(data_types: Dict[str, str]) -> bool:
         "STRING",
         "BYTES",
         "INT64",
-        "INTEGER",
         "FLOAT64",
         "BOOLEAN",
         "TIMESTAMP",
@@ -17,7 +16,8 @@ def validate_data_types(data_types: Dict[str, str]) -> bool:
         "JSON",
         "INTERVAL",
         "NUMERIC",
-        "BIGNUMERIC" "STRUCT",
+        "BIGNUMERIC",
+        "STRUCT",
         "TIME",
     }
     """ Helper function to validate whether the provided data types are real BigQuery data types
