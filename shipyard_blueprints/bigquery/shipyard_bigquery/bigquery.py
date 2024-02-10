@@ -124,19 +124,20 @@ class BigQueryClient(GoogleDatabase):
         job.result()
 
     def _format_schema(
-        self, schema: Union[List[List[str]], Dict[str, str]]
+        self, schema: Union[List[List[str]], Dict[str, List[str]]]
     ) -> List[bigquery.SchemaField]:
         formatted_schema = []
         if isinstance(schema, list):
             # handle the case where it is a list
             logger.debug("Inputted schema was a list, formatting appropriately")
             for item in schema:
-                formatted_schema.append(bigquery.SchemaField(item[0], item[1]))
+                # formatted_schema.append(bigquery.SchemaField(item[0], item[1]))
+                formatted_schema.append(*item)
         elif isinstance(schema, Dict):
             # handle the case where it is a JSON representation
             logger.debug("Inputted schema was JSON, formatting appropriately")
             for k, v in schema.items():
-                formatted_schema.append(bigquery.SchemaField(k, v))
+                formatted_schema.append(bigquery.SchemaField(k, *v))
         else:
             raise InvalidSchema(
                 "The type of schema provided is unsupported. Provide a List of Lists or a JSON representation",

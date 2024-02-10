@@ -86,7 +86,7 @@ def main():
                 f"{len(matching_file_names)} files found. Preparing to upload..."
             )
 
-            for index, file_name in enumerate(matching_file_names):
+            for index, file_name in enumerate(matching_file_names, start=1):
                 logger.info(f"Uploading file {index} of {len(matching_file_names)}")
                 client.upload(
                     file=file_name,
