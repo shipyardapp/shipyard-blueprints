@@ -34,3 +34,17 @@ class QueryError(ExitCodeException):
         super().__init__(message, exit_code)
         self.message = message
         self.exit_code = exit_code
+
+
+class DownloadToGcsError(ExitCodeException):
+    def __init__(self, message: str, exit_code: int):
+        super().__init__(message, exit_code)
+        self.message = message
+        self.exit_code = exit_code
+
+
+class TempTableCreationError(ExitCodeException):
+    def __init__(self, message: str, exit_code: int):
+        super().__init__(message, exit_code)
+        self.message = message
+        self.exit_code = exit_code

@@ -2,6 +2,7 @@ import argparse
 import sys
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_bigquery import BigQueryClient
+from shipyard_bigquery.utils.exceptions import QueryError
 
 logger = ShipyardLogger.get_logger()
 
@@ -23,6 +24,9 @@ def main():
         client.connect()
         logger.debug(f"Service account email is {client.email}")
         client.execute_query(query)
+    except QueryError as qe:
+        logger.error(qe.message)
+        sys.exit(qe.exit_code)
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)

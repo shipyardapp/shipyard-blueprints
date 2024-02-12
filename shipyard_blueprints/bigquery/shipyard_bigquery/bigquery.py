@@ -2,12 +2,18 @@ import json
 import os
 from google.cloud.bigquery.table import RowIterator
 import pandas as pd
-from typing import Optional, Dict, Any, Union, List
+from typing import Optional, Dict, Any, Union, List, Tuple
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from google.api_core.exceptions import NotFound
 from shipyard_templates import GoogleDatabase, ShipyardLogger, ExitCodeException
-from shipyard_bigquery.utils.exceptions import FetchError, InvalidSchema, QueryError
+from shipyard_bigquery.utils.exceptions import (
+    DownloadToGcsError,
+    FetchError,
+    InvalidSchema,
+    QueryError,
+    TempTableCreationError,
+)
 from shipyard_bigquery.utils import utils
 
 logger = ShipyardLogger.get_logger()
@@ -16,6 +22,8 @@ logger = ShipyardLogger.get_logger()
 class BigQueryClient(GoogleDatabase):
     EXIT_CODE_FETCH_ERROR = 101
     EXIT_CODE_QUERY_ERROR = 102
+    EXIT_CODE_DOWNLOAD_TO_GCS_ERROR = 103
+    EXIT_CODE_TEMP_TABLE_CREATION_ERROR = 104
 
     def __init__(self, service_account: str) -> None:
         self.service_account = service_account
@@ -123,9 +131,37 @@ class BigQueryClient(GoogleDatabase):
             )
         job.result()
 
+    def download_to_gcs(self, query: str, bucket_name: str, path: Optional[str] = None):
+        try:
+            project_id, dataset_id, table_id, location = self._create_temp_table(query)
+            dataset_ref = bigquery.DatasetReference(
+                project=project_id, dataset_id=dataset_id
+            )
+            table_ref = dataset_ref.table(table_id)
+            dest_uri = f"gs://{bucket_name}/{path}"
+            self.conn.extract_table(table_ref, dest_uri, location=location).result()
+        except TempTableCreationError as te:
+            raise DownloadToGcsError(
+                f"Error in executing the query and storing in a temp file: {te.message}",
+                te.exit_code,
+            )
+        except Exception as e:
+            raise DownloadToGcsError(
+                f"Error downloading file to GCS: {str(e)}",
+                self.EXIT_CODE_DOWNLOAD_TO_GCS_ERROR,
+            )
+
     def _format_schema(
         self, schema: Union[List[List[str]], Dict[str, List[str]]]
     ) -> List[bigquery.SchemaField]:
+        """Helper function to format the schema appropriately for BigQuery
+
+        Args:
+            schema: The representation inputted as either a list of lists (for backwards compatibility) or preferably JSON
+
+        Returns: The formatted schema
+
+        """
         formatted_schema = []
         if isinstance(schema, list):
             # handle the case where it is a list
@@ -137,7 +173,10 @@ class BigQueryClient(GoogleDatabase):
             # handle the case where it is a JSON representation
             logger.debug("Inputted schema was JSON, formatting appropriately")
             for k, v in schema.items():
-                formatted_schema.append(bigquery.SchemaField(k, *v))
+                if isinstance(v, list):
+                    formatted_schema.append(bigquery.SchemaField(k, *v))
+                else:
+                    formatted_schema.append(bigquery.SchemaField(k, v))
         else:
             raise InvalidSchema(
                 "The type of schema provided is unsupported. Provide a List of Lists or a JSON representation",
@@ -146,3 +185,30 @@ class BigQueryClient(GoogleDatabase):
 
         logger.debug(f"Formatted schema is {formatted_schema}")
         return formatted_schema
+
+    def _create_temp_table(self, query: str):
+        """Helper function to execute a query and store the results in a temporary table
+
+        Args:
+            query: The query to execute
+
+        Returns: The metadata of the temp table
+
+        """
+        try:
+            data = self.conn.query(query)
+            data.result()
+            temp_table_ids = data._properties["configuration"]["query"][
+                "destinationTable"
+            ]
+            location = data._properties["jobReference"]["location"]
+            project_id = temp_table_ids.get("projectId")
+            dataset_id = temp_table_ids.get("datasetId")
+            table_id = temp_table_ids.get("tableId")
+        except Exception as e:
+            raise TempTableCreationError(
+                f"Error in storing query results in temp table: {str(e)}",
+                self.EXIT_CODE_TEMP_TABLE_CREATION_ERROR,
+            )
+        else:
+            return project_id, dataset_id, table_id, location

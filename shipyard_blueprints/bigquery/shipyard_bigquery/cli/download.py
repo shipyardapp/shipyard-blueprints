@@ -1,13 +1,8 @@
 import os
-import json
-import tempfile
 import argparse
 import sys
 import shipyard_bp_utils as shipyard
 
-from google.cloud import bigquery
-from google.oauth2 import service_account
-from google.api_core.exceptions import NotFound
 
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_bigquery import BigQueryClient
@@ -39,21 +34,21 @@ def get_args():
 def main():
     try:
         args = get_args()
-        target_file = args.destination_file_name
-        target_folder = args.destination_folder_name
-        target_path = shipyard.files.combine_folder_and_file_name(
-            folder_name=target_folder, file_name=target_file
+        target_folder = (
+            args.destination_folder_name if args.destination_folder_name != "" else None
         )
-        query = args.query
+        if target_folder:
+            shipyard.files.create_folder_if_dne(target_folder)
 
-        if not os.path.exists(target_folder) and (target_folder != ""):
-            os.makedirs(target_folder)
-
+            target_path = shipyard.files.combine_folder_and_file_name(
+                folder_name=target_folder, file_name=args.destination_file_name
+            )
+        else:
+            target_path = os.path.join(os.getcwd(), args.destination_file_name)
         client = BigQueryClient(args.service_account)
         client.connect()
-
-        logger.debug(f"Query is {query}")
-        df = client.fetch(query)
+        logger.debug(f"Query is {args.query}")
+        df = client.fetch(args.query)
         logger.debug(f"Shape of the data is {df.shape}")
         df.to_csv(target_path, index=False)
     except ExitCodeException as ec:

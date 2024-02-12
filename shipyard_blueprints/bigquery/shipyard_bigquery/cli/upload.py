@@ -6,6 +6,7 @@ import sys
 
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_bigquery import BigQueryClient
+from shipyard_bigquery.utils.exceptions import InvalidSchema
 import shipyard_bp_utils as shipyard
 
 logger = ShipyardLogger.get_logger()
@@ -97,6 +98,7 @@ def main():
                     schema=schema,
                     quoted_newline=quoted_newline,
                 )
+                upload_type = "append"
         else:
             client.upload(
                 file=full_path,
@@ -111,6 +113,9 @@ def main():
     except FileNotFoundError as fe:
         logger.error(str(fe))
         sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
+    except InvalidSchema as ie:
+        logger.error(ie.message)
+        sys.exit(ie.exit_code)
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)

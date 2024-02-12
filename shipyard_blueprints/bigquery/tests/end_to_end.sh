@@ -63,7 +63,7 @@ if [ "$1" = 'up6' ]; then
         --table $TABLE \
         --upload-type "overwrite" \
         --source-file-name $SINGLE_FILE \
-        --schema '[["string_col", "string"], ["char_col", "string"], ["int_col", "INT64"], ["float_col", "FLOAT64"], ["bool_col","bool"], ["date_col", "date"], ["datetime_col", "datetime"]]'
+        --schema '{"string_col": "String", "char_col": "string", "int_col": "Int64", "float_col": "Float64", "bool_col": "Bool", "date_col": "Date", "datetime_col": "Datetime"}'
 fi
 
 if [ "$1" = 'up7' ]; then 
@@ -74,10 +74,18 @@ if [ "$1" = 'up7' ]; then
         --upload-type "overwrite" \
         --source-file-name-match-type "regex_match" \
         --source-file-name "csv" 
-
-
 fi
 
+if [ "$1" = 'up8' ]; then 
+    echo "Beginning upload of multiple files to append a dataset"
+    python3 ./shipyard_bigquery/cli/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+        --dataset $DATASET \
+        --table $TABLE_MULTIPLE \
+        --upload-type "append" \
+        --source-file-name-match-type "regex_match" \
+        --source-file-name "csv" \
+        --source-folder-name "test_folder"
+fi
 
 
 # execute query tests
