@@ -47,6 +47,7 @@ def main():
             target_path = os.path.join(os.getcwd(), args.destination_file_name)
         client = BigQueryClient(args.service_account)
         client.connect()
+        logger.info("Successfully connected to BigQuery")
         logger.debug(f"Query is {args.query}")
         df = client.fetch(args.query)
         logger.debug(f"Shape of the data is {df.shape}")

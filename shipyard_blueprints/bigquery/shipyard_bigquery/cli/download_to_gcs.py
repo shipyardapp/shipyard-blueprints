@@ -45,7 +45,7 @@ def main():
         logger.info("Successfully connected to BigQuery")
         logger.debug(f"Service account email is {client.email}")
 
-        logger.info("Beginning job to sotre query results in GCS")
+        logger.info("Beginning job to store query results in GCS")
         client.download_to_gcs(
             query=args.query, bucket_name=args.bucket_name, path=destination_full_path
         )

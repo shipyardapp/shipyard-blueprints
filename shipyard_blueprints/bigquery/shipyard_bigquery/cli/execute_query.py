@@ -22,6 +22,7 @@ def main():
         logger.debug(f"Query is {query}")
         client = BigQueryClient(args.service_account)
         client.connect()
+        logger.info("Successfully connected to BigQuery")
         logger.debug(f"Service account email is {client.email}")
         client.execute_query(query)
     except QueryError as qe:
