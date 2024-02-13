@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-slack"
-version = "0.1.0a1"
+version = "0.1.0a5"
 description = "A local client for connecting and working with Slack"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
@@ -9,12 +9,12 @@ packages = [{include = "shipyard_slack"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-slackclient = "2.9.3"
-shipyard-templates = "^0.4.4"
 
-[tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = {path = "../shipyard-bp-utils"}
-#shipyard-templates = {path = "../../shipyard-templates"}
+
+slack-sdk = "^3.26.2"
+python-dotenv = "^1.0.1"
+shipyard-bp-utils = "^1.0.2a0"
+shipyard-templates = "^0.6.2a0"
 
 [build-system]
 requires = ["poetry-core"]
