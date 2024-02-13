@@ -168,7 +168,7 @@ class BigQueryClient(GoogleDatabase):
             logger.debug("Inputted schema was a list, formatting appropriately")
             for item in schema:
                 # formatted_schema.append(bigquery.SchemaField(item[0], item[1]))
-                formatted_schema.append(*item)
+                formatted_schema.append(bigquery.SchemaField(*item))
         elif isinstance(schema, Dict):
             # handle the case where it is a JSON representation
             logger.debug("Inputted schema was JSON, formatting appropriately")
