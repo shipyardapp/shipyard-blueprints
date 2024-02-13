@@ -93,6 +93,9 @@ def main():
         logger.error(f"An error occurred: {e}")
         sys.exit(Messaging.EXIT_CODE_UNKNOWN_ERROR)
 
+    else:
+        logger.info("Message(s) sent successfully.")
+
 
 if __name__ == "__main__":
     main()

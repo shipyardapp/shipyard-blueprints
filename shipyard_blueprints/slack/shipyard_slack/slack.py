@@ -1,21 +1,43 @@
+from typing import Any, Optional, Dict
 from slack_sdk import WebClient
+from slack_sdk.web import SlackResponse
 from slack_sdk.errors import SlackApiError
-from shipyard_templates import Messaging, ShipyardLogger, ExitCodeException
 from shipyard_slack.slack_utils import _create_blocks
+from shipyard_templates import Messaging, ShipyardLogger, ExitCodeException
 
 logger = ShipyardLogger().get_logger()
 
 
 class SlackClient(Messaging):
+    """
+    A client for interacting with Slack using the Slack SDK, providing functionalities such as sending messages,
+    looking up users, updating messages, and uploading files to Slack channels.
+    """
+
     TIMEOUT = 120
     EXIT_CODE_USER_NOT_FOUND = 100
     EXIT_CODE_CONDITIONAL_SEND_NOT_MET = 101
 
     def __init__(self, slack_token: str) -> None:
+        """
+        Initializes the SlackClient with a Slack token.
+
+        Args:
+            slack_token (str): The token used for authenticating with the Slack API.
+        """
         self.slack_token = slack_token
         self.web_client = WebClient(token=self.slack_token, timeout=self.TIMEOUT)
 
-    def _handle_slack_error(self, slack_error: SlackApiError):
+    def _handle_slack_error(self, slack_error: SlackApiError) -> None:
+        """
+        Handles errors returned by the Slack API.
+
+        Args:
+            slack_error (SlackApiError): The error raised by a Slack API call.
+
+        Raises:
+            ExitCodeException: Custom exception with an error message and an exit code.
+        """
         error_type = slack_error.response.get("error")
 
         if error_type == "invalid_auth":
@@ -33,7 +55,13 @@ class SlackClient(Messaging):
                 self.EXIT_CODE_UNKNOWN_ERROR,
             )
 
-    def connect(self):
+    def connect(self) -> int:
+        """
+        Tests the connection to Slack using the provided token.
+
+        Returns:
+            int: Returns 0 if connection is successful, 1 otherwise.
+        """
         try:
             self.web_client.auth_test()
             logger.authtest("Successfully connected to Slack")
@@ -48,11 +76,19 @@ class SlackClient(Messaging):
         else:
             return 0
 
-    def send_message(self, message: str, channel_name: str, download_link: str = ""):
+    def send_message(
+        self, message: str, channel_name: str, download_link: str = ""
+    ) -> SlackResponse:
         """
-        Send a Slack message to the channel of your choice.
-        Channel should be provided without a #
-        Blocks will contain the main message, with text serving as a backup.
+        Sends a message to a specified Slack channel.
+
+        Args:
+        message (str): The message content to send.
+        channel_name (str): The name of the channel to send the message to.
+        download_link (str, optional): A URL for a downloadable resource to include in the message, if any.
+
+        Returns:
+        SlackResponse: The response from the Slack API after sending the message.
         """
         logger.debug("Attempting to send message to Slack...")
         message_response = self.web_client.chat_postMessage(
@@ -66,9 +102,19 @@ class SlackClient(Messaging):
         )
         return message_response
 
-    def user_lookup(self, lookup, lookup_method):
+    def user_lookup(self, lookup: str, lookup_method: str) -> Optional[Dict]:
         """
-        Look up a user's Slack ID, using a provided search value and a lookup method.
+        Looks up a user's Slack ID using a provided search value and method.
+
+        Args:
+        lookup (str): The search value to look up the user by.
+        lookup_method (str): The method to use for the lookup ('email', 'real_name', or 'display_name').
+
+        Returns:
+        Optional[Dict]: The user's details if found, None otherwise.
+
+        Raises:
+        ExitCodeException: If the lookup method is invalid.
         """
         if lookup_method not in {"email", "real_name", "display_name"}:
             raise ExitCodeException(
@@ -87,7 +133,19 @@ class SlackClient(Messaging):
             user_details = self.search_user_by_display_name(lookup)
         return user_details
 
-    def search_user_by_email(self, email_address):
+    def search_user_by_email(self, email_address: str) -> Optional[Dict]:
+        """
+        Looks up a user by their email address.
+
+        Args:
+            email_address (str): The email address of the user to look up.
+
+        Returns:
+            Optional[Dict]: The user's details if found, None otherwise.
+
+        Raises:
+            ExitCodeException: If the Slack API call fails.
+        """
         logger.debug(f"Attempting to look up user {email_address} by email...")
         try:
             response = self.web_client.users_lookupByEmail(email=email_address)
@@ -96,7 +154,19 @@ class SlackClient(Messaging):
         except SlackApiError as e:
             self._handle_slack_error(e)
 
-    def search_user_by_name(self, name):
+    def search_user_by_name(self, name: str) -> Optional[Dict]:
+        """
+        Looks up a user by their real name.
+
+        Args:
+            name (str): The real name of the user to look up.
+
+        Returns:
+            Optional[Dict]: The user's details if found, None otherwise.
+
+        Raises:
+            ExitCodeException: If the Slack API call fails.
+        """
         logger.debug(f"Attempting to look up user {name} by real name...")
         try:
             response = self.web_client.users_list()
@@ -110,7 +180,19 @@ class SlackClient(Messaging):
         except SlackApiError as e:
             self._handle_slack_error(e)
 
-    def search_user_by_display_name(self, display_name):
+    def search_user_by_display_name(self, display_name: str) -> Optional[Dict]:
+        """
+        Looks up a user by their display name.
+
+        Args:
+            display_name (str): The display name of the user to look up.
+
+        Returns:
+            Optional[Dict]: The user's details if found, None otherwise.
+
+        Raises:
+            ExitCodeException: If the Slack API call fails.
+        """
         logger.debug("Attempting to look up user by display name...")
         try:
             response = self.web_client.users_list()
@@ -127,7 +209,21 @@ class SlackClient(Messaging):
         except SlackApiError as e:
             self._handle_slack_error(e)
 
-    def update_message(self, message, channel_id, timestamp, download_link=""):
+    def update_message(
+        self, message: str, channel_id: str, timestamp: str, download_link: str = ""
+    ) -> SlackResponse:
+        """
+        Updates a previously sent Slack message.
+
+        Args:
+            message (str): The new message content to update.
+            channel_id (str): The channel ID where the message was originally sent.
+            timestamp (str): The timestamp of the original message to be updated.
+            download_link (str, optional): A URL for a downloadable resource to include in the updated message, if any.
+
+        Returns:
+        SlackResponse: The response from the Slack API after updating the message.
+        """
         logger.debug("Attempting to update message in Slack...")
         try:
             self.web_client.chat_update(
@@ -145,7 +241,20 @@ class SlackClient(Messaging):
         except SlackApiError as e:
             self._handle_slack_error(e)
 
-    def upload_file(self, filename, channels, thread_ts=None):
+    def upload_file(
+        self, filename: str, channels: str, thread_ts: Optional[str] = None
+    ) -> SlackResponse:
+        """
+        Uploads a file to a Slack channel, optionally in a thread.
+
+        Args:
+            filename (str): The path to the file to upload.
+            channels (str): The channel IDs where the file should be uploaded, separated by commas.
+            thread_ts (Optional[str]): The thread timestamp to upload the file into, if any.
+
+        Returns:
+        SlackResponse: The response from the Slack API after uploading the file.
+        """
         logger.debug(f"Attempting to upload file {filename} to Slack...")
         try:
             if thread_ts:
