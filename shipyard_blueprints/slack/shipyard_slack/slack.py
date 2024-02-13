@@ -50,7 +50,7 @@ class SlackClient(Messaging):
             logger.error("Bot not in channel")
             raise ExitCodeException(
                 "The Slack App does not have access to the channel. Add the App to the channel and try again",
-                self.EXIT_CODE_APP_NOT_IN_CHANNEL
+                self.EXIT_CODE_APP_NOT_IN_CHANNEL,
             )
         elif error_type == "ratelimited":
             logger.error("Rate limited by Slack")
