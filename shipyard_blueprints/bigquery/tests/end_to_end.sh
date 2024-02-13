@@ -7,7 +7,7 @@ TABLE_DTS="end_to_end_dts" # data types
 
 if [ "$1" = 'up1' ]; then 
     echo "Begininng upload of a single file to replace a table"
-    python3 ./shipyard_bigquery/cli/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --dataset $DATASET \
         --table $TABLE \
         --upload-type "overwrite" \
@@ -16,7 +16,7 @@ fi
 
 if [ "$1" = 'up2' ]; then 
     echo "Begininng upload of single file within folder to replace"
-    python3 ./shipyard_bigquery/cli/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --dataset $DATASET \
         --table $TABLE \
         --upload-type "overwrite" \
@@ -27,7 +27,7 @@ fi
 
 if [ "$1" = 'up3' ]; then 
     echo "Begininng upload of single file within folder to append"
-    python3 ./shipyard_bigquery/cli/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --dataset $DATASET \
         --table $TABLE \
         --upload-type "append" \
@@ -37,7 +37,7 @@ fi
 
 if [ "$1" = 'up4' ]; then 
     echo "Begininng upload of single file to append"
-    python3 ./shipyard_bigquery/cli/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --dataset $DATASET \
         --table $TABLE \
         --upload-type "append" \
@@ -48,7 +48,7 @@ fi
 # begin testing data types
 if [ "$1" = 'up5' ]; then 
     echo "Beginning upload of a single file with datatypes"
-    python3 ./shipyard_bigquery/cli/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --dataset $DATASET \
         --table $TABLE \
         --upload-type "overwrite" \
@@ -58,7 +58,7 @@ fi
 
 if [ "$1" = 'up6' ]; then 
     echo "Beginning upload of a single file with datatypes"
-    python3 ./shipyard_bigquery/cli/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --dataset $DATASET \
         --table $TABLE \
         --upload-type "overwrite" \
@@ -68,7 +68,7 @@ fi
 
 if [ "$1" = 'up7' ]; then 
     echo "Beginning upload of multiple files to repalce a dataset"
-    python3 ./shipyard_bigquery/cli/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --dataset $DATASET \
         --table $TABLE_MULTIPLE \
         --upload-type "overwrite" \
@@ -78,7 +78,7 @@ fi
 
 if [ "$1" = 'up8' ]; then 
     echo "Beginning upload of multiple files to append a dataset"
-    python3 ./shipyard_bigquery/cli/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --dataset $DATASET \
         --table $TABLE_MULTIPLE \
         --upload-type "append" \
@@ -91,13 +91,13 @@ fi
 # execute query tests
 if [ "$1" = 'ex1' ]; then 
     echo "Dropping table $TABLE"
-    python3 ./shipyard_bigquery/cli/execute_query.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/execute_query.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --query "DROP TABLE $DATASET.$TABLE"
 fi
 
 if [ "$1" = 'ex2' ]; then 
     echo "Dropping table $TABLE_MULTIPLE"
-    python3 ./shipyard_bigquery/cli/execute_query.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/execute_query.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --query "DROP TABLE $DATASET.$TABLE_MULTIPLE"
 fi
 
@@ -105,7 +105,7 @@ fi
 # download locally tests
 if [ "$1" = 'fe1' ]; then 
     echo "Downloading query results to folder" 
-    python3 ./shipyard_bigquery/cli/download.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/download.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --query "$QUERY" \
         --destination-folder-name  $FOLDER \
         --destination-file-name "output.csv"
@@ -114,7 +114,7 @@ fi
 
 if [ "$1" = 'fe2' ]; then 
     echo "Downloading query results to a new folder" 
-    python3 ./shipyard_bigquery/cli/download.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+    python3 ./shipyard_bigquery/shipyard/download.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
         --query "$QUERY" \
         --destination-folder-name "new_folder" \
         --destination-file-name "output.csv"
