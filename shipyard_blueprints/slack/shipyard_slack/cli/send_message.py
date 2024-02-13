@@ -80,7 +80,7 @@ def main():
                 message=create_name_tags(user_id_list) + message,
                 channel_name=channel_name,
             )
-            responses.append(response)
+            responses.append(response.data)
 
         artifact.responses.write_json(
             os.getenv("SHIPYARD_BLUEPRINT_NAME", "send_message"), responses
