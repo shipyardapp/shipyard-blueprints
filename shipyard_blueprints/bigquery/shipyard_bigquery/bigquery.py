@@ -1,8 +1,7 @@
 import json
-import os
 from google.cloud.bigquery.table import RowIterator
 import pandas as pd
-from typing import Optional, Dict, Any, Union, List, Tuple
+from typing import Optional, Dict, Any, Union, List
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from google.api_core.exceptions import NotFound
@@ -12,6 +11,7 @@ from shipyard_bigquery.utils.exceptions import (
     FetchError,
     InvalidSchema,
     QueryError,
+    SchemaFormatError,
     TempTableCreationError,
 )
 from shipyard_bigquery.utils import utils
@@ -24,6 +24,7 @@ class BigQueryClient(GoogleDatabase):
     EXIT_CODE_QUERY_ERROR = 102
     EXIT_CODE_DOWNLOAD_TO_GCS_ERROR = 103
     EXIT_CODE_TEMP_TABLE_CREATION_ERROR = 104
+    EXIT_CODE_SCHEMA_FORMATTING_ERROR = 105
 
     def __init__(self, service_account: str) -> None:
         self.service_account = service_account
@@ -103,33 +104,46 @@ class BigQueryClient(GoogleDatabase):
             skip_header_rows: Whether to skip the header row
             quoted_newline: Whether newline characters should be quoted
         """
-        dataset_ref = self.conn.dataset(dataset)
-        table_ref = dataset_ref.table(table)
-        job_config = bigquery.LoadJobConfig()
+        try:
+            dataset_ref = self.conn.dataset(dataset)
+            table_ref = dataset_ref.table(table)
+            job_config = bigquery.LoadJobConfig()
 
-        if upload_type == "overwrite":
-            job_config.write_disposition = bigquery.WriteDisposition.WRITE_TRUNCATE
-        else:
-            job_config.write_disposition = bigquery.WriteDisposition.WRITE_APPEND
-        job_config.source_format = bigquery.SourceFormat.CSV
-        job_config.autodetect = True  # infer the schema
-        if skip_header_rows:
-            job_config.skip_leading_rows = skip_header_rows
-        if schema:
-            # TODO: add validation check for schema type
-            # TODO: during validation, identify which datatype is bad
-            # if not utils.validate_data_types(schema):
-            #     raise InvalidSchema("Schema type provided is invalid")
-            logger.debug(f"Schema is {schema}")
-            job_config.autodetect = False
-            job_config.schema = self._format_schema(schema)
-        if quoted_newline:
-            job_config.allow_quoted_newlines = True
-        with open(file, "rb") as source_file:
-            job = self.conn.load_table_from_file(
-                source_file, table_ref, job_config=job_config
+            if upload_type == "overwrite":
+                job_config.write_disposition = bigquery.WriteDisposition.WRITE_TRUNCATE
+            else:
+                job_config.write_disposition = bigquery.WriteDisposition.WRITE_APPEND
+            job_config.source_format = bigquery.SourceFormat.CSV
+            job_config.autodetect = True  # infer the schema
+            if skip_header_rows:
+                job_config.skip_leading_rows = skip_header_rows
+            if schema:
+                # TODO: add validation check for schema type
+                # TODO: during validation, identify which datatype is bad
+                if not utils.validate_data_types(schema):
+                    raise InvalidSchema(
+                        "Inputted schema contains an invalid data type. Run with LOG_LEVEL set to DEBUG for more information",
+                        self.EXIT_CODE_INVALID_SCHEMA,
+                    )
+                logger.debug(f"Schema is {schema}")
+                job_config.autodetect = False
+                job_config.schema = self._format_schema(schema)
+            if quoted_newline:
+                job_config.allow_quoted_newlines = True
+            with open(file, "rb") as source_file:
+                job = self.conn.load_table_from_file(
+                    source_file, table_ref, job_config=job_config
+                )
+            job.result()
+        except SchemaFormatError:
+            raise
+        except InvalidSchema:
+            raise
+        except Exception as e:
+            raise ExitCodeException(
+                f"An error occurred when attempting to upload to BigQuery: {str(e)}",
+                self.EXIT_CODE_INVALID_UPLOAD_VALUE,
             )
-        job.result()
 
     def download_to_gcs(self, query: str, bucket_name: str, path: Optional[str] = None):
         try:
@@ -163,28 +177,25 @@ class BigQueryClient(GoogleDatabase):
 
         """
         formatted_schema = []
-        if isinstance(schema, list):
-            # handle the case where it is a list
-            logger.debug("Inputted schema was a list, formatting appropriately")
+        try:
             for item in schema:
-                # formatted_schema.append(bigquery.SchemaField(item[0], item[1]))
-                formatted_schema.append(bigquery.SchemaField(*item))
-        elif isinstance(schema, Dict):
-            # handle the case where it is a JSON representation
-            logger.debug("Inputted schema was JSON, formatting appropriately")
-            for k, v in schema.items():
-                if isinstance(v, list):
-                    formatted_schema.append(bigquery.SchemaField(k, *v))
+                if isinstance(item, list):
+                    formatted_schema.append(bigquery.SchemaField(*item))
+                elif isinstance(item, dict):
+                    formatted_schema.append(bigquery.SchemaField.from_api_repr(item))
                 else:
-                    formatted_schema.append(bigquery.SchemaField(k, v))
-        else:
-            raise InvalidSchema(
-                "The type of schema provided is unsupported. Provide a List of Lists or a JSON representation",
-                self.EXIT_CODE_INVALID_SCHEMA,
+                    raise InvalidSchema(
+                        "Format of inputted schema is incorrect, this should preferably be a JSON representation or a List of Lists. For additional information and examples, visit https://cloud.google.com/bigquery/docs/schemas#specifying_a_json_schema_file",
+                        self.EXIT_CODE_INVALID_SCHEMA,
+                    )
+        except Exception as e:
+            raise SchemaFormatError(
+                f"Error in preparing the inputted schema to the approrpriate BigQuery format: {str(e)}",
+                self.EXIT_CODE_SCHEMA_FORMATTING_ERROR,
             )
-
-        logger.debug(f"Formatted schema is {formatted_schema}")
-        return formatted_schema
+        else:
+            logger.debug(f"Formatted schema is {formatted_schema}")
+            return formatted_schema
 
     def _create_temp_table(self, query: str):
         """Helper function to execute a query and store the results in a temporary table

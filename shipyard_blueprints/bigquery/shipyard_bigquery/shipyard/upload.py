@@ -6,7 +6,7 @@ import sys
 
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_bigquery import BigQueryClient
-from shipyard_bigquery.utils.exceptions import InvalidSchema
+from shipyard_bigquery.utils.exceptions import InvalidSchema, SchemaFormatError
 import shipyard_bp_utils as shipyard
 
 logger = ShipyardLogger.get_logger()
@@ -116,6 +116,9 @@ def main():
     except InvalidSchema as ie:
         logger.error(ie.message)
         sys.exit(ie.exit_code)
+    except SchemaFormatError as se:
+        logger.error(se.message)
+        sys.exit(se.exit_code)
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)

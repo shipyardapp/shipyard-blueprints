@@ -48,3 +48,17 @@ class TempTableCreationError(ExitCodeException):
         super().__init__(message, exit_code)
         self.message = message
         self.exit_code = exit_code
+
+
+class SchemaFormatError(ExitCodeException):
+    def __init__(self, message: str, exit_code: int):
+        super().__init__(message, exit_code)
+        self.message = message
+        self.exit_code = exit_code
+
+
+class SchemaValidationError(ExitCodeException):
+    def __init__(self, message: str, exit_code: int):
+        super().__init__(message, exit_code)
+        self.message = message
+        self.exit_code = exit_code

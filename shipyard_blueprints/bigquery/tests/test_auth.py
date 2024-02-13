@@ -26,4 +26,5 @@ def test_bad_connection():
 
 def test_email():
     client = BigQueryClient(service_account=os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-    assert client.email == "shipyard-demos@shipyard-demos.iam.gserviceaccount.com"
+    email = os.getenv("EMAIL")
+    assert client.email == email

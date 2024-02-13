@@ -63,7 +63,9 @@ if [ "$1" = 'up6' ]; then
         --table $TABLE \
         --upload-type "overwrite" \
         --source-file-name $SINGLE_FILE \
-        --schema '{"string_col": "String", "char_col": "string", "int_col": "Int64", "float_col": "Float64", "bool_col": "Bool", "date_col": "Date", "datetime_col": "Datetime"}'
+        --schema '[{"name": "string_col", "type": "string"}, {"name": "char_col", "type": "string"}, {"name": "int_col", "type": "Int64"}, {"name": "float_col", "type": "Float64"}, {"name": "bool_col", "type": "Bool"}, {"name": "date_col", "type": "Date"},{"name": "datetime_col", "type": "Datetime"}]'
+        # --schema '{"string_col": "String", "char_col": "string", "int_col": "Int64", "float_col": "Float64", "bool_col": "Bool", "date_col": "Date", "datetime_col": "Datetime"}'
+
 fi
 
 if [ "$1" = 'up7' ]; then 
@@ -86,6 +88,20 @@ if [ "$1" = 'up8' ]; then
         --source-file-name "csv" \
         --source-folder-name "test_folder"
 fi
+
+if [ "$1" = 'up9' ]; then 
+    echo "Beginning upload of a single file with datatypes with an incorrect schema"
+    python3 ./shipyard_bigquery/shipyard/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+        --dataset $DATASET \
+        --table $TABLE \
+        --upload-type "overwrite" \
+        --source-file-name $SINGLE_FILE \
+        --schema '[{"name": "string_col", "type": "string"}, {"name": "char_col", "type": "char"}, {"name": "int_col", "type": "Int64"}, {"name": "float_col", "type": "Float64"}, {"name": "bool_col", "type": "Bool"}, {"name": "date_col", "type": "Date"},{"name": "datetime_col", "type": "Datetime"}]'
+        # --schema '{"string_col": "String", "char_col": "string", "int_col": "Int64", "float_col": "Float64", "bool_col": "Bool", "date_col": "Date", "datetime_col": "Datetime"}'
+
+fi
+
+
 
 
 # execute query tests
