@@ -17,6 +17,7 @@ class SlackClient(Messaging):
     TIMEOUT = 120
     EXIT_CODE_USER_NOT_FOUND = 100
     EXIT_CODE_CONDITIONAL_SEND_NOT_MET = 101
+    EXIT_CODE_APP_NOT_IN_CHANNEL = 102
 
     def __init__(self, slack_token: str) -> None:
         """
@@ -44,6 +45,12 @@ class SlackClient(Messaging):
             logger.error("Invalid Slack token")
             raise ExitCodeException(
                 "Invalid Slack token", self.EXIT_CODE_INVALID_CREDENTIALS
+            )
+        elif error_type == "not_in_channel":
+            logger.error("Bot not in channel")
+            raise ExitCodeException(
+                "The Slack App does not have access to the channel. Add the App to the channel and try again",
+                self.EXIT_CODE_APP_NOT_IN_CHANNEL
             )
         elif error_type == "ratelimited":
             logger.error("Rate limited by Slack")
