@@ -34,17 +34,11 @@ def get_args():
 def main():
     try:
         args = get_args()
-        target_folder = (
-            args.destination_folder_name if args.destination_folder_name != "" else None
+        target_folder = args.destination_folder_name or os.getcwd()
+        shipyard.files.create_folder_if_dne(target_folder)
+        target_path = shipyard.files.combine_folder_and_file_name(
+            folder_name=target_folder, file_name=args.destination_file_name
         )
-        if target_folder:
-            shipyard.files.create_folder_if_dne(target_folder)
-
-            target_path = shipyard.files.combine_folder_and_file_name(
-                folder_name=target_folder, file_name=args.destination_file_name
-            )
-        else:
-            target_path = os.path.join(os.getcwd(), args.destination_file_name)
         client = BigQueryClient(args.service_account)
         client.connect()
         logger.info("Successfully connected to BigQuery")

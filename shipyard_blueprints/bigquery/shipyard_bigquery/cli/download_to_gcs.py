@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 
 from shipyard_bigquery import BigQueryClient
 from shipyard_bigquery.utils import exceptions
@@ -34,11 +35,9 @@ def main():
     try:
         args = get_args()
         destination_file_name = args.destination_file_name
-        destination_folder_name = (
-            args.destination_folder_name if args.destination_folder_name != "" else None
-        )
-        destination_full_path = shipyard.files.combine_folder_and_file_name(
-            folder_name=destination_folder_name, file_name=destination_file_name
+        target_folder = args.destination_folder_name or os.getcwd()
+        target_path = shipyard.files.combine_folder_and_file_name(
+            folder_name=target_folder, file_name=destination_file_name
         )
         client = BigQueryClient(args.service_account)
         client.connect()
@@ -47,7 +46,7 @@ def main():
 
         logger.info("Beginning job to store query results in GCS")
         client.download_to_gcs(
-            query=args.query, bucket_name=args.bucket_name, path=destination_full_path
+            query=args.query, bucket_name=args.bucket_name, path=target_path
         )
 
     except exceptions.DownloadToGcsError as de:
