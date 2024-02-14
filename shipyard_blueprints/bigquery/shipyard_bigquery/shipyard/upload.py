@@ -112,7 +112,7 @@ def main():
             logger.info(f"Successfully loaded {full_path} to {dataset}.{table}")
     except FileNotFoundError as fe:
         logger.error(str(fe))
-        sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
+        sys.exit(BigQueryClient.EXIT_CODE_FILE_NOT_FOUND)
     except InvalidSchema as ie:
         logger.error(ie.message)
         sys.exit(ie.exit_code)
@@ -124,7 +124,7 @@ def main():
         sys.exit(ec.exit_code)
     except Exception as e:
         logger.error(f"Error in uploading file to BigQuery: {str(e)}")
-        sys.exit(client.EXIT_CODE_INVALID_UPLOAD_VALUE)
+        sys.exit(BigQueryClient.EXIT_CODE_INVALID_UPLOAD_VALUE)
 
 
 if __name__ == "__main__":

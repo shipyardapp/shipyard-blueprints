@@ -59,7 +59,7 @@ def main():
         logger.error(
             f"Error in fetching query results and writing results to {target_path}: {str(e)}"
         )
-        sys.exit(client.EXIT_CODE_NO_RESULTS)
+        sys.exit(BigQueryClient.EXIT_CODE_NO_RESULTS)
 
     else:
         logger.info(f"Successfully wrote query results to {target_path}")

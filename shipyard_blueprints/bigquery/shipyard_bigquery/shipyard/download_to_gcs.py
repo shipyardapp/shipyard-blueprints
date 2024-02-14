@@ -58,7 +58,7 @@ def main():
         sys.exit(ec.exit_code)
     except Exception as e:
         logger.error(f"An error occurred in downloading query results to GCS: {str(e)}")
-        sys.exit(client.EXIT_CODE_NO_RESULTS)
+        sys.exit(BigQueryClient.EXIT_CODE_NO_RESULTS)
     else:
         logger.info("Successfully stored query results in GCS")
 

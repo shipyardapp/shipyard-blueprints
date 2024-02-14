@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-bigquery"
-version = "0.1.1a3"
+version = "0.1.1a4"
 description = "A local client for connecting to and working with Google BigQuery"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"

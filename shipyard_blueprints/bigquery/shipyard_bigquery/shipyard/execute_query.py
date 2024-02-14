@@ -33,7 +33,7 @@ def main():
         sys.exit(ec.exit_code)
     except Exception as e:
         logger.error(f"Error in executing query: {str(e)}")
-        sys.exit(client.EXIT_CODE_QUERY_ERROR)
+        sys.exit(BigQueryClient.EXIT_CODE_QUERY_ERROR)
     else:
         logger.info("Successfully executed query")
 
