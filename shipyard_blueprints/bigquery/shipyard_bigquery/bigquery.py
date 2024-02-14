@@ -1,10 +1,9 @@
 import json
 from google.cloud.bigquery.table import RowIterator
 import pandas as pd
-from typing import Optional, Dict, Any, Union, List
+from typing import Optional, Dict, Union, List
 from google.cloud import bigquery
 from google.oauth2 import service_account
-from google.api_core.exceptions import NotFound
 from shipyard_templates import GoogleDatabase, ShipyardLogger, ExitCodeException
 from shipyard_bigquery.utils.exceptions import (
     DownloadToGcsError,
@@ -12,6 +11,7 @@ from shipyard_bigquery.utils.exceptions import (
     InvalidSchema,
     QueryError,
     SchemaFormatError,
+    SchemaValidationError,
     TempTableCreationError,
 )
 from shipyard_bigquery.utils import utils
@@ -25,6 +25,7 @@ class BigQueryClient(GoogleDatabase):
     EXIT_CODE_DOWNLOAD_TO_GCS_ERROR = 103
     EXIT_CODE_TEMP_TABLE_CREATION_ERROR = 104
     EXIT_CODE_SCHEMA_FORMATTING_ERROR = 105
+    EXIT_CODE_SCHEMA_VALIDATION_ERROR = 106
 
     def __init__(self, service_account: str) -> None:
         self.service_account = service_account
@@ -60,9 +61,7 @@ class BigQueryClient(GoogleDatabase):
             query_job = self.conn.query(query)
             results = query_job.result()
         except Exception as e:
-            raise QueryError(
-                f"Error in executing query: {str(e)}", self.EXIT_CODE_FETCH_ERROR
-            )
+            raise QueryError(f"Error in executing query: {str(e)}")
         else:
             return results
 
@@ -78,9 +77,7 @@ class BigQueryClient(GoogleDatabase):
         try:
             df = self.conn.query(query).to_dataframe()
         except Exception as e:
-            raise FetchError(
-                f"Error in fetching query: {str(e)}", self.EXIT_CODE_FETCH_ERROR
-            )
+            raise FetchError(f"Error in fetching query: {str(e)}")
         else:
             return df
 
@@ -121,9 +118,8 @@ class BigQueryClient(GoogleDatabase):
                 # TODO: add validation check for schema type
                 # TODO: during validation, identify which datatype is bad
                 if not utils.validate_data_types(schema):
-                    raise InvalidSchema(
-                        "Inputted schema contains an invalid data type. Run with LOG_LEVEL set to DEBUG for more information",
-                        self.EXIT_CODE_INVALID_SCHEMA,
+                    raise SchemaValidationError(
+                        "Inputted schema contains an invalid data type. Run with LOG_LEVEL set to DEBUG for more information"
                     )
                 logger.debug(f"Schema is {schema}")
                 job_config.autodetect = False
@@ -135,6 +131,8 @@ class BigQueryClient(GoogleDatabase):
                     source_file, table_ref, job_config=job_config
                 )
             job.result()
+        except SchemaValidationError:
+            raise
         except SchemaFormatError:
             raise
         except InvalidSchema:
@@ -156,14 +154,10 @@ class BigQueryClient(GoogleDatabase):
             self.conn.extract_table(table_ref, dest_uri, location=location).result()
         except TempTableCreationError as te:
             raise DownloadToGcsError(
-                f"Error in executing the query and storing in a temp file: {te.message}",
-                te.exit_code,
+                f"Error in executing the query and storing in a temp file: {te.message}"
             )
         except Exception as e:
-            raise DownloadToGcsError(
-                f"Error downloading file to GCS: {str(e)}",
-                self.EXIT_CODE_DOWNLOAD_TO_GCS_ERROR,
-            )
+            raise DownloadToGcsError(f"Error downloading file to GCS: {str(e)}")
 
     def _format_schema(
         self, schema: Union[List[List[str]], Dict[str, List[str]]]
@@ -185,13 +179,11 @@ class BigQueryClient(GoogleDatabase):
                     formatted_schema.append(bigquery.SchemaField.from_api_repr(item))
                 else:
                     raise InvalidSchema(
-                        "Format of inputted schema is incorrect, this should preferably be a JSON representation or a List of Lists. For additional information and examples, visit https://cloud.google.com/bigquery/docs/schemas#specifying_a_json_schema_file",
-                        self.EXIT_CODE_INVALID_SCHEMA,
+                        "Format of inputted schema is incorrect, this should preferably be a JSON representation or a List of Lists. For additional information and examples, visit https://cloud.google.com/bigquery/docs/schemas#specifying_a_json_schema_file"
                     )
         except Exception as e:
             raise SchemaFormatError(
-                f"Error in preparing the inputted schema to the approrpriate BigQuery format: {str(e)}",
-                self.EXIT_CODE_SCHEMA_FORMATTING_ERROR,
+                f"Error in preparing the inputted schema to the approrpriate BigQuery format: {str(e)}"
             )
         else:
             logger.debug(f"Formatted schema is {formatted_schema}")
@@ -218,8 +210,7 @@ class BigQueryClient(GoogleDatabase):
             table_id = temp_table_ids.get("tableId")
         except Exception as e:
             raise TempTableCreationError(
-                f"Error in storing query results in temp table: {str(e)}",
-                self.EXIT_CODE_TEMP_TABLE_CREATION_ERROR,
+                f"Error in storing query results in temp table: {str(e)}"
             )
         else:
             return project_id, dataset_id, table_id, location

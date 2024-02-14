@@ -1,5 +1,4 @@
 from typing import Dict, Union, List
-from shipyard_bigquery.utils.exceptions import SchemaFormatError, SchemaValidationError
 from shipyard_templates import ShipyardLogger
 
 
@@ -44,7 +43,5 @@ def validate_data_types(
             if str(item["type"]).upper() not in BIGQUERY_DATA_TYPES:
                 logger.debug(f"Type {item['type']} is not a valid BigQuery data type")
                 return False
-        # else:
-        #     raise SchemaFormatError("Format of inputted schema is incorrect, this should preferably be a JSON representation or a List of Lists. For additional information and examples, visit https://cloud.google.com/bigquery/docs/schemas#specifying_a_json_schema_file ",204)
     else:
         return True
