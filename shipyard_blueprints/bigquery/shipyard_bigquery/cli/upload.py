@@ -113,13 +113,7 @@ def main():
     except FileNotFoundError as fe:
         logger.error(str(fe))
         sys.exit(BigQueryClient.EXIT_CODE_FILE_NOT_FOUND)
-    except InvalidSchema as ie:
-        logger.error(ie.message)
-        sys.exit(ie.exit_code)
-    except SchemaFormatError as se:
-        logger.error(se.message)
-        sys.exit(se.exit_code)
-    except ExitCodeException as ec:
+    except (InvalidSchema, SchemaFormatError, ExitCodeException) as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)
     except Exception as e:

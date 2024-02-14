@@ -2,7 +2,7 @@ import argparse
 import sys
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_bigquery import BigQueryClient
-from shipyard_bigquery.utils.exceptions import QueryError
+from shipyard_bigquery.utils.exceptions import QueryError, EXIT_CODE_QUERY_ERROR
 
 logger = ShipyardLogger.get_logger()
 
@@ -25,15 +25,12 @@ def main():
         logger.info("Successfully connected to BigQuery")
         logger.debug(f"Service account email is {client.email}")
         client.execute_query(query)
-    except QueryError as qe:
-        logger.error(qe.message)
-        sys.exit(qe.exit_code)
-    except ExitCodeException as ec:
+    except (QueryError, ExitCodeException) as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)
     except Exception as e:
         logger.error(f"Error in executing query: {str(e)}")
-        sys.exit(BigQueryClient.EXIT_CODE_QUERY_ERROR)
+        sys.exit(EXIT_CODE_QUERY_ERROR)
     else:
         logger.info("Successfully executed query")
 

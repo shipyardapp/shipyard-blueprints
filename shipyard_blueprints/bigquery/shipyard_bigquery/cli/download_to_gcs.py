@@ -3,7 +3,7 @@ import sys
 import os
 
 from shipyard_bigquery import BigQueryClient
-from shipyard_bigquery.utils import exceptions
+from shipyard_bigquery.utils.exceptions import DownloadToGcsError
 from shipyard_templates import ShipyardLogger, ExitCodeException
 import shipyard_bp_utils as shipyard
 
@@ -48,11 +48,7 @@ def main():
         client.download_to_gcs(
             query=args.query, bucket_name=args.bucket_name, path=target_path
         )
-
-    except exceptions.DownloadToGcsError as de:
-        logger.error(de.message)
-        sys.exit(de.exit_code)
-    except ExitCodeException as ec:
+    except (ExitCodeException, DownloadToGcsError) as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)
     except Exception as e:
