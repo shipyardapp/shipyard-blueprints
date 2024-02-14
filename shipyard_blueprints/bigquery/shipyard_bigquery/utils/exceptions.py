@@ -1,4 +1,4 @@
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, GoogleDatabase
 
 EXIT_CODE_FETCH_ERROR = 101
 EXIT_CODE_QUERY_ERROR = 102
@@ -11,7 +11,7 @@ EXIT_CODE_SCHEMA_VALIDATION_ERROR = 106
 class InvalidSchema(ExitCodeException):
     def __init__(self, message: str):
         self.message = message
-        self.exit_code = 204
+        self.exit_code = GoogleDatabase.EXIT_CODE_INVALID_SCHEMA
 
 
 class FetchError(ExitCodeException):
