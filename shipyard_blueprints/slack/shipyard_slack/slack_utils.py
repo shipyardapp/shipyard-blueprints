@@ -1,14 +1,85 @@
+import re
+
 from typing import List, Any, Optional
 from shipyard_templates import ShipyardLogger
 from slack_sdk.web import SlackResponse
 from shipyard_bp_utils.args import create_shipyard_link
-
+from shipyard_templates import ExitCodeException, Messaging
 
 logger = ShipyardLogger.get_logger()
 
+# FILE_PATTERN = r"\{\{text:([^\{\}]+)\}\}"
+FILE_PATTERN = re.compile(r"\{\{[^\{\}]+\}\}")
+
+
+def extract_file_contents(message: str) -> str:
+    """
+    Extracts the contents of a file from a message, if a file pattern is present.
+
+    Args:
+        message (str): The message content.
+
+    Returns:
+        str: The contents of the file, if a file pattern is present.
+    """
+    if not re.search(FILE_PATTERN, message):
+        return message
+
+    file = _extract_filename(message)
+    return _read_file(file, message)
+
+
+def _extract_filename(message: str) -> str:
+    """
+    Extracts the filename from a file pattern in a message.
+    Args:
+        message (str): The message content.
+    
+    Returns:
+        str: The filename extracted from the file pattern.
+    Raises:
+        ExitCodeException: If the file pattern does not have the correct prefix.
+    """
+    match = FILE_PATTERN.search(message)
+    matched = match.group()[2:-2].strip()  # Extract the matched text without the curly braces
+
+    if not matched.startswith("text:"):
+        raise ExitCodeException("When using the file pattern, the parameter needs to be prefixed with 'text:'",
+                                Messaging.EXIT_CODE_INVALID_INPUT)
+    return matched[5:]  # Remove the 'text:' prefix
+
+
+def _read_file(file_path: str, message: str) -> str:
+    """
+    Reads the contents of a file and appends it to a message.
+    
+    Args:
+        file_path (str): The path to the file.
+        message (str): The message content.
+    Returns:
+        str: The message content with the file contents appended.
+    Raises:
+        ExitCodeException: If the file cannot be read.
+    """
+    try:
+        with open(file_path.strip(), "r") as f:
+            content = f.read()
+    except FileNotFoundError as e:
+        raise ExitCodeException(
+            f"Could not load the contents of file {file_path}. Make sure the file exists",
+            Messaging.EXIT_CODE_FILE_NOT_FOUND,
+        ) from e
+    except Exception as e:
+        raise ExitCodeException(
+            f"Error opening file {file_path}. Make sure the file extension is provided",
+            Messaging.EXIT_CODE_INVALID_INPUT,
+        ) from e
+
+    return FILE_PATTERN.sub('', message, count=1) + "\n\n" + content
+
 
 def create_user_id_list(
-    slack_client, users_to_notify: str, user_lookup_method: str
+        slack_client, users_to_notify: str, user_lookup_method: str
 ) -> List[str]:
     """
     Creates a list of user IDs based on a string of usernames to notify.
@@ -54,7 +125,7 @@ def create_name_tags(user_id_list: List[str]) -> str:
 
 
 def format_user_list(
-    slack_client, users_to_notify: Optional[str], user_lookup_method: str
+        slack_client, users_to_notify: Optional[str], user_lookup_method: str
 ) -> List[str]:
     """
     Formats a list of user IDs from a given string of usernames, if provided.
@@ -75,11 +146,11 @@ def format_user_list(
 
 
 def send_slack_message_with_file(
-    slack_client,
-    message: str,
-    file: Any,
-    channel: str,
-    include_in_thread: bool = False,
+        slack_client,
+        message: str,
+        file: Any,
+        channel: str,
+        include_in_thread: bool = False,
 ) -> SlackResponse:
     """
     Sends a Slack message with an attached file to a specified channel, optionally in a thread.
@@ -132,6 +203,9 @@ def _create_blocks(message: str, download_link: str = "") -> List[dict]:
     Returns:
         List[dict]: A list of Slack block elements for constructing a message.
     """
+
+    message = extract_file_contents(message)
+
     message_section = {
         "type": "section",
         "text": {"type": "mrkdwn", "text": message, "verbatim": True},
