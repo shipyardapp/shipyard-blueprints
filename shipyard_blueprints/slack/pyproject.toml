@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-slack"
-version = "0.1.0a8"
+version = "0.1.0a9"
 description = "A local client for connecting and working with Slack"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
@@ -14,7 +14,7 @@ python = "^3.9"
 slack-sdk = "^3.26.2"
 python-dotenv = "^1.0.1"
 shipyard-bp-utils = "^1.0.2a0"
-shipyard-templates = "^0.6.2a0"
+shipyard-templates = "^0.6.2a1"
 
 [build-system]
 requires = ["poetry-core"]
