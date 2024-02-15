@@ -121,14 +121,11 @@ def main():
             args.source_file_name, source_folder_name, args.source_file_name_match_type
         )
         if len(files) > 1:
-            print("Multiple files found. Uploading as a zip.")
-            print(type(files))
             upload = file_utils.compress_files(
                 file_paths=files,
                 destination_full_path=os.path.join(os.getcwd(), "archive"),
                 compression="zip",
             )
-            print(upload)
         elif len(files) == 1 and file_utils.are_files_too_large(files, BYTE_MAX):
             upload = file_utils.compress_files(files, files[0], "zip")
         elif len(files) == 1:
