@@ -92,7 +92,7 @@ def validate_args(args):
         )
 
     if args.file_upload == "yes" and (
-            not args.source_file_name_match_type or not args.source_file_name
+        not args.source_file_name_match_type or not args.source_file_name
     ):
         raise ExitCodeException(
             "--file-upload yes requires --source-file-name and --source-file-name-match-type",
@@ -123,8 +123,11 @@ def main():
         if len(files) > 1:
             print("Multiple files found. Uploading as a zip.")
             print(type(files))
-            upload = file_utils.compress_files(file_paths=files, destination_full_path=os.path.join(os.getcwd(), "archive"),
-                                               compression="zip")
+            upload = file_utils.compress_files(
+                file_paths=files,
+                destination_full_path=os.path.join(os.getcwd(), "archive"),
+                compression="zip",
+            )
             print(upload)
         elif len(files) == 1 and file_utils.are_files_too_large(files, BYTE_MAX):
             upload = file_utils.compress_files(files, files[0], "zip")
