@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-bigquery"
-version = "0.1.1a8"
+version = "0.1.1"
 description = "A local client for connecting to and working with Google BigQuery"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{include = "shipyard_bigquery"}]
 
 [tool.poetry.dependencies]
-python = ">=3.9, <3.10"
+python = "^3.9"
 pandas = "^2.0"
 google-cloud-bigquery = "^3.17.2"
 db-dtypes = "1.1.1"
