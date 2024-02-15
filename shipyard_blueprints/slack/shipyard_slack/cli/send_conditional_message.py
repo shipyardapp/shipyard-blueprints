@@ -189,7 +189,9 @@ def main():
     except ExitCodeException as e:
         logger.error(e.message)
         sys.exit(e.exit_code)
-
+    except Exception as e:
+        logger.error(e)
+        sys.exit(Messaging.EXIT_CODE_UNKNOWN_ERROR)
     else:
         logger.info("Message(s) sent successfully")
 
