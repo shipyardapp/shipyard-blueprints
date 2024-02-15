@@ -156,7 +156,6 @@ def compress_with_zip(file_paths: list, compressed_file_name: str):
 
     with ZipFile(compressed_file_name, "w", ZIP_DEFLATED) as zip_file:
         for file in file_paths:
-            print(file)
             zip_file.write(file, os.path.basename(file))
             logger.debug(f"Successfully compressed {file} into {compressed_file_name}")
     return compressed_file_name
