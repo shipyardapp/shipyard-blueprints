@@ -1,11 +1,14 @@
 import os
-import json
-import tempfile
 import argparse
+import sys
+import shipyard_bp_utils as shipyard
 
-from google.cloud import bigquery
-from google.oauth2 import service_account
-from google.api_core.exceptions import NotFound
+
+from shipyard_templates import ShipyardLogger, ExitCodeException
+from shipyard_bigquery import BigQueryClient
+
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -28,96 +31,32 @@ def get_args():
     return args
 
 
-def set_environment_variables(args):
-    """
-    Set GCP credentials as environment variables if they're provided via keyword
-    arguments rather than seeded as environment variables. This will override
-    system defaults.
-    """
-    credentials = args.service_account
-    try:
-        json_credentials = json.loads(credentials)
-        fd, path = tempfile.mkstemp()
-        print(f"Storing json credentials temporarily at {path}")
-        with os.fdopen(fd, "w") as tmp:
-            tmp.write(credentials)
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path
-        return path
-    except Exception:
-        print("Using specified json credentials file")
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials
-        return
-
-
-def combine_folder_and_file_name(folder_name, file_name):
-    """
-    Combine together the provided folder_name and file_name into one path variable.
-    """
-    combined_name = os.path.normpath(
-        f'{folder_name}{"/" if folder_name else ""}{file_name}'
-    )
-
-    return combined_name
-
-
-def create_csv(query, client, destination_file_path):
-    """
-    Read in data from a SQL query. Store the data as a csv.
-    """
-    try:
-        data = client.query(query).to_dataframe()
-    except Exception as e:
-        print(f"Failed to execute your query: {query}")
-        raise (e)
-
-    if len(data) > 0:
-        try:
-            data.to_csv(destination_file_path, index=False)
-            print(f"Successfully stored query results to {destination_file_path}")
-        except Exception as e:
-            print(f"Failed to write the data to csv {destination_file_path}")
-            raise (e)
-    else:
-        print(f"No data was found. File not created")
-        pass
-
-
-def get_client(credentials):
-    """
-    Attempts to create the Google Drive Client with the associated
-    environment variables
-    """
-    try:
-        client = bigquery.Client()
-        return client
-    except Exception as e:
-        print(f"Error accessing Google Drive with service account " f"{credentials}")
-        raise (e)
-
-
 def main():
-    args = get_args()
-    tmp_file = set_environment_variables(args)
-    destination_file_name = args.destination_file_name
-    destination_folder_name = args.destination_folder_name
-    destination_full_path = combine_folder_and_file_name(
-        folder_name=destination_folder_name, file_name=destination_file_name
-    )
-    query = args.query
+    try:
+        args = get_args()
+        target_folder = args.destination_folder_name or os.getcwd()
+        shipyard.files.create_folder_if_dne(target_folder)
+        target_path = shipyard.files.combine_folder_and_file_name(
+            folder_name=target_folder, file_name=args.destination_file_name
+        )
+        client = BigQueryClient(args.service_account)
+        client.connect()
+        logger.info("Successfully connected to BigQuery")
+        logger.debug(f"Query is {args.query}")
+        df = client.fetch(args.query)
+        logger.debug(f"Shape of the data is {df.shape}")
+        df.to_csv(target_path, index=False)
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
+    except Exception as e:
+        logger.error(
+            f"Error in fetching query results and writing results to {target_path}: {str(e)}"
+        )
+        sys.exit(BigQueryClient.EXIT_CODE_NO_RESULTS)
 
-    if tmp_file:
-        client = get_client(tmp_file)
     else:
-        client = get_client(args.service_account)
-
-    if not os.path.exists(destination_folder_name) and (destination_folder_name != ""):
-        os.makedirs(destination_folder_name)
-
-    create_csv(query=query, client=client, destination_file_path=destination_full_path)
-
-    if tmp_file:
-        print(f"Removing temporary credentials file {tmp_file}")
-        os.remove(tmp_file)
+        logger.info(f"Successfully wrote query results to {target_path}")
 
 
 if __name__ == "__main__":
