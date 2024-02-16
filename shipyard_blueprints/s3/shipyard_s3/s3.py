@@ -2,7 +2,7 @@ import boto3
 import shipyard_bp_utils as shipyard
 from shipyard_templates import CloudStorage, ShipyardLogger
 from typing import Optional
-from shipyard_s3.utils.exceptions import InvalidCredentials, UploadError
+from shipyard_s3.utils.exceptions import InvalidCredentials, RemoveError, UploadError
 
 
 logger = ShipyardLogger.get_logger()
@@ -43,7 +43,7 @@ class S3Client(CloudStorage):
         # create a source dictionary that specifies bucket name and key name of the object to be copied
         try:
             # move or rename the original file
-            copy_source = {"Bucket": source_bucket_name, "Key": source_full_path}
+            copy_source = {"Bucket": src_bucket, "Key": src_path}
             bucket = self.s3_conn.Bucket(dest_bucket)
             bucket.copy(copy_source, dest_path)
             # delete the original file
@@ -52,8 +52,13 @@ class S3Client(CloudStorage):
         except Exception as e:
             raise
 
-    def remove(self, bucket_name: str):
-        pass
+    def remove(self, bucket_name: str, src_path: str):
+        try:
+            s3_response = self.s3_conn.delete_object(Bucket=bucket_name, Key=src_path)
+        except Exception as e:
+            raise RemoveError(message=str(e))
+        else:
+            logger.debug(f"Response from s3: {s3_response}")
 
     def upload(self, bucket_name: str, source_file: str, destination_path: str):
         try:

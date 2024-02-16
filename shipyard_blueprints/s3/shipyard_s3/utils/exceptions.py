@@ -1,6 +1,8 @@
 from shipyard_templates import ExitCodeException, CloudStorage
 
 EXIT_CODE_MOVE_ERROR = 101
+EXIT_CODE_REMOVE_ERR0R = 102
+EXIT_CODE_DOWNLOAD_ERROR = 103
 
 
 class InvalidCredentials(ExitCodeException):
@@ -16,6 +18,18 @@ class UploadError(ExitCodeException):
 
 
 class MoveError(ExitCodeException):
+    def __init__(self, message: str):
+        self.message = message
+        self.exit_code = EXIT_CODE_MOVE_ERROR
+
+
+class RemoveError(ExitCodeException):
+    def __init__(self, message: str):
+        self.message = message
+        self.exit_code = EXIT_CODE_REMOVE_ERR0R
+
+
+class DownloadError(ExitCodeException):
     def __init__(self, message: str):
         self.message = message
         self.exit_code = EXIT_CODE_MOVE_ERROR
