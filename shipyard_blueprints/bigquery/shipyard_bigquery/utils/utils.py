@@ -25,6 +25,13 @@ def validate_data_types(
         "BIGNUMERIC",
         "STRUCT",
         "TIME",
+        ##NOTE: the following below should be supported too
+        "INT",
+        "SMALLINT",
+        "INTEGER",
+        "BIGINT",
+        "TINYINT",
+        "BYTEINT",
     }
     """ Helper function to validate whether the provided data types are real BigQuery data types
 

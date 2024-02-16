@@ -59,7 +59,7 @@ def main():
         )
         match_type = args.source_file_name_match_type
         schema = None if args.schema == "" else ast.literal_eval(args.schema)
-        quoted_newline = shipyard.args.convert_to_boolean(args.quoted_newline)
+        quoted_newline = args.quoted_newline.strip().upper() == "TRUE"
 
         skip_header_rows = (
             None if args.skip_header_rows == "" else args.skip_header_rows
