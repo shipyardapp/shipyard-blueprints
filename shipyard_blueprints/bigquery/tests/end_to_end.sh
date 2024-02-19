@@ -53,7 +53,7 @@ if [ "$1" = 'up5' ]; then
         --table $TABLE \
         --upload-type "overwrite" \
         --source-file-name $SINGLE_FILE \
-        --schema '[["string_col", "string"], ["char_col", "string"], ["int_col", "Integer"], ["float_col", "Numeric"], ["bool_col","bool"], ["date_col", "date"], ["datetime_col", "datetime"]]'
+        --schema '[["string_col", "string"], ["char_col", "string"], ["int_col", "Integer"], ["float_col", "Float"], ["bool_col","bool"], ["date_col", "date"], ["datetime_col", "datetime"]]'
         # --schema '[["string_col", "string"], ["char_col", "string"], ["int_col", "INT64"], ["float_col", "FLOAT64"], ["bool_col","bool"], ["date_col", "date"], ["datetime_col", "datetime"]]'
 fi
 
