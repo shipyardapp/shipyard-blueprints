@@ -4,7 +4,11 @@ import argparse
 import shipyard_bp_utils as shipyard
 
 from shipyard_email.email_client import EmailClient
-from shipyard_email.exceptions import InvalidInputError, InvalidCredentialsError, InvalidFileInputError
+from shipyard_email.exceptions import (
+    InvalidInputError,
+    InvalidCredentialsError,
+    InvalidFileInputError,
+)
 from shipyard_templates import ShipyardLogger, Messaging, ExitCodeException
 
 MAX_SIZE_BYTES = 10000000
@@ -13,7 +17,6 @@ logger = ShipyardLogger.get_logger()
 
 
 def get_args():
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--send-method", dest="send_method", default="tls", required=False
@@ -70,7 +73,9 @@ def get_args():
 
     args = parser.parse_args()
     if not (args.to or args.cc or args.bcc):
-        raise InvalidInputError("Email requires at least one recipient using --to, --cc, or --bcc")
+        raise InvalidInputError(
+            "Email requires at least one recipient using --to, --cc, or --bcc"
+        )
     return args
 
 
@@ -83,7 +88,9 @@ def main():
         message = args.message
 
         if args.include_shipyard_footer:
-            include_shipyard_footer = shipyard.args.convert_to_boolean(args.include_shipyard_footer)
+            include_shipyard_footer = shipyard.args.convert_to_boolean(
+                args.include_shipyard_footer
+            )
         else:
             logger.warning("include_shipyard_footer not set. Defaulting to TRUE.")
             include_shipyard_footer = True
@@ -91,27 +98,38 @@ def main():
         if not username:
             username = sender_address
 
-        client = EmailClient(args.smtp_host, args.smtp_port, username, args.password, send_method)
+        client = EmailClient(
+            args.smtp_host, args.smtp_port, username, args.password, send_method
+        )
         if not client.email_server:
             raise InvalidCredentialsError
         source_file_name = args.source_file_name
         source_folder_name = shipyard.files.clean_folder_name(args.source_folder_name)
-        file_paths = shipyard.files.find_matching_files(source_file_name, source_folder_name,
-                                                        args.source_file_name_match_type)
+        file_paths = shipyard.files.find_matching_files(
+            source_file_name, source_folder_name, args.source_file_name_match_type
+        )
 
         if not file_paths:
-            raise InvalidFileInputError(f"No files found matching {source_file_name} in {source_folder_name}")
+            raise InvalidFileInputError(
+                f"No files found matching {source_file_name} in {source_folder_name}"
+            )
 
         message = client.message_content_file_injection(message)
 
         if include_shipyard_footer:
-            message = (f"{message}<br><br>---<br>Sent by <a href=https://www.shipyardapp.com> Shipyard</a> | "
-                       f"<a href={shipyard.args.create_shipyard_link()}>Click Here</a> to Edit")
+            message = (
+                f"{message}<br><br>---<br>Sent by <a href=https://www.shipyardapp.com> Shipyard</a> | "
+                f"<a href={shipyard.args.create_shipyard_link()}>Click Here</a> to Edit"
+            )
 
-        if shipyard.files.are_files_too_large(file_paths, max_size_bytes=MAX_SIZE_BYTES):
+        if shipyard.files.are_files_too_large(
+            file_paths, max_size_bytes=MAX_SIZE_BYTES
+        ):
             logger.info("Files are too large to attach. Compressing files.")
             compressed_file_name = shipyard.files.compress_files(
-                file_paths, destination_full_path=os.path.join(os.getcwd(), "Archive"), compression="zip"
+                file_paths,
+                destination_full_path=os.path.join(os.getcwd(), "Archive"),
+                compression="zip",
             )
             logger.info(f"Attaching {compressed_file_name} to message.")
             file_paths = [compressed_file_name]

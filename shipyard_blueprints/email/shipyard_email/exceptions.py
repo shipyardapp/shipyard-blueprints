@@ -57,12 +57,18 @@ def handle_exceptions(method):
             return method(*args, **kwargs)
         except Exception as e:
             if isinstance(e, TimeoutError):
-                raise ServerTimeoutError("Connection to the server timed out. Please check port and host arguments")
+                raise ServerTimeoutError(
+                    "Connection to the server timed out. Please check port and host arguments"
+                )
             elif isinstance(e, InvalidCredentialsError):
-                raise InvalidCredentialsError(f"Invalid credentials provided. Please check your username and "
-                                              f"password. Message from server: {str(e)}")
+                raise InvalidCredentialsError(
+                    f"Invalid credentials provided. Please check your username and "
+                    f"password. Message from server: {str(e)}"
+                )
 
             else:
-                raise UnhandledExceptionError(f"An unexpected error occurred: {type(e).__name__} {str(e)}")
+                raise UnhandledExceptionError(
+                    f"An unexpected error occurred: {type(e).__name__} {str(e)}"
+                )
 
     return exception_handler

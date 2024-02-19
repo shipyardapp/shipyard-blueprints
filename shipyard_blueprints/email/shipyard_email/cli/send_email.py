@@ -4,7 +4,11 @@ import argparse
 import shipyard_bp_utils as shipyard
 
 from shipyard_email.email_client import EmailClient
-from shipyard_email.exceptions import InvalidInputError, ConditionNotMetError, InvalidCredentialsError
+from shipyard_email.exceptions import (
+    InvalidInputError,
+    ConditionNotMetError,
+    InvalidCredentialsError,
+)
 from shipyard_templates import ShipyardLogger, Messaging, ExitCodeException
 
 MAX_SIZE_BYTES = 10000000
@@ -34,11 +38,15 @@ def get_args():
     parser.add_argument("--message", dest="message", default="", required=True)
     parser.add_argument(
         "--source-file-name",  # Left in for backwards compatibility
-        dest="source_file_name", default="", required=False
+        dest="source_file_name",
+        default="",
+        required=False,
     )
     parser.add_argument(
         "--source-folder-name",  # Left in for backwards compatibility
-        dest="source_folder_name", default="", required=False
+        dest="source_folder_name",
+        default="",
+        required=False,
     )
     parser.add_argument(
         "--conditional-send",  # Left in for backwards compatibility
@@ -70,7 +78,9 @@ def get_args():
 
     args = parser.parse_args()
     if not (args.to or args.cc or args.bcc):
-        raise InvalidInputError("Email requires at least one recipient using --to, --cc, or --bcc")
+        raise InvalidInputError(
+            "Email requires at least one recipient using --to, --cc, or --bcc"
+        )
     return args
 
 
@@ -83,7 +93,9 @@ def main():
         message = args.message
 
         if args.include_shipyard_footer:
-            include_shipyard_footer = shipyard.args.convert_to_boolean(args.include_shipyard_footer)
+            include_shipyard_footer = shipyard.args.convert_to_boolean(
+                args.include_shipyard_footer
+            )
         else:
             logger.warning("include_shipyard_footer not set. Defaulting to TRUE.")
             include_shipyard_footer = True
@@ -91,15 +103,19 @@ def main():
         if not username:
             username = sender_address
 
-        client = EmailClient(args.smtp_host, args.smtp_port, username, args.password, send_method)
+        client = EmailClient(
+            args.smtp_host, args.smtp_port, username, args.password, send_method
+        )
         if not client.email_server:
             raise InvalidCredentialsError
 
         message = client.message_content_file_injection(message)
 
         if include_shipyard_footer:
-            message = (f"{message}<br><br>---<br>Sent by <a href=https://www.shipyardapp.com> Shipyard</a> | "
-                       f"<a href={shipyard.args.create_shipyard_link()}>Click Here</a> to Edit")
+            message = (
+                f"{message}<br><br>---<br>Sent by <a href=https://www.shipyardapp.com> Shipyard</a> | "
+                f"<a href={shipyard.args.create_shipyard_link()}>Click Here</a> to Edit"
+            )
 
         client.send_message(
             sender_address=sender_address,
