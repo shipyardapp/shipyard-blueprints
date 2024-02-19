@@ -144,3 +144,15 @@ if [ "$1" = 'fe2' ]; then
 fi
 
 
+## incorrect datatype test
+
+if [ "$1" = 'up-bad1' ]; then 
+    echo "Beginning upload of a single file with datatypes"
+    python3 ./shipyard_bigquery/cli/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+        --dataset $DATASET \
+        --table $TABLE \
+        --upload-type "overwrite" \
+        --source-file-name $SINGLE_FILE \
+        --schema '[{"name": "string_col", "type": "string"}, {"name": "char_col", "type": "char"}, {"name": "int_col", "type": "INTEGER"}, {"name": "float_col", "type": "Float"}, {"name": "bool_col", "type": "Boolean"}, {"name": "date_col", "type": "Date"},{"name": "datetime_col", "type": "Datetime"}]'
+fi
+

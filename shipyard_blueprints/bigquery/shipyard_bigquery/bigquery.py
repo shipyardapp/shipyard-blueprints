@@ -108,12 +108,10 @@ class BigQueryClient(GoogleDatabase):
             if skip_header_rows:
                 job_config.skip_leading_rows = skip_header_rows
             if schema:
-                # TODO: add validation check for schema type
-                # TODO: during validation, identify which datatype is bad
-                if not utils.validate_data_types(schema):
-                    raise SchemaValidationError(
-                        "Inputted schema contains an invalid data type. Run with LOG_LEVEL set to DEBUG for more information"
-                    )
+                # if not utils.validate_data_types(schema):
+                #     raise SchemaValidationError(
+                #         "Inputted schema contains an invalid data type. Run with LOG_LEVEL set to DEBUG for more information"
+                #     )
                 logger.debug(f"Schema is {schema}")
                 job_config.autodetect = False
                 job_config.schema = self._format_schema(schema)
