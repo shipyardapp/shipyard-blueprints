@@ -121,9 +121,9 @@ def main():
             args.source_file_name, source_folder_name, args.source_file_name_match_type
         )
         if len(files) > 1:
-            upload = file_utils.compress_files(files, "archive", ".zip")
+            upload = file_utils.compress_files(files, "archive", "zip")
         elif len(files) == 1 and file_utils.are_files_too_large(files, BYTE_MAX):
-            upload = file_utils.compress_files(files, files[0], ".zip")
+            upload = file_utils.compress_files(files, files[0], "zip")
         elif len(files) == 1:
             upload = files[0]
         else:
