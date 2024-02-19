@@ -121,9 +121,9 @@ def main():
             args.source_file_name, source_folder_name, args.source_file_name_match_type
         )
         if len(files) > 1:
-            upload = file_utils.compress_files(files, "archive", ".zip")
+            upload = file_utils.compress_files(files, "archive", "zip")
         elif len(files) == 1 and file_utils.are_files_too_large(files, BYTE_MAX):
-            upload = file_utils.compress_files(files, files[0], ".zip")
+            upload = file_utils.compress_files(files, files[0], "zip")
         elif len(files) == 1:
             upload = files[0]
         else:
@@ -150,7 +150,7 @@ def main():
             for user_id in user_id_list:
                 logger.info(f"Sending message with file to {user_id}...")
                 response = send_slack_message_with_file(
-                    slack_client, message, files, user_id, include_in_thread
+                    slack_client, message, upload, user_id, include_in_thread
                 )
                 responses.append(response.data)
         elif args.destination_type == "dm" and not file_upload:

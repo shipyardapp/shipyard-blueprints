@@ -97,17 +97,20 @@ class SlackClient(Messaging):
         Returns:
         SlackResponse: The response from the Slack API after sending the message.
         """
-        logger.debug("Attempting to send message to Slack...")
-        message_response = self.web_client.chat_postMessage(
-            channel=channel_name,
-            link_names=True,
-            text=message,
-            blocks=_create_blocks(message, download_link=download_link),
-        )
-        logger.debug(
-            f'Your message of "{message}" was successfully sent to {channel_name}'
-        )
-        return message_response
+        try:
+            logger.debug("Attempting to send message to Slack...")
+            message_response = self.web_client.chat_postMessage(
+                channel=channel_name,
+                link_names=True,
+                text=message,
+                blocks=_create_blocks(message, download_link=download_link),
+            )
+            logger.debug(
+                f'Your message of "{message}" was successfully sent to {channel_name}'
+            )
+            return message_response
+        except SlackApiError as e:
+            self._handle_slack_error(e)
 
     def user_lookup(self, lookup: str, lookup_method: str) -> Optional[Dict]:
         """
