@@ -14,7 +14,6 @@ from shipyard_bigquery.utils.exceptions import (
     SchemaValidationError,
     TempTableCreationError,
 )
-from shipyard_bigquery.utils import utils
 
 logger = ShipyardLogger.get_logger()
 
