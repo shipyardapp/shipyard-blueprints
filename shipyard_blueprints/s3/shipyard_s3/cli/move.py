@@ -7,7 +7,7 @@ import argparse
 import glob
 from ast import literal_eval
 import sys
-import shipyard_utils as shipyard
+import shipyard_bp_utils as shipyard
 from shipyard_s3.cli import exit_codes as ec
 
 
