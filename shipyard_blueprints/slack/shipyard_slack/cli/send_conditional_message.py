@@ -150,7 +150,7 @@ def main():
             for user_id in user_id_list:
                 logger.info(f"Sending message with file to {user_id}...")
                 response = send_slack_message_with_file(
-                    slack_client, message, files, user_id, include_in_thread
+                    slack_client, message, upload, user_id, include_in_thread
                 )
                 responses.append(response.data)
         elif args.destination_type == "dm" and not file_upload:
