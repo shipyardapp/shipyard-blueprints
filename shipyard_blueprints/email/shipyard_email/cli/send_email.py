@@ -6,7 +6,6 @@ import shipyard_bp_utils as shipyard
 from shipyard_email.email_client import EmailClient
 from shipyard_email.exceptions import (
     InvalidInputError,
-    ConditionNotMetError,
     InvalidCredentialsError,
 )
 from shipyard_templates import ShipyardLogger, Messaging, ExitCodeException
@@ -106,17 +105,13 @@ def main():
         client = EmailClient(
             args.smtp_host, args.smtp_port, username, args.password, send_method
         )
-        if not client.email_server:
-            raise InvalidCredentialsError
 
         message = client.message_content_file_injection(message)
-
         if include_shipyard_footer:
             message = (
                 f"{message}<br><br>---<br>Sent by <a href=https://www.shipyardapp.com> Shipyard</a> | "
                 f"<a href={shipyard.args.create_shipyard_link()}>Click Here</a> to Edit"
             )
-
         client.send_message(
             sender_address=sender_address,
             message=message,

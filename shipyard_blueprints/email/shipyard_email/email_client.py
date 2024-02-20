@@ -6,11 +6,12 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from shipyard_templates import Messaging, ShipyardLogger, ExitCodeException
+from shipyard_templates import Messaging, ShipyardLogger
 from shipyard_email.exceptions import (
     MessageObjectCreationError,
     InvalidFileInputError,
     InvalidCredentialsError,
+    InvalidInputError,
     handle_exceptions,
 )
 
@@ -34,12 +35,12 @@ logger = ShipyardLogger().get_logger()
 
 class EmailClient(Messaging):
     def __init__(
-        self,
-        smtp_host: str = None,
-        smtp_port: int = None,
-        username: str = None,
-        password: str = None,
-        send_method: str = "tls",
+            self,
+            smtp_host: str = None,
+            smtp_port: int = None,
+            username: str = None,
+            password: str = None,
+            send_method: str = "tls",
     ) -> None:
         self.smtp_host = smtp_host
         self.smtp_port = smtp_port
@@ -127,15 +128,15 @@ class EmailClient(Messaging):
 
     @handle_exceptions
     def send_message(
-        self,
-        sender_address: str,
-        message: str,
-        sender_name: str = None,
-        to: str = None,
-        cc: str = None,
-        bcc: str = None,
-        subject: str = None,
-        attachment_file_paths: list = None,
+            self,
+            message: str,
+            sender_address: str = None,
+            sender_name: str = None,
+            to: str = None,
+            cc: str = None,
+            bcc: str = None,
+            subject: str = None,
+            attachment_file_paths: list = None,
     ):
         """
 
@@ -156,9 +157,15 @@ class EmailClient(Messaging):
         if not self.email_server:
             logger.info("No SMTP connection established. Attempting to connect...")
             self.connect()
+        if not to and not cc and not bcc:
+            raise InvalidInputError(
+                "Email requires at least one recipient using --to, --cc, or --bcc"
+            )
+
         message_object = self._create_message_object(
-            sender_address,
             message,
+            sender_address,
+
             sender_name,
             to,
             cc,
@@ -177,15 +184,15 @@ class EmailClient(Messaging):
             logger.info("SMTP connection closed.")
 
     def _create_message_object(
-        self,
-        sender_address,
-        message,
-        sender_name=None,
-        to=None,
-        cc=None,
-        bcc=None,
-        subject=None,
-        file_path=None,
+            self,
+            message,
+            sender_address,
+            sender_name=None,
+            to=None,
+            cc=None,
+            bcc=None,
+            subject=None,
+            file_path=None,
     ):
         """
         Create a Message object, msg, by using the provided send parameters.

@@ -101,8 +101,7 @@ def main():
         client = EmailClient(
             args.smtp_host, args.smtp_port, username, args.password, send_method
         )
-        if not client.email_server:
-            raise InvalidCredentialsError
+
         source_file_name = args.source_file_name
         source_folder_name = shipyard.files.clean_folder_name(args.source_folder_name)
         file_paths = shipyard.files.find_matching_files(
