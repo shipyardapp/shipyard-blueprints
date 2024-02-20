@@ -3,6 +3,7 @@ import re
 import argparse
 import ast
 import sys
+from google.api_core.exceptions import BadRequest
 
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_bigquery import BigQueryClient
@@ -59,7 +60,7 @@ def main():
         )
         match_type = args.source_file_name_match_type
         schema = None if args.schema == "" else ast.literal_eval(args.schema)
-        quoted_newline = shipyard.args.convert_to_boolean(args.quoted_newline)
+        quoted_newline = args.quoted_newline.strip().upper() == "TRUE"
 
         skip_header_rows = (
             None if args.skip_header_rows == "" else args.skip_header_rows
@@ -115,6 +116,10 @@ def main():
         sys.exit(BigQueryClient.EXIT_CODE_FILE_NOT_FOUND)
     except (InvalidSchema, SchemaFormatError, ExitCodeException) as ec:
         logger.error(ec.message)
+        if schema:
+            logger.warning(
+                "Ensure that the data types provided in the schema input are correct. Visit https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#data_type_properties for more details"
+            )
         sys.exit(ec.exit_code)
     except Exception as e:
         logger.error(f"Error in uploading file to BigQuery: {str(e)}")

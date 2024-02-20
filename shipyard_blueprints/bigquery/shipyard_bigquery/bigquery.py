@@ -1,5 +1,6 @@
 import json
 from google.cloud.bigquery.table import RowIterator
+from google.api_core.exceptions import BadRequest
 import pandas as pd
 from typing import Optional, Dict, Union, List
 from google.cloud import bigquery
@@ -14,7 +15,6 @@ from shipyard_bigquery.utils.exceptions import (
     SchemaValidationError,
     TempTableCreationError,
 )
-from shipyard_bigquery.utils import utils
 
 logger = ShipyardLogger.get_logger()
 
@@ -108,12 +108,6 @@ class BigQueryClient(GoogleDatabase):
             if skip_header_rows:
                 job_config.skip_leading_rows = skip_header_rows
             if schema:
-                # TODO: add validation check for schema type
-                # TODO: during validation, identify which datatype is bad
-                if not utils.validate_data_types(schema):
-                    raise SchemaValidationError(
-                        "Inputted schema contains an invalid data type. Run with LOG_LEVEL set to DEBUG for more information"
-                    )
                 logger.debug(f"Schema is {schema}")
                 job_config.autodetect = False
                 job_config.schema = self._format_schema(schema)
@@ -130,6 +124,14 @@ class BigQueryClient(GoogleDatabase):
             raise
         except InvalidSchema:
             raise
+        except BadRequest as br:
+            logger.debug(f"The status code is: {br.code}")
+            logger.debug(f"The listed errors are {br.errors}")
+            raise ExitCodeException(
+                f"Bad Request when trying to upload to BigQuery. Message from the API reads: {str(br.message)}",
+                exit_code=self.EXIT_CODE_INVALID_UPLOAD_VALUE,
+            )
+
         except Exception as e:
             raise ExitCodeException(
                 f"An error occurred when attempting to upload to BigQuery: {str(e)}",
