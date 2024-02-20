@@ -25,10 +25,6 @@ class S3Client(CloudStorage):
         self.aws_secret_access_key = aws_secret_access_key
         self.region = region
 
-    # @property
-    # def s3_conn(self):
-    #     return self.connect()
-
     def _auth_test(self):
         try:
             client = boto3.client(

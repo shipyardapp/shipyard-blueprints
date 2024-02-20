@@ -20,6 +20,12 @@ pytest = "^7.4.0"
 python-dotenv = "^1.0.1"
 black = "^24.2.0"
 
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+    "integration"
+]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
