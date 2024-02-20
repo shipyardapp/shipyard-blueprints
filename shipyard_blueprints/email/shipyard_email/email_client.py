@@ -35,12 +35,12 @@ logger = ShipyardLogger().get_logger()
 
 class EmailClient(Messaging):
     def __init__(
-            self,
-            smtp_host: str = None,
-            smtp_port: int = None,
-            username: str = None,
-            password: str = None,
-            send_method: str = "tls",
+        self,
+        smtp_host: str = None,
+        smtp_port: int = None,
+        username: str = None,
+        password: str = None,
+        send_method: str = "tls",
     ) -> None:
         self.smtp_host = smtp_host
         self.smtp_port = smtp_port
@@ -128,15 +128,15 @@ class EmailClient(Messaging):
 
     @handle_exceptions
     def send_message(
-            self,
-            message: str,
-            sender_address: str = None,
-            sender_name: str = None,
-            to: str = None,
-            cc: str = None,
-            bcc: str = None,
-            subject: str = None,
-            attachment_file_paths: list = None,
+        self,
+        message: str,
+        sender_address: str = None,
+        sender_name: str = None,
+        to: str = None,
+        cc: str = None,
+        bcc: str = None,
+        subject: str = None,
+        attachment_file_paths: list = None,
     ):
         """
 
@@ -165,7 +165,6 @@ class EmailClient(Messaging):
         message_object = self._create_message_object(
             message,
             sender_address,
-
             sender_name,
             to,
             cc,
@@ -184,15 +183,15 @@ class EmailClient(Messaging):
             logger.info("SMTP connection closed.")
 
     def _create_message_object(
-            self,
-            message,
-            sender_address,
-            sender_name=None,
-            to=None,
-            cc=None,
-            bcc=None,
-            subject=None,
-            file_path=None,
+        self,
+        message,
+        sender_address,
+        sender_name=None,
+        to=None,
+        cc=None,
+        bcc=None,
+        subject=None,
+        file_path=None,
     ):
         """
         Create a Message object, msg, by using the provided send parameters.

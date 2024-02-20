@@ -81,7 +81,8 @@ def handle_exceptions(method):
                 )
             elif isinstance(e, SMTPRecipientsRefused):
                 raise RefusedByRecipientError(
-                    f"Recipient refused the email. Please check the recipient's email address. Message from server: {str(e)}")
+                    f"Recipient refused the email. Please check the recipient's email address. Message from server: {str(e)}"
+                )
             elif isinstance(e, SMTPSenderRefused):
                 raise ServerRefusedError(
                     f"Server refused the email. Please check the sender's email address. Message from server: {str(e)}"
