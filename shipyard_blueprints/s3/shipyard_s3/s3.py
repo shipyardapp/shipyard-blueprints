@@ -2,13 +2,14 @@ import boto3
 import shipyard_bp_utils as shipyard
 import sys
 from shipyard_templates import CloudStorage, ShipyardLogger
-from typing import Optional
+from typing import Optional, Dict, Any, List
 from shipyard_s3.utils.exceptions import (
     DownloadError,
     InvalidCredentials,
     RemoveError,
     UploadError,
 )
+from shipyard_s3.utils import utils
 
 
 logger = ShipyardLogger.get_logger()
@@ -90,10 +91,33 @@ class S3Client(CloudStorage):
             logger.debug(f"Response from s3: {s3_response}")
 
     def upload(
-        self, s3_conn, bucket_name: str, source_file: str, destination_path: str
+        self,
+        s3_conn,
+        bucket_name: str,
+        source_file: str,
+        destination_path: Optional[str] = None,
+        extra_args: Optional[Dict[Any, Any]] = None,
     ):
+        """Upload a file to an S3 Bucket
+
+        Args:
+            s3_conn (): The S3 client connection established from the connect() method
+            bucket_name: The name of the bucket to load to
+            source_file: The name or file path of the target file to load
+            destination_path: The optional path of where the file should be loaded to
+            extra_args: Additional optional configuration arguments to be passed
+
+        Raises:
+            UploadError:
+        """
         try:
-            s3_conn.upload_file(source_file, bucket_name, destination_path)
+            s3_upload_config = boto3.s3.transfer.TransferConfig()
+            s3_transfer = boto3.s3.transfer.S3Transfer(
+                client=s3_conn, config=s3_upload_config
+            )
+            s3_transfer.upload_file(
+                source_file, bucket_name, destination_path, extra_args=extra_args
+            )
         except Exception as e:
             raise UploadError(f"Error in uploading to S3: {str(e)}")
 
@@ -104,3 +128,31 @@ class S3Client(CloudStorage):
             raise DownloadError(
                 f"Error in downloading s3 file to {dest_path}: {str(e)}"
             )
+
+    def list_files(self, s3_connection, bucket_name: str, s3_folder: str) -> List[str]:
+        """Returns a list
+
+        Args:
+            s3_connection ():
+            bucket_name:
+            s3_folder:
+
+        Returns:
+
+        """
+        response = utils.list_objects(
+            s3_conn=s3_connection, bucket_name=bucket_name, prefix=s3_folder
+        )
+        file_names = utils.get_files(response)
+        continuation_token = response.get("NextContinuationToken")
+
+        while continuation_token:
+            response = utils.list_objects(
+                s3_conn=s3_connection,
+                bucket_name=bucket_name,
+                prefix=s3_folder,
+                continuation_token=continuation_token,
+            )
+            file_names = file_names.append(utils.get_files(response))
+            continuation_token = response.get("NextContinuationToken")
+        return file_names

@@ -5,6 +5,9 @@ from botocore.client import Config
 import re
 import argparse
 import code
+from shipyard_templates import ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -84,6 +87,10 @@ def enumerate_destination_file_name(destination_file_name, file_number=1):
         destination_file_name = re.sub(
             r"\.", f"_{file_number}.", destination_file_name, 1
         )
+        logger.debug(
+            f"from enumerate_destination_file_name: dest file name is {destination_file_name}"
+        )
+
     else:
         destination_file_name = f"{destination_file_name}_{file_number}"
     return destination_file_name
@@ -101,11 +108,20 @@ def determine_destination_file_name(
             destination_file_name = enumerate_destination_file_name(
                 destination_file_name, file_number
             )
+            logger.debug(
+                f"from determine_destination_file_name: dest file name is {destination_file_name}"
+            )
         else:
+            logger.debug(
+                f"from determine_destination_file_name: file name is {destination_file_name}"
+            )
             destination_file_name = destination_file_name
     else:
         destination_file_name = extract_file_name_from_source_full_path(
             source_full_path
+        )
+        logger.debug(
+            f"From determine_destinatino_file_name: destination_file_name is {destination_file_name}"
         )
 
     return destination_file_name
@@ -139,14 +155,19 @@ def determine_destination_name(
     """
     Determine the final destination name of the file being downloaded.
     """
+    logger.debug(
+        f"from determine_destination_name: args are: {destination_folder_name}, {destination_file_name}, {source_full_path}, {file_number}"
+    )
     destination_file_name = determine_destination_file_name(
         destination_file_name=destination_file_name,
         source_full_path=source_full_path,
         file_number=file_number,
     )
+    logger.debug(f"new file name is {destination_file_name}")
     destination_name = combine_folder_and_file_name(
         destination_folder_name, destination_file_name
     )
+    logger.debug(f"destination name is {destination_name}")
     return destination_name
 
 
