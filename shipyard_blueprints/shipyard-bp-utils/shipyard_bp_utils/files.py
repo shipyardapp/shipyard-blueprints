@@ -6,7 +6,7 @@ import json
 import tarfile
 import fnmatch
 
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 from shipyard_templates import ShipyardLogger
 from pandas import DataFrame
 
@@ -42,12 +42,15 @@ def determine_destination_file_name(
     Returns:
     str: The determined destination file name.
     """
-    if not destination_file_name:
-        os.path.basename(source_full_path)
+
     if file_number:
-        name, ext = os.path.splitext(destination_file_name)
-        destination_file_name = f"{name}_{file_number}{ext}"
-    return destination_file_name
+        filename = os.path.basename(destination_file_name or source_full_path)
+        name, ext = os.path.splitext(filename)
+        return f"{name}_{file_number}{ext}"
+    elif destination_file_name:
+        return destination_file_name
+    else:
+        return os.path.basename(source_full_path)
 
 
 def clean_folder_name(folder_name: str) -> str:
@@ -136,10 +139,10 @@ def compress_files(file_paths: list, destination_full_path: str, compression: st
         compressed_file_name = f"{destination_full_path}.{compression}"
 
     if compression == "zip":
-        compress_with_zip(file_paths, compressed_file_name)
+        return compress_with_zip(file_paths, compressed_file_name)
 
     if "tar" in compression:
-        compress_with_tar(file_paths, compressed_file_name, compression)
+        return compress_with_tar(file_paths, compressed_file_name, compression)
 
 
 def compress_with_zip(file_paths: list, compressed_file_name: str):
@@ -153,11 +156,12 @@ def compress_with_zip(file_paths: list, compressed_file_name: str):
     Returns:
     None
     """
-    with ZipFile(compressed_file_name, "w") as zip_file:
+
+    with ZipFile(compressed_file_name, "w", ZIP_DEFLATED) as zip_file:
         for file in file_paths:
-            file = clean_folder_name(file.replace(os.getcwd(), ""))
-            zip_file.write(file)
+            zip_file.write(file, os.path.basename(file))
             logger.debug(f"Successfully compressed {file} into {compressed_file_name}")
+    return compressed_file_name
 
 
 def compress_with_tar(file_paths: list, compressed_file_name: str, compression: str):

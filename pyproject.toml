@@ -9,6 +9,7 @@ packages = [{ include = "shipyard_blueprints" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+pytest = "^8.0.1"
 
 
 [build-system]
