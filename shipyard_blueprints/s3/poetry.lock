@@ -423,16 +423,14 @@ python-dateutil = ">=2.8.2,<3.0.0"
 
 [[package]]
 name = "shipyard-templates"
-version = "0.6.2a1"
+version = "0.6.2"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = ">=3.9"
-files = []
-develop = true
-
-[package.source]
-type = "directory"
-url = "../../shipyard-templates"
+files = [
+    {file = "shipyard_templates-0.6.2-py3-none-any.whl", hash = "sha256:e4e90bd04729416c70d5209b444346cb1c1d1d7eb9704289bc8ff444f494f39d"},
+    {file = "shipyard_templates-0.6.2.tar.gz", hash = "sha256:65961be691cb5ca09bd96918c587dd21fc9e380f1b7fe0b9dd14583890f67cec"},
+]
 
 [[package]]
 name = "six"
@@ -514,4 +512,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "006155ac3a9e4f5c50b27f540069962c50d790b3f97dc943027515cf91bb855a"
+content-hash = "dc1557413df619c6ff046816f86a3c490de6458e60fafe4a3ac48566040982d6"
