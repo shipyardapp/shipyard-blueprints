@@ -12,6 +12,8 @@ from shipyard_s3.cli import exit_codes as ec
 from shipyard_s3 import S3Client
 from shipyard_templates import CloudStorage, ExitCodeException, ShipyardLogger
 
+from shipyard_s3.utils.exceptions import NoMatchesFound
+
 logger = ShipyardLogger.get_logger()
 
 
@@ -56,23 +58,21 @@ def main():
     logger.info("Successfully connected to S3")
 
     if source_file_name_match_type == "regex_match":
+        logger.info("Beginning to scan for file matches...")
         file_names = client.list_files(
             s3_connection=s3_conn, bucket_name=bucket_name, s3_folder=src_folder
         )
         matching_file_names = shipyard.files.find_all_file_matches(
             file_names, re.compile(src_file)
         )
-        if num_matches := len(matching_file_names) == 0:
-            logger.error(
-                f"No files were found with the regex `{src_file}`, exitting now"
-            )
-            sys.exit(CloudStorage.EXIT_CODE_FILE_NOT_FOUND)
+        if n_matches := len(matching_file_names) == 0:
+            raise NoMatchesFound(src_file)
 
-        logger.info(f"{num_matches} files found. Preparing to remove...")
+        logger.info(f"{n_matches} files found. Preparing to remove...")
 
         for index, key_name in enumerate(matching_file_names, start=1):
             client.remove(s3_conn=s3_conn, bucket_name=bucket_name, src_path=key_name)
-            logger.info(f"Removing file {index} of {len(matching_file_names)}")
+            logger.info(f"Removing file {index} of {n_matches}")
 
     else:
         if src_folder:

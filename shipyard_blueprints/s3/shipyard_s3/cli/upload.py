@@ -1,10 +1,6 @@
 import os
-import boto3
-import botocore
-from botocore.client import Config
 import re
 import argparse
-import glob
 import ast
 import sys
 
@@ -14,7 +10,7 @@ import shipyard_templates
 from shipyard_s3.s3 import S3Client
 from shipyard_templates import ShipyardLogger, ExitCodeException
 
-from shipyard_s3.utils.exceptions import UploadError
+from shipyard_s3.utils.exceptions import NoMatchesFound
 
 logger = ShipyardLogger.get_logger()
 
@@ -81,17 +77,16 @@ def main():
         logger.info("Successfully connected to S3")
 
         if match_type == "regex_match":
+            logger.info("Beginning to scan for file matches...")
             file_names = shipyard.files.find_all_local_file_names(source_dir)
             matching_file_names = shipyard.files.find_all_file_matches(
                 file_names, re.compile(source_file)
             )
-            num_matches = len(matching_file_names)
 
-            if num_matches == 0:
-                logger.error(f"No matches found for regex {source_file}")
-                sys.exit(1)
+            if n_matches := len(matching_file_names) == 0:
+                raise NoMatchesFound(source_file)
             else:
-                logger.info(f"{num_matches} files found. Preparing to upload...")
+                logger.info(f"{n_matches} files found. Preparing to upload...")
 
             for index, key_name in enumerate(matching_file_names, start=1):
                 if args.destination_folder_name:

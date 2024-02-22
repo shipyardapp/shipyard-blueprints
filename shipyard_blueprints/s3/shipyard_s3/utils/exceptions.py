@@ -33,3 +33,9 @@ class DownloadError(ExitCodeException):
     def __init__(self, message: str):
         self.message = message
         self.exit_code = EXIT_CODE_MOVE_ERROR
+
+
+class NoMatchesFound(ExitCodeException):
+    def __init__(self, regex: str):
+        self.message = f"No matches were found for the regex `{regex}`"
+        self.exit_code = CloudStorage.EXIT_CODE_FILE_MATCH_ERROR

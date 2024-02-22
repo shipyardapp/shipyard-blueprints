@@ -7,6 +7,8 @@ from shipyard_s3 import S3Client
 from shipyard_templates import ExitCodeException, ShipyardLogger, CloudStorage
 from typing import Optional
 
+from shipyard_s3.utils.exceptions import NoMatchesFound
+
 logger = ShipyardLogger.get_logger()
 
 
@@ -94,6 +96,7 @@ def main():
         logger.info("Successfully connected to S3")
 
         if match_type == "regex_match":
+            logger.info("Beginning to scan for file matches...")
             file_names = client.list_files(
                 s3_connection=s3_conn,
                 bucket_name=bucket_name,
@@ -103,10 +106,7 @@ def main():
                 file_names, re.compile(src_file)
             )
             if n_matches := len(matching_file_names) == 0:
-                logger.error(
-                    f"No files were found with the regex `{src_file}`, exitting now"
-                )
-                sys.exit(CloudStorage.EXIT_CODE_FILE_NOT_FOUND)
+                raise NoMatchesFound(src_file)
 
             logger.info(f" {n_matches} files found. Preparing to download...")
 
