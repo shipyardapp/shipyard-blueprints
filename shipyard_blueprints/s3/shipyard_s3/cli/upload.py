@@ -72,8 +72,9 @@ def main():
             aws_secret_access_key=args.aws_secret_access_key,
             region=args.aws_default_region,
         )
+        client.connect()
 
-        s3_conn = client.connect()
+        # s3_conn = client.connect()
         logger.info("Successfully connected to S3")
 
         if match_type == "regex_match":
@@ -107,7 +108,6 @@ def main():
                     )
                 logger.info(f"Uploading file {index} of {len(matching_file_names)}")
                 client.upload(
-                    s3_conn=s3_conn,
                     bucket_name=bucket_name,
                     source_file=key_name,
                     destination_path=s3_path,
@@ -131,7 +131,6 @@ def main():
                 )
                 logger.debug(f"S3 path is {s3_path}")
             client.upload(
-                s3_conn=s3_conn,
                 bucket_name=bucket_name,
                 source_file=source_path,
                 destination_path=s3_path,

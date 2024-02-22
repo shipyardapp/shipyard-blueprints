@@ -82,14 +82,11 @@ def main():
             region=args.aws_default_region,
         )
 
-        s3_conn = client.connect()
         logger.info("Successfully connected to S3")
 
         if match_type == "regex_match":
             logger.info("Beginning to scan for file matches...")
-            file_names = client.list_files(
-                s3_connection=s3_conn, bucket_name=src_bucket, s3_folder=src_folder
-            )
+            file_names = client.list_files(bucket_name=src_bucket, s3_folder=src_folder)
             logger.debug(f"All file names: {file_names}")
             matching_file_names = shipyard.files.find_all_file_matches(
                 file_names, re.compile(src_file)
@@ -109,7 +106,6 @@ def main():
                 )
                 logger.info(f"Moving file {index} of {n_matches}")
                 client.move(
-                    s3_conn=s3_conn,
                     src_bucket=src_bucket,
                     src_path=key_name,
                     dest_bucket=dest_bucket,
@@ -138,7 +134,6 @@ def main():
                 dest_path = dest_file
 
             client.move(
-                s3_conn=s3_conn,
                 src_bucket=src_bucket,
                 src_path=src_path,
                 dest_bucket=dest_bucket,

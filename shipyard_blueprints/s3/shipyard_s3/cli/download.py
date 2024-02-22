@@ -91,14 +91,13 @@ def main():
             aws_secret_access_key=args.aws_secret_access_key,
             region=args.aws_default_region,
         )
+        client.connect()
 
-        s3_conn = client.connect()
         logger.info("Successfully connected to S3")
 
         if match_type == "regex_match":
             logger.info("Beginning to scan for file matches...")
             file_names = client.list_files(
-                s3_connection=s3_conn,
                 bucket_name=bucket_name,
                 s3_folder=src_folder,
             )
@@ -125,7 +124,6 @@ def main():
                 )
                 logger.info(f"Downloading file {index} of {len(matching_file_names)}")
                 client.download(
-                    s3_conn=s3_conn,
                     bucket_name=bucket_name,
                     s3_path=key_name,
                     dest_path=dest_path,
@@ -145,7 +143,6 @@ def main():
                 source_full_path=src_path,
             )
             client.download(
-                s3_conn=s3_conn,
                 bucket_name=bucket_name,
                 s3_path=src_path,
                 dest_path=dest_path,
