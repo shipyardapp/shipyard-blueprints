@@ -61,7 +61,8 @@ if [ "$1" = 'down2' ]; then
         --source-folder-name $S3_FOLDER \
         --source-file-name 'regex' \
         --source-file-name-match-type 'regex_match' \
-        --destination-folder-name "reg_download"
+        --destination-folder-name "reg_download" 
+
 fi
 
 if [ "$1" = 'mv1' ]; then
