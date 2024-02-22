@@ -1,9 +1,11 @@
 import boto3
 from shipyard_templates import CloudStorage, ShipyardLogger
+from boto3.exceptions import S3UploadFailedError
 from typing import Optional, Dict, Any, List
 from shipyard_s3.utils.exceptions import (
     DownloadError,
     InvalidCredentials,
+    InvalidRegion,
     MoveError,
     RemoveError,
     UploadError,
@@ -71,6 +73,9 @@ class S3Client(CloudStorage):
             self.s3_conn.delete_object(Bucket=src_bucket, Key=src_path)
 
         except Exception as e:
+            if "IllegalLocationConstraintException" in str(e):
+                logger.debug(f"Response from the server: {str(e)}")
+                raise InvalidRegion(region=self.region)
             raise MoveError(f"Error in attempting to move file: {str(e)}")
 
     def remove(self, bucket_name: str, src_path: str):
@@ -86,6 +91,9 @@ class S3Client(CloudStorage):
         try:
             s3_response = self.s3_conn.delete_object(Bucket=bucket_name, Key=src_path)
         except Exception as e:
+            if "IllegalLocationConstraintException" in str(e):
+                logger.debug(f"Response from the server: {str(e)}")
+                raise InvalidRegion(region=self.region)
             raise RemoveError(message=str(e))
         else:
             logger.debug(f"Response from s3: {s3_response}")
@@ -116,6 +124,11 @@ class S3Client(CloudStorage):
             s3_transfer.upload_file(
                 source_file, bucket_name, destination_path, extra_args=extra_args
             )
+
+        except S3UploadFailedError as se:
+            if "IllegalLocationConstraintException" in str(se):
+                logger.debug(f"Response from the server: {str(se)}")
+                raise InvalidRegion(region=self.region)
         except Exception as e:
             raise UploadError(f"Error in uploading to S3: {str(e)}")
 

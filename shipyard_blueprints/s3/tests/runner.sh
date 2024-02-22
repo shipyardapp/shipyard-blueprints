@@ -9,6 +9,7 @@ DOWN="./shipyard_s3/cli/download.py"
 MOVE="./shipyard_s3/cli/move.py"
 REMOVE="./shipyard_s3/cli/remove.py"
 DOWN_OLD="./shipyard_s3/cli/old/download.py"
+UP_OLD="./shipyard_s3/cli/old/upload.py"
 
 if [ "$1" = 'up1' ]; then
     echo "Base case for upload"
@@ -37,7 +38,7 @@ if [ "$1" = 'down1' ]; then
     echo "Beginning to download the recently uploaded file"
     python3 $DOWN --aws-access-key-id $KEY \
         --aws-secret-access-key $SECRET \
-        --aws-default-region $REGION \
+        --aws-default-region $BAD_REGION \
         --bucket-name $BUCKET \
         --source-folder-name $S3_FOLDER \
         --source-file-name 's3.csv' \
@@ -68,7 +69,7 @@ fi
 if [ "$1" = 'mv1' ]; then
     python3 $MOVE --aws-access-key-id $KEY \
         --aws-secret-access-key $SECRET \
-        --aws-default-region $REGION \
+        --aws-default-region $BAD_REGION \
         --source-bucket-name $BUCKET \
         --destination-bucket-name $BUCKET \
         --source-folder-name $S3_FOLDER \

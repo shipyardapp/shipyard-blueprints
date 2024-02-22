@@ -3,6 +3,7 @@ from shipyard_templates import ExitCodeException, CloudStorage
 EXIT_CODE_MOVE_ERROR = 101
 EXIT_CODE_REMOVE_ERR0R = 102
 EXIT_CODE_DOWNLOAD_ERROR = 103
+EXIT_CODE_INVALID_REGION = 104
 
 
 class InvalidCredentials(ExitCodeException):
@@ -39,3 +40,15 @@ class NoMatchesFound(ExitCodeException):
     def __init__(self, regex: str):
         self.message = f"No matches were found for the regex `{regex}`"
         self.exit_code = CloudStorage.EXIT_CODE_FILE_MATCH_ERROR
+
+
+class InvalidRegion(ExitCodeException):
+    def __init__(self, region: str):
+        self.message = f"The provided Access Key and Secret do not have access to the following region: {region}"
+        self.exit_code = EXIT_CODE_INVALID_REGION
+
+
+class InvalidBucket(ExitCodeException):
+    def __init__(self, bucket: str):
+        self.message = f"The bucket `{bucket}` is not accesible to the provided Access Key and Secret, or does not exist"
+        self.exit_code = EXIT_CODE_INVALID_REGION
