@@ -83,8 +83,7 @@ def main():
         match_type = args.source_file_name_match_type
         target_dir = shipyard.files.clean_folder_name(args.destination_folder_name)
 
-        if not os.path.exists(target_dir) and (target_dir != ""):
-            os.makedirs(target_dir)
+        shipyard.files.create_folder_if_dne(target_dir)
 
         client = S3Client(
             aws_access_key=args.aws_access_key_id,
