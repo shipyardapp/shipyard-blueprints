@@ -72,10 +72,11 @@ def main():
     try:
         args = get_args()
         bucket_name = args.bucket_name
-        source_file = args.source_file_name
-        source_folder = shipyard.files.clean_folder_name(args.source_folder_name)
-        source_path = shipyard.files.combine_folder_and_file_name(
-            folder_name=source_folder, file_name=source_file
+        src_file = args.source_file_name
+        src_folder = (
+            shipyard.files.clean_folder_name(args.source_folder_name)
+            if args.source_folder_name
+            else None
         )
         match_type = args.source_file_name_match_type
         target_dir = shipyard.files.clean_folder_name(args.destination_folder_name)
@@ -90,19 +91,20 @@ def main():
         )
 
         s3_conn = client.connect()
+        logger.info("Successfully connected to S3")
 
         if match_type == "regex_match":
             file_names = client.list_files(
                 s3_connection=s3_conn,
                 bucket_name=bucket_name,
-                s3_folder=source_folder,
+                s3_folder=src_folder,
             )
             matching_file_names = shipyard.files.find_all_file_matches(
-                file_names, re.compile(source_file)
+                file_names, re.compile(src_file)
             )
             if n_matches := len(matching_file_names) == 0:
                 logger.error(
-                    f"No files were found with the regex {source_file}, exitting now"
+                    f"No files were found with the regex `{src_file}`, exitting now"
                 )
                 sys.exit(CloudStorage.EXIT_CODE_FILE_NOT_FOUND)
 
@@ -119,7 +121,7 @@ def main():
                     destination_folder_name=target_dir,
                     destination_file_name=dest_name,
                     source_full_path=key_name,
-                    file_number=index,
+                    file_number=index if args.destination_file_name else None,
                 )
                 logger.info(f"Downloading file {index} of {len(matching_file_names)}")
                 client.download(
@@ -130,15 +132,22 @@ def main():
                 )
                 logger.info(f"Successfully downlaoded {key_name} to {dest_path}")
         else:
+            if src_folder:
+                src_path = shipyard.files.combine_folder_and_file_name(
+                    folder_name=src_folder, file_name=src_file
+                )
+            else:
+                src_path = src_file
+
             dest_path = shipyard.files.determine_destination_full_path(
                 destination_folder_name=target_dir,
                 destination_file_name=args.destination_file_name,
-                source_full_path=source_path,
+                source_full_path=src_path,
             )
             client.download(
                 s3_conn=s3_conn,
                 bucket_name=bucket_name,
-                s3_path=source_path,
+                s3_path=src_path,
                 dest_path=dest_path,
             )
             logger.info(f"Successfully downloaded file to {dest_path}")

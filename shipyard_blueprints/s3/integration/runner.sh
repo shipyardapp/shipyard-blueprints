@@ -17,8 +17,8 @@ if [ "$1" = 'up1' ]; then
         --aws-default-region $REGION \
         --bucket-name $BUCKET \
         --source-file-name-match-type 'exact_match' \
-        --source-file-name 's3.csv' 
-        # --destination-folder-name $S3_FOLDER 
+        --source-file-name 's3.csv' \
+        --destination-folder-name $S3_FOLDER 
 fi
 
 if [ "$1" = 'up2' ]; then 
@@ -62,4 +62,16 @@ if [ "$1" = 'down2' ]; then
         --source-file-name 'regex' \
         --source-file-name-match-type 'regex_match' \
         --destination-folder-name "reg_download"
+fi
+
+if [ "$1" = 'mv1' ]; then
+    python3 $MOVE --aws-access-key-id $KEY \
+        --aws-secret-access-key $SECRET \
+        --aws-default-region $REGION \
+        --source-bucket-name $BUCKET \
+        --destination-bucket-name $BUCKET \
+        --source-folder-name $S3_FOLDER \
+        --source-file-name "s3.csv" \
+        --destination-file-name "renamed_s3.csv" \
+        --source-file-name-match-type "exact_match"
 fi

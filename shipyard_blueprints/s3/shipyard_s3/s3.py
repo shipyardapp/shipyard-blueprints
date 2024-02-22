@@ -1,11 +1,13 @@
 import boto3
 import shipyard_bp_utils as shipyard
 import sys
+import os
 from shipyard_templates import CloudStorage, ShipyardLogger
 from typing import Optional, Dict, Any, List
 from shipyard_s3.utils.exceptions import (
     DownloadError,
     InvalidCredentials,
+    MoveError,
     RemoveError,
     UploadError,
 )
@@ -25,29 +27,6 @@ class S3Client(CloudStorage):
         self.aws_access_key = aws_access_key
         self.aws_secret_access_key = aws_secret_access_key
         self.region = region
-
-    def _auth_test(self):
-        try:
-            client = boto3.client(
-                "sts",
-                aws_access_key_id=self.aws_access_key,
-                aws_secret_access_key=self.aws_secret_access_key,
-                config=None,
-            )
-            response = client.get_caller_identity()
-            if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
-                logger.info("Successfully connected to S3")
-                return 0
-        except Exception as e:
-            logger.error(
-                f"Exception occured when attempting to connect to S3. Response from the server: {str(e)}"
-            )
-            return 1
-        else:
-            logger.error(
-                f"Could not connect to S3, status code returned was {response['ResponseMetadata']['HTTPStatusCode']}"
-            )
-            return 1
 
     def connect(self):
         try:
@@ -71,18 +50,42 @@ class S3Client(CloudStorage):
     def move(
         self, s3_conn, src_bucket: str, dest_bucket: str, src_path: str, dest_path: str
     ):
+        """Move or rename an object within an S3 bucket
+
+        Args:
+            s3_conn (): The established S3 connection
+            src_bucket: The source bucket
+            dest_bucket: The destination bucket (can be the same as the src_bucket) if you are not moving objects between buckets
+            src_path: The path of where the source object is
+            dest_path: The path to where the source objects should be moved to
+
+        Raises:
+            MoveError:
+        """
         try:
             # create a source dictionary that specifies bucket name and key name of the object to be copied
             copy_source = {"Bucket": src_bucket, "Key": src_path}
-            bucket = s3_conn.Bucket(dest_bucket)
-            bucket.copy(copy_source, dest_path)
-            # delete the original file
-            s3_conn.Object(src_bucket, src_path).delete()
+            # move the object(s)
+            s3_conn.copy_object(
+                Bucket=dest_bucket, CopySource=copy_source, Key=dest_path
+            )
+            # delete the original
+            s3_conn.delete_object(Bucket=src_bucket, Key=src_path)
 
         except Exception as e:
-            raise
+            raise MoveError(f"Error in attempting to move file: {str(e)}")
 
     def remove(self, s3_conn, bucket_name: str, src_path: str):
+        """Delete a file in an S3 bucket
+
+        Args:
+            s3_conn (): The established S3 connection
+            bucket_name: The name of the bucket where the target file resides
+            src_path: The full path (if nested in a folders) where the target file resides
+
+        Raises:
+            RemoveError:
+        """
         try:
             s3_response = s3_conn.delete_object(Bucket=bucket_name, Key=src_path)
         except Exception as e:
@@ -122,6 +125,16 @@ class S3Client(CloudStorage):
             raise UploadError(f"Error in uploading to S3: {str(e)}")
 
     def download(self, s3_conn, bucket_name: str, s3_path: str, dest_path: str):
+        """Download a file from an S3 bucket
+        Args:
+            s3_conn (): The established S3 connection
+            bucket_name: The bucket to download from
+            s3_path: The file path of the object(s) to fetch
+            dest_path: The path to download the target file(s) to
+
+        Raises:
+            DownloadError:
+        """
         try:
             s3_conn.download_file(bucket_name, s3_path, dest_path)
         except Exception as e:
@@ -129,13 +142,15 @@ class S3Client(CloudStorage):
                 f"Error in downloading s3 file to {dest_path}: {str(e)}"
             )
 
-    def list_files(self, s3_connection, bucket_name: str, s3_folder: str) -> List[str]:
-        """Returns a list
+    def list_files(
+        self, s3_connection, bucket_name: str, s3_folder: Optional[str]
+    ) -> List[str]:
+        """Returns the list of all the files (objects) in in a bucket and folder
 
         Args:
-            s3_connection ():
-            bucket_name:
-            s3_folder:
+            s3_connection (): The established S3 connection
+            bucket_name: The bucket to scan
+            s3_folder: The optional folder path to scan, if omitted the the root of the bucket will be used
 
         Returns:
 
