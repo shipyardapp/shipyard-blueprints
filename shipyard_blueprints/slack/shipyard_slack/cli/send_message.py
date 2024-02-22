@@ -33,6 +33,40 @@ def get_args():
 
     parser.add_argument("--slack-token", dest="slack_token", required=True)
 
+    # Below arguments are not used in this blueprint. Leaving in for backwards compatibility
+    parser.add_argument(
+        "--file-upload",
+        dest="file_upload",
+        default="no",
+        required=False,
+        choices={"yes", "no"},
+    )
+    parser.add_argument(
+        "--conditional-send",
+        dest="conditional_send",
+        default="always",
+        required=False,
+        choices={"file_exists", "file_dne", "always"},
+    )
+    parser.add_argument(
+        "--source-file-name-match-type",
+        dest="source_file_name_match_type",
+        default="exact_match",
+        choices={"exact_match", "regex_match"},
+        required=False,
+    )
+    parser.add_argument("--source-file-name", dest="source_file_name", required=False)
+    parser.add_argument(
+        "--source-folder-name", dest="source_folder_name", default="", required=False
+    )
+
+    parser.add_argument(
+        "--include-file-in-thread",
+        dest="include_file_in_thread",
+        default="yes",
+        required=False,
+    )
+
     return parser.parse_args()
 
 

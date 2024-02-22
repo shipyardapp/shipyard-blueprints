@@ -57,6 +57,22 @@ def get_args():
         required=False,
     )
 
+    # Below arguments are not used in this blueprint. Leaving in for backwards compatibility
+    parser.add_argument(
+        "--file-upload",
+        dest="file_upload",
+        default="no",
+        required=False,
+        choices={"yes", "no"},
+    )
+    parser.add_argument(
+        "--conditional-send",
+        dest="conditional_send",
+        default="always",
+        required=False,
+        choices={"file_exists", "file_dne", "always"},
+    )
+
     return parser.parse_args()
 
 
