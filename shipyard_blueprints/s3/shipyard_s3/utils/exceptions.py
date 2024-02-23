@@ -4,6 +4,8 @@ EXIT_CODE_MOVE_ERROR = 101
 EXIT_CODE_REMOVE_ERR0R = 102
 EXIT_CODE_DOWNLOAD_ERROR = 103
 EXIT_CODE_INVALID_REGION = 104
+EXIT_CODE_BUCKET_DNE = 105
+EXIT_CODE_BUCKET_ACCESS = 106
 
 
 class InvalidCredentials(ExitCodeException):
@@ -48,7 +50,13 @@ class InvalidRegion(ExitCodeException):
         self.exit_code = EXIT_CODE_INVALID_REGION
 
 
-class InvalidBucket(ExitCodeException):
+class InvalidBucketAccess(ExitCodeException):
     def __init__(self, bucket: str):
-        self.message = f"The bucket `{bucket}` is not accesible to the provided Access Key and Secret, or does not exist"
-        self.exit_code = EXIT_CODE_INVALID_REGION
+        self.message = f"The bucket `{bucket}` is not accesible to the provided Access Key and Secret"
+        self.exit_code = EXIT_CODE_BUCKET_ACCESS
+
+
+class BucketDoesNotExist(ExitCodeException):
+    def __init__(self, bucket: str):
+        self.message = f"The bucket `{bucket}` does not exist"
+        self.exit_code = EXIT_CODE_BUCKET_DNE

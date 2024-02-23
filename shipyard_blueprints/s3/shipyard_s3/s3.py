@@ -3,7 +3,9 @@ from shipyard_templates import CloudStorage, ShipyardLogger
 from boto3.exceptions import S3UploadFailedError
 from typing import Optional, Dict, Any, List
 from shipyard_s3.utils.exceptions import (
+    BucketDoesNotExist,
     DownloadError,
+    InvalidBucketAccess,
     InvalidCredentials,
     InvalidRegion,
     MoveError,
@@ -63,7 +65,9 @@ class S3Client(CloudStorage):
             MoveError:
         """
         try:
-            # create a source dictionary that specifies bucket name and key name of the object to be copied
+            # check the access to the buckets
+            self.check_bucket(src_bucket)
+            self.check_bucket(dest_bucket)
             copy_source = {"Bucket": src_bucket, "Key": src_path}
             # move the object(s)
             self.s3_conn.copy_object(
@@ -72,6 +76,8 @@ class S3Client(CloudStorage):
             # delete the original
             self.s3_conn.delete_object(Bucket=src_bucket, Key=src_path)
 
+        except (BucketDoesNotExist, InvalidBucketAccess):
+            raise
         except Exception as e:
             if "IllegalLocationConstraintException" in str(e):
                 logger.debug(f"Response from the server: {str(e)}")
@@ -89,7 +95,11 @@ class S3Client(CloudStorage):
             RemoveError:
         """
         try:
+            # check the access to the bucket
+            self.check_bucket(bucket_name)
             s3_response = self.s3_conn.delete_object(Bucket=bucket_name, Key=src_path)
+        except (BucketDoesNotExist, InvalidBucketAccess):
+            raise
         except Exception as e:
             if "IllegalLocationConstraintException" in str(e):
                 logger.debug(f"Response from the server: {str(e)}")
@@ -117,6 +127,8 @@ class S3Client(CloudStorage):
             UploadError
         """
         try:
+            # check the access to the bucket
+            self.check_bucket(bucket_name)
             s3_upload_config = boto3.s3.transfer.TransferConfig()
             s3_transfer = boto3.s3.transfer.S3Transfer(
                 client=self.s3_conn, config=s3_upload_config
@@ -124,7 +136,8 @@ class S3Client(CloudStorage):
             s3_transfer.upload_file(
                 source_file, bucket_name, destination_path, extra_args=extra_args
             )
-
+        except (BucketDoesNotExist, InvalidBucketAccess):
+            raise
         except S3UploadFailedError as se:
             if "IllegalLocationConstraintException" in str(se):
                 logger.debug(f"Response from the server: {str(se)}")
@@ -143,7 +156,11 @@ class S3Client(CloudStorage):
             DownloadError:
         """
         try:
+            # check the access to the bucket
+            self.check_bucket(bucket_name)
             self.s3_conn.download_file(bucket_name, s3_path, dest_path)
+        except (BucketDoesNotExist, InvalidBucketAccess):
+            raise
         except Exception as e:
             raise DownloadError(
                 f"Error in downloading s3 file to {dest_path}: {str(e)}"
@@ -175,3 +192,13 @@ class S3Client(CloudStorage):
             file_names = file_names.append(utils.get_files(response))
             continuation_token = response.get("NextContinuationToken")
         return file_names
+
+    def check_bucket(self, bucket_name: str):
+        try:
+            response = self.s3_conn.list_objects_v2(Bucket=bucket_name)
+            logger.debug(f"Able to access bucket {bucket_name}")
+            logger.debug(f"Contents of response: {response}")
+        except self.s3_conn.exceptions.NoSuchBucket:
+            raise BucketDoesNotExist(bucket_name)
+        except Exception as e:
+            raise InvalidBucketAccess(bucket_name)

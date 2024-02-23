@@ -39,7 +39,7 @@ if [ "$1" = 'down1' ]; then
     python3 $DOWN --aws-access-key-id $KEY \
         --aws-secret-access-key $SECRET \
         --aws-default-region $BAD_REGION \
-        --bucket-name $BUCKET \
+        --bucket-name $BAD_BUCKET \
         --source-folder-name $S3_FOLDER \
         --source-file-name 's3.csv' \
         --source-file-name-match-type 'exact_match' \
