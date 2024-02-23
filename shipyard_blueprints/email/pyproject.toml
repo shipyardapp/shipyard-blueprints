@@ -8,14 +8,12 @@ readme = "README.md"
 packages = [{include = "shipyard_email"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-shipyard-templates = "^0.6.2"
-shipyard-bp-utils = "^1.0.2"
+python = ">=3.7, <3.10"
+shipyard-templates = "0.5.0a0"
+shipyard-utils = "^0.1.3"
 tabulate = "^0.9.0"
 
 [tool.poetry.group.dev.dependencies]
-python-dotenv = "^1.0.1"
-pytest = "^8.0.1"
 
 [build-system]
 requires = ["poetry-core"]
