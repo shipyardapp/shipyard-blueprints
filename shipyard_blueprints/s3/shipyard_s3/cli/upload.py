@@ -84,7 +84,7 @@ def main():
                 file_names, re.compile(source_file)
             )
 
-            if n_matches := len(matching_file_names) == 0:
+            if (n_matches := len(matching_file_names)) == 0:
                 raise NoMatchesFound(source_file)
             else:
                 logger.info(f"{n_matches} files found. Preparing to upload...")

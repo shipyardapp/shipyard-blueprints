@@ -1,14 +1,7 @@
-import os
-import boto3
-import botocore
-from botocore.client import Config
 import re
 import argparse
-import glob
-from ast import literal_eval
 import sys
 import shipyard_bp_utils as shipyard
-from shipyard_s3.cli import exit_codes as ec
 from shipyard_s3 import S3Client
 from shipyard_templates import CloudStorage, ExitCodeException, ShipyardLogger
 
@@ -66,7 +59,7 @@ def main():
             matching_file_names = shipyard.files.find_all_file_matches(
                 file_names, re.compile(src_file)
             )
-            if n_matches := len(matching_file_names) == 0:
+            if (n_matches := len(matching_file_names)) == 0:
                 raise NoMatchesFound(src_file)
 
             logger.info(f"{n_matches} files found. Preparing to remove...")

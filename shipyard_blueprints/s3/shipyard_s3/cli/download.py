@@ -103,7 +103,7 @@ def main():
             matching_file_names = shipyard.files.find_all_file_matches(
                 file_names, re.compile(src_file)
             )
-            if n_matches := len(matching_file_names) == 0:
+            if (n_matches := len(matching_file_names)) == 0:
                 raise NoMatchesFound(src_file)
 
             logger.info(f" {n_matches} files found. Preparing to download...")
