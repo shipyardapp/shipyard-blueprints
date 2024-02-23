@@ -9,8 +9,8 @@ packages = [{include = "shipyard_email"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-shipyard-templates = "^0.6.2a1"
-shipyard-bp-utils = "^1.0.2a0"
+shipyard-templates = "^0.6.2"
+shipyard-bp-utils = "^1.0.2"
 tabulate = "^0.9.0"
 
 [tool.poetry.group.dev.dependencies]
