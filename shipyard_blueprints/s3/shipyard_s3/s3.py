@@ -197,7 +197,7 @@ class S3Client(CloudStorage):
         try:
             response = self.s3_conn.list_objects_v2(Bucket=bucket_name)
             logger.debug(f"Able to access bucket {bucket_name}")
-            logger.debug(f"Contents of response: {response}")
+            # logger.debug(f"Contents of response: {response}")
         except self.s3_conn.exceptions.NoSuchBucket:
             raise BucketDoesNotExist(bucket_name)
         except Exception as e:

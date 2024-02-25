@@ -48,28 +48,6 @@ def get_args():
     return parser.parse_args()
 
 
-def get_dest_file(
-    src_path: str, target_file: str, file_number: Optional[int] = None
-) -> str:
-    """
-    Determines the destination file name based on provided parameters.
-
-    Args:
-    source_full_path (str): The full path of the source file.
-    destination_file_name (str): The initial name of the destination file.
-    file_number (int, optional): The number to append to the file name if necessary.
-
-    Returns:
-    str: The determined destination file name.
-    """
-    if not target_file:
-        target_file = os.path.basename(src_path)
-    if file_number:
-        name, ext = os.path.splitext(target_file)
-        target_file = f"{name}_{file_number}{ext}"
-    return target_file
-
-
 def main():
     try:
         args = get_args()
@@ -109,10 +87,9 @@ def main():
             logger.info(f" {n_matches} files found. Preparing to download...")
 
             for index, key_name in enumerate(matching_file_names, start=1):
-                # NOTE: the `determine_destination_file_name` function in shipyard_bp_utils does not work as expected
-
-                dest_name = get_dest_file(
-                    src_path=key_name, target_file=args.destination_file_name
+                dest_name = shipyard.files.determine_destination_file_name(
+                    source_full_path=key_name,
+                    destination_file_name=args.destination_file_name,
                 )
 
                 dest_path = shipyard.files.determine_destination_full_path(

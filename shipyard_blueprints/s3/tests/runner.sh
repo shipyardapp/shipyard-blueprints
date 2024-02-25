@@ -77,3 +77,17 @@ if [ "$1" = 'mv1' ]; then
         --destination-file-name "renamed_s3.csv" \
         --source-file-name-match-type "exact_match"
 fi
+
+
+if [ "$1" = 'up-bad' ]; then
+    echo "Base case for upload"
+    python3 $UP --aws-access-key-id $KEY \
+        --aws-secret-access-key $SECRET \
+        --aws-default-region $REGION \
+        --bucket-name $BUCKET \
+        --source-file-name-match-type 'regex_match' \
+        --source-file-name 'Test' \
+        --source-folder-name "Upload_Test" \
+        --destination-folder-name $S3_FOLDER 
+fi
+

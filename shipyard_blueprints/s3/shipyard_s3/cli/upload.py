@@ -79,7 +79,8 @@ def main():
 
         if match_type == "regex_match":
             logger.info("Beginning to scan for file matches...")
-            file_names = shipyard.files.find_all_local_file_names(source_dir)
+            local_matches = shipyard.files.find_all_local_file_names(source_dir)
+            file_names = shipyard.files.remove_directories_from_path_list(local_matches)
             matching_file_names = shipyard.files.find_all_file_matches(
                 file_names, re.compile(source_file)
             )
