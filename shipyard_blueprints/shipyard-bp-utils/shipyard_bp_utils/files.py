@@ -9,6 +9,7 @@ import fnmatch
 from zipfile import ZipFile, ZIP_DEFLATED
 from shipyard_templates import ShipyardLogger
 from pandas import DataFrame
+from typing import List
 
 logger = ShipyardLogger.get_logger()
 
@@ -219,7 +220,7 @@ def are_files_too_large(file_paths: str, max_size_bytes: int) -> bool:
     return total_size >= max_size_bytes
 
 
-def find_all_local_file_names(source_folder_name: str = None) -> list:
+def find_all_local_file_names(source_folder_name: str = None) -> List[str]:
     """
     Returns a list of all files that exist in the current working directory,
     filtered by source_folder_name if provided.
@@ -231,12 +232,33 @@ def find_all_local_file_names(source_folder_name: str = None) -> list:
     list: A list of all files that exist in the current working directory.
     """
     logger.debug(f"Finding all local file names in {source_folder_name}...")
-    cwd = os.getcwd()
-    cwd_extension = os.path.normpath(f"{cwd}/{source_folder_name}/**")
-    all_paths = glob.glob(cwd_extension, recursive=True)
-    logger.debug(f"Found {len(all_paths)}.")
-    logger.debug(all_paths)
-    return remove_directories_from_path_list(all_paths)
+    # cwd = os.getcwd()
+    # if not source_folder_name:
+    #     search_path = os.getcwd()
+    # else:
+    #     search_path = os.path.normpath(f"{cwd}/{source_folder_name}/**")
+    # all_paths = glob.glob(search_path, recursive=True)
+    # print(all_paths)
+    # logger.debug(f"Found {len(all_paths)}.")
+    # logger.debug(all_paths)
+    # return remove_directories_from_path_list(all_paths)
+    if source_folder_name is None:
+        source_folder_name = (
+            os.getcwd()
+        )  # Use current working directory if no directory provided
+    try:
+        file_list = [
+            filename
+            for filename in os.listdir(source_folder_name)
+            if os.path.isfile(os.path.join(source_folder_name, filename))
+        ]
+    except FileNotFoundError:
+        logger.debug("No files found")
+        return []  # Return an empty list if the directory does not exist
+    else:
+        logger.debug(f"Found {len(file_list)}.")
+        logger.debug(file_list)
+        return file_list
 
 
 def remove_directories_from_path_list(path_list: list) -> list:
@@ -264,7 +286,9 @@ def find_all_file_matches(file_names: list, file_name_re: str) -> list:
     Returns:
     list: A list of all matching_file_names that matched the regular expression.
     """
-    matching_file_names = [file for file in file_names if re.search(file_name_re, file)]
+    matching_file_names = [
+        file for file in file_names if re.search(file_name_re, os.path.basename(file))
+    ]
 
     logger.debug(f"Found {len(matching_file_names)} file matches.")
     logger.debug(matching_file_names)

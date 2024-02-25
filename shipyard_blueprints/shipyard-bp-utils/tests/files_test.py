@@ -64,3 +64,22 @@ def test_source_full_path_current_dir_with_file_num():
         file_number=file_number,
     )
     assert result == expected_result, f"Expected {expected_result}, got {result}"
+
+
+def test_find_all_file_matches_in_folder():
+    src_dir = "Upload_Test"
+    regex = "Test"
+    ans = 2  # the number of matches should be 2
+    local_files = files.find_all_local_file_names(source_folder_name=src_dir)
+
+    result = files.find_all_file_matches(local_files, regex)
+
+    assert len(result) == ans
+
+
+def test_find_all_file_matches_in_cwd():
+    regex = "py"
+    ans = 3
+    local_files = files.find_all_local_file_names()
+    result = files.find_all_file_matches(local_files, regex)
+    assert len(result) == ans
