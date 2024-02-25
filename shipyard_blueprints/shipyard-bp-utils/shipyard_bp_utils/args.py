@@ -6,25 +6,35 @@ from shipyard_templates import ShipyardLogger
 logger = ShipyardLogger.get_logger()
 
 
-def convert_to_boolean(string: str) -> bool:
+def convert_to_boolean(string: str, default: bool = False) -> bool:
     """
     Convert a string to a boolean.
 
     Args:
     string (str): A string to convert to a boolean.
+    default (bool): The default value to return if the string is None or does not match "TRUE" or "FALSE"
 
     Returns:
-    bool: True if the string is "TRUE" (case-insensitive) else False.
+    bool: True if string is TRUE, False if string is FALSE, else default.
     """
     logger.debug(f"Converting {string} to boolean...")
+    result = None
 
-    bool_string = string.upper().strip()
-    if bool_string == "TRUE":
-        result = True
-    elif bool_string == "FALSE":
-        result = False
-    else:
-        raise ValueError(f"Invalid value for boolean: {string}")
+    if string:
+        bool_string = string.upper().strip()
+        if bool_string == "FALSE":
+            result = False
+        elif bool_string == "TRUE":
+            result = True
+    if result is None:
+        result = default
+        if string is None:
+            logger.warning(f"Argument was not set. Using default: {result}.")
+        else:
+            logger.warning(
+                f'Input "{string}" did not match expected "TRUE" or "FALSE" (case-insensitive) formats.'
+                f"Using default: {result}."
+            )
     logger.debug(f"Converted {string} to {result} boolean.")
     return result
 
