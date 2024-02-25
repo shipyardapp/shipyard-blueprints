@@ -74,13 +74,11 @@ def main():
         )
         client.connect()
 
-        # s3_conn = client.connect()
         logger.info("Successfully connected to S3")
 
         if match_type == "regex_match":
             logger.info("Beginning to scan for file matches...")
-            local_matches = shipyard.files.find_all_local_file_names(source_dir)
-            file_names = shipyard.files.remove_directories_from_path_list(local_matches)
+            file_names = shipyard.files.find_all_local_file_names(source_dir)
             matching_file_names = shipyard.files.find_all_file_matches(
                 file_names, re.compile(source_file)
             )
