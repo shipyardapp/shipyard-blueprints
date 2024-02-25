@@ -248,7 +248,7 @@ def find_all_local_file_names(source_folder_name: str = None) -> List[str]:
         )  # Use current working directory if no directory provided
     try:
         file_list = [
-            filename
+            os.path.join(source_folder_name, filename)
             for filename in os.listdir(source_folder_name)
             if os.path.isfile(os.path.join(source_folder_name, filename))
         ]
