@@ -78,7 +78,16 @@ def test_find_all_file_matches_in_folder():
 
 
 def test_find_all_file_matches_in_cwd():
-    regex = "py"
+    regex = "toml"
+    ans = 1
+    local_files = files.find_all_local_file_names()
+    result = files.find_all_file_matches(local_files, regex)
+    assert len(result) == ans
+
+
+def test_find_all_python_files_in_folder():
+    src_dir = "shipyard_bp_utils"
+    regex = "files.py|text.py|args.py"
     ans = 3
     local_files = files.find_all_local_file_names()
     result = files.find_all_file_matches(local_files, regex)

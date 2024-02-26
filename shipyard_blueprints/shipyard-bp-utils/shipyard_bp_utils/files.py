@@ -232,33 +232,15 @@ def find_all_local_file_names(source_folder_name: str = None) -> List[str]:
     list: A list of all files that exist in the current working directory.
     """
     logger.debug(f"Finding all local file names in {source_folder_name}...")
-    # cwd = os.getcwd()
-    # if not source_folder_name:
-    #     search_path = os.getcwd()
-    # else:
-    #     search_path = os.path.normpath(f"{cwd}/{source_folder_name}/**")
-    # all_paths = glob.glob(search_path, recursive=True)
-    # print(all_paths)
-    # logger.debug(f"Found {len(all_paths)}.")
-    # logger.debug(all_paths)
-    # return remove_directories_from_path_list(all_paths)
-    if source_folder_name is None:
-        source_folder_name = (
-            os.getcwd()
-        )  # Use current working directory if no directory provided
-    try:
-        file_list = [
-            os.path.join(source_folder_name, filename)
-            for filename in os.listdir(source_folder_name)
-            if os.path.isfile(os.path.join(source_folder_name, filename))
-        ]
-    except FileNotFoundError:
-        logger.debug("No files found")
-        return []  # Return an empty list if the directory does not exist
+    cwd = os.getcwd()
+    if not source_folder_name:
+        search_path = os.path.normpath(f"{os.getcwd()}/**")
     else:
-        logger.debug(f"Found {len(file_list)}.")
-        logger.debug(file_list)
-        return file_list
+        search_path = os.path.normpath(f"{cwd}/{source_folder_name}/**")
+    all_paths = glob.glob(search_path, recursive=True)
+    logger.debug(f"Found {len(all_paths)}.")
+    logger.debug(all_paths)
+    return remove_directories_from_path_list(all_paths)
 
 
 def remove_directories_from_path_list(path_list: list) -> list:
