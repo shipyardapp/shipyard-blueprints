@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-email"
-version = "0.1.1a2"
+version = "0.1.1a4"
 description = "Simplified blueprints for building data pipelines with Email"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache License 2.0"
