@@ -7,6 +7,7 @@ from shipyard_email.email_client import EmailClient
 from shipyard_email.exceptions import (
     InvalidInputError,
     InvalidCredentialsError,
+    InvalidFileInputError,
 )
 from shipyard_templates import ShipyardLogger, Messaging, ExitCodeException
 
@@ -16,8 +17,6 @@ logger = ShipyardLogger.get_logger()
 
 
 def get_args():
-    # TODO: Remove unused arguments when blueprints can be updated safely
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--send-method", dest="send_method", default="tls", required=False
@@ -36,17 +35,20 @@ def get_args():
     parser.add_argument("--subject", dest="subject", default="", required=False)
     parser.add_argument("--message", dest="message", default="", required=True)
     parser.add_argument(
-        "--source-file-name",  # Left in for backwards compatibility
-        dest="source_file_name",
-        default="",
-        required=False,
+        "--source-file-name", dest="source_file_name", default="", required=False
     )
     parser.add_argument(
-        "--source-folder-name",  # Left in for backwards compatibility
-        dest="source_folder_name",
-        default="",
+        "--source-folder-name", dest="source_folder_name", default="", required=False
+    )
+    parser.add_argument(
+        "--source-file-name-match-type",
+        dest="source_file_name_match_type",
+        default="exact_match",
+        choices={"exact_match", "regex_match"},
         required=False,
     )
+    # TODO: Remove unused arguments when blueprints can be updated safely
+
     parser.add_argument(
         "--conditional-send",  # Left in for backwards compatibility
         dest="conditional_send",
@@ -54,18 +56,12 @@ def get_args():
         required=False,
         choices={"file_exists", "file_dne", "always"},
     )
-    parser.add_argument(
-        "--source-file-name-match-type",  # Left in for backwards compatibility
-        dest="source_file_name_match_type",
-        default="exact_match",
-        choices={"exact_match", "regex_match"},
-        required=False,
-    )
+
     parser.add_argument(
         "--file-upload",  # Left in for backwards compatibility
         dest="file_upload",
-        default="no",
-        choices={"yes", "no"},
+        default="yes",
+        required=False,
     )
     parser.add_argument(
         "--include-shipyard-footer",
@@ -106,12 +102,37 @@ def main():
             args.smtp_host, args.smtp_port, username, args.password, send_method
         )
 
+        source_file_name = args.source_file_name
+        source_folder_name = shipyard.files.clean_folder_name(args.source_folder_name)
+        file_paths = shipyard.files.find_matching_files(
+            source_file_name, source_folder_name, args.source_file_name_match_type
+        )
+
+        if not file_paths:
+            raise InvalidFileInputError(
+                f"No files found matching {source_file_name} in {source_folder_name}"
+            )
+
         message = client.message_content_file_injection(message)
+
         if include_shipyard_footer:
             message = (
                 f"{message}<br><br>---<br>Sent by <a href=https://www.shipyardapp.com> Shipyard</a> | "
                 f"<a href={shipyard.args.create_shipyard_link()}>Click Here</a> to Edit"
             )
+
+        if shipyard.files.are_files_too_large(
+            file_paths, max_size_bytes=MAX_SIZE_BYTES
+        ):
+            logger.info("Files are too large to attach. Compressing files.")
+            compressed_file_name = shipyard.files.compress_files(
+                file_paths,
+                destination_full_path=os.path.join(os.getcwd(), "Archive"),
+                compression="zip",
+            )
+            logger.info(f"Attaching {compressed_file_name} to message.")
+            file_paths = [compressed_file_name]
+
         client.send_message(
             sender_address=sender_address,
             message=message,
@@ -120,6 +141,7 @@ def main():
             cc=args.cc,
             bcc=args.bcc,
             subject=args.subject,
+            attachment_file_paths=file_paths,
         )
     except ExitCodeException as error:
         logger.error(error.message)
