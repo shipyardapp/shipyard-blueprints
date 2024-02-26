@@ -13,8 +13,8 @@ pandas = "1.5.3"
 shipyard-templates = "^0.1.3"
 
 
-[tool.poetry.group.dev.dependencies]
-shipyard-templates = {path = "../../shipyard-templates", develop = true}
+#[tool.poetry.group.dev.dependencies]
+#shipyard-templates = {path = "../../shipyard-templates", develop = true}
 
 [build-system]
 requires = ["poetry-core"]

@@ -15,7 +15,7 @@ appengine-python-standard = "^1.1.2"
 shipyard-utils = "^0.1.4"
 
 [tool.poetry.group.dev.dependencies]
-shipyard-templates = {path = "../../shipyard-templates", develop = true}
+#shipyard-templates = {path = "../../shipyard-templates", develop = true}
 pytest = "^7.4.0"
 
 [build-system]

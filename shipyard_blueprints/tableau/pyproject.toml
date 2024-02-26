@@ -14,7 +14,7 @@ tableauserverclient="0.19.0"
 shipyard_utils="0.1.2"
 shipyard-templates="0.5.0a0"
 
-[tool.poetry.group.dev.dependencies]
+#[tool.poetry.group.dev.dependencies]
 #shipyard-bp-utils = {path = "../shipyard-bp-utils"}
 #shipyard-templates = {path = "../../shipyard-templates"}
 
