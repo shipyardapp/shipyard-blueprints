@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "shipayrd-smartsheets"
+name = "shipyard-smartsheets"
 version = "0.1.0"
 description = ""
 authors = ["wrp801 <wespoulsen@gmail.com>"]
