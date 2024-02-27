@@ -2,7 +2,6 @@ from shipyard_templates import DataVisualization
 from pydomo import Domo
 import requests
 import os
-import pandas as pd
 
 
 class DomoClient(DataVisualization):
@@ -70,18 +69,3 @@ class DomoClient(DataVisualization):
                 "Be sure to provide Client ID and Secret Key or Access Token and Domo Instance ID"
             )
             return 1
-
-    def upload_df(self, df: pd.DataFrame, dataset_id: str):
-        pass
-
-    def create_dataset(self, df: pd.DataFrame, dataset_id: str):
-        pass
-
-    def download_dataset(self, dataset_id: str) -> pd.DataFrame:
-        pass
-
-    def refresh_dataset(self, dataset_id: str, wait_for_completion: bool = True):
-        pass
-
-    def download_card(self):
-        pass
