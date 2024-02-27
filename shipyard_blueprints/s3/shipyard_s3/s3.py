@@ -1,7 +1,5 @@
-from os.path import isfile
 import boto3
-import os
-from shipyard_templates import CloudStorage, ExitCodeException, ShipyardLogger
+from shipyard_templates import CloudStorage, ShipyardLogger
 from boto3.exceptions import S3UploadFailedError
 from typing import Optional, Dict, Any, List
 from shipyard_s3.utils.exceptions import (
@@ -10,7 +8,6 @@ from shipyard_s3.utils.exceptions import (
     InvalidBucketAccess,
     InvalidCredentials,
     InvalidRegion,
-    ListObjectsError,
     MoveError,
     RemoveError,
     UploadError,
@@ -31,17 +28,12 @@ class S3Client(CloudStorage):
         self.aws_access_key = aws_access_key
         self.aws_secret_access_key = aws_secret_access_key
         self.region = region
-        self._s3_conn = None
 
     @property
     def s3_conn(self):
-        if not self._s3_conn:
-            self._s3_conn = self.connect()
-        return self._s3_conn
+        return self.connect()
 
     def connect(self):
-        if self._s3_conn:
-            return self._s3_conn  # resuse existing connection
         try:
             logger.debug("Establishing connection with S3")
             client = boto3.client(
@@ -103,23 +95,10 @@ class S3Client(CloudStorage):
             RemoveError:
         """
         try:
-            folder = os.path.dirname(src_path)
-            files = self.list_files(bucket_name=bucket_name, s3_folder=folder)
-            if src_path not in files:
-                raise ExitCodeException(
-                    f"File {src_path} was not found. Ensure that the file name and folder name provided are correct.",
-                    exit_code=CloudStorage.EXIT_CODE_FILE_NOT_FOUND,
-                )
             # check the access to the bucket
             self.check_bucket(bucket_name)
-
             s3_response = self.s3_conn.delete_object(Bucket=bucket_name, Key=src_path)
-        except (BucketDoesNotExist, InvalidBucketAccess, ListObjectsError):
-            raise ExitCodeException(
-                f"File {src_path} was not found. Ensure that the file name and folder name provided are correct.",
-                exit_code=CloudStorage.EXIT_CODE_FILE_NOT_FOUND,
-            )
-        except ExitCodeException:
+        except (BucketDoesNotExist, InvalidBucketAccess):
             raise
         except Exception as e:
             if "IllegalLocationConstraintException" in str(e):
@@ -197,29 +176,22 @@ class S3Client(CloudStorage):
         Returns:
 
         """
-        try:
-            response = utils.list_objects(
-                s3_conn=self.s3_conn, bucket_name=bucket_name, prefix=s3_folder
-            )
-            logger.debug(
-                f"Response from S3 when attempting to list objects: {response}"
-            )
-            file_names = utils.get_files(response)
-            continuation_token = response.get("NextContinuationToken")
+        response = utils.list_objects(
+            s3_conn=self.s3_conn, bucket_name=bucket_name, prefix=s3_folder
+        )
+        file_names = utils.get_files(response)
+        continuation_token = response.get("NextContinuationToken")
 
-            while continuation_token:
-                response = utils.list_objects(
-                    s3_conn=self.s3_conn,
-                    bucket_name=bucket_name,
-                    prefix=s3_folder,
-                    continuation_token=continuation_token,
-                )
-                file_names = file_names.append(utils.get_files(response))
-                continuation_token = response.get("NextContinuationToken")
-            return file_names
-        except Exception as e:
-            logger.debug(f"Response from S3 is {str(e)}")
-            raise ListObjectsError(bucket_name, s3_folder)
+        while continuation_token:
+            response = utils.list_objects(
+                s3_conn=self.s3_conn,
+                bucket_name=bucket_name,
+                prefix=s3_folder,
+                continuation_token=continuation_token,
+            )
+            file_names = file_names.append(utils.get_files(response))
+            continuation_token = response.get("NextContinuationToken")
+        return file_names
 
     def check_bucket(self, bucket_name: str):
         try:

@@ -1,5 +1,4 @@
 from shipyard_templates import ExitCodeException, CloudStorage
-from typing import Optional
 
 EXIT_CODE_MOVE_ERROR = 101
 EXIT_CODE_REMOVE_ERR0R = 102
@@ -7,7 +6,6 @@ EXIT_CODE_DOWNLOAD_ERROR = 103
 EXIT_CODE_INVALID_REGION = 104
 EXIT_CODE_BUCKET_DNE = 105
 EXIT_CODE_BUCKET_ACCESS = 106
-EXIT_CODE_LIST_OBJECT_ERROR = 107
 
 
 class InvalidCredentials(ExitCodeException):
@@ -62,10 +60,3 @@ class BucketDoesNotExist(ExitCodeException):
     def __init__(self, bucket: str):
         self.message = f"The bucket `{bucket}` does not exist"
         self.exit_code = EXIT_CODE_BUCKET_DNE
-
-
-class ListObjectsError(ExitCodeException):
-    def __init__(self, bucket_name: str, s3_folder: Optional[str]):
-        msg = f"Error in listing the contents of s3://{bucket_name}/"
-        self.message = msg + s3_folder if s3_folder else msg
-        self.exit_code = EXIT_CODE_LIST_OBJECT_ERROR

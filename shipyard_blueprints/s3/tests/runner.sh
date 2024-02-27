@@ -91,16 +91,3 @@ if [ "$1" = 'up-bad' ]; then
         --destination-folder-name $S3_FOLDER 
 fi
 
-
-
-
-if [ "$1" = 'del-bad' ]; then
-    echo "Testing an invalid delete"
-    python3 $REMOVE --aws-access-key-id $KEY \
-        --aws-secret-access-key $SECRET \
-        --aws-default-region $REGION \
-        --bucket-name $BUCKET \
-        --source-file-name-match-type 'exact_match' \
-        --source-file-name 'dne' \
-        --source-folder-name "folder_dne" 
-fi
