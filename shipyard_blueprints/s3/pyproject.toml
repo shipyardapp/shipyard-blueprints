@@ -13,9 +13,18 @@ boto3 = "1.34.44"
 shipyard-templates = "0.6.2"
 shipyard-bp-utils = "1.0.3a2"
 
-#[tool.poetry.group.dev.dependencies]
-#shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
-#pytest = "^7.4.0"
+[tool.poetry.group.dev.dependencies]
+shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
+# shipyard-templates = {path = "../../shipyard-templates", develop = true}
+pytest = "^8.0"
+python-dotenv = "^1.0.1"
+black = "^24.2.0"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+    "integration"
+]
 
 
 [build-system]
