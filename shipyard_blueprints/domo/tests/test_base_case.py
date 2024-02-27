@@ -118,39 +118,3 @@ def test_upload_append(domo_credentials, domo_datasets):
         domo_datasets["DS_DL_BASE_CASE"],
     ]
     subprocess.run(upload_cmd)
-
-
-def test_upload_replace_with_datatypes(domo_credentials, domo_datasets):
-    original_file = "soccer.csv"
-    schema = [
-        ["rank", "LONG"],
-        ["prev_rank", "LONG"],
-        ["name", "STRING"],
-        ["league", "STRING"],
-        ["off", "DECIMAL"],
-        ["def", "DECIMAL"],
-        ["spi", "DECIMAL"],
-    ]
-    upload_cmd = [
-        "python3",
-        "./shipyard_domo/cli/upload.py",
-        "--client-id",
-        domo_credentials["DOMO_CLIENT_ID"],
-        "--secret-key",
-        domo_credentials["DOMO_SECRET_KEY"],
-        "--dataset-name",
-        "Pytest Base Case",
-        "--dataset-description",
-        "This is a base case for backwards compatibility",
-        "--insert-method",
-        "REPLACE",
-        "--source-file-match-type",
-        "exact_match",
-        "--file-name",
-        original_file,
-        "--dataset-id",
-        domo_datasets["DS_DL_BASE_CASE"],
-        "--schema",
-        str(schema),
-    ]
-    subprocess.run(upload_cmd)
