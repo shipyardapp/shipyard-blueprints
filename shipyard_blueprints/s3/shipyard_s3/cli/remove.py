@@ -76,6 +76,7 @@ def main():
             else:
                 src_path = src_file
             client.remove(bucket_name=bucket_name, src_path=src_path)
+            logger.info(f"Successfully removed s3://{bucket_name}/{src_path}")
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)
