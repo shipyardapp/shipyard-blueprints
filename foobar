@@ -1,0 +1,1 @@
+docker run -v $PWD:/root --rm -ti --entrypoint sh python:3.9-bullseye -c 'pip3 install poetry && cd /root/ && /root/install-shipyard-blueprints-deps'

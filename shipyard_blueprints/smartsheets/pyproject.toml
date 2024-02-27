@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "shipayrd-smartsheets"
+name = "shipyard-smartsheets"
 version = "0.1.0"
 description = ""
 authors = ["wrp801 <wespoulsen@gmail.com>"]
@@ -15,7 +15,7 @@ shipyard-templates = "0.4.1"
 
 
 [tool.poetry.group.dev.dependencies]
-shipyard-templates = {path = "../../shipyard-templates"}
+#shipyard-templates = {path = "../../shipyard-templates"}
 black = "^23.10.0"
 python-dotenv = "^1.0.0"
 

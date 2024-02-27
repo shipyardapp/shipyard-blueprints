@@ -11,9 +11,9 @@ packages = [{include = "shipyard_census"}]
 python = "^3.9"
 requests = "2.31.0"
 
-[tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
-shipyard-templates = {path = "../../shipyard-templates", develop = true}
+#[tool.poetry.group.dev.dependencies]
+#shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
+#shipyard-templates = {path = "../../shipyard-templates", develop = true}
 
 [build-system]
 requires = ["poetry-core"]
