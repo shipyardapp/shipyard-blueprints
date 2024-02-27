@@ -16,8 +16,17 @@ pandas = "1.5.3"
 shipyard-utils = "0.1.4"
 
 [tool.poetry.group.dev.dependencies]
-shipyard-templates = {path = "../../shipyard-templates"}
+# shipyard-templates = {path = "../../shipyard-templates"}
+python-dotenv = "^1.0.1"
+black = "^24.2.0"
+pytest = "^8.0.2"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+    "integration"
+]
