@@ -1,3 +1,4 @@
+# NOTE: There is a bug where the data cannot be written to a folder if the folder does not exist
 import sys
 import os
 import argparse
