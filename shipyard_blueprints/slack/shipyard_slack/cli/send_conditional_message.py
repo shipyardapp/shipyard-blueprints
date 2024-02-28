@@ -92,7 +92,7 @@ def validate_args(args):
         )
 
     if args.file_upload == "yes" and (
-            not args.source_file_name_match_type or not args.source_file_name
+        not args.source_file_name_match_type or not args.source_file_name
     ):
         raise ExitCodeException(
             "--file-upload yes requires --source-file-name and --source-file-name-match-type",
