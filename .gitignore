@@ -28,3 +28,5 @@ runner.py
 demo/
 *.parquet
 
+Upload_Test/
+
