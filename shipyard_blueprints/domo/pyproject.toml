@@ -13,8 +13,7 @@ requests = "2.31.0"
 pydomo = "^0.3.0.9"
 shipyard-templates = "0.6.2"
 pandas = "^2.0"
-shipyard-bp-utils = "1.0.3a1"
-shipyard-utils = "^0.1.4"
+shipyard-bp-utils = "1.0.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"

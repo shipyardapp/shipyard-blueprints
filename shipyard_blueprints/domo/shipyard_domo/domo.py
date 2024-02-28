@@ -1,4 +1,4 @@
-from shipyard_templates import DataVisualization
+from shipyard_templates import DataVisualization, ShipyardLogger
 from pydomo import Domo
 import requests
 import os
@@ -17,8 +17,6 @@ class DomoClient(DataVisualization):
         self.secret_key = secret_key
         self.domo_instance = domo_instance
         self.access_token = access_token
-
-        # super().__init__(client_id=client_id, secret_key=secret_key)
 
     def connect_with_client_id_and_secret_key(self):
         try:
