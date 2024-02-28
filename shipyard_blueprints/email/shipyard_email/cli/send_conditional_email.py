@@ -4,11 +4,7 @@ import argparse
 import shipyard_bp_utils as shipyard
 
 from shipyard_email.email_client import EmailClient
-from shipyard_email.exceptions import (
-    InvalidInputError,
-    ConditionNotMetError,
-    InvalidCredentialsError,
-)
+from shipyard_email.exceptions import InvalidInputError
 from shipyard_templates import ShipyardLogger, Messaging, ExitCodeException
 
 MAX_SIZE_BYTES = 10000000
@@ -108,13 +104,15 @@ def main():
         )
 
         if conditional_send == "file_exists" and not file_paths:
-            raise ConditionNotMetError(
+            logger.warning(
                 f'Condition not met: No files found matching "{source_file_name}" in "{source_folder_name}"'
             )
+            sys.exit(0)
         elif conditional_send == "file_dne" and file_paths:
-            raise ConditionNotMetError(
+            logger.warning(
                 f'Condition not met: Files found matching "{source_file_name}" in "{source_folder_name}"'
             )
+            sys.exit(0)
 
         message = client.message_content_file_injection(message)
 
@@ -127,7 +125,7 @@ def main():
         if file_upload != "yes":
             file_paths = None
         elif file_upload == "yes" and shipyard.files.are_files_too_large(
-            file_paths, max_size_bytes=MAX_SIZE_BYTES
+                file_paths, max_size_bytes=MAX_SIZE_BYTES
         ):
             logger.info("Files are too large to attach. Compressing files.")
             compressed_file_name = shipyard.files.compress_files(
