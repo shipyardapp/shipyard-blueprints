@@ -5,9 +5,11 @@ import pandas as pd
 import re
 import ast
 
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, ShipyardLogger
 from shipyard_databricks_sql import DatabricksSqlClient
 from typing import Dict, List, Optional
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -37,7 +39,9 @@ def get_args():
     parser.add_argument("--file-name", dest="file_name", required=True)
     parser.add_argument("--folder-name", dest="folder_name", required=False)
     parser.add_argument(
-        "--match-type", dest="match_type", choices={"exact_match", "regex_match"}
+        "--match-type",
+        dest="match_type",
+        choices={"exact_match", "regex_match", "glob"},
     )
     return parser.parse_args()
 
@@ -108,7 +112,7 @@ def main():
                 file_names=local_files, file_name_re=re.compile(args.file_name)
             )
             if len(file_matches) == 0:
-                client.logger.error(f"No files found matching {args.file_name} pattern")
+                logger.error(f"No files found matching {args.file_name} pattern")
                 sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
 
             insert_method = args.insert_method
@@ -122,7 +126,7 @@ def main():
                 pattern=args.file_name,
             )
             # for i, file_match in enumerate(file_matches, start=1):
-            #     client.logger.info(f"Uploading {i} of {len(file_matches)} files")
+            #     logger.info(f"Uploading {i} of {len(file_matches)} files")
             #     if i > 1:
             #         insert_method = "append"
             #     if args.file_type == "csv":
@@ -158,15 +162,15 @@ def main():
             )
 
     except ExitCodeException as ec:
-        client.logger.error(
+        logger.error(
             f"ExitCodeException: Error in attempting to upload {full_path}: {ec.message}"
         )
         sys.exit(ec.exit_code)
     except Exception as e:
-        client.logger.error(f"Error in attempting to upload {full_path}:{str(e)}")
+        logger.error(f"Error in attempting to upload {full_path}:{str(e)}")
         sys.exit(client.EXIT_CODE_INVALID_QUERY)
     else:
-        client.logger.info(
+        logger.info(
             f"Successfully loaded {full_path} to Databricks table {args.table_name}"
         )
 

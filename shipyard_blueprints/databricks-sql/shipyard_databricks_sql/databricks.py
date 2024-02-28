@@ -2,10 +2,20 @@ import pandas as pd
 import os
 from pathlib import Path
 from databricks.sql.client import Connection
-from shipyard_templates import DatabricksDatabase, ExitCodeException
+from shipyard_templates import DatabricksDatabase, ExitCodeException, ShipyardLogger
 from databricks import sql
 from databricks.sql.client import Connection  # for type hints
 from typing import Optional, Dict, List, Any, Union
+from shipyard_databricks_sql.utils.exceptions import (
+    TableDNE,
+    VolumeSqlError,
+    VolumeUploadError,
+    VolumeUploadError,
+    CopyIntoError,
+    RemoveVolumeError,
+)
+
+logger = ShipyardLogger.get_logger()
 
 
 class DatabricksSqlClient(DatabricksDatabase):
@@ -175,7 +185,7 @@ class DatabricksSqlClient(DatabricksDatabase):
         try:
             results = self.cursor.execute(query)
         except Exception as e:
-            self.logger.error("Error in executing query")
+            logger.error("Error in executing query")
             raise ExitCodeException(
                 f"Could not execute query in Databricks: {str(e)}",
                 self.EXIT_CODE_INVALID_QUERY,
@@ -188,7 +198,7 @@ class DatabricksSqlClient(DatabricksDatabase):
 
     def close(self):
         self.connection.close()
-        self.logger.info("Closed connection")
+        logger.info("Closed connection")
 
     def _create_table_sql(
         self, table_name: str, data_types: Optional[Dict[str, str]]
@@ -268,18 +278,15 @@ class DatabricksSqlClient(DatabricksDatabase):
 
         """
         if not self._table_exists(table_name):
-            raise ExitCodeException(
-                f"Error in attempting to append to {table_name}, table does not exist. Please use the `replace` option for insert_method",
-                exit_code=self.EXIT_CODE_INVALID_UPLOAD_VALUE,
-            )  # may need to use a different exit code
+            raise TableDNE(table_name)
         try:
             insert_sql_statement = self.create_insert_statement(
                 table_name, df, data_types
             )
             # populate the table
             self.cursor.execute(insert_sql_statement)
-        except ExitCodeException as ec:
-            raise ExitCodeException(ec.message, ec.exit_code)
+        except ExitCodeException:
+            raise
         except Exception as e:
             raise ExitCodeException(
                 message=f"Error in attempting to replace table: {str(e)}",
@@ -397,7 +404,7 @@ class DatabricksSqlClient(DatabricksDatabase):
 
     def _create_schema(self):
         if not self.catalog:
-            self.logger.warning(
+            logger.warning(
                 "Catalog was not provided, creating new schema in the default catalog"
             )
 
@@ -407,7 +414,7 @@ class DatabricksSqlClient(DatabricksDatabase):
             else f"CREATE SCHEMA IF NOT EXISTS {self.schema}"
         )
 
-        self.logger.info(f"Creating schema {self.schema} if it doesn't already exist")
+        logger.info(f"Creating schema {self.schema} if it doesn't already exist")
         self.cursor.execute(create_sql)
 
     def _volume_sql(self) -> str:
@@ -417,21 +424,18 @@ class DatabricksSqlClient(DatabricksDatabase):
 
         """
         if not self.catalog:
-            self.logger.warning(
+            logger.warning(
                 "Catalog was not provided, creating new volume in the default catalog"
             )
         if not self.schema:
-            self.logger.warning(
+            logger.warning(
                 "Schema was not provided, creating new volume in the default schema"
             )
 
         if not self.catalog and self.schema:
             return f"CREATE VOLUME IF NOT EXISTS {self.schema}.{self.volume}"
         elif not self.schema:
-            raise ExitCodeException(
-                "Schema must be provided if the catalog is provided",
-                exit_code=self.EXIT_CODE_VOLUME_SQL,
-            )
+            raise VolumeSqlError
         else:
             return f"CREATE VOLUME IF NOT EXISTS {self.catalog}.{self.schema}.{self.volume}"
 
@@ -449,7 +453,7 @@ class DatabricksSqlClient(DatabricksDatabase):
             )
 
         else:
-            self.logger.info(f"Successfully created volume {self.volume}")
+            logger.info(f"Successfully created volume {self.volume}")
 
     def _load_volume(
         self,
@@ -476,10 +480,7 @@ class DatabricksSqlClient(DatabricksDatabase):
                     )
                     self.volume_path.append(volume_path)
                 elif not self.schema:
-                    raise ExitCodeException(
-                        "Schema must be provided if the catalog is provided",
-                        exit_code=self.EXIT_CODE_VOLUME_SQL,
-                    )
+                    raise VolumeSqlError
                 else:
                     volume_path = f"/Volumes/{self.catalog}/{self.schema}/{self.volume}/{tmp_table}/{file}"
                     self.volume_path.append(volume_path)
@@ -489,12 +490,9 @@ class DatabricksSqlClient(DatabricksDatabase):
                         self.cursor.execute(upload_sql)
 
                     except Exception as e:
-                        raise ExitCodeException(
-                            f"Error when trying to load file to volume: {str(e)}",
-                            self.EXIT_CODE_VOLUME_UPLOAD_ERROR,
-                        )
+                        raise VolumeUploadError(volume=self.volume, error_msg=str(e))
                     else:
-                        self.logger.info("Successfully loaded volume")
+                        logger.info("Successfully loaded volume")
 
         # for exact match cases
         else:
@@ -505,10 +503,7 @@ class DatabricksSqlClient(DatabricksDatabase):
                 )
                 self.volume_path = volume_path
             elif not self.schema:
-                raise ExitCodeException(
-                    "Schema must be provided if the catalog is provided",
-                    exit_code=self.EXIT_CODE_VOLUME_SQL,
-                )
+                raise VolumeSqlError
             else:
                 volume_path = f"/Volumes/{self.catalog}/{self.schema}/{self.volume}/{tmp_table}/{file_name}"
                 self.volume_path = volume_path
@@ -518,20 +513,9 @@ class DatabricksSqlClient(DatabricksDatabase):
                     self.cursor.execute(upload_sql)
 
                 except Exception as e:
-                    raise ExitCodeException(
-                        f"Error when trying to load file to volume: {str(e)}",
-                        self.EXIT_CODE_VOLUME_UPLOAD_ERROR,
-                    )
-
+                    raise VolumeUploadError(volume=self.volume, error_msg=str(e))
                 else:
-                    self.logger.info("Successfully loaded volume")
-
-        # # one last check that the volume path is legit
-        # if self.volume_path is None:
-        #     raise ExitCodeException(
-        #         "The volume path cannot be None, aborting upload",
-        #         self.EXIT_CODE_VOLUME_UPLOAD_ERROR,
-        #     )
+                    logger.info("Successfully loaded volume")
 
     def _copy_into(
         self,
@@ -576,12 +560,11 @@ class DatabricksSqlClient(DatabricksDatabase):
         try:
             self.cursor.execute(copy_sql)
         except Exception as e:
-            raise ExitCodeException(
-                f"Error in copy data from volume {self.volume_path} into {table_path}: {str(e)}",
-                self.EXIT_CODE_COPY_INTO_ERROR,
+            raise CopyIntoError(
+                table_path=table_path, volume_path=self.volume_path, error_msg=str(e)
             )
         else:
-            self.logger.info("Successfully copied data from volume into table")
+            logger.info("Successfully copied data from volume into table")
 
     def _remove_volume(self):
         """Helper function to remove the volume that was used for ingestion. This should be wiped after a a successful run of _copy_into()."""
@@ -592,15 +575,9 @@ class DatabricksSqlClient(DatabricksDatabase):
             else:
                 self.cursor.execute(f"REMOVE '{self.volume_path}'")
         except Exception as e:
-            raise ExitCodeException(
-                f"Error in removing volume {self.volume_path}: {str(e)}",
-                self.EXIT_CODE_REMOVE_VOLUME_ERROR,
-            )
-
+            raise RemoveVolumeError(volume_path=self.volume_path, error_msg=str(e))
         else:
-            self.logger.info(
-                f"Successfully removed files from volume {self.volume_path}"
-            )
+            logger.info(f"Successfully removed files from volume {self.volume_path}")
 
     def _append_from_volume(self, table_name: str, file_format: str):
         """Helper function to append to an existing delta table
@@ -683,13 +660,10 @@ class DatabricksSqlClient(DatabricksDatabase):
                 self._remove_volume()
 
         except ExitCodeException as ec:
-            self.logger.error(ec.message)
+            logger.error(ec.message)
             raise ExitCodeException(ec.message, ec.exit_code)
         except Exception as e:
-            raise ExitCodeException(
-                f"Unknown error in loading volume: {str(e)}",
-                exit_code=self.EXIT_CODE_VOLUME_UPLOAD_ERROR,
-            )
+            raise VolumeUploadError(volume=self.volume, error_msg=str(e))
 
     def load_via_insert(
         self,
