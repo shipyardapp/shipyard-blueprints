@@ -1,9 +1,11 @@
+from numpy import source
 from sqlalchemy import create_engine
 import argparse
 import os
 import glob
 import re
 import pandas as pd
+import math
 
 
 def get_args():
@@ -69,9 +71,9 @@ def create_connection_string(args):
     if args.db_connection_url:
         os.environ["DB_CONNECTION_URL"] = args.db_connection_url
     elif args.host and args.username and args.database:
-        os.environ["DB_CONNECTION_URL"] = (
-            f"mssql+pyodbc://{args.username}:{args.password}@{args.host}:{args.port}/{args.database}?driver=ODBC+Driver+17+for+SQL+Server&{args.url_parameters}"
-        )
+        os.environ[
+            "DB_CONNECTION_URL"
+        ] = f"mssql+pyodbc://{args.username}:{args.password}@{args.host}:{args.port}/{args.database}?driver=ODBC+Driver+17+for+SQL+Server&{args.url_parameters}"
 
     db_string = os.environ.get("DB_CONNECTION_URL")
     return db_string
@@ -113,7 +115,11 @@ def combine_folder_and_file_name(folder_name, file_name):
 
 def upload_data(source_full_path, table_name, insert_method, db_connection):
     # Resort to chunks for larger files to avoid memory issues.
-    for index, chunk in enumerate(pd.read_csv(source_full_path, chunksize=1000)):
+    df = pd.read_csv(source_full_path, nrows=1)
+    n_cols = len(df.columns)
+    chunknum = math.floor(2100 / n_cols) - 1  # NOTE: this is a constraint by SQL Server
+
+    for index, chunk in enumerate(pd.read_csv(source_full_path, chunksize=chunknum)):
         if insert_method == "replace" and index > 0:
             # First chunk replaces the table, the following chunks
             # append to the end.
@@ -143,7 +149,7 @@ def main():
 
     db_string = create_connection_string(args)
     try:
-        db_connection = create_engine(db_string)
+        db_connection = create_engine(db_string, fast_executemany=True)
     except Exception as e:
         print(f"Failed to connect to database {args.database}")
         raise (e)
