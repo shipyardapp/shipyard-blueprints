@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+
+set -e
+
+for vendor_dir in ./shipyard_blueprints/*/ ; do
+	# The trailing / above is important to include only directories.
+
+	case "$(basename ${vendor_dir})" in
+		"__pycache__"|"exampleauth"|"filemanipulation"|"legacy_snowflake"|"postgres_legacy")
+			echo "Skipping poetry install for directory ${vendor_dir} ..."
+			;;
+		*)
+			echo "Running 'poetry install' for ${vendor_dir} ..."
+			(
+				set -e
+				cd "${vendor_dir}"
+				poetry install
+			)
+	esac
+done

@@ -15,8 +15,8 @@ shipyard-templates = "0.5.0a0"
 pandas = "1.5.3"
 shipyard-utils = "0.1.4"
 
-[tool.poetry.group.dev.dependencies]
-shipyard-templates = {path = "../../shipyard-templates"}
+#[tool.poetry.group.dev.dependencies]
+#shipyard-templates = {path = "../../shipyard-templates"}
 
 [build-system]
 requires = ["poetry-core"]
