@@ -1,11 +1,12 @@
-# NOTE: There is a bug where the data cannot be written to a folder if the folder does not exist
 import sys
 import os
 import argparse
-from pydomo import Domo
+from shipyard_templates import ExitCodeException, ShipyardLogger
 import shipyard_utils as shipyard
-import pandas as pd
-from shipyard_domo.cli import errors as ec
+from shipyard_domo.utils import exceptions as errs
+from shipyard_domo import DomoClient
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -21,57 +22,29 @@ def get_args():
     return args
 
 
-def get_dataset(ds_id, domo_instance):
-    """
-    Wrapper function around the Domo `ds_get` function with some logic to gracefully exit
-    """
-    try:
-        df = domo_instance.ds_get(ds_id)
-        return df
-    except Exception as e:
-        print(
-            f"Error in downloading the dataset {ds_id}. Please ensure that is the correct one and that the given API client and secret have the appropriate permissions to download datasets"
-        )
-        sys.exit(ec.EXIT_CODE_DATASET_NOT_FOUND)
-
-
-def write_file(df: pd.DataFrame, file_name: str, folder_path: str):
-    if folder_path is None:
-        ## should just be put in the home directory
-        cwd = os.getcwd()
-        # full_path = combine_folder_and_file_name(cwd,file_name=file_name)
-        full_path = shipyard.files.combine_folder_and_file_name(cwd, file_name)
-    else:
-        # full_path = combine_folder_and_file_name(folder_path,file_name=file_name)
-        full_path = shipyard.files.combine_folder_and_file_name(folder_path, file_name)
-
-    try:
-        df.to_csv(full_path, index=False)
-        print(f"Successfully wrote {file_name} to {full_path}")
-    except Exception as e:
-        print(f"Error in writing {file_name} to {full_path}.")
-        print(e)
-        sys.exit(ec.EXIT_CODE_FILE_NOT_FOUND)
-
-
 def main():
-    args = get_args()
-    client_id = args.client_id
-    secret_key = args.secret_key
-    dataset_id = args.dataset_id
-    dest_file_name = args.dest_file_name
-    dest_folder_path = args.dest_folder_name
     try:
-        domo = Domo(client_id, secret_key, api_host="api.domo.com")
-    except Exception as e:
-        print(
-            "The client_id or secret_key you provided were invalid. Please check for typos and try again."
-        )
-        print(e)
-        sys.exit(ec.EXIT_CODE_INVALID_CREDENTIALS)
+        args = get_args()
+        dest_file = args.dest_file_name
+        dest_folder = args.dest_folder_name or os.getcwd()
+        client = DomoClient(client_id=args.client_id, secret_key=args.secret_key)
+        df = client.download_dataset(args.dataset_id)
+        logger.info("Successfully downloaded dataset")
+        # write the dataframe to a file
+        if args.dest_folder_name:
+            shipyard.files.create_folder_if_dne(dest_folder)
+        dest_path = shipyard.files.combine_folder_and_file_name(dest_folder, dest_file)
+        df.to_csv(dest_path, index=False)
+        logger.info(f"Successfully stored results to {dest_path}")
 
-    df = get_dataset(dataset_id, domo)
-    write_file(df, dest_file_name, dest_folder_path)
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
+    except Exception as e:
+        logger.error(
+            f"Error in Downloading dataset from Domo. Error message reads: {str(e)}"
+        )
+        sys.exit(errs.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":

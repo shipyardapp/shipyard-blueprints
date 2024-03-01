@@ -1,13 +1,8 @@
 import sys
 import argparse
-import pandas as pd
-import os
 import ast
 import re
 import shipyard_bp_utils as shipyard
-from pydomo import Domo
-from pydomo.streams import CreateStreamRequest, UpdateMethod
-from pydomo.datasets import DataSetRequest, Schema, Column, ColumnType
 from shipyard_domo.domo import DomoClient
 from shipyard_domo.utils import utils
 from shipyard_bp_utils.artifacts import Artifact
@@ -48,24 +43,24 @@ def get_args():
 
 
 def main():
-    args = get_args()
-    client_id = args.client_id
-    secret = args.secret_key
-    file_to_load = args.file_name
-    dataset_name = args.dataset_name
-    dataset_description = args.dataset_description
-    folder_name = args.folder_name
-    insert_method = args.insert_method
-    dataset_id = args.dataset_id
-    match_type = args.source_file_match_type
-    if args.domo_schema != "":
-        domo_schema = args.domo_schema
-        domo_schema = ast.literal_eval(domo_schema)
-
     try:
+        args = get_args()
+        client_id = args.client_id
+        secret = args.secret_key
+        file_to_load = args.file_name
+        dataset_name = args.dataset_name
+        dataset_description = args.dataset_description
+        folder_name = args.folder_name
+        insert_method = args.insert_method
+        dataset_id = args.dataset_id
+        match_type = args.source_file_match_type
+        artifacts = Artifact("domo")
+
         client = DomoClient(client_id=client_id, secret_key=secret)
         logger.info("Successfully connected to Domo")
-        artifacts = Artifact("domo")
+        if args.domo_schema != "":
+            domo_schema = args.domo_schema
+            domo_schema = ast.literal_eval(domo_schema)
 
         if match_type == "regex_match":
             file_names = shipyard.files.find_all_local_file_names(folder_name)
@@ -104,22 +99,10 @@ def main():
                 dataset_description=dataset_description,
                 domo_schema=dataset_schema,
             )
-
-            logger.debug(f"Stream id is {stream_id}")
-            logger.debug(f"Execution id is {execution_id}")
             logger.info("Successfully loaded all files to Domo")
-
-            # base_folder_name = shipyard.logs.determine_base_artifact_folder("domo")
-            # artifact_subfolder_paths = shipyard.logs.determine_artifact_subfolders(
-            #     base_folder_name
-            # )
-            # shipyard.logs.create_artifacts_folders(artifact_subfolder_paths)
-            # shipyard.logs.create_pickle_file(
-            #     artifact_subfolder_paths, "stream_id", stream_id
-            # )
-            # shipyard.logs.create_pickle_file(
-            #     artifact_subfolder_paths, "execution_id", execution_id
-            # )
+            logger.debug("Storing stream_id and execution_id in artifacts")
+            artifacts.variables.write("stream_id", "pickle", stream_id)
+            artifacts.variables.write("execution_id", "pickle", execution_id)
 
         else:
             # if the schema is provided, then use that otherwise infer the schema using sampling
@@ -133,13 +116,8 @@ def main():
             if args.domo_schema != "":
                 dataset_schema = utils.make_schema(domo_schema, file_path, folder_name)
             else:
-                logger.info("About to infer schema")
-                lines = utils.count_lines(file_to_load)
-                k = lines if lines < 10000 else 10000
-                logger.debug(f"number of lines is {k}")
-                dataset_schema = client.infer_schema(file_path, folder_name, k=k)
+                dataset_schema = client.infer_schema(file_path, folder_name, k=10000)
 
-            logger.info("About to upload data")
             stream_id, execution_id = client.upload_stream(
                 file_name=file_to_load,
                 dataset_name=dataset_name,
@@ -149,21 +127,11 @@ def main():
                 domo_schema=dataset_schema,
             )
 
-            logger.debug(f"Stream id is {stream_id}")
-            logger.debug(f"Execution id is {execution_id}")
             logger.info(f"Successfully loaded {file_path} to Domo")
+            logger.debug("Storing stream_id and execution_id in artifacts")
+            artifacts.variables.write("stream_id", "pickle", stream_id)
+            artifacts.variables.write("execution_id", "pickle", execution_id)
 
-            # base_folder_name = shipyard.logs.determine_base_artifact_folder("domo")
-            # artifact_subfolder_paths = shipyard.logs.determine_artifact_subfolders(
-            #     base_folder_name
-            # )
-            # shipyard.logs.create_artifacts_folders(artifact_subfolder_paths)
-            # shipyard.logs.create_pickle_file(
-            #     artifact_subfolder_paths, "stream_id", stream_id
-            # )
-            # shipyard.logs.create_pickle_file(
-            #     artifact_subfolder_paths, "execution_id", execution_id
-            # )
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)

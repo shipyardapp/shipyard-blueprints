@@ -1,11 +1,13 @@
 import sys
 import time
-import json
-import pydomo
-import requests
 import argparse
-import shipyard_utils as shipyard
-from shipyard_domo.cli import errors
+import shipyard_bp_utils as shipyard
+from shipyard_domo.utils import exceptions as errs
+from shipyard_domo import DomoClient
+from shipyard_templates import ShipyardLogger
+from shipyard_bp_utils.artifacts import Artifact
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -29,153 +31,48 @@ def determine_execution_status(execution_data):
     status = execution_data["currentState"]
     if status == "ABORTED":
         print("Domo Refresh has been aborted")
-        return errors.EXIT_CODE_FINAL_STATUS_CANCELLED
+        return errs.EXIT_CODE_FINAL_STATUS_CANCELLED
     elif status == "ACTIVE":
         print(f"Domo Refresh is still currently ongoing with status {status}")
-        return errors.EXIT_CODE_STATUS_INCOMPLETE
+        return errs.EXIT_CODE_STATUS_INCOMPLETE
     elif status == "INVALID":
         print("Domo Refresh is invalid either due to system conflict or error")
-        return errors.EXIT_CODE_FINAL_STATUS_INVALID
+        return errs.EXIT_CODE_FINAL_STATUS_INVALID
     elif status == "SUCCESS":
         print("Domo has refreshed successfully ")
-        return errors.EXIT_CODE_FINAL_STATUS_SUCCESS
+        return errs.EXIT_CODE_FINAL_STATUS_SUCCESS
     else:
         print(f"Unknown Domo Refresh status: {status}")
-        return errors.EXIT_CODE_UNKNOWN_STATUS
-
-
-def get_execution_details(dataset_id, execution_id, domo):
-    """
-    Gets the Stream ID of a particular stream using the dataSet id.
-
-    Returns:
-        stream_id (int): the Id of the found stream
-    """
-    streams = domo.streams
-    limit = 1000
-    offset = 0
-    # get all streams
-    stream_list = streams.list(limit, offset)
-    # return stream with matching dataset id
-    for stream in stream_list:
-        if stream["dataSet"]["id"] == dataset_id:
-            # get execution details from id
-            try:
-                return streams.get_execution(stream["id"], execution_id)
-            except Exception as e:
-                print(f"Error occurred - {e}")
-                sys.exit(errors.EXIT_CODE_EXECUTION_ID_NOT_FOUND)
-    print(f"stream with dataSet id:{dataset_id} not found!")
-    sys.exit(errors.EXIT_CODE_DATASET_NOT_FOUND)
-
-
-def create_pickle_file(execution_id):
-    # create artifacts folder to save variable
-    base_folder_name = shipyard.logs.determine_base_artifact_folder("domo")
-    artifact_subfolder_paths = shipyard.logs.determine_artifact_subfolders(
-        base_folder_name
-    )
-    shipyard.logs.create_artifacts_folders(artifact_subfolder_paths)
-
-    # save execution id as variable
-    shipyard.logs.create_pickle_file(
-        artifact_subfolder_paths, "execution_id", execution_id
-    )
-
-
-def create_pass_token_header(access_token):
-    """
-    Generate Auth headers for DOMO private API using email/password
-    authentication.
-
-    Returns:
-    auth_header -> dict with the authentication headers for use in
-    domo api requests.
-    """
-    return {
-        "Content-Type": "application/json",
-        "x-domo-authentication": access_token,
-    }
-
-
-def create_dev_token_header(developer_token):
-    """
-    Generate Auth headers for DOMO private API using developer
-    access tokens found at the following url:
-    https://<domo-instance>.domo.com/admin/security/accesstokens
-
-    Returns:
-    auth_header -> dict with the authentication headers for use in
-    domo api requests.
-    """
-    return {
-        "Content-Type": "application/json",
-        "x-domo-developer-token": developer_token,
-    }
-
-
-def get_stream_from_dataset_id(dataset_id, domo):
-    """
-    Gets the Stream ID of a particular stream using the dataSet id.
-
-    Returns:
-        stream_id (int): the Id of the found stream
-    """
-    try:
-        stream_id = domo.utilities.get_stream_id(ds_id=dataset_id)
-    except Exception as e:
-        print(
-            f"stream with dataSet ID:{dataset_id} not found. Ensure that a valid dataset ID is provided and is the ID of an outputted dataset from a dataflow"
-        )
-        sys.exit(errors.EXIT_CODE_DATASET_NOT_FOUND)
-    else:
-        return stream_id
-
-
-def run_stream_refresh(stream_id: str, domo_instance: pydomo.Domo):
-    """
-    Executes/starts a stream
-    """
-    streams = domo_instance.streams
-    try:
-        execution = streams.create_execution(stream_id)
-    except Exception as e:
-        print("Error in starting stream execution")
-        print(e)
-        sys.exit(errors.EXIT_CODE_REFRESH_ERROR)
-    else:
-        print("Refresh started successfully")
-        return execution
+        return errs.EXIT_CODE_UNKNOWN_STATUS
 
 
 def main():
     args = get_args()
+    wait = shipyard.args.convert_to_boolean(args.wait_for_completion)
     # initialize domo with auth credentials
-    try:
-        domo = pydomo.Domo(args.client_id, args.secret_key, api_host="api.domo.com")
-    except Exception as e:
-        print(
-            "The client_id or secret_key you provided were invalid. Please check for typos and try again."
-        )
-        print(e)
-        sys.exit(errors.EXIT_CODE_INVALID_CREDENTIALS)
+    client = DomoClient(client_id=args.client_id, secret_key=args.secret_key)
 
     # execute dataset refresh
-    dataset_id = args.dataset_id
-    stream_id = get_stream_from_dataset_id(dataset_id, domo)
-    refresh_data = run_stream_refresh(stream_id, domo_instance=domo)
-    execution_id = refresh_data["id"]
+    results = client.refresh_dataset(args.dataset_id)
+    execution_id = results["id"]
+    logger.info("Sucessfully refreshed dataset")
 
-    create_pickle_file(execution_id)  # needed for backwards compatibility
-    if args.wait_for_completion == "TRUE":
-        execution_data = get_execution_details(dataset_id, execution_id, domo)
+    # create the artifacts directory and save the execution id (for legacy purposes)
+    domo_artifact = Artifact("domo")
+    domo_artifact.variables.write(
+        filename="execution_id", file_type="pickle", data=execution_id
+    )
+
+    if wait:
+        execution_data = client.get_execution_details(args.dataset_id, execution_id)
         exit_code_status = determine_execution_status(execution_data)
-        print("Waiting for Domo Refresh to complete")
-        while exit_code_status == errors.EXIT_CODE_STATUS_INCOMPLETE:
+        logger.info("Waiting for Domo Refresh to complete")
+        while exit_code_status == errs.EXIT_CODE_STATUS_INCOMPLETE:
             print("Waiting for 60 seconds before checking again")
             time.sleep(60)
-            execution_data = get_execution_details(dataset_id, execution_id, domo)
+            execution_data = client.get_execution_details(args.dataset_id, execution_id)
             exit_code_status = determine_execution_status(execution_data)
+        logger.info("Dataset refresh complete")
         sys.exit(exit_code_status)
 
 

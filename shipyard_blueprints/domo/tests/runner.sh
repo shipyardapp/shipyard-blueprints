@@ -16,3 +16,13 @@ if [ "$1" = 'up1' ]; then
 
 fi
 
+if [ "$1" = 'rf1' ]; then 
+    echo "Beginning upload"
+    python3 ./shipyard_domo/cli/refresh_dataset.py \
+        --client-id $DOMO_CLIENT_ID \
+        --secret-key $DOMO_SECRET_KEY \
+        --dataset-id $D_REFRESH \
+        --wait-for-completion "TRUE"
+
+fi
+
