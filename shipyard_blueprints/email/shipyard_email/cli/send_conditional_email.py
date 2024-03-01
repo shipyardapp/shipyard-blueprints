@@ -125,7 +125,7 @@ def main():
         if file_upload != "yes":
             file_paths = None
         elif file_upload == "yes" and shipyard.files.are_files_too_large(
-                file_paths, max_size_bytes=MAX_SIZE_BYTES
+            file_paths, max_size_bytes=MAX_SIZE_BYTES
         ):
             logger.info("Files are too large to attach. Compressing files.")
             compressed_file_name = shipyard.files.compress_files(
