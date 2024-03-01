@@ -17,6 +17,7 @@ import urllib3
 
 from shipyard_domo.utils.exceptions import (
     CardExportError,
+    CardFetchError,
     DatasetNotFound,
     ExecutionDetailsNotFound,
     InvalidClientIdAndSecret,
@@ -56,6 +57,15 @@ class DomoClient(DataVisualization):
         return self._auth_headers
 
     def connect_with_client_id_and_secret_key(self):
+        """
+        Connects to the Domo API using the provided client ID and secret key.
+
+        Returns:
+            Domo: An instance of the Domo class representing the connected client.
+
+        Raises:
+            InvalidClientIdAndSecret: If there is an error connecting to the Domo API.
+        """
         try:
             client = Domo(self.client_id, self.secret_key, api_host="api.domo.com")
         except Exception:
@@ -104,12 +114,6 @@ class DomoClient(DataVisualization):
             )
             return 1
 
-    def upload_df(self, df: pd.DataFrame, dataset_id: str, schema: List[List[str]]):
-        pass
-
-    def create_dataset(self, df: pd.DataFrame, dataset_id: str):
-        pass
-
     def download_dataset(self, dataset_id: str) -> pd.DataFrame:
         """Downloads a domo dataset to a pandas dataframe
 
@@ -130,6 +134,18 @@ class DomoClient(DataVisualization):
             return df
 
     def refresh_dataset(self, dataset_id: str):
+        """
+        Refreshes the specified dataset by executing a refresh operation.
+
+        Args:
+            dataset_id (str): The ID of the dataset to be refreshed.
+
+        Returns:
+            Any: The execution response of the refresh operation.
+
+        Raises:
+            RefreshError: If an error occurs during the refresh operation.
+        """
         try:
             stream_id = self._get_stream_id(dataset_id)
             execution = self._refresh(stream_id)
@@ -140,18 +156,47 @@ class DomoClient(DataVisualization):
             return execution
 
     def fetch_card_data(self, card_id: str):
-        card_info_api = f"https://{self.domo_instance}.domo.com/api/content/v1/cards"
-        params = {
-            "urns": card_id,
-            "parts": ["metadata", "properties"],
-            "includeFiltered": "true",
-        }
-        card_response = requests.get(
-            url=card_info_api, params=params, headers=self.auth_headers
-        )
-        return card_response.json()
+        """
+        Fetches card data from the Domo API.
+
+        Args:
+            card_id (str): The ID of the card to fetch.
+
+        Returns:
+            dict: The JSON response containing the card data.
+        """
+        try:
+            card_info_api = (
+                f"https://{self.domo_instance}.domo.com/api/content/v1/cards"
+            )
+            params = {
+                "urns": card_id,
+                "parts": ["metadata", "properties"],
+                "includeFiltered": "true",
+            }
+            card_response = requests.get(
+                url=card_info_api, params=params, headers=self.auth_headers
+            )
+        except Exception as e:
+            raise CardFetchError(card_id, str(e))
+        else:
+            return card_response.json()
 
     def export_card(self, card_id: str, file_path: str, file_type: str):
+        """
+        Export a Domo card to a file.
+
+        Args:
+            card_id (str): The ID of the Domo card to export.
+            file_path (str): The path where the exported file will be saved.
+            file_type (str): The type of the exported file (e.g., "csv", "excel", "ppt").
+
+        Returns:
+            requests.Response: The response object containing the exported file.
+
+        Raises:
+            CardExportError: If an error occurs during the export process.
+        """
         try:
             export_api = f"https://{self.domo_instance}.domo.com/api/content/v1/cards/{card_id}/export"
             new_headers = deepcopy(self.auth_headers)
@@ -217,7 +262,6 @@ class DomoClient(DataVisualization):
             domo_schema (List[Schema], optional): Optional schema of the dataset. If omitted, then the data types will be inferred using sampling
         """
 
-        assert self.domo is not None
         streams = self.domo.streams
         dsr = DataSetRequest()
         dsr.name = dataset_name
@@ -281,6 +325,19 @@ class DomoClient(DataVisualization):
         return stream_id, execution_id
 
     def _update_schema(self, dataset_id: str, dataset_schema):
+        """
+        Update the schema of a dataset in Domo.
+
+        Args:
+            dataset_id (str): The ID of the dataset to update.
+            dataset_schema: The new schema for the dataset.
+
+        Raises:
+            SchemaUpdateError: If there is an error updating the schema.
+
+        Returns:
+            None
+        """
         try:
             url = f"/v1/datasets/{dataset_id}"
             change_result = self.domo.transport.put(
@@ -290,6 +347,15 @@ class DomoClient(DataVisualization):
             raise SchemaUpdateError(dataset_id, str(e))
 
     def _dataset_exists(self, dataset_name: str) -> bool:
+        """
+        Check if a dataset with the given name exists.
+
+        Args:
+            dataset_name (str): The name of the dataset to check.
+
+        Returns:
+            bool: True if a dataset with the given name exists, False otherwise.
+        """
         return self.domo.datasets.name.str.contains(dataset_name).any()
 
     def infer_schema(self, file_name: str, folder_name: Optional[str], k=10000):
@@ -337,8 +403,14 @@ class DomoClient(DataVisualization):
         """
         Gets the Stream ID of a particular stream using the dataSet id.
 
+        Args:
+            dataset_id (str): The ID of the dataset.
+
         Returns:
-            stream_id (int): the Id of the found stream
+            int: The ID of the found stream.
+
+        Raises:
+            DatasetNotFound: If the dataset is not found.
         """
         try:
             stream_id = self.domo.utilities.get_stream_id(ds_id=dataset_id)
@@ -351,12 +423,13 @@ class DomoClient(DataVisualization):
         """Executes/starts a stream
 
         Args:
-            stream_id: The ID of the stream to refresh
+            stream_id (str): The ID of the stream to refresh
 
         Raises:
-            RefreshError:
+            RefreshError: If an error occurs during the refresh
 
-        Returns: The execution data
+        Returns:
+            Execution: The execution data
 
         """
         try:
@@ -389,6 +462,12 @@ class DomoClient(DataVisualization):
         raise ExecutionDetailsNotFound(dataset_id)
 
     def _get_access_token(self):
+        """
+        Retrieves the access token from the Domo API using client credentials.
+
+        Returns:
+            str: The access token for making authenticated requests to the Domo API.
+        """
         domo_access_token_url = "https://api.domo.com/oauth/token"
         auth_response = requests.post(
             domo_access_token_url,
