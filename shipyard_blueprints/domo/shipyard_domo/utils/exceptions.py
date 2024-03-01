@@ -17,6 +17,7 @@ EXIT_CODE_EXECUTION_ID_NOT_FOUND = 204
 
 EXIT_CODE_CARD_EXPORT_ERROR = 101
 EXIT_CODE_CARD_FETCH_ERROR = 102
+EXIT_CODE_UPLOAD_STREAM_ERROR = 103
 
 EXIT_CODE_UNKNOWN_ERROR = 249
 
@@ -81,3 +82,9 @@ class CardFetchError(ExitCodeException):
     def __init__(self, card_id: str, error_msg: str):
         self.message = f"Error in fetching data for card {card_id}. Message from the API: {error_msg}"
         self.exit_code = EXIT_CODE_CARD_FETCH_ERROR
+
+
+class UploadStreamError(ExitCodeException):
+    def __init__(self, dataset_id: str, error_msg: str):
+        self.message = f"Error in uploading stream to dataset {dataset_id}. Message from the API: {error_msg}"
+        self.exit_code = EXIT_CODE_UPLOAD_STREAM_ERROR

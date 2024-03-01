@@ -63,7 +63,8 @@ def main():
             sys.exit(errs.EXIT_CODE_INCORRECT_CARD_TYPE)
 
     except ExitCodeException as ec:
-        pass
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
 
     except Exception as e:
         logger.error(

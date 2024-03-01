@@ -7,6 +7,7 @@ from shipyard_domo.domo import DomoClient
 from shipyard_domo.utils import utils
 from shipyard_bp_utils.artifacts import Artifact
 from shipyard_templates import ShipyardLogger, ExitCodeException
+from shipyard_domo.utils import exceptions as errs
 
 logger = ShipyardLogger.get_logger()
 
@@ -18,9 +19,9 @@ def get_args():
     parser.add_argument("--file-name", dest="file_name", required=True)
     parser.add_argument("--dataset-name", dest="dataset_name", required=True)
     parser.add_argument(
-        "--dataset-description", dest="dataset_description", required=False
+        "--dataset-description", dest="dataset_description", required=False, default=""
     )
-    parser.add_argument("--folder-name", dest="folder_name", required=False)
+    parser.add_argument("--folder-name", dest="folder_name", required=False, default="")
     parser.add_argument("--domo-schema", dest="domo_schema", required=False, default="")
     parser.add_argument(
         "--insert-method",
@@ -81,16 +82,6 @@ def main():
                 dataset_schema = client.infer_schema(
                     matching_file_names, folder_name, k=10000
                 )
-            # stream_id, execution_id = utils.upload_stream(
-            #     domo,
-            #     matching_file_names,
-            #     dataset_name,
-            #     insert_method,
-            #     dataset_id,
-            #     folder_name,
-            #     dataset_description,
-            #     dataset_schema,
-            # )
             stream_id, execution_id = client.upload_stream(
                 file_name=file_to_load,
                 dataset_name=dataset_name,
@@ -136,7 +127,8 @@ def main():
         logger.error(ec.message)
         sys.exit(ec.exit_code)
     except Exception as e:
-        print(e)
+        logger.error(f"Error in uploading file to Domo: {str(e)}")
+        sys.exit(errs.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":

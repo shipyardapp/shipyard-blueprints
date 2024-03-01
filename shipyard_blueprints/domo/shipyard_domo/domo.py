@@ -23,6 +23,7 @@ from shipyard_domo.utils.exceptions import (
     InvalidClientIdAndSecret,
     RefreshError,
     SchemaUpdateError,
+    UploadStreamError,
 )
 from shipyard_domo.utils import utils
 
@@ -262,67 +263,74 @@ class DomoClient(DataVisualization):
             domo_schema (List[Schema], optional): Optional schema of the dataset. If omitted, then the data types will be inferred using sampling
         """
 
-        streams = self.domo.streams
-        dsr = DataSetRequest()
-        dsr.name = dataset_name
-        dsr.schema = domo_schema
-        if dataset_description:
-            dsr.description = dataset_description
+        try:
+            streams = self.domo.streams
+            dsr = DataSetRequest()
+            dsr.name = dataset_name
+            dsr.schema = domo_schema
+            if dataset_description:
+                dsr.description = dataset_description
 
-        # if the id is provided, then update an existing dataset
-        if dataset_id:
-            schema_in_domo = self.domo.utilities.domo_schema(dataset_id)
-            dataset_schema = domo_schema["columns"]
-            pandas_dtypes = utils.map_domo_to_pandas(dataset_schema)
-            if not self.domo.utilities.identical(c1=schema_in_domo, c2=dataset_schema):
-                self._update_schema(dataset_id, dataset_schema)
-                logger.debug("Schema updated")
-            stream_property = "dataSource.id:" + dataset_id
-            stream_id = streams.search(stream_property)[0]["id"]
-            stream_request = CreateStreamRequest(dsr, insert_method)
-            updated_stream = streams.update(stream_id, stream_request)
-        # if the id is not provided, create a new one
-        else:
-            stream_request = CreateStreamRequest(dsr, insert_method)
-            stream = streams.create(stream_request)
-            stream_property = "dataSource.name:" + dsr.name
-            stream_id = stream["id"]
-            pandas_dtypes = None
-
-        execution = streams.create_execution(stream_id)
-        execution_id = execution["id"]
-        # if the regex match is selected, load all the files to a single domo dataset
-        if isinstance(file_name, list):
-            index = 0
-            for file in file_name:
-                for part, chunk in enumerate(
-                    pd.read_csv(file, chunksize=chunksize, dtype=pandas_dtypes), start=1
+            # if the id is provided, then update an existing dataset
+            if dataset_id:
+                schema_in_domo = self.domo.utilities.domo_schema(dataset_id)
+                dataset_schema = domo_schema["columns"]
+                pandas_dtypes = utils.map_domo_to_pandas(dataset_schema)
+                if not self.domo.utilities.identical(
+                    c1=schema_in_domo, c2=dataset_schema
                 ):
-                    index += 1
+                    self._update_schema(dataset_id, dataset_schema)
+                    logger.debug("Schema updated")
+                stream_property = "dataSource.id:" + dataset_id
+                stream_id = streams.search(stream_property)[0]["id"]
+                stream_request = CreateStreamRequest(dsr, insert_method)
+                updated_stream = streams.update(stream_id, stream_request)
+            # if the id is not provided, create a new one
+            else:
+                stream_request = CreateStreamRequest(dsr, insert_method)
+                stream = streams.create(stream_request)
+                stream_property = "dataSource.name:" + dsr.name
+                stream_id = stream["id"]
+                pandas_dtypes = None
+
+            execution = streams.create_execution(stream_id)
+            execution_id = execution["id"]
+            # if the regex match is selected, load all the files to a single domo dataset
+            if isinstance(file_name, list):
+                index = 0
+                for file in file_name:
+                    for part, chunk in enumerate(
+                        pd.read_csv(file, chunksize=chunksize, dtype=pandas_dtypes),
+                        start=1,
+                    ):
+                        index += 1
+                        execution = streams.upload_part(
+                            stream_id,
+                            execution_id,
+                            index,
+                            chunk.to_csv(index=False, header=False),
+                        )
+            # otherwise load a single file
+            else:
+                # Load the data into domo by chunks and parts
+                for part, chunk in enumerate(
+                    pd.read_csv(file_name, chunksize=chunksize, dtype=pandas_dtypes),
+                    start=1,
+                ):
                     execution = streams.upload_part(
                         stream_id,
                         execution_id,
-                        index,
+                        part,
                         chunk.to_csv(index=False, header=False),
                     )
-        # otherwise load a single file
-        else:
-            # Load the data into domo by chunks and parts
-            for part, chunk in enumerate(
-                pd.read_csv(file_name, chunksize=chunksize, dtype=pandas_dtypes),
-                start=1,
-            ):
-                execution = streams.upload_part(
-                    stream_id,
-                    execution_id,
-                    part,
-                    chunk.to_csv(index=False, header=False),
-                )
 
-        # commit the stream
-        commited_execution = streams.commit_execution(stream_id, execution_id)
-        logger.debug("Successfully loaded dataset to domo")
-        return stream_id, execution_id
+            # commit the stream
+            commited_execution = streams.commit_execution(stream_id, execution_id)
+            logger.debug("Successfully loaded dataset to domo")
+        except Exception as e:
+            raise UploadStreamError(dataset_id, str(e))
+        else:
+            return stream_id, execution_id
 
     def _update_schema(self, dataset_id: str, dataset_schema):
         """
