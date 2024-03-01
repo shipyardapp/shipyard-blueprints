@@ -1,13 +1,14 @@
-import argparse
 import os
 import re
+import sys
+import argparse
 import tempfile
 
+from shipyard_sftp.sftp import SftpClient
 from shipyard_bp_utils import files as shipyard
 from shipyard_templates import CloudStorage, ExitCodeException
 from shipyard_templates.shipyard_logger import ShipyardLogger
 
-from shipyard_sftp.sftp import SftpClient
 
 logger = ShipyardLogger().get_logger()
 
@@ -40,7 +41,7 @@ def main():
         args = get_args()
         if not args.password and not args.key:
             raise ExitCodeException(
-                "Must specify a password or a RSA key",
+                "Must specify a password or a private key",
                 CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
             )
 
@@ -52,7 +53,7 @@ def main():
         if key := args.key:
             if not os.path.isfile(key):
                 fd, key_path = tempfile.mkstemp()
-                logger.info(f"Storing RSA temporarily at {key_path}")
+                logger.info(f"Storing private key temporarily at {key_path}")
                 with os.fdopen(fd, "w") as tmp:
                     tmp.write(key)
                 connection_args["key"] = key_path
@@ -63,7 +64,7 @@ def main():
         source_full_path = shipyard.combine_folder_and_file_name(
             source_folder_name, source_file_name
         )
-        source_file_name_match_type = args.source_file_name_match_type
+        source_file_name_match_type = args.source_file_name_match_type or "exact_match"
 
         if source_file_name_match_type == "regex_match":
             file_names = sftp.list_files_recursive(source_folder_name or ".")
@@ -90,13 +91,13 @@ def main():
             sftp.remove(source_full_path)
     except ExitCodeException as e:
         logger.error(e)
-        exit(e.exit_code)
+        sys.exit(e.exit_code)
     except Exception as e:
         logger.error(e)
-        exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
+        sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
     finally:
         if key_path:
-            logger.info(f"Removing temporary RSA Key file {key_path}")
+            logger.info(f"Removing temporary private key file {key_path}")
             os.remove(key_path)
         try:
             sftp.close()

@@ -52,7 +52,7 @@ def main():
         args = get_args()
         if not args.password and not args.key:
             raise ExitCodeException(
-                "Must specify a password or a RSA key",
+                "Must specify a password or a private key",
                 CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
             )
 
@@ -64,7 +64,7 @@ def main():
         if key := args.key:
             if not os.path.isfile(key):
                 fd, key_path = tempfile.mkstemp()
-                logger.info(f"Storing RSA temporarily at {key_path}")
+                logger.info(f"Storing private key temporarily at {key_path}")
                 with os.fdopen(fd, "w") as tmp:
                     tmp.write(key)
                 connection_args["key"] = key_path
@@ -78,12 +78,9 @@ def main():
         destination_folder_name = shipyard.clean_folder_name(
             args.destination_folder_name
         )
-        source_file_name_match_type = args.source_file_name_match_type
+        source_file_name_match_type = args.source_file_name_match_type or "exact_match"
 
-        if source_file_name_match_type in [
-            "exact_match",
-            "",
-        ]:  # Handle when app sends empty string
+        if source_file_name_match_type == "exact_match":
             destination_full_path = shipyard.determine_destination_full_path(
                 destination_folder_name=destination_folder_name,
                 destination_file_name=args.destination_file_name,
@@ -116,8 +113,12 @@ def main():
         sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
     finally:
         if key_path:
-            logger.info(f"Removing temporary RSA Key file {key_path}")
+            logger.info(f"Removing temporary private key file {key_path}")
             os.remove(key_path)
+        try:
+            sftp.close()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

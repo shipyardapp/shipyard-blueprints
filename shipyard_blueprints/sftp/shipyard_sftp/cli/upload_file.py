@@ -1,13 +1,13 @@
-import argparse
 import os
 import sys
+import argparse
 import tempfile
 
+from shipyard_sftp.sftp import SftpClient
 from shipyard_bp_utils import files as shipyard
 from shipyard_templates import CloudStorage, ExitCodeException
 from shipyard_templates.shipyard_logger import ShipyardLogger
 
-from shipyard_sftp.sftp import SftpClient
 
 logger = ShipyardLogger().get_logger()
 
@@ -50,7 +50,7 @@ def main():
         args = get_args()
         if not args.password and not args.key:
             raise ExitCodeException(
-                "Must specify a password or a RSA key",
+                "Must specify a password or a private key",
                 CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
             )
 
@@ -62,7 +62,7 @@ def main():
         if key := args.key:
             if not os.path.isfile(key):
                 fd, key_path = tempfile.mkstemp()
-                logger.info(f"Storing RSA temporarily at {key_path}")
+                logger.info(f"Storing private temporarily at {key_path}")
                 with os.fdopen(fd, "w") as tmp:
                     tmp.write(key)
                 connection_args["key"] = key_path
@@ -77,7 +77,7 @@ def main():
         destination_folder_name = shipyard.clean_folder_name(
             args.destination_folder_name
         )
-        source_file_name_match_type = args.source_file_name_match_type
+        source_file_name_match_type = args.source_file_name_match_type or "exact_match"
 
         if source_file_name_match_type == "exact_match":
             destination_full_path = shipyard.determine_destination_full_path(
@@ -120,8 +120,12 @@ def main():
         sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
     finally:
         if key_path:
-            logger.info(f"Removing temporary RSA Key file {key_path}")
+            logger.info(f"Removing temporary private key file {key_path}")
             os.remove(key_path)
+        try:
+            sftp.close()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

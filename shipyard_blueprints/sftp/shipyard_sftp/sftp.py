@@ -6,6 +6,16 @@ import paramiko
 from shipyard_templates import CloudStorage, ExitCodeException
 from shipyard_templates.shipyard_logger import ShipyardLogger
 
+from shipyard_sftp.exceptions import (
+    UnknownException,
+    InvalidCredentialsError,
+    UploadError,
+    FileMatchException,
+    DownloadException,
+    FileNotFound,
+    DeleteException,
+)
+
 logger = ShipyardLogger().get_logger()
 
 DEFAULT_WINDOW_SIZE = 4294967294
@@ -102,23 +112,14 @@ class SftpClient(CloudStorage):
             if self.if_exists(filename):
                 self.client.get(filename, destination)
             else:
-                raise ExitCodeException(
-                    f"Error: the file {filename} was not not found",
-                    self.EXIT_CODE_FILE_NOT_FOUND,
-                )
+                logger.error(f"{filename} does not exist.")
+                raise FileNotFound()
         except FileNotFoundError as e:
-            raise ExitCodeException(
-                f"Error: the file {filename} was not not found",
-                self.EXIT_CODE_FILE_NOT_FOUND,
-            ) from e
-        except ExitCodeException as error:
-            raise error
+            raise FileNotFound(e) from e
+        except ExitCodeException:
+            raise
         except Exception as e:
-            raise ExitCodeException(
-                f"Failed to download {filename} to {destination}. "
-                f"Response from server: {e.__class__.__name__}: {e}",
-                self.EXIT_CODE_DOWNLOAD_ERROR,
-            ) from e
+            raise DownloadException(e) from e
 
     def move(self, source: str, destination: str):
         """
@@ -137,17 +138,12 @@ class SftpClient(CloudStorage):
             self.client.stat(source)
             self.client.rename(source, destination)
         except FileNotFoundError as e:
-            raise ExitCodeException(
-                f"Error: the file {source} was not not found",
-                self.EXIT_CODE_FILE_NOT_FOUND,
-            ) from e
-        except ExitCodeException as error:
-            raise error
+            logger.error(f"Error: the file {source} was not not found")
+            raise FileNotFound(e) from e
+        except ExitCodeException:
+            raise
         except Exception as e:
-            raise ExitCodeException(
-                f"Failed to move {source} to {destination}. Response from server: {e.__class__.__name__}: {e}",
-                self.EXIT_CODE_UNKNOWN_ERROR,
-            ) from e
+            raise UnknownException(e) from e
 
     def remove(self, filename: str):
         """
@@ -162,13 +158,10 @@ class SftpClient(CloudStorage):
         """
         try:
             self.client.remove(filename)
-        except ExitCodeException as error:
-            raise error
+        except ExitCodeException:
+            raise
         except Exception as e:
-            raise ExitCodeException(
-                f"Failed to delete {filename} due to {e}",
-                self.EXIT_CODE_DELETE_ERROR,
-            ) from e
+            raise DeleteException(e) from e
 
     def upload(self, localpath: str, remotepath: str):
         """
@@ -179,21 +172,17 @@ class SftpClient(CloudStorage):
         - remotepath (str): The remote path to save the uploaded file.
 
         Raises:
-        - ExitCodeException(EXIT_CODE_UPLOAD_ERROR): If an error occurred while uploading the file.
-        - ExitCodeException: If a class method raises an exception, it is re-raised as an ExitCodeException.
+            UploadError: If an error occurred while uploading the file.
         """
         try:
             self.create_directory(os.path.dirname(remotepath))
             self.client.put(localpath, remotepath, confirm=True)
             logger.info(f"Successfully uploaded {localpath} to {remotepath}")
-        except ExitCodeException as error:
-            raise error
+        except ExitCodeException:
+            raise
         except Exception as e:
-            logger.error(f"Failed to upload {localpath} to {remotepath}: {e}")
-            raise ExitCodeException(
-                f"Failed to upload due to:{e.__class__.__name__}: {e}",
-                self.EXIT_CODE_UPLOAD_ERROR,
-            ) from e
+            logger.error(f"Failed to upload {localpath} to {remotepath}")
+            raise UploadError(e) from e
 
     def list_files_recursive(self, path: str, files_list: list = None):
         """
@@ -205,16 +194,22 @@ class SftpClient(CloudStorage):
 
         Returns:
         - list: A list of file paths in the directory and its subdirectories.
+
+        Raises:
+            - FileMatchException: If an error occurred while listing the directory.
         """
-        if files_list is None:
-            files_list = []
-        for attr in self.client.listdir_attr(path):
-            file_path = f"{path}/{attr.filename}"
-            if stat.S_ISDIR(attr.st_mode):
-                self.list_files_recursive(file_path, files_list)
-            else:
-                files_list.append(file_path)
-        return files_list
+        try:
+            if files_list is None:
+                files_list = []
+            for attr in self.client.listdir_attr(path):
+                file_path = f"{path}/{attr.filename}"
+                if stat.S_ISDIR(attr.st_mode):
+                    self.list_files_recursive(file_path, files_list)
+                else:
+                    files_list.append(file_path)
+            return files_list
+        except Exception as e:
+            raise FileMatchException(e) from e
 
     def create_directory(self, remote_directory: str):
         """
@@ -243,13 +238,8 @@ class SftpClient(CloudStorage):
         - paramiko.SFTPClient: An SFTP client connected to the server.
 
         Raises:
-        - paramiko.SSHException: If an error occurred during SSH negotiation or authentication.
-        - paramiko.AuthenticationException: If authentication failed.
-        - Exception: For other unforeseen errors.
-
-        Raises:
-        - ExitCodeException(EXIT_CODE_INVALID_CREDENTIALS): If the authentication credentials are invalid.
-        - ExitCodeException(EXIT_CODE_UNKNOWN_ERROR): If an unknown error occurred while accessing the SFTP server.
+        - InvalidCredentialsError: If the given credentials are invalid.
+        - UnknownException: If an unknown error occurred while creating the SFTP client.
         """
         try:
             transport = paramiko.Transport((self.host, int(self.port)))
@@ -270,15 +260,9 @@ class SftpClient(CloudStorage):
             paramiko.AuthenticationException,
             ValueError,
         ) as auth_error:
-            raise ExitCodeException(
-                auth_error, self.EXIT_CODE_INVALID_CREDENTIALS
-            ) from auth_error
-
+            raise InvalidCredentialsError(auth_error) from auth_error
         except Exception as err:
-            raise ExitCodeException(
-                f"Error accessing the SFTP server. Server response:{err.__class__.__name__}:{err} ",
-                self.EXIT_CODE_UNKNOWN_ERROR,
-            ) from err
+            raise UnknownException(err) from err
 
     def find_files(self, folder_path: str, pattern: str):
         """
@@ -295,7 +279,7 @@ class SftpClient(CloudStorage):
         - list: A list of file paths in the directory and its subdirectories that match the pattern.
 
         Raises:
-        - ExitCodeException(EXIT_CODE_FILE_MATCH_ERROR): If an error occurred while listing the directory.
+        - FileMatchException: If an error occurred while searching for files.
         """
         all_files = []
         try:
@@ -308,10 +292,7 @@ class SftpClient(CloudStorage):
                 else:
                     all_files.append(full_path)
         except Exception as e:
-            raise ExitCodeException(
-                f"Failed to list directory {folder_path}: {e}",
-                self.EXIT_CODE_FILE_MATCH_ERROR,
-            ) from e
+            raise FileMatchException(e) from e
 
         return [str(f) for f in all_files if re.match(pattern, os.path.basename(f))]
 

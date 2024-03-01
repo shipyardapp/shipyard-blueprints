@@ -1,26 +1,24 @@
 import os
-from shipyard_sftp import SftpClient
+
 from dotenv import load_dotenv, find_dotenv
+
+from shipyard_sftp.sftp import SftpClient
+
 
 load_dotenv(find_dotenv())
 
 
 def conn_helper(client: SftpClient) -> int:
-    try:
-        client.connect()
-        return 0
-    except Exception as e:
-        client.logger.error("Could not connect to SFTP server")
-        client.logger.exception(e)
-        return 1
-    else:
-        client.logger.error("Could not connect to SFTP server")
-        return 1
+    print(
+        f"Connecting to {client.host} as {client.user} with {client.pwd} on port {client.port}"
+    )
+
+    return client.connect()
 
 
 def test_good_connection():
     host = os.getenv("SFTP_HOST")
-    user = os.getenv("SFTP_USER")
+    user = os.getenv("SFTP_USERNAME")
     pwd = os.getenv("SFTP_PASSWORD")
     port = os.getenv("SFTP_PORT")
     client = SftpClient(user=user, pwd=pwd, host=host, port=port)
