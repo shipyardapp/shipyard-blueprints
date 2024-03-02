@@ -69,9 +69,11 @@ def main():
             matching_file_names = shipyard.files.find_all_file_matches(
                 file_names, re.compile(file_to_load)
             )
-            logger.info(
-                f"{len(matching_file_names)} files found. Preparing to upload..."
-            )
+            if (n_matches := len(matching_file_names)) == 0:
+                logger.error("No files found")
+                sys.exit(errs.EXIT_CODE_FILE_NOT_FOUND)
+
+            logger.info(f"{n_matches} files found. Preparing to upload...")
             # if the schema is provided, then use that otherwise infer the schema using sampling
             if args.domo_schema != "":
                 dataset_schema = utils.make_schema(
@@ -83,7 +85,7 @@ def main():
                     matching_file_names, folder_name, k=10000
                 )
             stream_id, execution_id = client.upload_stream(
-                file_name=file_to_load,
+                file_name=matching_file_names,
                 dataset_name=dataset_name,
                 insert_method=insert_method,
                 dataset_id=dataset_id,

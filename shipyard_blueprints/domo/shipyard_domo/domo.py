@@ -1,26 +1,26 @@
 from pydomo.datasets.DataSetModel import Schema, DataSetRequest
 from pydomo.streams import CreateStreamRequest, UpdateMethod
-from shipyard_templates import DataVisualization, ShipyardLogger
+from shipyard_templates import DataVisualization, ExitCodeException, ShipyardLogger
 from pydomo import Domo
 from typing import Optional, List, Dict, Union, Any
 import requests
 import os
 import pandas as pd
 import urllib
-from random import random, randrange
-from itertools import islice
 from io import StringIO
-from math import exp, log, floor, ceil
 from copy import deepcopy
+from math import ceil
 
-import urllib3
 
 from shipyard_domo.utils.exceptions import (
+    CannotConnect,
     CardExportError,
     CardFetchError,
     DatasetNotFound,
     ExecutionDetailsNotFound,
     InvalidClientIdAndSecret,
+    InvalidDeveloperToken,
+    InvalidDomoInstance,
     RefreshError,
     SchemaUpdateError,
     UploadStreamError,
@@ -37,6 +37,7 @@ class DomoClient(DataVisualization):
         secret_key: Optional[str] = None,
         access_token: Optional[str] = None,
         domo_instance: Optional[str] = None,
+        api_host: str = "api.domo.com",
     ) -> None:
         self.client_id = client_id
         self.secret_key = secret_key
@@ -44,6 +45,7 @@ class DomoClient(DataVisualization):
         self.access_token = access_token
         self._auth_headers = None
         self.domo_instance = domo_instance
+        self.api_host = api_host
 
     @property
     def domo(self):
@@ -68,7 +70,7 @@ class DomoClient(DataVisualization):
             InvalidClientIdAndSecret: If there is an error connecting to the Domo API.
         """
         try:
-            client = Domo(self.client_id, self.secret_key, api_host="api.domo.com")
+            client = Domo(self.client_id, self.secret_key, api_host=self.api_host)
         except Exception:
             raise InvalidClientIdAndSecret
         else:
@@ -84,36 +86,25 @@ class DomoClient(DataVisualization):
                 },
             )
         except Exception as e:
-            logger.error(f"Error connecting with access token: {e}")
-            return 1
+            raise InvalidDomoInstance(e)
         else:
-            self._auth_headers = self._gen_token_headers(self.access_token)
-            return 0 if response.ok else 1
+            if response.ok:
+                self._auth_headers = self._gen_token_headers(self.access_token)
+            else:
+                raise InvalidDeveloperToken(response.text)
 
     def connect(self):
-        check_access_token = bool(self.access_token and self.domo_instance)
-        check_client_id_secret = bool(self.client_id or self.secret_key)
-        if check_access_token and check_client_id_secret:
-            print(
-                "Both Client ID and Secret Key and Access Token and Domo Instance ID were provided."
-            )
-            return (
-                1
-                if self.connect_with_client_id_and_secret_key()
-                or self.connect_with_access_token() == 1
-                else 0
-            )
-        elif check_client_id_secret:
-            print("Only Client ID and Secret Key were provided.")
-            return self.connect_with_client_id_and_secret_key()
-        elif check_access_token:
-            print("Only Access Token and Domo Instance ID were provided.")
-            return self.connect_with_access_token()
-        else:
-            print(
-                "Be sure to provide Client ID and Secret Key or Access Token and Domo Instance ID"
-            )
-            return 1
+        try:
+            self.connect_with_client_id_and_secret_key()
+            logger.info("Successsfully connected via client ID and secret key")
+            self.connect_with_access_token()
+            logger.info("Successfully connected via developer token")
+        except ExitCodeException as ec:
+            logger.error(ec.message)
+            raise
+        except Exception as e:
+            logger.error(e)
+            raise CannotConnect(e)
 
     def download_dataset(self, dataset_id: str) -> pd.DataFrame:
         """Downloads a domo dataset to a pandas dataframe
@@ -366,6 +357,7 @@ class DomoClient(DataVisualization):
         """
         return self.domo.datasets.name.str.contains(dataset_name).any()
 
+    # FIXME:The data types are not being inferred right. Everything except numbers are coming in as a string
     def infer_schema(self, file_name: str, folder_name: Optional[str], k=10000):
         """Will return the Domo schema and datatypes of a sampled pandas dataframe
 

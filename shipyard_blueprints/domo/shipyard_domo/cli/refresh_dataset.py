@@ -30,19 +30,19 @@ def determine_execution_status(execution_data):
     # check if execution has finished first
     status = execution_data["currentState"]
     if status == "ABORTED":
-        print("Domo Refresh has been aborted")
+        logger.info("Domo Refresh has been aborted")
         return errs.EXIT_CODE_FINAL_STATUS_CANCELLED
     elif status == "ACTIVE":
-        print(f"Domo Refresh is still currently ongoing with status {status}")
+        logger.info(f"Domo Refresh is still currently ongoing with status {status}")
         return errs.EXIT_CODE_STATUS_INCOMPLETE
     elif status == "INVALID":
-        print("Domo Refresh is invalid either due to system conflict or error")
+        logger.info("Domo Refresh is invalid either due to system conflict or error")
         return errs.EXIT_CODE_FINAL_STATUS_INVALID
     elif status == "SUCCESS":
-        print("Domo has refreshed successfully ")
+        logger.info("Domo has refreshed successfully ")
         return errs.EXIT_CODE_FINAL_STATUS_SUCCESS
     else:
-        print(f"Unknown Domo Refresh status: {status}")
+        logger.info(f"Unknown Domo Refresh status: {status}")
         return errs.EXIT_CODE_UNKNOWN_STATUS
 
 
@@ -69,7 +69,7 @@ def main():
             exit_code_status = determine_execution_status(execution_data)
             logger.info("Waiting for Domo Refresh to complete")
             while exit_code_status == errs.EXIT_CODE_STATUS_INCOMPLETE:
-                print("Waiting for 60 seconds before checking again")
+                logger.info("Waiting for 60 seconds before checking again")
                 time.sleep(60)
                 execution_data = client.get_execution_details(
                     args.dataset_id, execution_id

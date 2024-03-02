@@ -1,6 +1,7 @@
 from shipyard_templates import ExitCodeException
 
 EXIT_CODE_FINAL_STATUS_SUCCESS = 0
+EXIT_CODE_INVALID_DOMO_INSTANCE = 101  # the domo instance from the URL
 
 EXIT_CODE_COLUMN_MISMATCH = 219
 EXIT_CODE_INVALID_DATA_TYPE = 218
@@ -88,3 +89,23 @@ class UploadStreamError(ExitCodeException):
     def __init__(self, dataset_id: str, error_msg: str):
         self.message = f"Error in uploading stream to dataset {dataset_id}. Message from the API: {error_msg}"
         self.exit_code = EXIT_CODE_UPLOAD_STREAM_ERROR
+
+
+class InvalidDeveloperToken(ExitCodeException):
+    def __init__(self, error_msg: Exception):
+        self.message = f"Error when trying to connect via developer token. Ensure that the token provided is valid. Error message reads: {error_msg}"
+        self.exit_code = EXIT_CODE_INVALID_CREDENTIALS
+
+
+class CannotConnect(ExitCodeException):
+    def __init__(self, error_msg: Exception):
+        self.message = (
+            f"Error attempting to connect to domo. Message reads: {error_msg}"
+        )
+        self.exit_code = EXIT_CODE_INVALID_CREDENTIALS
+
+
+class InvalidDomoInstance(ExitCodeException):
+    def __init__(self, error_msg: Exception):
+        self.message = f"Error attempting to connect to domo, likely due to an invalid Domo Instance provided. Message reads: {error_msg}"
+        self.exit_code = EXIT_CODE_INVALID_DOMO_INSTANCE

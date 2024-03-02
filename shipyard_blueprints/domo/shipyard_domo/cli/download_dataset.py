@@ -2,7 +2,7 @@ import sys
 import os
 import argparse
 from shipyard_templates import ExitCodeException, ShipyardLogger
-import shipyard_utils as shipyard
+import shipyard_bp_utils as shipyard
 from shipyard_domo.utils import exceptions as errs
 from shipyard_domo import DomoClient
 
