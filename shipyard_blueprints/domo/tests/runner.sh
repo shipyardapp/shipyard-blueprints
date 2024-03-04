@@ -17,7 +17,7 @@ if [ "$1" = 'up1' ]; then
 fi
 
 if [ "$1" = 'rf1' ]; then 
-    echo "Beginning upload"
+    echo "Beginning Refresh"
     python3 ./shipyard_domo/cli/refresh_dataset.py \
         --client-id $DOMO_CLIENT_ID \
         --secret-key $DOMO_SECRET_KEY \
@@ -25,4 +25,21 @@ if [ "$1" = 'rf1' ]; then
         --wait-for-completion "TRUE"
 
 fi
+
+if [ "$1" = 'ec1' ]; then 
+    echo "Beginning to download card"
+    python3 ./shipyard_domo/cli/export_card_to_file.py \
+       --domo-instance $DOMO_INSTANCE \
+       --card-id $DOMO_CARD_ID \
+       --destination-file-name "card.csv" \
+       --file-type "csv" \
+       --developer-token $DOMO_ACCESS_TOKEN
+fi
+        
+
+
+
+
+
+
 

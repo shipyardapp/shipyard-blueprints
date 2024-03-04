@@ -211,7 +211,7 @@ class DomoClient(DataVisualization):
                 "mobile": "false",
                 "showAnnotations": "true",
                 "type": "file",
-                "fileName": f"{file_path}",
+                "fileName": file_path,
                 "accept": filetype_map[file_type],
             }
             # convert body to domo encoded payload, the API payload has to follow these rules:
@@ -226,8 +226,9 @@ class DomoClient(DataVisualization):
             payload = f"request={encoded_body}"
 
             export_response = requests.post(
-                url=export_api, data=payload, headers=self.auth_headers, stream=True
+                url=export_api, data=payload, headers=new_headers, stream=True
             )
+            export_response.raise_for_status()
         except Exception as e:
             raise CardExportError(card_id, str(e))
         else:

@@ -1,6 +1,9 @@
 import sys
 import argparse
 import shipyard_bp_utils as shipyard
+import requests
+import pandas as pd
+import io
 from shipyard_domo import DomoClient
 from shipyard_domo.utils import exceptions as errs
 from shipyard_templates import ShipyardLogger, ExitCodeException
@@ -30,6 +33,18 @@ def get_args():
     return args
 
 
+def write_file(file_type: str, data: requests.Response, target: str):
+    if file_type == "csv":
+        pd.read_csv(io.StringIO(data.content.decode("utf-8"))).to_csv(
+            target, index=False
+        )
+    else:
+        with open(target, "wb") as fd:
+            # iterate through the blob 1MB at a time
+            for chunk in data.iter_content(1024 * 1024):
+                fd.write(chunk)
+
+
 def main():
     try:
         args = get_args()
@@ -48,19 +63,31 @@ def main():
         client = DomoClient(
             access_token=args.developer_token, domo_instance=domo_instance
         )
-        client.connect()
+        client.connect_with_access_token()
 
-        card = client.fetch_card_data(card_id=card_id)
+        card = client.fetch_card_data(card_id=card_id)[0]
         logger.info("Successfully fetched card data, beginning the export")
+        logger.debug(f"Contents of card are: {card}")
 
         # export if card type is 'graph'
         if (card_type := card["type"]) == "kpi":
-            client.export_card(card_id, file_path=file_path, file_type=file_type)
+            response = client.export_card(
+                card_id, file_path=file_path, file_type=file_type
+            )
+            logger.debug(f"Contents of data are {response.text}")
         else:
             logger.error(
                 f"Card type {card_type} not supported by system, only type `kpi` can be exported"
             )
             sys.exit(errs.EXIT_CODE_INCORRECT_CARD_TYPE)
+
+        if response.ok:
+            write_file(file_type, response, file_path)
+            logger.info(f"Successfully downloaded card contents to {file_path}")
+        else:
+            logger.error(
+                f"Error in downloading card. Response from API reads: {response.text}"
+            )
 
     except ExitCodeException as ec:
         logger.error(ec.message)
