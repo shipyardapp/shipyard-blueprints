@@ -102,7 +102,7 @@ def main():
             user_id_list = create_user_id_list(
                 slack_client, args.users_to_notify, args.user_lookup_method
             )
-            message = create_name_tags(user_id_list) + message,
+            message = (create_name_tags(user_id_list) + message,)
 
         else:
             user_id_list = []

@@ -139,7 +139,6 @@ def main():
                 responses.append(response.data)
 
         else:
-
             response = send_slack_message_with_file(
                 slack_client,
                 message,
