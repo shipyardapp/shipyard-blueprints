@@ -286,12 +286,22 @@ class DomoClient(DataVisualization):
 
             execution = streams.create_execution(stream_id)
             execution_id = execution["id"]
+            date_cols = utils.get_date_types(pandas_dtypes) if pandas_dtypes else None
+            # remove the date columns from the data types
+            if date_cols and pandas_dtypes:
+                for date_col in date_cols:
+                    del pandas_dtypes[date_col]
             # if the regex match is selected, load all the files to a single domo dataset
             if isinstance(file_name, list):
                 index = 0
                 for file in file_name:
                     for part, chunk in enumerate(
-                        pd.read_csv(file, chunksize=chunksize, dtype=pandas_dtypes),
+                        pd.read_csv(
+                            file,
+                            chunksize=chunksize,
+                            dtype=pandas_dtypes,
+                            parse_dates=date_cols,
+                        ),
                         start=1,
                     ):
                         index += 1
@@ -305,7 +315,12 @@ class DomoClient(DataVisualization):
             else:
                 # Load the data into domo by chunks and parts
                 for part, chunk in enumerate(
-                    pd.read_csv(file_name, chunksize=chunksize, dtype=pandas_dtypes),
+                    pd.read_csv(
+                        file_name,
+                        chunksize=chunksize,
+                        dtype=pandas_dtypes,
+                        parse_dates=date_cols,
+                    ),
                     start=1,
                 ):
                     execution = streams.upload_part(
@@ -380,10 +395,15 @@ class DomoClient(DataVisualization):
                 with open(file_path, "r") as f:
                     header = next(f)
                     result = [header] + utils.reservoir_sample(f, rows_per_file)
-                df = pd.read_csv(StringIO("".join(result)))
+                df = pd.read_csv(StringIO("".join(result)), parse_dates=True)
+                df = utils.parse_dates(df)
                 dataframes.append(df)
             merged = pd.concat(dataframes, axis=0, ignore_index=True)
-            schema = self.domo.utilities.data_schema(merged)
+            # pd_dtypes = dict(merged.dtypes)
+            pd_dtypes = {k: str(v) for k, v in merged.dtypes.to_dict().items()}
+            logger.debug(f"data types are {pd_dtypes}")
+            # schema = self.domo.utilities.data_schema(merged)
+            schema = utils.map_pandas_to_domo(pd_dtypes)
             return Schema(schema)
 
         else:
@@ -395,8 +415,11 @@ class DomoClient(DataVisualization):
             with open(file_path, "r") as f:
                 header = next(f)
                 result = [header] + utils.reservoir_sample(f, k)
-            df = pd.read_csv(StringIO("".join(result)))
-            schema = self.domo.utilities.data_schema(df)
+            df = pd.read_csv(StringIO("".join(result)), parse_dates=True)
+            pd_dtypes = {k: str(v) for k, v in df.dtypes.to_dict().items()}
+            logger.debug(f"data types are {pd_dtypes}")
+            # schema = self.domo.utilities.data_schema(df)
+            schema = utils.map_pandas_to_domo(pd_dtypes)
             return Schema(schema)
 
     def _get_stream_id(self, dataset_id: str):

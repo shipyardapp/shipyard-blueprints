@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import re
 from typing import List, Dict, Any, Optional, Union
 from random import random, randrange
 from itertools import islice
@@ -25,7 +26,7 @@ def map_domo_to_pandas(domo_schema: List[Dict[Any, Any]]) -> Dict[str, str]:
             pandas_dtypes[col] = "bool"
         elif dtype == "DATETIME":
             pandas_dtypes[col] = "datetime64[ns]"
-        elif dtype == "DECIMAL":
+        elif dtype == "DOUBLE":
             pandas_dtypes[col] = "float64"
         elif dtype == "LONG":
             pandas_dtypes[col] = "int64"
@@ -34,6 +35,52 @@ def map_domo_to_pandas(domo_schema: List[Dict[Any, Any]]) -> Dict[str, str]:
         else:
             pandas_dtypes[col] = "object"
     return pandas_dtypes
+
+
+def parse_dates(df: pd.DataFrame) -> pd.DataFrame:
+    """Helper function to parse dates in a pandas dataframe. This is necessary so that the date and datetime
+    fields can be properly inferred by the `infer_schema` function
+
+    Args:
+        df: The dataframe to parse
+
+    Returns: A pandas dataframe
+
+    """
+    for col in df.columns:
+        # Check if the column contains date-like values
+        if df[col].apply(lambda x: bool(re.match(r"\d{4}-\d{2}-\d{2}", str(x)))).all():
+            df[col] = pd.to_datetime(df[col])
+    return df
+
+
+def get_date_types(pd_dtypes: Dict[str, str]) -> List[str]:
+    return [key for key, value in pd_dtypes.items() if value == "datetime64[ns]"]
+
+
+def map_pandas_to_domo(pandas_dtypes: Dict[str, str]) -> List[Dict[str, str]]:
+    """Convert pandas data types to Domo datatypes
+
+    Args:
+        pandas_dtypes: pandas data types to convert
+    """
+
+    schema = []
+    for k, v in pandas_dtypes.items():
+        domo_dtypes = {}
+        domo_dtypes["name"] = k
+
+        if str(v) == "datetime64[ns]":
+            domo_dtypes["type"] = "DATETIME"
+        elif v == "float64":
+            domo_dtypes["type"] = "DOUBLE"
+        elif v == "int64":
+            domo_dtypes["type"] = "LONG"
+        else:
+            domo_dtypes["type"] = "STRING"
+        schema.append(domo_dtypes)
+
+    return schema
 
 
 def reservoir_sample(iterable, k=1):
@@ -64,7 +111,6 @@ def reservoir_sample(iterable, k=1):
             return values
 
 
-#
 # def make_schema(data_types: list, file_name: str, folder_name: str):
 #     """Constructs a domo schema which is required for the stream upload
 #

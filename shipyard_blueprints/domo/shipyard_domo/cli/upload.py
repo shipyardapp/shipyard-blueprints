@@ -106,10 +106,12 @@ def main():
             else:
                 file_path = file_to_load
 
-            if args.domo_schema != "":
-                dataset_schema = utils.make_schema(domo_schema, file_path, folder_name)
-            else:
+            if not args.domo_schema:
+                # dataset_schema = utils.make_schema(domo_schema, file_path, folder_name)
                 dataset_schema = client.infer_schema(file_path, folder_name, k=10000)
+            else:
+                # dataset_schema = client.infer_schema(file_path, folder_name, k=10000)
+                dataset_schema = utils.make_schema(domo_schema, file_path, folder_name)
 
             stream_id, execution_id = client.upload_stream(
                 file_name=file_to_load,

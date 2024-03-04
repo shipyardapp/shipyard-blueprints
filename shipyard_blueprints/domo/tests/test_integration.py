@@ -25,6 +25,7 @@ def domo_datasets():
 
 
 def upload_regex_from_folder(domo_credentials):
+    ds = os.getenv("REGEX_MATCH_DS")
     upload_cmd = [
         "python3",
         "./shipyard_domo/cli/upload.py",
@@ -44,6 +45,8 @@ def upload_regex_from_folder(domo_credentials):
         "mult",
         "--folder-name",
         "nested_upload",
+        "--dataset-id",
+        ds,
     ]
 
     subprocess.run(upload_cmd, check=True)
