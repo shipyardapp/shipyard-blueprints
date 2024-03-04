@@ -138,9 +138,13 @@ def main():
                 "File(s) found, but message was conditional based on file not existing. Message not sent."
             )
             sys.exit(0)
-        user_id_list = format_user_list(
-            slack_client, args.users_to_notify, args.user_lookup_method
-        )
+        if args.users_to_notify:
+            user_id_list = format_user_list(
+                slack_client, args.users_to_notify, args.user_lookup_method
+            )
+            message = create_name_tags(user_id_list) + message
+        else:
+            user_id_list = []
 
         if args.destination_type == "dm" and file_upload:
             for user_id in user_id_list:
@@ -160,7 +164,7 @@ def main():
             logger.info(f"Sending message with file to {args.channel_name}...")
             response = send_slack_message_with_file(
                 slack_client,
-                create_name_tags(user_id_list) + message,
+                message,
                 upload,
                 args.channel_name,
                 include_in_thread,
