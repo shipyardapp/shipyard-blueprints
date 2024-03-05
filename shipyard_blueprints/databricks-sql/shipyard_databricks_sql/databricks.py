@@ -19,12 +19,12 @@ logger = ShipyardLogger.get_logger()
 
 
 class DatabricksSqlClient(DatabricksDatabase):
-    EXIT_CODE_VOLUME_CREATION = 101
-    EXIT_CODE_VOLUME_SQL = 102
-    EXIT_CODE_VOLUME_UPLOAD_ERROR = 103
-    EXIT_CODE_COPY_INTO_ERROR = 104
-    EXIT_CODE_REMOVE_VOLUME_ERROR = 105
-    EXIT_CODE_SCHEMA_CREATION_ERROR = 106
+    # EXIT_CODE_VOLUME_CREATION = 101
+    # EXIT_CODE_VOLUME_SQL = 102
+    # EXIT_CODE_VOLUME_UPLOAD_ERROR = 103
+    # EXIT_CODE_COPY_INTO_ERROR = 104
+    # EXIT_CODE_REMOVE_VOLUME_ERROR = 105
+    # EXIT_CODE_SCHEMA_CREATION_ERROR = 106
     SPARK_TYPES = {
         "array": "numpy.ndarray",
         "bigint": "int",
@@ -66,6 +66,8 @@ class DatabricksSqlClient(DatabricksDatabase):
         self.volume_path = None
         self.user_agent = os.environ.get("SHIPYARD_USER_AGENT", None)
         self.staging_allowed_local_path = staging_allowed_local_path
+        self._connection = None
+        self._cursor = None
         super().__init__(
             server_host,
             http_path,
@@ -77,6 +79,8 @@ class DatabricksSqlClient(DatabricksDatabase):
             volume_path=self.volume_path,
             user_agent=self.user_agent,
             staging_allowed_local_path=staging_allowed_local_path,
+            _connection=None,
+            _cursor=None,
         )
 
     def connect(self) -> Connection:
@@ -92,11 +96,15 @@ class DatabricksSqlClient(DatabricksDatabase):
 
     @property
     def connection(self):
-        return self.connect()
+        if not self._connection:
+            self._connection = self.connect()
+        return self._connection
 
     @property
     def cursor(self):
-        return self.connection.cursor()
+        if not self._cursor:
+            self._cursor = self.connection.cursor()
+        return self._cursor
 
     def upload(
         self,
@@ -470,20 +478,26 @@ class DatabricksSqlClient(DatabricksDatabase):
             file_type: The file type (choices are CSV and PARQUET at the moment)
         """
         tmp_table = f"{table_name}_tmp"
-        if match_type == "regex_match":
+        logger.debug(f"temporary table being loaded to volume is {tmp_table}")
+        if match_type == "glob_match":
             self.volume_path = []
-            self.volume_dir = f"/Volumes/{self.schema}/{self.volume}/{tmp_table}/"
             for file in file_path:
+                # NOTE: get the basename of the file
+                file_name = os.path.basename(file)
                 if not self.catalog and self.schema:
+                    self.volume_dir = (
+                        f"/Volumes/{self.schema}/{self.volume}/{tmp_table}/"
+                    )
                     volume_path = (
-                        f"/Volumes/{self.schema}/{self.volume}/{tmp_table}/{file}"
+                        f"/Volumes/{self.schema}/{self.volume}/{tmp_table}/{file_name}"
                     )
                     self.volume_path.append(volume_path)
                 elif not self.schema:
                     raise VolumeSqlError
                 else:
-                    volume_path = f"/Volumes/{self.catalog}/{self.schema}/{self.volume}/{tmp_table}/{file}"
+                    volume_path = f"/Volumes/{self.catalog}/{self.schema}/{self.volume}/{tmp_table}/{file_name}"
                     self.volume_path.append(volume_path)
+                    self.volume_dir = f"/Volumes/{self.catalog}/{self.schema}/{self.volume}/{tmp_table}/"
 
                     upload_sql = f"PUT '{file}' INTO '{volume_path}' OVERWRITE"
                     try:
@@ -492,7 +506,9 @@ class DatabricksSqlClient(DatabricksDatabase):
                     except Exception as e:
                         raise VolumeUploadError(volume=self.volume, error_msg=str(e))
                     else:
-                        logger.info("Successfully loaded volume")
+                        logger.debug(
+                            f"Successfully loaded {file} to to volume {volume_path}"
+                        )
 
         # for exact match cases
         else:
@@ -515,7 +531,9 @@ class DatabricksSqlClient(DatabricksDatabase):
                 except Exception as e:
                     raise VolumeUploadError(volume=self.volume, error_msg=str(e))
                 else:
-                    logger.info("Successfully loaded volume")
+                    logger.debug(
+                        f"Successfully loaded {file_path} to volume {self.volume_path}"
+                    )
 
     def _copy_into(
         self,
@@ -540,7 +558,7 @@ class DatabricksSqlClient(DatabricksDatabase):
         else:
             table_path = f"{self.catalog}.{self.schema}.{table_name}"
 
-        if match_type == "regex_match":
+        if match_type == "glob_match":
             copy_sql = f"""COPY INTO {table_path} FROM '{self.volume_dir}' 
             FILEFORMAT = {file_format}
             PATTERN = '{pattern}'
@@ -550,6 +568,7 @@ class DatabricksSqlClient(DatabricksDatabase):
             copy_sql = f"""COPY INTO {table_path} FROM '{self.volume_path}' 
             FILEFORMAT = {file_format}
             """
+        logger.debug(f"COPY SQL to be executed is {copy_sql}")
 
         # TODO: Make sure this works for uploading multiple csvs and parquets. The pattern option should be used
         if file_format == "csv":
@@ -624,7 +643,8 @@ class DatabricksSqlClient(DatabricksDatabase):
             volume_sql = self._volume_sql()
             self._create_volume(volume_sql)
             self._create_table(self._create_table_sql(table_name, data_types))
-            if match_type == "regex_match":
+            if match_type == "glob_match":
+                logger.debug("Loading via glob")
                 self._load_volume(
                     file_path=file_path,
                     table_name=table_name,

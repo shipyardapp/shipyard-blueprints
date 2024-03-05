@@ -1,12 +1,13 @@
 import argparse
 import os
 import sys
-import pandas as pd
 import re
 import ast
+import shipyard_bp_utils as shipyard
 
 from shipyard_templates import ExitCodeException, ShipyardLogger
 from shipyard_databricks_sql import DatabricksSqlClient
+from shipyard_databricks_sql.utils import exceptions as errs
 from typing import Dict, List, Optional
 
 logger = ShipyardLogger.get_logger()
@@ -41,7 +42,7 @@ def get_args():
     parser.add_argument(
         "--match-type",
         dest="match_type",
-        choices={"exact_match", "regex_match", "glob"},
+        choices={"exact_match", "glob_match"},
     )
     return parser.parse_args()
 
@@ -106,14 +107,22 @@ def main():
             volume=volume,
             staging_allowed_local_path=real_path,
         )
-        if args.match_type == "regex_match":
-            local_files = list_local_files(directory=dir_path)
-            file_matches = find_all_file_matches(
-                file_names=local_files, file_name_re=re.compile(args.file_name)
+        client.connect()
+        if args.match_type == "glob_match":
+            local_files = shipyard.files.find_all_local_file_names(folder_name)
+            logger.debug(f"Files returned are: {local_files}")
+            # file_matches = find_all_file_matches(
+            #     file_names=local_files, file_name_re=re.compile(args.file_name)
+            # )
+            file_matches = shipyard.files.find_matching_files(
+                search_term=args.file_name,
+                directory=folder_name,
+                match_type=args.match_type,
             )
+
             if len(file_matches) == 0:
                 logger.error(f"No files found matching {args.file_name} pattern")
-                sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
+                sys.exit(errs.EXIT_CODE_FILE_NOT_FOUND)
 
             insert_method = args.insert_method
             client.upload(
@@ -146,11 +155,9 @@ def main():
         else:
             # only two choices are csv and parquet at this time
             if args.file_type == "csv":
-                data = pd.read_csv(full_path)
                 file_format = "csv"
             # for parquet files
             else:
-                data = pd.read_parquet(full_path)
                 file_format = "parquet"
 
             client.upload(
@@ -168,7 +175,7 @@ def main():
         sys.exit(ec.exit_code)
     except Exception as e:
         logger.error(f"Error in attempting to upload {full_path}:{str(e)}")
-        sys.exit(client.EXIT_CODE_INVALID_QUERY)
+        sys.exit(errs.EXIT_CODE_INVALID_QUERY)
     else:
         logger.info(
             f"Successfully loaded {full_path} to Databricks table {args.table_name}"

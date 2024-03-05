@@ -10,7 +10,7 @@ python = "^3.9"
 shipyard-templates = "^0.6.2"
 databricks-sql-connector = {version = "^3.0.1", extras = ["sqlalchemy"]}
 pandas = "^2.0"
-shipyard-bp-utils = "1.0.3a2"
+shipyard-bp-utils = "1.0.3"
 databricks-sdk = "^0.16.0"
 
 [tool.poetry.group.dev.dependencies]
