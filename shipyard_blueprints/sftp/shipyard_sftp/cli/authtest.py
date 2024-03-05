@@ -1,23 +1,23 @@
 import os
 import sys
-from sftp import SftpClient
+
+from shipyard_templates.shipyard_logger import ShipyardLogger
+
+from shipyard_sftp.sftp import SftpClient
+
+logger = ShipyardLogger().get_logger()
 
 
 def main():
-    sftp = SftpClient(
-        host=os.getenv("SFTP_HOST"),
-        port=os.getenv("SFTP_PORT"),
-        user=os.getenv("SFTP_USERNAME"),
-        pwd=os.getenv("SFTP_PASSWORD"),
-        key=None,
+    sys.exit(
+        SftpClient(
+            host=os.getenv("SFTP_HOST"),
+            port=os.getenv("SFTP_PORT"),
+            user=os.getenv("SFTP_USERNAME"),
+            pwd=os.getenv("SFTP_PASSWORD"),
+            key=None,
+        ).connect()
     )
-    try:
-        sftp.connect()
-        sftp.logger.info("Successfully connected to SFTP server")
-        sys.exit(0)
-    except Exception as e:
-        sftp.logger.error("Could not connect to SFTP server")
-        sys.exit(1)
 
 
 if __name__ == "__main__":

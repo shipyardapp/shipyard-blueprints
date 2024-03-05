@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-sftp"
-version = "0.1.1a0"
+version = "0.2.0a0"
 description = "A local client for connecting and working with SFTP servers"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
@@ -9,17 +9,15 @@ packages = [{ include = "shipyard_sftp" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-paramiko = "3.3.1"
-shipyard-utils = "0.1.4"
-asyncssh = "2.13.2"
-shipyard-bp-utils = "^0.1.1"
-shipyard-templates = "^0.4.4"
+shipyard-templates = "^0.6.2"
+paramiko = "^3.4.0"
+shipyard-bp-utils = "^1.0.3"
 
 [tool.poetry.group.dev.dependencies]
 #shipyard-bp-utils = { path = "../shipyard-bp-utils" }
 #shipyard-templates = { path = "../../shipyard-templates", develop = true }
-#pytest = "^7.4.0"
-#python-dotenv = "^1.0.0"
+python-dotenv = "^1.0.0"
+pytest = "^8.0.2"
 
 [build-system]
 requires = ["poetry-core"]

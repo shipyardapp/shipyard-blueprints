@@ -129,22 +129,22 @@ def main():
         else:
             upload = None
 
-        if conditional_send == "file_exists":
-            if not upload:
-                raise ExitCodeException(
-                    "File(s) could not be found. Message not sent.",
-                    slack_client.EXIT_CODE_FILE_NOT_FOUND,
-                )
-        elif conditional_send == "file_dne":
-            if upload:
-                raise ExitCodeException(
-                    "File(s) were found, but message was conditional based on file not existing. Message not sent.",
-                    slack_client.EXIT_CODE_CONDITIONAL_SEND_NOT_MET,
-                )
+        if conditional_send == "file_exists" and not upload:
+            logger.warning("File(s) not found. Message not sent.")
+            sys.exit(0)
 
-        user_id_list = format_user_list(
-            slack_client, args.users_to_notify, args.user_lookup_method
-        )
+        elif conditional_send == "file_dne" and upload:
+            logger.warning(
+                "File(s) found, but message was conditional based on file not existing. Message not sent."
+            )
+            sys.exit(0)
+        if args.users_to_notify:
+            user_id_list = format_user_list(
+                slack_client, args.users_to_notify, args.user_lookup_method
+            )
+            message = create_name_tags(user_id_list) + message
+        else:
+            user_id_list = []
 
         if args.destination_type == "dm" and file_upload:
             for user_id in user_id_list:
@@ -164,7 +164,7 @@ def main():
             logger.info(f"Sending message with file to {args.channel_name}...")
             response = send_slack_message_with_file(
                 slack_client,
-                create_name_tags(user_id_list) + message,
+                message,
                 upload,
                 args.channel_name,
                 include_in_thread,

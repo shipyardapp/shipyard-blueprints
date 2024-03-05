@@ -98,9 +98,14 @@ def main():
         channel_name = args.channel_name
         message = args.message
 
-        user_id_list = create_user_id_list(
-            slack_client, args.users_to_notify, args.user_lookup_method
-        )
+        if args.users_to_notify:
+            user_id_list = create_user_id_list(
+                slack_client, args.users_to_notify, args.user_lookup_method
+            )
+            message = (create_name_tags(user_id_list) + message,)
+
+        else:
+            user_id_list = []
 
         if destination_type == "dm":
             for user_id in user_id_list:
