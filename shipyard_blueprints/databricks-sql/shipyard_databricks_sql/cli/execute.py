@@ -1,8 +1,10 @@
 import argparse
 import sys
 
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, ShipyardLogger
 from shipyard_databricks_sql import DatabricksSqlClient
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -22,26 +24,24 @@ def main():
     catalog = args.catalog if args.catalog != "" else None
     schema = args.schema if args.schema != "" else None
 
-    client = DatabricksSqlClient(
-        server_host=args.server_host,
-        http_path=args.http_path,
-        access_token=args.access_token,
-        catalog=catalog,
-        schema=schema,
-    )
-
     try:
+        client = DatabricksSqlClient(
+            server_host=args.server_host,
+            http_path=args.http_path,
+            access_token=args.access_token,
+            catalog=catalog,
+            schema=schema,
+        )
+        client.connect()
         client.execute_query(args.query)
     except ExitCodeException as ec:
-        client.logger.error(f"ExitCodeException: Error in executing query {ec.message}")
+        logger.error(f"ExitCodeException: Error in executing query {ec.message}")
         sys.exit(ec.exit_code)
     except Exception as e:
-        client.logger.error(
-            f"Error in attempting to execute query in Databricks:{str(e)}"
-        )
+        logger.error(f"Error in attempting to execute query in Databricks:{str(e)}")
         sys.exit(client.EXIT_CODE_INVALID_QUERY)
     else:
-        client.logger.info("Query executed successfully")
+        logger.info("Query executed successfully")
 
     finally:
         client.close()

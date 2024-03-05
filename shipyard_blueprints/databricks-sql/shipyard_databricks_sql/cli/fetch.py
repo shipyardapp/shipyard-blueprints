@@ -2,8 +2,10 @@ import argparse
 import os
 import sys
 
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, ShipyardLogger
 from shipyard_databricks_sql import DatabricksSqlClient
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -47,8 +49,9 @@ def main():
             catalog=catalog,
             schema=schema,
         )
+        client.connect()
         data = client.fetch(args.query)
-        client.logger.info(f"Successfully fetched {data.shape[0]} rows")
+        logger.info(f"Successfully fetched {data.shape[0]} rows")
 
         if args.file_type == "csv":
             data.to_csv(full_path, index=False)
@@ -57,15 +60,15 @@ def main():
             data.to_parquet(full_path, index=False)
 
     except ExitCodeException as ec:
-        client.logger.error(
+        logger.error(
             f"ExitCodeException: Error in attempting to fetch results: {ec.message}"
         )
         sys.exit(ec.exit_code)
     except Exception as e:
-        client.logger.error(f"Error in attempting to fetch query results:{str(e)}")
+        logger.error(f"Error in attempting to fetch query results:{str(e)}")
         sys.exit(client.EXIT_CODE_INVALID_QUERY)
     else:
-        client.logger.info(f"Downloaded results to {full_path}")
+        logger.info(f"Downloaded results to {full_path}")
     finally:
         client.close()
 

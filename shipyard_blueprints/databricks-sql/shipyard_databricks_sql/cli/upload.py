@@ -110,10 +110,6 @@ def main():
         client.connect()
         if args.match_type == "glob_match":
             local_files = shipyard.files.find_all_local_file_names(folder_name)
-            logger.debug(f"Files returned are: {local_files}")
-            # file_matches = find_all_file_matches(
-            #     file_names=local_files, file_name_re=re.compile(args.file_name)
-            # )
             file_matches = shipyard.files.find_matching_files(
                 search_term=args.file_name,
                 directory=folder_name,
@@ -124,63 +120,39 @@ def main():
                 logger.error(f"No files found matching {args.file_name} pattern")
                 sys.exit(errs.EXIT_CODE_FILE_NOT_FOUND)
 
-            insert_method = args.insert_method
             client.upload(
                 file_path=file_matches,
                 file_format=args.file_type,
                 table_name=args.table_name,
                 datatypes=data_types,
-                insert_method=insert_method,
+                insert_method=args.insert_method,
                 match_type=args.match_type,
                 pattern=args.file_name,
             )
-            # for i, file_match in enumerate(file_matches, start=1):
-            #     logger.info(f"Uploading {i} of {len(file_matches)} files")
-            #     if i > 1:
-            #         insert_method = "append"
-            #     if args.file_type == "csv":
-            #         data = pd.read_csv(file_match)
-            #         file_format = "csv"
-            #     else:
-            #         data = pd.read_parquet(file_match)
-            #         file_format = "parquet"
-            #     client.upload(
-            #         file_path=file_match,
-            #         file_format=file_format,
-            #         table_name=args.table_name,
-            #         datatypes=data_types,
-            #         insert_method=insert_method,
-            #     )
+            logger.info(
+                f"Successfully loaded all files within {file_matches} to Databricks"
+            )
 
         else:
-            # only two choices are csv and parquet at this time
-            if args.file_type == "csv":
-                file_format = "csv"
-            # for parquet files
-            else:
-                file_format = "parquet"
-
             client.upload(
                 file_path=full_path,
-                file_format=file_format,
+                file_format=args.file_type,
                 table_name=args.table_name,
                 datatypes=data_types,
                 insert_method=args.insert_method,
             )
+            logger.info(f"Successfully loaded {full_path} into Databricks")
 
     except ExitCodeException as ec:
         logger.error(
-            f"ExitCodeException: Error in attempting to upload {full_path}: {ec.message}"
+            f"ExitCodeException: Error in attempting to upload {full_path}. Message from Databricks is: {ec.message}"
         )
         sys.exit(ec.exit_code)
     except Exception as e:
-        logger.error(f"Error in attempting to upload {full_path}:{str(e)}")
-        sys.exit(errs.EXIT_CODE_INVALID_QUERY)
-    else:
-        logger.info(
-            f"Successfully loaded {full_path} to Databricks table {args.table_name}"
+        logger.error(
+            f"Error in attempting to upload {full_path}. Mesasge from Databricks is: {str(e)}"
         )
-
+        sys.exit(errs.EXIT_CODE_INVALID_QUERY)
     finally:
         client.close()
 

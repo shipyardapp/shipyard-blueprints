@@ -6,6 +6,7 @@ from shipyard_templates import DatabricksDatabase, ExitCodeException, ShipyardLo
 from databricks import sql
 from databricks.sql.client import Connection  # for type hints
 from typing import Optional, Dict, List, Any, Union
+from shipyard_databricks_sql.utils import exceptions as errs
 from shipyard_databricks_sql.utils.exceptions import (
     TableDNE,
     VolumeSqlError,
@@ -297,8 +298,8 @@ class DatabricksSqlClient(DatabricksDatabase):
             raise
         except Exception as e:
             raise ExitCodeException(
-                message=f"Error in attempting to replace table: {str(e)}",
-                exit_code=self.EXIT_CODE_INVALID_QUERY,
+                message=f"Error in attempting to append to table: {str(e)}",
+                exit_code=errs.EXIT_CODE_INVALID_QUERY,
             )
 
     def convert_to_spark_type(self, pandas_data_type: str) -> Optional[str]:
@@ -457,11 +458,11 @@ class DatabricksSqlClient(DatabricksDatabase):
             self.cursor.execute(volume_sql)
         except Exception as e:
             raise ExitCodeException(
-                f"Error in creating volume: {str(e)}", self.EXIT_CODE_VOLUME_CREATION
+                f"Error in creating volume: {str(e)}", errs.EXIT_CODE_VOLUME_CREATION
             )
 
         else:
-            logger.info(f"Successfully created volume {self.volume}")
+            logger.debug(f"Successfully created volume {self.volume}")
 
     def _load_volume(
         self,
@@ -482,7 +483,6 @@ class DatabricksSqlClient(DatabricksDatabase):
         if match_type == "glob_match":
             self.volume_path = []
             for file in file_path:
-                # NOTE: get the basename of the file
                 file_name = os.path.basename(file)
                 if not self.catalog and self.schema:
                     self.volume_dir = (
@@ -583,7 +583,7 @@ class DatabricksSqlClient(DatabricksDatabase):
                 table_path=table_path, volume_path=self.volume_path, error_msg=str(e)
             )
         else:
-            logger.info("Successfully copied data from volume into table")
+            logger.debug("Successfully copied data from volume into table")
 
     def _remove_volume(self):
         """Helper function to remove the volume that was used for ingestion. This should be wiped after a a successful run of _copy_into()."""
@@ -596,7 +596,7 @@ class DatabricksSqlClient(DatabricksDatabase):
         except Exception as e:
             raise RemoveVolumeError(volume_path=self.volume_path, error_msg=str(e))
         else:
-            logger.info(f"Successfully removed files from volume {self.volume_path}")
+            logger.debug(f"Successfully removed files from volume {self.volume_path}")
 
     def _append_from_volume(self, table_name: str, file_format: str):
         """Helper function to append to an existing delta table
