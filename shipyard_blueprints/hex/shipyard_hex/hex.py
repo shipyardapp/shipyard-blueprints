@@ -75,7 +75,7 @@ class HexClient(Notebooks):
             url = f"{self.base_url}/project/{self.project_id}/run/{run_id}"
             response = requests.get(url=url, headers=self.headers)
             logger.debug(f"Status code from response is {response.status_code}")
-            logger.debug(f"Content of resposne is {response.text}")
+            logger.debug(f"Content of response is {response.text}")
             response.raise_for_status()
         except Exception as e:
             raise GetRunStatusError(self.project_id, run_id, e)
@@ -91,6 +91,7 @@ class HexClient(Notebooks):
         Returns: The exit code for the Shipyard application
 
         """
+        logger.debug(f"Data looks like {run_status_data}")
         status = run_status_data["status"]
         end_time = run_status_data["endTime"]
         run_id = run_status_data["runId"]
