@@ -1,6 +1,8 @@
 import requests
 
-from shipyard_templates import Notebooks
+from shipyard_templates import Notebooks, ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 class HexClient(Notebooks):
@@ -8,6 +10,7 @@ class HexClient(Notebooks):
         self.api_token = api_token
         self.project_id = project_id
         self.api_headers = {"Authorization": f"Bearer {self.api_token}"}
+        self.base_url = f""
         super().__init__()
 
     def connect(self) -> int:
@@ -28,3 +31,9 @@ class HexClient(Notebooks):
             return 1
         else:
             return 0
+
+    def run_project(self, project_id: str):
+        pass
+
+    def get_run_status(self, project_id: str):
+        pass
