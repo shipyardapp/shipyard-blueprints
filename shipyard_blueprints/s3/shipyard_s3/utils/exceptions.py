@@ -37,7 +37,7 @@ class RemoveError(ExitCodeException):
 class DownloadError(ExitCodeException):
     def __init__(self, message: str):
         self.message = message
-        self.exit_code = EXIT_CODE_MOVE_ERROR
+        self.exit_code = EXIT_CODE_DOWNLOAD_ERROR
 
 
 class NoMatchesFound(ExitCodeException):
