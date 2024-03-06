@@ -113,7 +113,9 @@ def combine_folder_and_file_name(folder_name, file_name):
     return combined_name
 
 
-def upload_data(source_full_path, table_name, insert_method, db_connection):
+def upload_data(
+    source_full_path: str, table_name: str, insert_method: str, db_connection
+):
     # Resort to chunks for larger files to avoid memory issues.
     df = pd.read_csv(source_full_path, nrows=1)
     n_cols = len(df.columns)
@@ -131,7 +133,6 @@ def upload_data(source_full_path, table_name, insert_method, db_connection):
             index=False,
             if_exists=insert_method,
             method="multi",
-            chunksize=1000,
         )
     print(f"{source_full_path} successfully uploaded to {table_name}.")
 
