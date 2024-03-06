@@ -15,6 +15,9 @@ shipyard-templates = "0.5.0a0"
 #pymssql = "2.1.4"
 pyodbc = "^5.0.1"
 
+[tool.poetry.group.dev.dependencies]
+black = "^24.2.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
