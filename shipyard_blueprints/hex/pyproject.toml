@@ -11,6 +11,7 @@ packages = [{include = "shipyard_hex"}]
 python = "^3.9"
 requests = "2.31"
 shipyard-templates = "0.6.2"
+shipyard-bp-utils = "^1.0.3"
 
 [tool.poetry.group.dev.dependencies]
 python-dotenv = "^1.0.1"
