@@ -29,6 +29,11 @@ class FtpClient(CloudStorage):
         return self._client
 
     def connect(self):
+        """
+        Connect to the FTP server and return the status of the connection
+
+        Returns 0 if the connection is successful, otherwise returns 1:
+        """
         try:
             self.get_client()
         except Exception:
@@ -36,9 +41,16 @@ class FtpClient(CloudStorage):
         else:
             return 0
 
-    def move(self, source_full_path, destination_full_path):
+    def move(self, source_full_path: str, destination_full_path: str):
         """
         Move a single file from one directory of the ftp server to another
+
+        Args:
+            source_full_path (str): The full path of the file to move
+            destination_full_path (str): The full path of the destination directory
+        Raises:
+            InvalidCredentials: If the credentials are invalid
+            MoveError: If the file cannot be moved
         """
         current_dir = self.client.pwd()
         source_path = os.path.normpath(os.path.join(current_dir, source_full_path))
@@ -55,7 +67,16 @@ class FtpClient(CloudStorage):
 
         logger.info(f"{source_path} successfully moved to " f"{dest_path}")
 
-    def remove(self, file_path):
+    def remove(self, file_path: str):
+        """
+        Remove a file from the ftp server
+
+        Args:
+            file_path (str): The full path of the file to remove
+        Raises:
+            InvalidCredentials: If the credentials are invalid
+            DeleteError: If the file cannot be deleted
+        """
         try:
             self.client.delete(file_path)
             logger.info(f"Successfully deleted {file_path}")
@@ -67,7 +88,17 @@ class FtpClient(CloudStorage):
                 f"Message from server: {e}"
             )
 
-    def upload(self, source_full_path, destination_full_path):
+    def upload(self, source_full_path: str, destination_full_path: str):
+        """
+        Upload a file to the FTP server
+
+        Args:
+            source_full_path (str): The full path of the file to upload
+            destination_full_path (str): The full path of the destination directory
+        Raises:
+            InvalidCredentials: If the credentials are invalid
+            UploadError: If the file cannot be uploaded
+        """
         try:
             with open(source_full_path, "rb") as f:
                 self.client.storbinary(f"STOR {destination_full_path}", f)
@@ -86,6 +117,11 @@ class FtpClient(CloudStorage):
         """
         Attempts to create an FTP client at the specified host with the
         specified credentials
+
+        Returns:
+            ftplib.FTP: The FTP client
+        Raises:
+            InvalidCredentials: If the credentials are invalid
         """
         logger.info(
             f"Connecting to FTP server at {self.host}:{self.port} with user {self.user}..."
@@ -106,10 +142,17 @@ class FtpClient(CloudStorage):
                 f"The server says: {e}"
             ) from e
 
-    def download(self, file_name, destination_full_path=None):
+    def download(self, file_name: str, destination_full_path: str = None):
         """
         Download a selected file from the FTP server to local storage in
         the current working directory or specified path.
+
+        Args:
+            file_name (str): The name of the file to download
+            destination_full_path (str): The full path of the destination directory
+        Raises:
+            InvalidCredentials: If the credentials are invalid
+            DownloadError: If the file cannot be downloaded
         """
         if not self.client:
             self.get_client()
@@ -133,10 +176,15 @@ class FtpClient(CloudStorage):
 
         logger.info(f"{file_name} successfully downloaded to {destination_full_path}")
 
-    def create_new_folders(self, destination_path):
+    def create_new_folders(self, destination_path: str):
         """
         Changes working directory to the specified destination path
         and creates it if it doesn't exist
+
+        Args:
+            destination_path (str): The full path of the destination directory
+        Raises:
+            InvalidCredentials: If the credentials are invalid
         """
         if not self.client:
             self.get_client()
@@ -152,11 +200,20 @@ class FtpClient(CloudStorage):
                 self.client.cwd(folder)
         self.client.cwd(original_dir)
 
-    def find_files_in_directory(self, folder_filter, files, folders):
+    def find_files_in_directory(self, folder_filter: str, files: list, folders: list):
         """
         Pull in a list of all entities under a specific directory and categorize them into files and folders.
 
         Does this by changing the directory to the entity name. If it can't, it's a file.
+
+        Args:
+            folder_filter (str): The full path of the folder to search
+            files (list): A list of files
+            folders (list): A list of folders
+        Returns:
+            list: The list of files and folders
+        Raises:
+            InvalidCredentials: If the credentials are invalid
         """
         original_dir = self.client.pwd()
         names = self.client.nlst(folder_filter)
@@ -185,10 +242,17 @@ class FtpClient(CloudStorage):
 
         return files, folders
 
-    def is_file(self, filename):
+    def is_file(self, filename: str) -> bool:
         """
         Helper function to check if the path in a ftp server is a file or a directory.
         If it is a directory, ftp.size returns None
+
+        Args:
+            filename (str): The full path of the file to check
+        Returns:
+            bool: True if the path is a file, False otherwise
+        Raises:
+            InvalidCredentials: If the credentials are invalid
         """
         try:
             if self.client.size(filename) is not None:
@@ -198,12 +262,19 @@ class FtpClient(CloudStorage):
         except Exception:
             return False
 
-    def get_all_nested_items(self, working_directory, dir_list=None):
+    def get_all_nested_items(
+        self, working_directory: str, dir_list: list = None
+    ) -> list:
         """
         Recursive function to get all the nested files and directories on the FTP server.
-        @params:
-            client: FTP client
-            working_directory: the folder path to start the function call
+
+        Args:
+            working_directory (str): The full path of the working directory
+            dir_list (list): A list of directories
+        Returns:
+            list: The list of files and folders
+        Raises:
+            InvalidCredentials: If the credentials are invalid
         """
         if dir_list is None:
             dir_list = []
@@ -215,24 +286,3 @@ class FtpClient(CloudStorage):
             else:
                 dirs.append(path)
         return dirs
-
-
-if __name__ == "__main__":
-    from dotenv import load_dotenv, find_dotenv
-
-    load_dotenv(find_dotenv())
-    credentials = {
-        "host": os.getenv("FTP_HOST"),
-        "port": os.getenv("FTP_PORT"),
-        "user": os.getenv("FTP_USERNAME"),
-        "pwd": os.getenv("FTP_PASSWORD"),
-    }
-
-    ftp = FtpClient(
-        credentials["host"],
-        credentials["user"],
-        credentials["pwd"],
-        credentials["port"],
-    )
-
-    print(ftp.connect())
