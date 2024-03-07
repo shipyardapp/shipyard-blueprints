@@ -9,14 +9,13 @@ logger = ShipyardLogger.get_logger()
 
 
 class HexClient(Notebooks):
-    def __init__(self, api_token: str, project_id: str) -> None:
+    def __init__(self, api_token: str) -> None:
         self.api_token = api_token
-        self.project_id = project_id
         self.headers = {"Authorization": f"Bearer {self.api_token}"}
         self.base_url = f"https://app.hex.tech/api/v1"
         super().__init__()
 
-    def connect(self) -> int:
+    def connect(self, project_id: str) -> int:
         """Connect to Hex
 
         Returns:
@@ -25,17 +24,16 @@ class HexClient(Notebooks):
 
         try:
             response = requests.get(
-                url=f"https://app.hex.tech/api/v1/project/{self.project_id}/runs",
+                url=f"https://app.hex.tech/api/v1/project/{project_id}/runs",
                 headers=self.headers,
             )
             response.raise_for_status()
         except Exception as e:
-            print(e)
             return 1
         else:
             return 0
 
-    def run_project(self) -> requests.Response:
+    def run_project(self, project_id: str) -> requests.Response:
         """Triggers a project run in Hex
 
         Args:
@@ -48,17 +46,17 @@ class HexClient(Notebooks):
 
         """
         try:
-            url = f"{self.base_url}/project/{self.project_id}/run"
+            url = f"{self.base_url}/project/{project_id}/run"
             response = requests.post(url=url, headers=self.headers)
             logger.debug(f"Status code returned is {response.status_code}")
             response.raise_for_status()
         except Exception as he:
-            raise RunProjectError(self.project_id, he)
+            raise RunProjectError(project_id, he)
         else:
             logger.debug(f"Content of response is {response.text}")
             return response
 
-    def get_run_status(self, run_id: str) -> Dict[Any, Any]:
+    def get_run_status(self, project_id: str, run_id: str) -> Dict[Any, Any]:
         """Fetches the status of a given project run
 
         Args:
@@ -72,13 +70,13 @@ class HexClient(Notebooks):
 
         """
         try:
-            url = f"{self.base_url}/project/{self.project_id}/run/{run_id}"
+            url = f"{self.base_url}/project/{project_id}/run/{run_id}"
             response = requests.get(url=url, headers=self.headers)
             logger.debug(f"Status code from response is {response.status_code}")
             logger.debug(f"Content of response is {response.text}")
             response.raise_for_status()
         except Exception as e:
-            raise GetRunStatusError(self.project_id, run_id, e)
+            raise GetRunStatusError(project_id, run_id, e)
         else:
             return response.json()
 

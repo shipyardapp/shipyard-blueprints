@@ -23,34 +23,39 @@ def get_args():
 
 
 def main():
-    args = get_args()
-    project_id = args.project_id.strip()
-    api_token = args.api_token.strip()
-    wait = shipyard.args.convert_to_boolean(args.wait_for_completion)
-    client = HexClient(api_token=api_token, project_id=project_id)
+    try:
+        args = get_args()
+        project_id = args.project_id.strip()
+        api_token = args.api_token.strip()
+        wait = shipyard.args.convert_to_boolean(args.wait_for_completion)
+        client = HexClient(api_token=api_token)
 
-    ## run the project
-    run_response = client.run_project()
-    if run_response.ok:
+        ## run the project
+        run_response = client.run_project(project_id)
         logger.info("Successfully triggered hex project")
-    run_id = run_response.json()["runId"]
-    run_status_data = client.get_run_status(run_id)
+        run_id = run_response.json()["runId"]
+        run_status_data = client.get_run_status(project_id, run_id)
 
-    if wait:
-        logger.info("Checking status of run")
-        run_status = client.determine_status(run_status_data)
-        logger.info(
-            f"Hex reports that the project status is {run_status_data['status']}"
-        )
-        while run_status in (ec.EXIT_CODE_RUNNING, ec.EXIT_CODE_PENDING):
-            logger.info("Waiting 60 seconds to check status")
-            time.sleep(60)
-            run_response = client.get_run_status(run_id)
+        if wait:
+            logger.info("Checking status of run")
+            run_status = client.determine_status(run_status_data)
             logger.info(
-                f"Hex reports that the project status is {run_response['status']}"
+                f"Hex reports that the project status is {run_status_data['status']}"
             )
-            run_status = client.determine_status(run_response)
-        sys.exit(run_status)
+            while run_status in (ec.EXIT_CODE_RUNNING, ec.EXIT_CODE_PENDING):
+                logger.info("Waiting 60 seconds to check status")
+                time.sleep(60)
+                run_response = client.get_run_status(project_id, run_id)
+                logger.info(
+                    f"Hex reports that the project status is {run_response['status']}"
+                )
+                run_status = client.determine_status(run_response)
+            sys.exit(run_status)
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
+    except Exception as e:
+        logger.error(f"An unexpected error occurred. Message from the API is: {e}")
 
 
 if __name__ == "__main__":
