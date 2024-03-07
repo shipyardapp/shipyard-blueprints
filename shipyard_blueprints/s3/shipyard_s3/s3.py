@@ -1,4 +1,3 @@
-from os.path import isfile
 import boto3
 import os
 from shipyard_templates import CloudStorage, ExitCodeException, ShipyardLogger

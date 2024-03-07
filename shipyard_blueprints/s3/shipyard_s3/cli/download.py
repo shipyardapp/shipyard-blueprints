@@ -1,11 +1,9 @@
-import os
 import sys
 import re
 import argparse
 import shipyard_bp_utils as shipyard
 from shipyard_s3 import S3Client
 from shipyard_templates import ExitCodeException, ShipyardLogger, CloudStorage
-from typing import Optional
 
 from shipyard_s3.utils.exceptions import NoMatchesFound
 
@@ -104,7 +102,9 @@ def main():
                     s3_path=key_name,
                     dest_path=dest_path,
                 )
-                logger.info(f"Successfully downlaoded {key_name} to {dest_path}")
+                logger.info(
+                    f"Successfully downloaded s3://{bucket_name}/{key_name} to {dest_path}"
+                )
         else:
             if src_folder:
                 src_path = shipyard.files.combine_folder_and_file_name(
@@ -123,7 +123,7 @@ def main():
                 s3_path=src_path,
                 dest_path=dest_path,
             )
-            logger.info(f"Successfully downloaded file to {dest_path}")
+            logger.info(f"Successfully downloaded s3://{src_path} to {dest_path}")
 
     except ExitCodeException as ec:
         logger.error(ec.message)

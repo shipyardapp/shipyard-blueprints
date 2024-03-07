@@ -112,7 +112,9 @@ def main():
                     destination_path=s3_path,
                     extra_args=extra_args,
                 )
-                logger.info(f"Successfully uploaded {key_name} to {s3_path}")
+                logger.info(
+                    f"Successfully uploaded {key_name} to s3://{bucket_name}/{s3_path}"
+                )
         else:
             if args.destination_folder_name:
                 s3_folder = shipyard.files.clean_folder_name(
@@ -135,7 +137,9 @@ def main():
                 destination_path=s3_path,
                 extra_args=extra_args,
             )
-            logger.info(f"Successfully loaded {source_path} to {s3_path}")
+            logger.info(
+                f"Successfully loaded {source_path} to s3://{bucket_name}/{s3_path}"
+            )
     except ExitCodeException as ue:
         logger.error(ue.message)
         sys.exit(ue.exit_code)
