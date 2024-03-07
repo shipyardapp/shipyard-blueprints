@@ -1,15 +1,15 @@
-import os
-import re
 import csv
+import fnmatch
 import glob
 import json
+import os
+import re
 import tarfile
-import fnmatch
-
-from zipfile import ZipFile, ZIP_DEFLATED
-from shipyard_templates import ShipyardLogger
-from pandas import DataFrame
 from typing import List
+from zipfile import ZipFile, ZIP_DEFLATED
+
+from pandas import DataFrame
+from shipyard_templates import ShipyardLogger
 
 logger = ShipyardLogger.get_logger()
 
@@ -44,12 +44,12 @@ def determine_destination_file_name(
     str: The determined destination file name.
     """
 
-    if file_number:
-        filename = os.path.basename(destination_file_name or source_full_path)
-        name, ext = os.path.splitext(filename)
-        return f"{name}_{file_number}{ext}"
-    elif destination_file_name:
-        return destination_file_name
+    if destination_file_name:
+        if file_number:
+            base_name, extension = os.path.splitext(destination_file_name)
+            return f"{base_name}_{file_number}{extension}"
+        else:
+            return destination_file_name
     else:
         return os.path.basename(source_full_path)
 

@@ -1,30 +1,25 @@
 import os
 import sys
+
+from shipyard_templates import ShipyardLogger
+
 from shipyard_ftp import FtpClient
 
-
-def get_args():
-    return {
-        "host": os.getenv("FTP_HOST"),
-        "port": os.getenv("FTP_PORT"),
-        "username": os.getenv("FTP_USERNAME"),
-        "password": os.getenv("FTP_PASSWORD"),
-    }
+logger = ShipyardLogger().get_logger()
 
 
 def main():
-    args = get_args()
-    host = args["host"]
-    port = args["port"]
-    user = args["username"]
-    pwd = args["password"]
-    ftp = FtpClient(host, user, pwd, port)
     try:
-        ftp.connect()
-        ftp.logger.info("Successfully connected to FTP server")
-        sys.exit(0)
+        sys.exit(
+            FtpClient(
+                host=os.getenv("FTP_HOST"),
+                user=os.getenv("FTP_USERNAME"),
+                pwd=os.getenv("FTP_PASSWORD"),
+                port=os.getenv("FTP_PORT"),
+            ).connect()
+        )
     except Exception as e:
-        ftp.logger.error("Could not connect to FTP server with the given credentials")
+        logger.authtest(e)
         sys.exit(1)
 
 
