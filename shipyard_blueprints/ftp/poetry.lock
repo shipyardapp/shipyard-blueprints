@@ -250,14 +250,14 @@ files = [
 
 [[package]]
 name = "shipyard-bp-utils"
-version = "1.0.4a0"
+version = "1.0.3"
 description = "Utility functions for blueprints"
 category = "main"
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "shipyard_bp_utils-1.0.4a0-py3-none-any.whl", hash = "sha256:9577922da95f6c395a2c8dbd814a7c81b8eb26ab84baf492250fa8144038871c"},
-    {file = "shipyard_bp_utils-1.0.4a0.tar.gz", hash = "sha256:9db93bf2f2c6c3a08666807f63bf06848b11985d6f897eb9fe4aa7194438c3c5"},
+    {file = "shipyard_bp_utils-1.0.3-py3-none-any.whl", hash = "sha256:ae5f209fcc29e2b75caf1990b9f686f7d236355c7734d31a8b652fa00861c77a"},
+    {file = "shipyard_bp_utils-1.0.3.tar.gz", hash = "sha256:98faaf507e13100b048ba31ff62b77fe6b19312a1de86aa359176f3146b79071"},
 ]
 
 [package.dependencies]
@@ -317,4 +317,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.10"
-content-hash = "07dfb8b701f675dc46c6e23b8c81c538a2ecc62877387323a90e199f9f848c19"
+content-hash = "a580bbab6795d344cf11843959ef5514f7993be510bf712b9fbaf864152cc07f"

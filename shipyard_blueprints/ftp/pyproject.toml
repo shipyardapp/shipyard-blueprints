@@ -10,7 +10,7 @@ packages = [{ include = "shipyard_ftp" }]
 [tool.poetry.dependencies]
 python = ">=3.9,<3.10"
 shipyard-templates = "^0.6.2"
-shipyard-bp-utils = "1.0.4a0"
+shipyard-bp-utils = "^1.0.3"
 
 
 [tool.poetry.group.dev.dependencies]
