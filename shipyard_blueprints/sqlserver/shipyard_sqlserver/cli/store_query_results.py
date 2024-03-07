@@ -62,6 +62,8 @@ def main():
         args = get_args()
         dest_file = args.destination_file_name
         dest_dir = args.destination_folder_name
+        if dest_dir:
+            shipyard.files.create_folder_if_dne(dest_dir)
         dest_path = shipyard.files.combine_folder_and_file_name(
             folder_name=dest_dir, file_name=dest_file
         )
@@ -78,8 +80,6 @@ def main():
         )
         client.connect()
         logger.info("Successfully connected to SQL Server")
-
-        shipyard.files.create_folder_if_dne(dest_dir)
 
         data = client.fetch(query)
         logger.info("Successfully fetched query results")
