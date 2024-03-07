@@ -17,6 +17,13 @@ pyodbc = "^5.0.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.2.0"
+python-dotenv = "^1.0.1"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests"
+]
+
 
 [build-system]
 requires = ["poetry-core"]

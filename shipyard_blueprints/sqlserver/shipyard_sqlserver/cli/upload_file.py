@@ -1,3 +1,4 @@
+# BUG: There is a bug in the regex match, when uploading it is replacing after the first file match
 from numpy import source
 from sqlalchemy import create_engine
 import argparse
