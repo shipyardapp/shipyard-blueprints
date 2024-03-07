@@ -130,7 +130,6 @@ def test_download_table(creds: dict[str, str], down: list):
     assert process.returncode == 0
 
 
-# BUG: this is failing, the source table has over 70k records, whereas it should have 10k
 def test_row_counts(creds):
     orig = pd.read_csv(single_file)
     new = pd.read_csv(dest_file)
@@ -178,7 +177,6 @@ def test_download_table_append(creds: dict[str, str], down: list):
     assert process.returncode == 0
 
 
-# BUG: This is failing, the source table has over 90k rows
 def test_row_counts_append(creds):
     orig = pd.read_csv(single_file)
     new = pd.read_csv(dest_file)
@@ -276,7 +274,7 @@ def test_download_regex_match_table(creds, down):
     assert process.returncode == 0
 
 
-# BUG: This is failing, the source table has over 90k rows
+# BUG: This is failing with the legacy way. After the refactor this should pass
 def test_rows_regex():
     orig = read_all_csvs(regex_folder)
     new = pd.read_csv(dest_file)

@@ -16,6 +16,25 @@ if [ "$1" = 'up1' ]; then
 
 fi
 
+if [ "$1" = 'ex1' ]; then 
+    python3 ./shipyard_sqlserver/cli/execute_sql.py \
+        --username $SQL_USER \
+        --password $SQL_PWD \
+        --host $SQL_HOST \
+        --database $SQL_DB \
+        --query "drop table $UP_TABLE"
 
+fi
+
+
+if [ "$1" = 'ex2' ]; then 
+    python3 ./shipyard_sqlserver/cli/execute_sql.py \
+        --username $SQL_USER \
+        --password $SQL_PWD \
+        --host $SQL_HOST \
+        --database $SQL_DB \
+        --query "drop table $REGEX_TABLE"
+
+fi
 
 

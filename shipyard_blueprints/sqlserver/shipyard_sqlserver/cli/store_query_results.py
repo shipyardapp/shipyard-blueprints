@@ -1,7 +1,13 @@
-from sqlalchemy import create_engine, text
 import argparse
 import os
+import sys
 import pandas as pd
+import shipyard_bp_utils as shipyard
+from shipyard_sqlserver import SqlServerClient
+from shipyard_templates import ExitCodeException, ShipyardLogger, Database
+from sqlalchemy import text
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -51,92 +57,49 @@ def get_args():
     return args
 
 
-def create_connection_string(args):
-    """
-    Set the database connection string as an environment variable using the keyword arguments provided.
-    This will override system defaults.
-    """
-    if args.db_connection_url:
-        os.environ["DB_CONNECTION_URL"] = args.db_connection_url
-    elif args.host and args.username and args.database:
-        os.environ["DB_CONNECTION_URL"] = (
-            f"mssql+pyodbc://{args.username}:{args.password}@{args.host}:{args.port}/{args.database}?driver=ODBC+Driver+17+for+SQL+Server&{args.url_parameters}"
-        )
-
-    db_string = os.environ.get("DB_CONNECTION_URL")
-    return db_string
-
-
-def convert_to_boolean(string):
-    """
-    Shipyard can't support passing Booleans to code, so we have to convert
-    string values to their boolean values.
-    """
-    if string in ["True", "true", "TRUE"]:
-        value = True
-    else:
-        value = False
-    return value
-
-
-def combine_folder_and_file_name(folder_name, file_name):
-    """
-    Combine together the provided folder_name and file_name into one path variable.
-    """
-    combined_name = os.path.normpath(
-        f'{folder_name}{"/" if folder_name else ""}{file_name}'
-    )
-
-    return combined_name
-
-
-def create_csv(query, db_connection, destination_file_path, file_header=True):
-    """
-    Read in data from a SQL query. Store the data as a csv.
-    """
-    i = 1
-    for chunk in pd.read_sql_query(query, db_connection, chunksize=10000):
-        if i == 1:
-            chunk.to_csv(
-                destination_file_path, mode="a", header=file_header, index=False
-            )
-        else:
-            chunk.to_csv(destination_file_path, mode="a", header=False, index=False)
-        i += 1
-    print(f"{destination_file_path} was successfully created.")
-    return
-
-
 def main():
-    args = get_args()
-    destination_file_name = args.destination_file_name
-    destination_folder_name = args.destination_folder_name
-    destination_full_path = combine_folder_and_file_name(
-        folder_name=destination_folder_name, file_name=destination_file_name
-    )
-    file_header = convert_to_boolean(args.file_header)
-    query = text(args.query)
-
-    db_string = create_connection_string(args)
     try:
-        db_connection = create_engine(
-            db_string, execution_options=dict(stream_results=True)
+        args = get_args()
+        dest_file = args.destination_file_name
+        dest_dir = args.destination_folder_name
+        dest_path = shipyard.files.combine_folder_and_file_name(
+            folder_name=dest_dir, file_name=dest_file
         )
+        file_header = shipyard.args.convert_to_boolean(args.file_header)
+        query = text(args.query)
+
+        client = SqlServerClient(
+            user=args.username,
+            pwd=args.password,
+            host=args.host,
+            database=args.database,
+            port=args.port,
+            url_params=args.url_parameters,
+        )
+        client.connect()
+        logger.info("Successfully connected to SQL Server")
+
+        shipyard.files.create_folder_if_dne(dest_dir)
+
+        data = client.fetch(query)
+        logger.info("Successfully fetched query results")
+
+        data.to_csv(dest_path, index=False, header=file_header)
+
+        logger.info(f"Successfully stored query results to {dest_path}")
+
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
+
     except Exception as e:
-        print(f"Failed to connect to database {args.database}")
-        raise (e)
+        logger.error(
+            f"An unexpected error occurred when attempting to fetch data from SQL Server. Message from the server reads: {e}"
+        )
+        sys.exit(Database.EXIT_CODE_UNKNOWN)
 
-    if not os.path.exists(destination_folder_name) and (destination_folder_name != ""):
-        os.makedirs(destination_folder_name)
-
-    create_csv(
-        query=query,
-        db_connection=db_connection,
-        destination_file_path=destination_full_path,
-        file_header=file_header,
-    )
-
-    db_connection.dispose()
+    finally:
+        client.close()
 
 
 if __name__ == "__main__":

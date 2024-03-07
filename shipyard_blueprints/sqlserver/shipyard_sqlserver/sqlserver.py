@@ -1,7 +1,16 @@
 import pyodbc
-from sqlalchemy import create_engine, text
-from shipyard_templates import Database
-from urllib.parse import quote_plus
+import pandas as pd
+from sqlalchemy import create_engine, text, TextClause
+from shipyard_templates import Database, ShipyardLogger
+
+from shipyard_sqlserver.errors.exceptions import (
+    FetchError,
+    QueryError,
+    SqlServerConnectionError,
+    UploadError,
+)
+
+logger = ShipyardLogger.get_logger()
 
 
 class SqlServerClient(Database):
@@ -20,19 +29,51 @@ class SqlServerClient(Database):
         self.database = database
         self.port = port
         self.url_params = url_params
+        self._conn = None
         super().__init__(
             user, pwd, host=host, database=database, port=port, url_params=url_params
         )
 
+    @property
+    def conn(self):
+        if self._conn is None:
+            self.connect()
+        return self._conn
+
     def connect(self):
-        connection_string = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={self.host};PORT={self.port};DATABASE={self.database};UID={self.user};PWD={self.pwd};TrustServerCertificate=yes;"
-        return pyodbc.connect(connection_string)
+        try:
+            connection_string = f"mssql+pyodbc://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?driver=ODBC+Driver+17+for+SQL+Server&{self.url_params}"
+            logger.debug("Successfully connected to SQL Server")
+            self._conn = create_engine(
+                connection_string, fast_executemany=True
+            ).connect()
+        except Exception as e:
+            raise SqlServerConnectionError(e)
 
-    def execute_query(self, query: str):
-        pass
+    def close(self):
+        if self.conn:
+            logger.debug("Closing connection")
+            self.conn.close()
 
-    def fetch(self, query: str):
-        pass
+    def execute_query(self, query: TextClause):
+        try:
+            self.conn.execute(query)
+            logger.debug("executed query")
+        except Exception as e:
+            raise QueryError(e)
 
-    def upload(self, file: str):
-        pass
+    def fetch(self, query: TextClause) -> pd.DataFrame:
+        try:
+            df = pd.read_sql(sql=query, con=self.conn)
+            logger.debug("Successfully fetched results")
+        except Exception as e:
+            raise FetchError(e)
+        else:
+            return df
+
+    def upload(self, df: pd.DataFrame, table_name: str, insert_method: str = "replace"):
+        try:
+            df.to_sql(table_name, con=self.conn, index=False, if_exists=insert_method)
+            logger.debug(f"Successfully loaded data to to {table_name}")
+        except Exception as e:
+            raise UploadError(table_name, e)
