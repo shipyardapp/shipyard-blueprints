@@ -136,3 +136,13 @@ class SqlServerClient(Database):
             logger.debug(f"Successfully loaded data to {table_name}")
         except Exception as e:
             raise UploadError(table_name, e)
+
+    def download_chunks(self, query: TextClause, dest_path: str, header: bool = True):
+        chunksize = 10_000
+        first_write = False
+        for chunk in pd.read_sql_query(query, self.conn, chunksize=chunksize):
+            if not first_write:
+                chunk.to_csv(dest_path, mode="w", header=header, index=False)
+                first_write = True
+            else:
+                chunk.to_csv(dest_path, mode="a", header=False, index=False)

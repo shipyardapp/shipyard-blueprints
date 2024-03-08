@@ -42,7 +42,6 @@ def get_args():
         default="append",
         required=False,
     )
-    parser.add_argument("--db-connection-url", dest="db_connection_url", required=False)
     args = parser.parse_args()
 
     if args.host and not (args.database or args.username):

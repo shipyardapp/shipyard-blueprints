@@ -34,7 +34,6 @@ def get_args():
     parser.add_argument(
         "--file-header", dest="file_header", default="True", required=False
     )
-    parser.add_argument("--db-connection-url", dest="db_connection_url", required=False)
     args = parser.parse_args()
 
     if (
@@ -83,7 +82,7 @@ def main():
         data = client.fetch(query)
         logger.info("Successfully fetched query results")
 
-        data.to_csv(dest_path, index=False, header=file_header)
+        client.download_chunks(query=query, dest_path=dest_path, header=file_header)
 
         logger.info(f"Successfully stored query results to {dest_path}")
 
