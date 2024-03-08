@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from .shipyard_logger import ShipyardLogger
+from typing import Optional
 
 
 class Database(ABC):
@@ -16,8 +17,11 @@ class Database(ABC):
     EXIT_CODE_INVALID_ARGUMENTS = 208
     EXIT_CODE_INVALID_DATA_TYPES = 209
 
-    def __init__(self, user: str, pwd: str, **kwargs) -> None:
-        self.logger = ShipyardLogger().logger
+    EXIT_CODE_UNKNOWN = 249
+
+    def __init__(self, username: str, password: Optional[str] = None, **kwargs) -> None:
+        self.username = username
+        self.password = password
 
     @abstractmethod
     def connect(self):
@@ -52,7 +56,6 @@ class GoogleDatabase:
 
     def __init__(self, service_account: str, **kwargs) -> None:
         self.service_account = service_account
-        self.logger = ShipyardLogger().logger
 
     @abstractmethod
     def connect(self):
@@ -93,7 +96,6 @@ class DatabricksDatabase:
         self.server_host = server_host
         self.http_path = http_path
         self.access_token = access_token
-        self.logger = ShipyardLogger().logger
 
     @abstractmethod
     def connect(self):

@@ -12,8 +12,8 @@ requests = "^2.30.0"
 shipyard-templates = "^0.1.2"
 
 
-[tool.poetry.group.dev.dependencies]
-shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+#[tool.poetry.group.dev.dependencies]
+#shipyard-bp-utils = {path = "../shipyard-bp-utils"}
 
 [build-system]
 requires = ["poetry-core"]

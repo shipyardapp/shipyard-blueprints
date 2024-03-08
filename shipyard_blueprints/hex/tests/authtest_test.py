@@ -1,36 +1,27 @@
 import os
-import unittest
+import pytest
+from dotenv import load_dotenv, find_dotenv
 from shipyard_hex import HexClient
 
 
-class HexClientConnectTestCase(unittest.TestCase):
-    def setUp(self):
-        self.api_token = os.getenv("HEX_API_TOKEN")
-        self.project_id = os.getenv("HEX_PROJECT_ID")
+load_dotenv(find_dotenv())
 
-    def test_connect_with_valid_credentials(self):
-        assert (
-            HexClient(api_token=self.api_token, project_id=self.project_id).connect()
-            == 0
-        )
 
-    def test_connect_with_invalid_credentials(self):
-        assert (
-            HexClient(api_token="invalid_token", project_id=self.project_id).connect()
-            == 1
-        )
-        assert (
-            HexClient(
-                api_token=self.api_token, project_id="invalid_project_id"
-            ).connect()
-            == 1
-        )
+@pytest.fixture(scope="module")
+def creds():
+    return {"token": os.getenv("HEX_API_TOKEN"), "project_id": os.getenv("PROJECT_ID")}
 
-    def test_connect_with_invalid_project_id(self):
-        assert (
-            HexClient(
-                api_token=self.api_token, project_id="invalid_project_id"
-            ).connect()
-            == 1
-        )
-        assert HexClient(api_token=self.api_token, project_id="").connect() == 1
+
+def test_auth(creds):
+    client = HexClient(api_token=creds["token"])
+    assert client.connect(creds["project_id"]) == 0
+
+
+def test_auth_bad(creds):
+    client = HexClient(api_token=creds["token"])
+    assert client.connect("bad-project-id") == 1
+
+
+def test_auth_bad_token(creds):
+    client = HexClient(api_token="bad-api-token")
+    assert client.connect(creds["project_id"]) == 1

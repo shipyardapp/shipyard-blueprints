@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import BoxClient
+from shipyard_box import BoxClient
 
 
 def main():

@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import RudderStackClient
+from shipyard_rudderstack import RudderStackClient
 
 
 def main():

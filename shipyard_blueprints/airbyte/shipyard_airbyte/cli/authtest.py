@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import AirbyteClient
+from shipyard_airbyte import AirbyteClient
 
 
 def main():

@@ -1,11 +1,16 @@
 import os
 import re
-import tempfile
-import argparse
 import sys
-import shipyard_utils as shipyard
-import paramiko
-from shipyard_sftp.cli import exit_codes as ec
+import argparse
+import tempfile
+
+from shipyard_sftp.sftp import SftpClient
+from shipyard_bp_utils import files as shipyard
+from shipyard_templates import CloudStorage, ExitCodeException
+from shipyard_templates.shipyard_logger import ShipyardLogger
+
+
+logger = ShipyardLogger().get_logger()
 
 
 def get_args():
@@ -29,129 +34,75 @@ def get_args():
     return parser.parse_args()
 
 
-def find_sftp_file_names(client, prefix=""):
-    """
-    Fetched all the files in the folder on the SFTP server
-    """
-    try:
-        files = []
-        folders = []
-        data = client.listdir(prefix) if prefix != "" else client.listdir()
-        for fname in data:
-            if fname.startswith("."):
-                continue
-            if prefix:
-                fdata = str(client.lstat(f"{prefix}/{fname}")).split()[0]
-            else:
-                fdata = str(client.lstat(fname)).split()[0]
-            if fdata.startswith("d"):
-                folders.append(fname)
-            elif prefix == "":
-                files.append(fname)
-
-            else:
-                files.append(f"{prefix}/{fname}")
-        for folder in folders:
-            if prefix:
-                folder = f"{prefix}/{folder}"
-            files.extend(find_sftp_file_names(client, folder))
-    except Exception as e:
-        print(f"Failed to find files in folder {prefix}")
-        sys.exit(ec.EXIT_CODE_NO_MATCHES_FOUND)
-
-    return files
-
-
-def delete_sftp_file(client, file_path):
-    """
-    Delete a file from SFTP
-    """
-    try:
-        client.remove(file_path)
-    except Exception as e:
-        print(f"Failed to delete {file_path}: {e}")
-        sys.exit(ec.EXIT_CODE_SFTP_DELETE_ERROR)
-    print(f"{file_path} successfully deleted")
-
-
-def get_client(host, port, username, key=None, password=None):
-    """
-    Attempts to create an SFTP client at the specified hots with the
-    specified credentials
-    """
-    try:
-        if key:
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            k = paramiko.RSAKey.from_private_key_file(key)
-            ssh.connect(hostname=host, port=port, username=username, pkey=k)
-            return ssh.open_sftp()
-        else:
-            transport = paramiko.Transport((host, int(port)))
-            transport.connect(None, username, password)
-            return paramiko.SFTPClient.from_transport(transport)
-    except Exception as e:
-        print(
-            f"Error accessing the SFTP server with the specified credentials"
-            f" {host}:{port} {username}:{key}. Error details: {e}"
-        )
-        sys.exit(ec.EXIT_CODE_INCORRECT_CREDENTIALS)
-
-
 def main():
-    args = get_args()
-    host = args.host
-    port = args.port
-    username = args.username
-    password = args.password
-    key = args.key
-    if not password and not key:
-        print("Must specify a password or a RSA key")
-        return
-
     key_path = None
-    if key:
-        if not os.path.isfile(key):
-            fd, key_path = tempfile.mkstemp()
-            print(f"Storing RSA temporarily at {key_path}")
-            with os.fdopen(fd, "w") as tmp:
-                tmp.write(key)
-            key = key_path
-        client = get_client(host=host, port=port, username=username, key=key)
-    elif password:
-        client = get_client(host=host, port=port, username=username, password=password)
 
-    source_file_name = args.source_file_name
-    source_folder_name = shipyard.files.clean_folder_name(args.source_folder_name)
-    source_full_path = shipyard.files.combine_folder_and_file_name(
-        source_folder_name, source_file_name
-    )
-    source_file_name_match_type = args.source_file_name_match_type
+    try:
+        args = get_args()
+        if not args.password and not args.key:
+            raise ExitCodeException(
+                "Must specify a password or a private key",
+                CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
+            )
 
-    if source_file_name_match_type == "regex_match":
-        files = find_sftp_file_names(client=client, prefix=source_folder_name)
-        matching_file_names = shipyard.files.find_all_file_matches(
-            files, re.compile(source_file_name)
+        connection_args = {"host": args.host, "port": args.port, "user": args.username}
+
+        if args.password:
+            connection_args["pwd"] = args.password
+
+        if key := args.key:
+            if not os.path.isfile(key):
+                fd, key_path = tempfile.mkstemp()
+                logger.info(f"Storing private key temporarily at {key_path}")
+                with os.fdopen(fd, "w") as tmp:
+                    tmp.write(key)
+                connection_args["key"] = key_path
+        sftp = SftpClient(**connection_args)
+
+        source_file_name = args.source_file_name
+        source_folder_name = shipyard.clean_folder_name(args.source_folder_name)
+        source_full_path = shipyard.combine_folder_and_file_name(
+            source_folder_name, source_file_name
         )
-        if len(matching_file_names) == 0:
-            print("No matches found")
-            sys.exit(ec.EXIT_CODE_NO_MATCHES_FOUND)
-        print(f"{len(matching_file_names)} files found. Preparing to delete...")
+        source_file_name_match_type = args.source_file_name_match_type or "exact_match"
 
-        for index, file_name in enumerate(matching_file_names, 1):
-            delete_file_path = file_name
+        if source_file_name_match_type == "regex_match":
+            file_names = sftp.list_files_recursive(source_folder_name or ".")
+            matching_file_names = shipyard.find_all_file_matches(
+                file_names, re.compile(source_file_name)
+            )
+            if len(matching_file_names) == 0:
+                raise ExitCodeException(
+                    "No matches found", sftp.EXIT_CODE_FILE_NOT_FOUND
+                )
+            logger.info(
+                f"{len(matching_file_names)} files found. Preparing to delete..."
+            )
 
-            print(f"deleting file {index} of {len(matching_file_names)}")
-            try:
-                delete_sftp_file(client, delete_file_path)
-            except Exception as e:
-                print(f"Failed to delete {file_name}... Skipping")
-    else:
-        delete_sftp_file(client=client, file_path=source_full_path)
+            for index, file_name in enumerate(matching_file_names, 1):
+                delete_file_path = file_name
 
-    if key_path:
-        print(f"Removing temporary RSA Key file {key_path}")
-        os.remove(key_path)
+                logger.info(f"Deleting file {index} of {len(matching_file_names)}")
+                try:
+                    sftp.remove(delete_file_path)
+                except Exception as e:
+                    print(f"Failed to delete {file_name} due to {e}... Skipping")
+        elif source_file_name_match_type == "exact_match":
+            sftp.remove(source_full_path)
+    except ExitCodeException as e:
+        logger.error(e)
+        sys.exit(e.exit_code)
+    except Exception as e:
+        logger.error(e)
+        sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
+    finally:
+        if key_path:
+            logger.info(f"Removing temporary private key file {key_path}")
+            os.remove(key_path)
+        try:
+            sftp.close()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

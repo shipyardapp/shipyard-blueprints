@@ -1,16 +1,23 @@
 import os
 import sys
-from shipyard_blueprints import BigQueryClient
+from shipyard_bigquery import BigQueryClient
+from shipyard_templates import ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 def main():
-    google_client = BigQueryClient(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
     try:
-        con = google_client.connect()
-        google_client.logger.info("Successfully established a connection")
+        google_client = BigQueryClient(
+            os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        ).connect()
+        logger.info(
+            f"Successfully established a connection to BigQuery with service account associated with {google_client.email}"
+        )
         sys.exit(0)
     except Exception as e:
-        google_client.logger.error("Could not establish a connection")
+        logger.error("Could not establish a connection")
+        logger.debug(f"Response from Google BigQuery API: {str(e)}")
         sys.exit(1)
 
 

@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import SnowflakeClient
+from shipyard_snowflake import SnowflakeClient
 from shipyard_templates import ExitCodeException
 
 

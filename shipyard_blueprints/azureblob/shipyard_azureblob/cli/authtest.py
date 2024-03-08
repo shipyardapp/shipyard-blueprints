@@ -1,6 +1,6 @@
 import os
 import sys
-from shipyard_blueprints import AzureBlobClient
+from shipyard_azureblob import AzureBlobClient
 
 
 def main():

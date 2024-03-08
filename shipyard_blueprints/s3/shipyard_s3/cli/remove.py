@@ -1,14 +1,13 @@
-import os
-import boto3
-import botocore
-from botocore.client import Config
 import re
 import argparse
-import glob
-from ast import literal_eval
 import sys
-import shipyard_utils as shipyard
-from shipyard_s3.cli import exit_codes as ec
+import shipyard_bp_utils as shipyard
+from shipyard_s3 import S3Client
+from shipyard_templates import CloudStorage, ExitCodeException, ShipyardLogger
+
+from shipyard_s3.utils.exceptions import NoMatchesFound
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -36,111 +35,56 @@ def get_args():
     return parser.parse_args()
 
 
-def set_environment_variables(args):
-    """
-    Set AWS credentials as environment variables if they're provided via keyword arguments
-    rather than seeded as environment variables. This will override system defaults.
-    """
-
-    if args.aws_access_key_id:
-        os.environ["AWS_ACCESS_KEY_ID"] = args.aws_access_key_id
-    if args.aws_secret_access_key:
-        os.environ["AWS_SECRET_ACCESS_KEY"] = args.aws_secret_access_key
-    if args.aws_default_region:
-        os.environ["AWS_DEFAULT_REGION"] = args.aws_default_region
-    return
-
-
-def connect_to_s3(s3_config=None):
-    """
-    Create a connection to the S3 service using credentials provided as environment variables.
-    """
-    s3_connection = boto3.client("s3", config=Config(s3_config))
-    return s3_connection
-
-
-def s3_list_files(
-    s3_connection,
-    bucket_name,
-    source_folder,
-):
-    """List files in s3"""
-    s3_response = s3_connection.list_objects_v2(
-        Bucket=bucket_name, Prefix=source_folder
-    )
-    files_list = [_file["Key"] for _file in s3_response["Contents"]]
-    return files_list
-
-
-def remove_s3_file(
-    s3_connection,
-    bucket_name,
-    source_full_path,
-):
-    """
-    Uploads a single file to S3. Uses the s3.transfer method to ensure that files larger than 5GB are split up during the upload process.
-
-    Extra Args can be found at https://boto3.amazonaws.com/v1/documentation/api/latest/guide/s3-uploading-files.html#the-extraargs-parameter
-    and are commonly used for custom file encryption or permissions.
-    """
-    try:
-        s3_response = s3_connection.delete_object(
-            Bucket=bucket_name, Key=source_full_path
-        )
-
-        print(f"{source_full_path} delete function successful")
-    except Exception as e:
-        print(f"Error: {source_full_path} not found in bucket {bucket_name}.")
-        sys.exit(ec.EXIT_CODE_FILE_NOT_FOUND)
-
-
 def main():
-    args = get_args()
-    set_environment_variables(args)
-    bucket_name = args.bucket_name
-    source_file_name = args.source_file_name
-    source_folder_name = shipyard.files.clean_folder_name(args.source_folder_name)
-    source_full_path = shipyard.files.combine_folder_and_file_name(
-        source_folder_name, source_file_name
-    )
-    source_file_name_match_type = args.source_file_name_match_type
-    s3_config = args.s3_config
-
-    s3_connection = connect_to_s3(s3_config)
-    if source_file_name_match_type == "regex_match":
-        file_names = s3_list_files(s3_connection, bucket_name, source_folder_name)
-        ## exit if there is a regex error
-        try:
-            matching_file_names = shipyard.files.find_all_file_matches(
-                file_names, source_file_name
-            )
-            num_matches = len(matching_file_names)
-        except Exception as e:
-            print(
-                f"Error in finding regex matches. Please make sure a valid regex is entered"
-            )
-            sys.exit(ec.EXIT_CODE_INVALID_REGEX)
-
-        if num_matches == 0:
-            print(f"No matches found for regex {source_file_name}")
-            sys.exit(1)
-        else:
-            print(f"{num_matches} files found. Preparing to remove...")
-
-        for index, key_name in enumerate(matching_file_names, 1):
-            remove_s3_file(
-                source_full_path=key_name,
-                bucket_name=bucket_name,
-                s3_connection=s3_connection,
-            )
-            print(f"Removing file {index} of {len(matching_file_names)}")
-
-    else:
-        remove_s3_file(
-            source_full_path=source_full_path,
-            bucket_name=bucket_name,
-            s3_connection=s3_connection,
+    try:
+        args = get_args()
+        bucket_name = args.bucket_name
+        src_file = args.source_file_name
+        src_folder = args.source_folder_name if args.source_folder_name else None
+        source_file_name_match_type = args.source_file_name_match_type
+        client = S3Client(
+            aws_access_key=args.aws_access_key_id,
+            aws_secret_access_key=args.aws_secret_access_key,
+            region=args.aws_default_region,
         )
+        client.connect()
+
+        logger.info("Successfully connected to S3")
+
+        if source_file_name_match_type == "regex_match":
+            logger.info("Beginning to scan for file matches...")
+            file_names = client.list_files(
+                bucket_name=bucket_name, s3_folder=src_folder
+            )
+            matching_file_names = shipyard.files.find_all_file_matches(
+                file_names, re.compile(src_file)
+            )
+            if (n_matches := len(matching_file_names)) == 0:
+                raise NoMatchesFound(src_file)
+
+            logger.info(f"{n_matches} files found. Preparing to remove...")
+
+            for index, key_name in enumerate(matching_file_names, start=1):
+                client.remove(bucket_name=bucket_name, src_path=key_name)
+                logger.info(f"Removing file {index} of {n_matches}")
+
+        else:
+            if src_folder:
+                src_path = shipyard.files.combine_folder_and_file_name(
+                    src_folder, src_file
+                )
+            else:
+                src_path = src_file
+            client.remove(bucket_name=bucket_name, src_path=src_path)
+            logger.info(f"Successfully removed s3://{bucket_name}/{src_path}")
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
+    except Exception as e:
+        logger.error(
+            f"An error occured when attempting to remove files from S3: {str(e)}"
+        )
+        sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":
