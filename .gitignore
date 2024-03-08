@@ -26,5 +26,8 @@ load.py
 # ignore test files
 runner.py
 demo/
+*.parquet
+
+Upload_Test/
 
 Upload_Test/

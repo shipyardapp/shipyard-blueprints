@@ -30,7 +30,7 @@ if [ "$1" = 'up1' ]; then
     --insert-method "replace" \
     --file-type "csv" \
     --file-name "csv" \
-    --match-type "regex_match"
+    --match-type "glob_match"
 fi
 
 if [ "$1" = 'up2' ]; then
@@ -52,13 +52,15 @@ if [ "$1" = 'up3' ]; then
     python3 ./shipyard_databricks_sql/cli/upload.py --access-token $token \
     --server-host $server_host \
     --http-path $http_path \
-    --catalog $CATALOG2 \
-    --schema $SCHEMA2 \
-    --table-name "parquet_test" \
+    --catalog $DEMO_CATALOG \
+    --schema $DEMO_SCHEMA \
+    --table-name "glob_test" \
     --insert-method "replace" \
     --file-type "parquet" \
-    --file-name "parquet" \
-    --match-type "regex_match"
+    --file-name "*.parquet" \
+    --match-type "glob_match" \
+    --folder-name "mult"
+    
 fi
 
 if [ "$1" = 'up4' ]; then
@@ -115,6 +117,70 @@ if [ "$1" = 'dl2' ]; then
     --query "select * from parquet_test" \
     --folder-name "csv_download"  
 
+fi
+
+if [ "$1" = 'demo-up' ]; then
+    echo "Starting upload for demo"
+    python3 ./shipyard_databricks_sql/cli/upload.py --access-token $token \
+    --server-host $DATABRICKS_SERVER_HOST \
+    --http-path $DATABRICKS_HTTP_PATH \
+    --catalog $DEMO_CATALOG \
+    --schema $DEMO_SCHEMA \
+    --volume $DEMO_VOLUME \
+    --table-name $DEMO_TABLE \
+    --insert-method "append" \
+    --file-type "parquet" \
+    --file-name $DEMO_FILE \
+    --match-type "exact_match" 
+
+fi
+
+if [ "$1" = 'demo-up2' ]; then 
+        echo "Starting upload for demo"
+    python3 ./shipyard_databricks_sql/cli/upload.py --access-token $token \
+    --server-host $DATABRICKS_SERVER_HOST \
+    --http-path $DATABRICKS_HTTP_PATH \
+    --catalog $DEMO_CATALOG \
+    --schema $DEMO_SCHEMA \
+    --volume $DEMO_VOLUME \
+    --table-name $DEMO_CSV_TABLE \
+    --insert-method "append" \
+    --file-type "csv" \
+    --file-name $DEMO_CSV_FILE \
+    --match-type "exact_match" 
+fi
+
+
+
+if [ "$1" = 'up-glob' ]; then 
+        echo "Starting glob upload, with replace"
+    python3 ./shipyard_databricks_sql/cli/upload.py --access-token $DATABRICKS_SQL_ACCESS_TOKEN \
+    --server-host $DATABRICKS_SERVER_HOST \
+    --http-path $DATABRICKS_HTTP_PATH \
+    --catalog $DEMO_CATALOG \
+    --schema $DEMO_SCHEMA \
+    --volume $DEMO_VOLUME \
+    --table-name "parq_glob" \
+    --insert-method "replace" \
+    --file-type "parquet" \
+    --file-name "*.parquet" \
+    --match-type "glob_match"  \
+    --folder-name "mult"
+fi
+
+
+if [ "$1" = 'down-test' ]; then 
+    echo "Starting download of parquet"
+    python3 ./shipyard_databricks_sql/cli/fetch.py --access-token $token \
+    --server-host $DATABRICKS_SERVER_HOST \
+    --http-path $DATABRICKS_HTTP_PATH \
+    --catalog "shipyard_demos" \
+    --schema "domo_extracts" \
+    --file-name  "testdownload.parquet" \
+    --query "select * from domo_soccer" \
+    --folder-name "parq_download"  \
+    --file-type "parquet"
+    
 fi
 
 
