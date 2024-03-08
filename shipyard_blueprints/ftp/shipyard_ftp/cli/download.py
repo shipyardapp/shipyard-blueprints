@@ -111,9 +111,7 @@ def main():
                 logger.info(f'No matches were found for regex "{source_file_name}".')
                 sys.exit(EXIT_CODE_NO_MATCHES_FOUND)
 
-            logger.info(
-                f"{number_of_matches} files found. Preparing to download..."
-            )
+            logger.info(f"{number_of_matches} files found. Preparing to download...")
             for index, file_name in enumerate(matching_file_names, start=1):
                 destination_name = shipyard.determine_destination_full_path(
                     destination_folder_name=destination_folder_name,
@@ -127,7 +125,9 @@ def main():
                 )
                 try:
                     client.download(file_name, destination_name)
-                    logger.info(f"Successfully downloaded {file_name} to {destination_name}.")
+                    logger.info(
+                        f"Successfully downloaded {file_name} to {destination_name}."
+                    )
                 except Exception as e:
                     logger.error(f"Failed to download {file_name} due to {e}")
                     errors.append(file_name)
@@ -135,7 +135,9 @@ def main():
         logger.info("Download process complete.")
 
         if errors:
-            logger.error("Failed to download the following files:\n" + "\n".join(errors))
+            logger.error(
+                "Failed to download the following files:\n" + "\n".join(errors)
+            )
             sys.exit(EXIT_CODE_DOWNLOAD_ERROR)
     except ExitCodeException as e:
         logger.error(e.message)

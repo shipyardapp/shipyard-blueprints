@@ -5,7 +5,10 @@ import sys
 from shipyard_bp_utils import files as shipyard
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
 
-from shipyard_ftp.exceptions import EXIT_CODE_NO_MATCHES_FOUND, EXIT_CODE_FTP_DELETE_ERROR
+from shipyard_ftp.exceptions import (
+    EXIT_CODE_NO_MATCHES_FOUND,
+    EXIT_CODE_FTP_DELETE_ERROR,
+)
 from shipyard_ftp.ftp import FtpClient
 
 logger = ShipyardLogger.get_logger()
@@ -64,9 +67,7 @@ def main():
                 sys.exit(EXIT_CODE_NO_MATCHES_FOUND)
 
             for index, file_name in enumerate(matching_file_names, start=1):
-                logger.info(
-                    f"Deleting file {index} out of {number_of_matches}"
-                )
+                logger.info(f"Deleting file {index} out of {number_of_matches}")
 
                 try:
                     client.remove(file_name)
@@ -79,8 +80,10 @@ def main():
             try:
                 client.remove(file_path)
             except Exception as e:
-                logger.error("Check the file/folder name for misspellings and ensure that entire folder name was "
-                             "provided")
+                logger.error(
+                    "Check the file/folder name for misspellings and ensure that entire folder name was "
+                    "provided"
+                )
                 raise e
         if errors:
             logger.error("Failed to delete the following files:\n" + "\n".join(errors))
