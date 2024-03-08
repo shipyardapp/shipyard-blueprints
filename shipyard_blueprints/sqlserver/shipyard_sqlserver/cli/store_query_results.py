@@ -36,17 +36,6 @@ def get_args():
     )
     args = parser.parse_args()
 
-    if (
-        not args.db_connection_url
-        and not (args.host or args.database or args.username)
-        and not os.environ.get("DB_CONNECTION_URL")
-    ):
-        parser.error(
-            """This Blueprint requires at least one of the following to be provided:\n
-            1) --db-connection-url\n
-            2) --host, --database, and --username\n
-            3) DB_CONNECTION_URL set as environment variable"""
-        )
     if args.host and not (args.database or args.username):
         parser.error("--host requires --database and --username")
     if args.database and not (args.host or args.username):
