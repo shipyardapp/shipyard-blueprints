@@ -78,7 +78,6 @@ def main():
             port=args.port,
             url_params=args.url_parameters,
         )
-        client.connect()
         logger.info("Successfully connected to SQL Server")
 
         data = client.fetch(query)

@@ -1,4 +1,3 @@
-# BUG: There is a bug in the regex match, when uploading it is replacing after the first file match
 import argparse
 import os
 import re
@@ -46,17 +45,6 @@ def get_args():
     parser.add_argument("--db-connection-url", dest="db_connection_url", required=False)
     args = parser.parse_args()
 
-    if (
-        not args.db_connection_url
-        and not (args.host or args.database or args.username)
-        and not os.environ.get("DB_CONNECTION_URL")
-    ):
-        parser.error(
-            """This Blueprint requires at least one of the following to be provided:\n
-            1) --db-connection-url\n
-            2) --host, --database, and --username\n
-            3) DB_CONNECTION_URL set as environment variable"""
-        )
     if args.host and not (args.database or args.username):
         parser.error("--host requires --database and --username")
     if args.database and not (args.host or args.username):
@@ -86,7 +74,6 @@ def main():
             port=args.port,
             url_params=args.url_parameters,
         )
-        client.connect()
         logger.info("Successfully connected to SQL Server")
 
         if match_type == "regex_match":
@@ -112,6 +99,9 @@ def main():
             client.upload(df=df, table_name=table_name, insert_method=insert_method)
             logger.info(f"Successfully loaded {file_path} to {table_name}")
 
+    except FileNotFoundError:
+        logger.error(f"File {file_path} does not exist")
+        sys.exit(Database.EXIT_CODE_FILE_NOT_FOUND)
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)
