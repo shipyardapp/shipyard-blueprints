@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "shipyard-bp-utils"
+version = "1.0.3"
+description = "Utility functions for blueprints"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+readme = "README.md"
+packages = [{include = "shipyard_bp_utils"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+python-dateutil = "^2.8.2"
+pandas = "^2.2.0"
+pytest = "^8.0.1"
+shipyard-templates = "0.6.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
