@@ -5,7 +5,7 @@ import sys
 from shipyard_bp_utils import files as shipyard
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
 
-from shipyard_ftp.exceptions import EXIT_CODE_NO_MATCHES_FOUND
+from shipyard_ftp.exceptions import EXIT_CODE_NO_MATCHES_FOUND, EXIT_CODE_FTP_DELETE_ERROR
 from shipyard_ftp.ftp import FtpClient
 
 logger = ShipyardLogger.get_logger()
@@ -42,7 +42,7 @@ def main():
         file_name_match_type = args.file_name_match_type
         file_name = args.source_file_name
         folder_name = shipyard.clean_folder_name(args.source_folder_name)
-
+        errors = []
         client = FtpClient(host=host, port=port, user=username, pwd=password)
 
         if file_name_match_type == "regex_match":
@@ -59,30 +59,33 @@ def main():
                 files, re.compile(file_name)
             )
 
-            number_of_matches = len(matching_file_names)
-
-            if number_of_matches == 0:
+            if number_of_matches := len(matching_file_names) == 0:
                 logger.info(f'No matches were found for regex "{file_name}".')
                 sys.exit(EXIT_CODE_NO_MATCHES_FOUND)
 
-            for index, file_name in enumerate(matching_file_names):
+            for index, file_name in enumerate(matching_file_names, start=1):
                 logger.info(
-                    f"Deleting file {index + 1} of {len(matching_file_names)} out of {number_of_matches}"
+                    f"Deleting file {index} out of {number_of_matches}"
                 )
+
                 try:
                     client.remove(file_name)
                 except Exception:
                     logger.error(f"Failed to delete {file_name}... Skipping")
+                    errors.append(file_name)
+
         elif file_name_match_type == "exact_match":
             file_path = shipyard.combine_folder_and_file_name(folder_name, file_name)
             try:
                 client.remove(file_path)
             except Exception as e:
-                logger.error(
-                    "Most likely, the file name/folder name you specified has typos or the full folder name was not "
-                    "provided. Check these and try again."
-                )
+                logger.error("Check the file/folder name for misspellings and ensure that entire folder name was "
+                             "provided")
                 raise e
+        if errors:
+            logger.error("Failed to delete the following files:\n" + "\n".join(errors))
+            sys.exit(EXIT_CODE_FTP_DELETE_ERROR)
+
     except ExitCodeException as e:
         logger.error(e.message)
         sys.exit(e.exit_code)

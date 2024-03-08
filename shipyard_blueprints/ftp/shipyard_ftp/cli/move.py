@@ -81,24 +81,24 @@ def main():
             file_names, re.compile(source_file_name)
         )
 
-        if len(matching_file_names) == 0:
+        if number_of_matches := len(matching_file_names) == 0:
             logger.error(f'No matches were found for regex "{source_file_name}".')
             sys.exit(ftp_client.EXIT_CODE_FILE_MATCH_ERROR)
 
-        logger.info(f"{len(matching_file_names)} files found. Preparing to move...")
+        logger.info(f"{number_of_matches} files found. Preparing to move...")
 
-        for index, key_name in enumerate(matching_file_names, 1):
+        for index, key_name in enumerate(matching_file_names, start=1):
             destination_full_path = shipyard.determine_destination_full_path(
                 destination_folder_name=destination_folder_name,
                 destination_file_name=args.destination_file_name,
                 source_full_path=key_name,
-                file_number=None if len(matching_file_names) == 1 else index,
+                file_number=index if number_of_matches > 1 else None,
             )
             if len(destination_full_path.split("/")) > 1:
                 path, file_name = destination_full_path.rsplit("/", 1)
                 ftp_client.create_new_folders(path)
 
-            logger.info(f"Moving file {index} of {len(matching_file_names)}")
+            logger.info(f"Moving file {index} of {number_of_matches}")
             ftp_client.move(
                 source_full_path=key_name, destination_full_path=destination_full_path
             )

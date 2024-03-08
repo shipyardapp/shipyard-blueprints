@@ -6,12 +6,10 @@ from shipyard_bp_utils import files as shipyard
 from shipyard_templates import ExitCodeException, CloudStorage
 from shipyard_templates.shipyard_logger import ShipyardLogger
 
+from shipyard_ftp.exceptions import EXIT_CODE_NO_MATCHES_FOUND, EXIT_CODE_DOWNLOAD_ERROR
 from shipyard_ftp.ftp import FtpClient
 
 logger = ShipyardLogger().get_logger()
-
-EXIT_CODE_INCORRECT_CREDENTIALS = 3
-EXIT_CODE_NO_MATCHES_FOUND = 200
 
 
 def get_args():
@@ -71,10 +69,10 @@ def main():
             folder_name=source_folder_name, file_name=source_file_name
         )
         source_file_name_match_type = args.source_file_name_match_type
-
         destination_folder_name = shipyard.clean_folder_name(
             args.destination_folder_name
         )
+        errors = []
         if destination_folder_name:
             shipyard.create_folder_if_dne(destination_folder_name)
         client = FtpClient(host=host, port=port, user=username, pwd=password)
@@ -109,31 +107,36 @@ def main():
                 files, re.compile(source_file_name)
             )
 
-            number_of_matches = len(matching_file_names)
-
-            if number_of_matches == 0:
+            if number_of_matches := len(matching_file_names) == 0:
                 logger.info(f'No matches were found for regex "{source_file_name}".')
                 sys.exit(EXIT_CODE_NO_MATCHES_FOUND)
 
             logger.info(
-                f"{len(matching_file_names)} files found. Preparing to download..."
+                f"{number_of_matches} files found. Preparing to download..."
             )
-
-            for index, file_name in enumerate(matching_file_names):
+            for index, file_name in enumerate(matching_file_names, start=1):
                 destination_name = shipyard.determine_destination_full_path(
                     destination_folder_name=destination_folder_name,
                     destination_file_name=args.destination_file_name,
                     source_full_path=file_name,
-                    file_number=index + 1,
+                    file_number=index if number_of_matches > 1 else None,
                 )
 
                 logger.info(
-                    f"Downloading file {index + 1} of {len(matching_file_names)}"
+                    f"Attempting to download file {index} of {number_of_matches}: {file_name} to {destination_name}..."
                 )
-
-                client.download(file_name, destination_name)
+                try:
+                    client.download(file_name, destination_name)
+                    logger.info(f"Successfully downloaded {file_name} to {destination_name}.")
+                except Exception as e:
+                    logger.error(f"Failed to download {file_name} due to {e}")
+                    errors.append(file_name)
 
         logger.info("Download process complete.")
+
+        if errors:
+            logger.error("Failed to download the following files:\n" + "\n".join(errors))
+            sys.exit(EXIT_CODE_DOWNLOAD_ERROR)
     except ExitCodeException as e:
         logger.error(e.message)
         sys.exit(e.exit_code)
