@@ -1,11 +1,13 @@
-from numpy import source
-from sqlalchemy import create_engine
 import argparse
 import os
-import glob
 import re
+import sys
 import pandas as pd
-import math
+import shipyard_bp_utils as shipyard
+from shipyard_sqlserver import SqlServerClient
+from shipyard_templates import ExitCodeException, ShipyardLogger, Database
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -40,20 +42,8 @@ def get_args():
         default="append",
         required=False,
     )
-    parser.add_argument("--db-connection-url", dest="db_connection_url", required=False)
     args = parser.parse_args()
 
-    if (
-        not args.db_connection_url
-        and not (args.host or args.database or args.username)
-        and not os.environ.get("DB_CONNECTION_URL")
-    ):
-        parser.error(
-            """This Blueprint requires at least one of the following to be provided:\n
-            1) --db-connection-url\n
-            2) --host, --database, and --username\n
-            3) DB_CONNECTION_URL set as environment variable"""
-        )
     if args.host and not (args.database or args.username):
         parser.error("--host requires --database and --username")
     if args.database and not (args.host or args.username):
@@ -63,122 +53,66 @@ def get_args():
     return args
 
 
-def create_connection_string(args):
-    """
-    Set the database connection string as an environment variable using the keyword arguments provided.
-    This will override system defaults.
-    """
-    if args.db_connection_url:
-        os.environ["DB_CONNECTION_URL"] = args.db_connection_url
-    elif args.host and args.username and args.database:
-        os.environ[
-            "DB_CONNECTION_URL"
-        ] = f"mssql+pyodbc://{args.username}:{args.password}@{args.host}:{args.port}/{args.database}?driver=ODBC+Driver+17+for+SQL+Server&{args.url_parameters}"
-
-    db_string = os.environ.get("DB_CONNECTION_URL")
-    return db_string
-
-
-def find_all_local_file_names(source_folder_name):
-    """
-    Returns a list of all files that exist in the current working directory,
-    filtered by source_folder_name if provided.
-    """
-    cwd = os.getcwd()
-    cwd_extension = os.path.normpath(f"{cwd}/{source_folder_name}/**")
-    file_names = glob.glob(cwd_extension, recursive=True)
-    return [file_name for file_name in file_names if os.path.isfile(file_name)]
-
-
-def find_all_file_matches(file_names, file_name_re):
-    """
-    Return a list of all file_names that matched the regular expression.
-    """
-    matching_file_names = []
-    for file in file_names:
-        if re.search(file_name_re, file):
-            matching_file_names.append(file)
-
-    return matching_file_names
-
-
-def combine_folder_and_file_name(folder_name, file_name):
-    """
-    Combine together the provided folder_name and file_name into one path variable.
-    """
-    combined_name = os.path.normpath(
-        f'{folder_name}{"/" if folder_name else ""}{file_name}'
-    )
-
-    return combined_name
-
-
-def upload_data(
-    source_full_path: str, table_name: str, insert_method: str, db_connection
-):
-    # Resort to chunks for larger files to avoid memory issues.
-    df = pd.read_csv(source_full_path, nrows=1)
-    n_cols = len(df.columns)
-    chunknum = math.floor(2100 / n_cols) - 1  # NOTE: this is a constraint by SQL Server
-
-    for index, chunk in enumerate(pd.read_csv(source_full_path, chunksize=chunknum)):
-        if insert_method == "replace" and index > 0:
-            # First chunk replaces the table, the following chunks
-            # append to the end.
-            insert_method = "append"
-
-        chunk.to_sql(
-            table_name,
-            con=db_connection,
-            index=False,
-            if_exists=insert_method,
-            method="multi",
-        )
-    print(f"{source_full_path} successfully uploaded to {table_name}.")
-
-
 def main():
-    args = get_args()
-    source_file_name_match_type = args.source_file_name_match_type
-    source_file_name = args.source_file_name
-    source_folder_name = args.source_folder_name
-    source_full_path = combine_folder_and_file_name(
-        folder_name=source_folder_name, file_name=source_file_name
-    )
-    table_name = args.table_name
-    insert_method = args.insert_method
-
-    db_string = create_connection_string(args)
     try:
-        db_connection = create_engine(db_string, fast_executemany=True)
-    except Exception as e:
-        print(f"Failed to connect to database {args.database}")
-        raise (e)
-
-    if source_file_name_match_type == "regex_match":
-        file_names = find_all_local_file_names(source_folder_name)
-        matching_file_names = find_all_file_matches(
-            file_names, re.compile(source_file_name)
+        args = get_args()
+        match_type = args.source_file_name_match_type
+        file_name = args.source_file_name
+        dir_name = args.source_folder_name
+        file_path = shipyard.files.combine_folder_and_file_name(
+            folder_name=dir_name, file_name=file_name
         )
-        print(f"{len(matching_file_names)} files found. Preparing to upload...")
+        table_name = args.table_name
+        insert_method = args.insert_method
 
-        for index, key_name in enumerate(matching_file_names):
-            upload_data(
-                source_full_path=key_name,
-                table_name=table_name,
-                insert_method=insert_method,
-                db_connection=db_connection,
+        client = SqlServerClient(
+            user=args.username,
+            pwd=args.password,
+            host=args.host,
+            database=args.database,
+            port=args.port,
+            url_params=args.url_parameters,
+        )
+        logger.info("Successfully connected to SQL Server")
+
+        if match_type == "regex_match":
+            file_names = shipyard.files.find_all_local_file_names(dir_name)
+            matching_file_names = shipyard.files.find_all_file_matches(
+                file_names, re.compile(file_name)
+            )
+            logger.info(
+                f"{len(matching_file_names)} files found. Preparing to upload..."
             )
 
-    else:
-        upload_data(
-            source_full_path=source_full_path,
-            table_name=table_name,
-            insert_method=insert_method,
-            db_connection=db_connection,
-        )
+            for index, file in enumerate(matching_file_names):
+                df = pd.read_csv(file)
+                if index > 0:
+                    insert_method = "append"
+                client.upload(df=df, table_name=table_name, insert_method=insert_method)
+                logger.info(f"Upload of {file} complete")
 
-    db_connection.dispose()
+            logger.info(f"Successfully loaded all files to {table_name}")
+
+        else:
+            df = pd.read_csv(file_path)
+            client.upload(df=df, table_name=table_name, insert_method=insert_method)
+            logger.info(f"Successfully loaded {file_path} to {table_name}")
+
+    except FileNotFoundError:
+        logger.error(f"File {file_path} does not exist")
+        sys.exit(Database.EXIT_CODE_FILE_NOT_FOUND)
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
+
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred when attempting to upload data to SQL Server. Message from the server reads: {e}"
+        )
+        sys.exit(Database.EXIT_CODE_UNKNOWN)
+
+    finally:
+        client.close()
 
 
 if __name__ == "__main__":
