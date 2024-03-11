@@ -1,11 +1,17 @@
-import os
-import re
 import argparse
+import re
 import sys
-import shutil
-import shipyard_utils as shipyard
-import ftplib
-from shipyard_ftp.cli import exit_codes as ec
+
+from shipyard_bp_utils import files as shipyard
+from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
+
+from shipyard_ftp.exceptions import (
+    EXIT_CODE_NO_MATCHES_FOUND,
+    EXIT_CODE_FTP_DELETE_ERROR,
+)
+from shipyard_ftp.ftp import FtpClient
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -29,115 +35,66 @@ def get_args():
     return parser.parse_args()
 
 
-def find_files_in_directory(client, folder_filter, files, folders):
-    """
-    Pull in a list of all entities under a specific directory and categorize them into files and folders.
-    """
-    original_dir = client.pwd()
-    names = client.nlst(folder_filter)
-    for name in names:
-        # Accounts for an issue where some FTP servers return file names
-        # without folder prefixes.
-        if "/" not in name:
-            name = f"{folder_filter}/{name}"
-
-        try:
-            client.cwd(name)
-            # If you can change the directory to the entity_name, it's a
-            # folder.
-            folders.append(name)
-        except ftplib.error_perm as e:
-            files.append(name)  # If you can't, it's a file.
-            continue
-        client.cwd(original_dir)
-
-    folders.remove(folder_filter)
-
-    return files, folders
-
-
-def delete_ftp_file(client, file_path):
-    """
-    Delete a selected file from the FTP server.
-    """
-    try:
-        client.delete(file_path)
-        print(f"Successfully deleted {file_path}")
-    except Exception as e:
-        print(
-            f"Failed to delete file {file_path}. Ensure that the folder path and file name our correct"
-        )
-        sys.exit(ec.EXIT_CODE_INVALID_FILE_PATH)
-    return
-
-
-def get_client(host, port, username, password):
-    """
-    Attempts to create an FTP client at the specified hots with the
-    specified credentials
-    """
-    try:
-        client = ftplib.FTP(timeout=3600)
-        client.connect(host, int(port))
-        client.login(username, password)
-        client.set_pasv(True)
-        client.set_debuglevel(0)
-        return client
-    except Exception as e:
-        print(f"Error accessing the FTP server with the specified credentials")
-        print(f"The server says: {e}")
-        sys.exit(ec.EXIT_CODE_INCORRECT_CREDENTIALS)
-
-
 def main():
-    args = get_args()
-    host = args.host
-    port = args.port
-    username = args.username
-    password = args.password
-    file_name_match_type = args.file_name_match_type
-    file_name = args.source_file_name
-    folder_name = shipyard.files.clean_folder_name(args.source_folder_name)
+    try:
+        args = get_args()
+        host = args.host
+        port = args.port
+        username = args.username
+        password = args.password
+        file_name_match_type = args.file_name_match_type
+        file_name = args.source_file_name
+        folder_name = shipyard.clean_folder_name(args.source_folder_name)
+        errors = []
+        client = FtpClient(host=host, port=port, user=username, pwd=password)
 
-    client = get_client(host=host, port=port, username=username, password=password)
+        if file_name_match_type == "regex_match":
+            folders = [folder_name]
+            files = []
+            while folders:
+                folder_filter = folders[0]
 
-    if file_name_match_type == "regex_match":
-        folders = [folder_name]
-        files = []
-        while folders != []:
-            folder_filter = folders[0]
-            files, folders = find_files_in_directory(
-                client=client, folder_filter=folder_filter, files=files, folders=folders
+                files, folders = client.find_files_in_directory(
+                    folder_filter=folder_filter, files=files, folders=folders
+                )
+
+            matching_file_names = shipyard.find_all_file_matches(
+                files, re.compile(file_name)
             )
 
-        matching_file_names = shipyard.files.find_all_file_matches(
-            files, re.compile(file_name)
-        )
+            if number_of_matches := len(matching_file_names) == 0:
+                logger.info(f'No matches were found for regex "{file_name}".')
+                sys.exit(EXIT_CODE_NO_MATCHES_FOUND)
 
-        number_of_matches = len(matching_file_names)
+            for index, file_name in enumerate(matching_file_names, start=1):
+                logger.info(f"Deleting file {index} out of {number_of_matches}")
 
-        if number_of_matches == 0:
-            print(f'No matches were found for regex "{file_name}".')
-            sys.exit(ec.EXIT_CODE_NO_MATCHES_FOUND)
+                try:
+                    client.remove(file_name)
+                except Exception:
+                    logger.error(f"Failed to delete {file_name}... Skipping")
+                    errors.append(file_name)
 
-        for index, file_name in enumerate(matching_file_names):
-            print(
-                f"Deleting file {index+1} of {len(matching_file_names)} out of {number_of_matches}"
-            )
+        elif file_name_match_type == "exact_match":
+            file_path = shipyard.combine_folder_and_file_name(folder_name, file_name)
             try:
-                delete_ftp_file(client=client, file_path=file_name)
+                client.remove(file_path)
             except Exception as e:
-                print(f"Failed to delete {file_name}... Skipping")
-    else:
-        file_path = shipyard.files.combine_folder_and_file_name(folder_name, file_name)
-        try:
-            delete_ftp_file(client=client, file_path=file_path)
-        except Exception as e:
-            print(f"The server says: {e}")
-            print(
-                f"Most likely, the file name/folder name you specified has typos or the full folder name was not provided. Check these and try again."
-            )
-            sys.exit(ec.EXIT_CODE_NO_MATCHES_FOUND)
+                logger.error(
+                    "Check the file/folder name for misspellings and ensure that entire folder name was "
+                    "provided"
+                )
+                raise e
+        if errors:
+            logger.error("Failed to delete the following files:\n" + "\n".join(errors))
+            sys.exit(EXIT_CODE_FTP_DELETE_ERROR)
+
+    except ExitCodeException as e:
+        logger.error(e.message)
+        sys.exit(e.exit_code)
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":

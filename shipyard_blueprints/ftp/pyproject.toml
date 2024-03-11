@@ -1,17 +1,21 @@
 [tool.poetry]
 name = "shipyard-ftp"
-version = "0.1.0"
+version = "0.2.0a6"
 description = "A local client for connecting and working with FTP servers"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
 readme = "README.md"
-packages = [{include = "shipyard_ftp"}]
+packages = [{ include = "shipyard_ftp" }]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.10"
-shipyard-templates = "0.5.0a0"
-shipyard-utils = "0.1.4"
+python = "^3.9"
+shipyard-templates = "^0.6.2"
+shipyard-bp-utils = "^1.0.3"
 
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.1"
+pytest = "^8.0.2"
 
 [build-system]
 requires = ["poetry-core"]

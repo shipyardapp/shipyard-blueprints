@@ -1,13 +1,14 @@
+import argparse
 import os
 import re
-import argparse
-import glob
 import sys
 
-import ftplib
+from shipyard_bp_utils import files as shipyard
+from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
 
-EXIT_CODE_INCORRECT_CREDENTIALS = 3
-EXIT_CODE_NO_MATCHES_FOUND = 200
+from shipyard_ftp.ftp import FtpClient
+
+logger = ShipyardLogger().get_logger()
 
 
 def get_args():
@@ -41,229 +42,83 @@ def get_args():
     return parser.parse_args()
 
 
-def extract_file_name_from_source_full_path(source_full_path):
-    """
-    Use the file name provided in the source_full_path variable. Should be run
-    only if a destination_file_name is not provided.
-    """
-    destination_file_name = os.path.basename(source_full_path)
-    return destination_file_name
-
-
-def enumerate_destination_file_name(destination_file_name, file_number=1):
-    """
-    Append a number to the end of the provided destination file name.
-    Only used when multiple files are matched to, preventing the destination
-    file from being continuously overwritten.
-    """
-    if re.search(r"\.", destination_file_name):
-        destination_file_name = re.sub(
-            r"\.", f"_{file_number}.", destination_file_name, 1
-        )
-    else:
-        destination_file_name = f"{destination_file_name}_{file_number}"
-    return destination_file_name
-
-
-def determine_destination_file_name(
-    *, source_full_path, destination_file_name, file_number=None
-):
-    """
-    Determine if the destination_file_name was provided, or should be extracted
-    from the source_file_name, or should be enumerated for multiple file
-    uploads.
-    """
-    if destination_file_name:
-        if file_number:
-            destination_file_name = enumerate_destination_file_name(
-                destination_file_name, file_number
-            )
-        else:
-            destination_file_name = destination_file_name
-    else:
-        destination_file_name = extract_file_name_from_source_full_path(
-            source_full_path
-        )
-
-    return destination_file_name
-
-
-def clean_folder_name(folder_name):
-    """
-    Cleans folders name by removing duplicate '/' as well as leading and
-    trailing '/' characters.
-    """
-    folder_name = folder_name.strip("/")
-    if folder_name != "":
-        folder_name = os.path.normpath(folder_name)
-    return folder_name
-
-
-def combine_folder_and_file_name(folder_name, file_name):
-    """
-    Combine together the provided folder_name and file_name into one path
-    variable.
-    """
-    combined_name = os.path.normpath(
-        f'{folder_name}{"/" if folder_name else ""}{file_name}'
-    )
-    combined_name = os.path.normpath(combined_name)
-
-    return combined_name
-
-
-def determine_destination_full_path(
-    destination_folder_name, destination_file_name, source_full_path, file_number=None
-):
-    """
-    Determine the final destination name of the file being uploaded.
-    """
-    destination_file_name = determine_destination_file_name(
-        destination_file_name=destination_file_name,
-        source_full_path=source_full_path,
-        file_number=file_number,
-    )
-    destination_full_path = combine_folder_and_file_name(
-        destination_folder_name, destination_file_name
-    )
-    return destination_full_path
-
-
-def find_all_local_file_names(source_folder_name):
-    """
-    Returns a list of all files that exist in the current working directory,
-    filtered by source_folder_name if provided.
-    """
-    cwd = os.getcwd()
-    cwd_extension = os.path.normpath(f"{cwd}/{source_folder_name}/**")
-    file_names = glob.glob(cwd_extension, recursive=True)
-    return [file_name for file_name in file_names if os.path.isfile(file_name)]
-
-
-def find_all_file_matches(file_names, file_name_re):
-    """
-    Return a list of all file_names that matched the regular expression.
-    """
-    matching_file_names = []
-    for file in file_names:
-        if re.search(file_name_re, file):
-            matching_file_names.append(file)
-
-    return matching_file_names
-
-
-def create_new_folders(client, destination_path):
-    """
-    Changes working directory to the specified destination path
-    and creates it if it doesn't exist
-    """
-    original_dir = client.pwd()
-    for folder in destination_path.split("/"):
-        try:
-            client.cwd(folder)
-        except Exception as e:
-            client.mkd(folder)
-            client.cwd(folder)
-    client.cwd(original_dir)
-
-
-def upload_ftp_file(client, source_full_path, destination_full_path):
-    """
-    Uploads a single file to the FTP server.
-    """
-    if not os.path.isfile(source_full_path):
-        print(f"{source_full_path} does not exist")
-        return
-
-    try:
-        with open(source_full_path, "rb") as f:
-            client.storbinary(f"STOR {destination_full_path}", f)
-    except Exception as e:
-        print(f"Failed to upload {source_full_path} to FTP server")
-        raise (e)
-
-    print(f"{source_full_path} successfully uploaded to " f"{destination_full_path}")
-
-
-def get_client(host, port, username, password):
-    """
-    Attempts to create an FTP client at the specified hots with the
-    specified credentials
-    """
-    try:
-        client = ftplib.FTP()
-        client.connect(host, int(port))
-        client.login(username, password)
-        return client
-    except Exception as e:
-        print(f"Error accessing the FTP server with the specified credentials")
-        print(f"The server says: {e}")
-        sys.exit(EXIT_CODE_INCORRECT_CREDENTIALS)
-
-
 def main():
-    args = get_args()
-    host = args.host
-    port = args.port
-    username = args.username
-    password = args.password
-    source_file_name = args.source_file_name
-    source_folder_name = args.source_folder_name
-    source_full_path = combine_folder_and_file_name(
-        folder_name=f"{os.getcwd()}/{source_folder_name}", file_name=source_file_name
-    )
-    destination_folder_name = clean_folder_name(args.destination_folder_name)
-    source_file_name_match_type = args.source_file_name_match_type
-
-    client = get_client(host=host, port=port, username=username, password=password)
-
-    if source_file_name_match_type == "regex_match":
-        file_names = find_all_local_file_names(source_folder_name)
-        matching_file_names = find_all_file_matches(
-            file_names, re.compile(source_file_name)
+    try:
+        args = get_args()
+        host = args.host
+        port = args.port
+        username = args.username
+        password = args.password
+        source_file_name = args.source_file_name
+        source_folder_name = args.source_folder_name
+        destination_filename = args.destination_file_name or source_file_name
+        destination_folder_name = shipyard.clean_folder_name(
+            args.destination_folder_name
         )
-
-        number_of_matches = len(matching_file_names)
-
-        if number_of_matches == 0:
-            print(f'No matches were found for regex "{source_file_name}".')
-            sys.exit(EXIT_CODE_NO_MATCHES_FOUND)
-
-        print(f"{len(matching_file_names)} files found. Preparing to upload...")
-
-        for index, key_name in enumerate(matching_file_names):
-            destination_full_path = determine_destination_full_path(
+        source_file_name_match_type = args.source_file_name_match_type
+        errors = []
+        ftp_client = FtpClient(host=host, port=port, user=username, pwd=password)
+        if source_file_name_match_type == "exact_match":
+            source_full_path = shipyard.combine_folder_and_file_name(
+                folder_name=f"{os.getcwd()}/{source_folder_name}",
+                file_name=source_file_name,
+            )
+            destination_full_path = shipyard.determine_destination_full_path(
                 destination_folder_name=destination_folder_name,
-                destination_file_name=args.destination_file_name,
-                source_full_path=key_name,
-                file_number=index + 1,
+                destination_file_name=destination_filename,
+                source_full_path=source_full_path,
             )
             if len(destination_full_path.split("/")) > 1:
                 path, file_name = destination_full_path.rsplit("/", 1)
-                create_new_folders(client=client, destination_path=path)
-            file_name = destination_full_path.rsplit("/", 1)[-1]
-            print(f"Uploading file {index+1} of {len(matching_file_names)}")
-            upload_ftp_file(
-                client=client,
-                source_full_path=key_name,
-                destination_full_path=destination_full_path,
+                ftp_client.create_new_folders(path)
+
+            if os.path.isfile(source_full_path):
+                ftp_client.upload(source_full_path, destination_full_path)
+
+            else:
+                raise ExitCodeException(
+                    message=f"{source_full_path} does not exist",
+                    exit_code=ftp_client.EXIT_CODE_FILE_MATCH_ERROR,
+                )
+
+        elif source_file_name_match_type == "regex_match":
+            file_names = shipyard.find_all_local_file_names(source_folder_name)
+            matching_file_names = shipyard.find_all_file_matches(
+                file_names, re.compile(source_file_name)
             )
 
-    else:
-        destination_full_path = determine_destination_full_path(
-            destination_folder_name=destination_folder_name,
-            destination_file_name=args.destination_file_name,
-            source_full_path=source_full_path,
-        )
-        if len(destination_full_path.split("/")) > 1:
-            path, file_name = destination_full_path.rsplit("/", 1)
-            create_new_folders(client=client, destination_path=path)
+            if number_of_matches := len(matching_file_names) == 0:
+                logger.error(f'No matches were found for regex "{source_file_name}".')
+                sys.exit(ftp_client.EXIT_CODE_FILE_MATCH_ERROR)
 
-        upload_ftp_file(
-            client=client,
-            source_full_path=source_full_path,
-            destination_full_path=destination_full_path,
-        )
+            logger.info(f"{number_of_matches} files found. Preparing to upload...")
+
+            for index, key_name in enumerate(matching_file_names, start=1):
+                destination_full_path = shipyard.determine_destination_full_path(
+                    destination_folder_name=destination_folder_name,
+                    destination_file_name=destination_filename,
+                    source_full_path=key_name,
+                    file_number=index if number_of_matches > 1 else None,
+                )
+                if len(destination_full_path.split("/")) > 1:
+                    path, file_name = destination_full_path.rsplit("/", 1)
+                    ftp_client.create_new_folders(destination_path=path)
+                logger.info(f"Uploading file {index} of {number_of_matches}")
+                if os.path.isfile(key_name):
+                    ftp_client.upload(key_name, destination_full_path)
+                else:
+                    logger.warning(f"{key_name} does not exist")
+                    errors.append(key_name)
+        if errors:
+            logger.error("Failed to upload the following files:\n" + "\n".join(errors))
+            sys.exit(ftp_client.EXIT_CODE_FILE_MATCH_ERROR)
+
+    except ExitCodeException as e:
+        logger.error(e.message)
+        sys.exit(e.exit_code)
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
+        sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":
