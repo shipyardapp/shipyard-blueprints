@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class CloudStorage(ABC):
+    EXIT_CODE_INVALID_INPUT = 200
     EXIT_CODE_INVALID_CREDENTIALS = 202
     EXIT_CODE_FILE_ACCESS_ERROR = 203
     EXIT_CODE_FOLDER_ACCESS_ERROR = 204

@@ -1,12 +1,16 @@
+import argparse
 import os
-import sys
 import re
 import sys
-import argparse
+
 import shipyard_utils as shipyard
-from azure.storage.blob import BlobClient, ContainerClient
-from azure.core import exceptions
+from shipyard_bp_utils import files as shipyard
+from shipyard_templates import ShipyardLogger
+
+from shipyard_azureblob import AzureBlobClient
 from shipyard_azureblob.cli import exit_codes as ec
+
+logger = ShipyardLogger().get_logger()
 
 
 def get_args():
@@ -29,107 +33,32 @@ def get_args():
     return parser.parse_args()
 
 
-def set_environment_variables(args):
-    """
-    Set Azure Connection String as environment variable if it's provided via keyword arguments
-    rather than seeded as environment variables. This will override system defaults.
-    """
-
-    if args.connection_string:
-        os.environ["AZURE_STORAGE_CONNECTION_STRING"] = args.connection_string
-    return
-
-
-def find_azure_storage_blob_file_names(conn_str, container_name, prefix=""):
-    """
-    Fetched all the files in the bucket which are returned in a list as
-    Azure Blob objects
-    """
-    container = ContainerClient.from_connection_string(
-        conn_str=conn_str, container_name=container_name
-    )
-    return list(container.list_blobs(prefix=prefix))
-
-
-def azure_find_matching_files(file_blobs, file_name_re):
-    """
-    Return a list of all file_names that matched the regular expression.
-    """
-    matching_file_names = []
-    for blob in file_blobs:
-        if re.search(file_name_re, blob.name):
-            matching_file_names.append(blob.name)
-
-    return matching_file_names
-
-
-def delete_azure_storage_blob_file(
-    file_name,
-    container_name,
-    connection_string,
-):
-    """
-    Delete Blob from Azure cloud storage
-    """
-    try:
-        blob = BlobClient.from_connection_string(
-            conn_str=connection_string,
-            container_name=container_name,
-            blob_name=file_name,
-        )
-    except:
-        print("Incorrect Credentials")
-        sys.exit(ec.EXIT_CODE_INCORRECT_CREDENTIALS)
-
-    try:
-        blob.delete_blob()
-        print(f"{container_name}/{file_name} delete function successfully ran")
-    except:
-        print(
-            f"{file_name} delete failed to run. The file {file_name} could not be found. Ensure that the name of the file is correct"
-        )
-        sys.exit(ec.EXIT_CODE_AZURE_DELETE_ERROR)
-
-
 def main():
     args = get_args()
-    set_environment_variables(args)
-    connection_string = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
-    container_name = args.container_name
-    source_file_name = args.source_file_name
     source_folder_name = shipyard.files.clean_folder_name(args.source_folder_name)
-    source_full_path = shipyard.files.combine_folder_and_file_name(
-        folder_name=source_folder_name, file_name=source_file_name
-    )
-    source_file_name_match_type = args.source_file_name_match_type
 
-    if source_file_name_match_type == "regex_match":
-        file_names = find_azure_storage_blob_file_names(
-            conn_str=connection_string,
-            container_name=container_name,
-            prefix=source_folder_name,
+    client = AzureBlobClient(
+        connection_string=args.connection_string, container_name=args.container_name
+    )
+    if args.source_file_name_match_type == "exact_match":
+        source_full_path = shipyard.files.combine_folder_and_file_name(
+            folder_name=source_folder_name, file_name=args.source_file_name
         )
-        matching_file_names = azure_find_matching_files(
-            file_names, re.compile(source_file_name)
+        client.remove(file_name=source_full_path)
+
+    elif args.source_file_name_match_type == "regex_match":
+        file_names = client.find_blob_file_names(prefix=source_folder_name)
+        matching_file_names = shipyard.find_all_file_matches(
+            file_names, re.compile(args.source_file_name)
         )
-        if len(matching_file_names) == 0:
-            print("No file matches found")
+        if number_of_matches := len(matching_file_names) == 0:
+            logger.error("No file matches found")
             sys.exit(ec.EXIT_CODE_NO_MATCHES_FOUND)
 
-        print(f"{len(matching_file_names)} files found. Preparing to delete...")
-        for index, file_name in enumerate(matching_file_names):
-            print(f"Deleting file {index+1} of {len(matching_file_names)}")
-            delete_azure_storage_blob_file(
-                file_name=file_name,
-                container_name=container_name,
-                connection_string=connection_string,
-            )
-    else:
-        delete_azure_storage_blob_file(
-            file_name=source_full_path,
-            container_name=container_name,
-            connection_string=connection_string,
-        )
+        logger.info(f"{number_of_matches} files found. Preparing to delete...")
+        for index, file_name in enumerate(matching_file_names, start=1):
+            logger.info(f"Deleting file {index} of {number_of_matches}")
+            client.remove(file_name=file_name)
 
 
 if __name__ == "__main__":
