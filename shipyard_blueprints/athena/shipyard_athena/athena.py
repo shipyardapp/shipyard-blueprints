@@ -1,16 +1,18 @@
-from shipyard_templates import Database
 import boto3
 import sys
+from shipyard_templates import Database, ShipyardLogger
+from typing import Dict, Optional
+
+logger = ShipyardLogger.get_logger()
 
 
-class AthenaClient(Database):
-    def __init__(self, user: str, pwd: str, region: str = None) -> None:
-        self.aws_access_key = user
-        self.aws_secret_key = pwd
+class AthenaClient:
+    def __init__(
+        self, aws_access_key: str, aws_secret_key: str, region: Optional[str] = None
+    ) -> None:
+        self.aws_access_key = aws_access_key
+        self.aws_secret_key = aws_secret_key
         self.region = region
-        super().__init__(
-            user=self.aws_access_key, pwd=self.aws_secret_key, region=self.region
-        )
 
     def connect(self):
         try:
@@ -22,7 +24,7 @@ class AthenaClient(Database):
             )
             return client
         except Exception as e:
-            self.logger.error("Could not connect with the provided credentials")
+            logger.error("Could not connect with the provided credentials")
             return 1
 
     def execute_query(self, query: str):
