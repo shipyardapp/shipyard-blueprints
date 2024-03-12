@@ -2,6 +2,7 @@ import pytest
 import os
 from dotenv import load_dotenv, find_dotenv
 from shipyard_athena import AthenaClient
+from shipyard_athena.errors.exceptions import QueryFailed, FetchError
 
 load_dotenv(find_dotenv())
 
@@ -36,6 +37,8 @@ def test_fetch_with_directory(client):
     db = os.getenv("DATABASE")
     log_bucket = os.getenv("LOG_BUCKET")
 
+    os.mkdir("nested")
+
     client.fetch(
         query=query, dest_path="nested/nested.csv", database=db, log_folder=log_bucket
     )
@@ -44,4 +47,16 @@ def test_fetch_with_directory(client):
 
     assert "nested.csv" in files
 
+    os.remove("nested/nested.csv")
     os.removedirs("nested")
+
+
+def test_bad_query(client):
+    query = "sssselelect 1"
+    db = os.getenv("DATABASE")
+    log_bucket = os.getenv("LOG_BUCKET")
+
+    with pytest.raises(FetchError):
+        client.fetch(
+            query=query, dest_path="test_fetch.csv", database=db, log_folder=log_bucket
+        )

@@ -86,3 +86,24 @@ def test_execute_query(creds, exec_cmd):
     cmd.extend(["--query", "select 1"])
     process = subprocess.run(cmd)
     assert process.returncode == 0
+
+
+def test_download_with_folder(creds, down_cmd):
+    cmd = deepcopy(down_cmd)
+    params = [
+        "--query",
+        creds["query"],
+        "--destination-file-name",
+        BASECASE_FILE,
+        "--destination-folder-name",
+        "nested",
+    ]
+
+    cmd.extend(params)
+
+    process = subprocess.run(cmd)
+
+    assert process.returncode == 0
+
+    os.remove(f"nested/{BASECASE_FILE}")
+    os.removedirs("nested")
