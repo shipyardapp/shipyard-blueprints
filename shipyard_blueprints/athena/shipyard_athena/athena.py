@@ -123,12 +123,15 @@ class AthenaClient:
             response = self.s3.Bucket(self.bucket).download_file(
                 f'{log_folder}{"/" if log_folder else ""}{job_id}.csv', dest_path
             )
-            logger.debug(f"Successfully downloaded query results to {dest_path}")
-            logger.debug(f"Contents of response: {response}")
+            logger.debug("Download complete")
+            if response:
+                logger.debug(f"Contents of response: {response}")
         except ExitCodeException:
             raise
         except Exception as e:
             raise errs.FetchError(e)
+        else:
+            return response
 
     def _get_query_status(self, job_id: str):
         """Fetches the query status
