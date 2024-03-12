@@ -408,6 +408,23 @@ botocore = ">=1.33.2,<2.0a.0"
 crt = ["botocore[crt] (>=1.33.2,<2.0a.0)"]
 
 [[package]]
+name = "shipyard-bp-utils"
+version = "1.0.3"
+description = "Utility functions for blueprints"
+optional = false
+python-versions = ">=3.9,<4.0"
+files = [
+    {file = "shipyard_bp_utils-1.0.3-py3-none-any.whl", hash = "sha256:ae5f209fcc29e2b75caf1990b9f686f7d236355c7734d31a8b652fa00861c77a"},
+    {file = "shipyard_bp_utils-1.0.3.tar.gz", hash = "sha256:98faaf507e13100b048ba31ff62b77fe6b19312a1de86aa359176f3146b79071"},
+]
+
+[package.dependencies]
+pandas = ">=2.2.0,<3.0.0"
+pytest = ">=8.0.1,<9.0.0"
+python-dateutil = ">=2.8.2,<3.0.0"
+shipyard-templates = "0.6.2"
+
+[[package]]
 name = "shipyard-templates"
 version = "0.6.2"
 description = "Super classes for blueprint development"
@@ -481,4 +498,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f80c647294919e3b2350709a957e7737f1738f1fd34b02f1e47e0a00a852bddf"
+content-hash = "a1277a52857a037b2ba2d44575fda04e01fc9f1a47184cf64011e90896d603eb"
