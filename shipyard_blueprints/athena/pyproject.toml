@@ -11,6 +11,7 @@ packages = [{include = "shipyard_athena"}]
 python = "^3.9"
 boto3 = "^1.34.59"
 shipyard-templates = "0.6.2"
+shipyard-bp-utils = "^1.0.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
@@ -21,6 +22,7 @@ pandas = "^2.2.1"
 [tool.pytest.ini_options]
 testpaths = [
     "tests",
+    "unit"
 ]
 
 [build-system]
