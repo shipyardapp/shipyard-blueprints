@@ -11,7 +11,7 @@ logger = ShipyardLogger().get_logger()
 
 class AzureBlobClient(CloudStorage):
     def __init__(self, connection_string: str, container_name: str = None) -> None:
-        self.connection_string = (connection_string,)
+        self.connection_string = connection_string
         self.container_name = container_name
         self._service_account = None
         self._container = None
@@ -26,13 +26,20 @@ class AzureBlobClient(CloudStorage):
         the get_container_client or get_blob_client methods.
         """
         if not self._service_account:
+            logger.debug(
+                "Attempting to initialize connection to Azure service account..."
+            )
             try:
                 self._service_account = BlobServiceClient.from_connection_string(
                     conn_str=self.connection_string
                 )
-                return self._service_account
+                logger.debug("Successfully connected to Azure service account")
             except Exception as e:
+                logger.error(
+                    f"Could not connect to the Azure with the provided connection string: Message from Azure: {e}"
+                )
                 raise exceptions.InvalidCredentialsError(e) from e
+        return self._service_account
 
     @property
     def container(self) -> ContainerClient:
@@ -45,9 +52,15 @@ class AzureBlobClient(CloudStorage):
         if not self.container_name:
             raise exceptions.InvalidInputError("Container name not provided")
         if not self._container:
+            logger.debug(
+                f"Attempting to initialize connection to container {self.container_name}..."
+            )
             try:
                 self._container = self.blob_service_client.get_container_client(
                     self.container_name
+                )
+                logger.debug(
+                    f"Successfully connected to container {self.container_name}"
                 )
             except ExitCodeException:
                 raise
@@ -126,8 +139,10 @@ class AzureBlobClient(CloudStorage):
         except ExitCodeException:
             raise
         except ResourceExistsError as e:
-            logger.error(f'File "{source_full_path}" already exists in the container')
-            raise e
+            raise exceptions.UploadError(
+                f"Failed to upload {source_full_path} to {self.container_name}/{destination_full_path}. "
+                f"File {destination_full_path} already exists in the container"
+            ) from e
         except Exception as e:
             raise exceptions.UploadError(
                 f"Failed to upload {source_full_path} to {self.container_name}/{destination_full_path}. "
@@ -150,9 +165,13 @@ class AzureBlobClient(CloudStorage):
 
         local_path = os.path.normpath(f"{os.getcwd()}/{destination_file_name}")
         blob = self.container.get_blob_client(file_name)
-
-        with open(destination_file_name, "wb") as new_blob:
+        try:
             blob_data = blob.download_blob()
+        except ResourceNotFoundError as e:
+            raise exceptions.NoFilesFoundError(
+                f"File {file_name} not found in {self.container_name}"
+            ) from e
+        with open(destination_file_name, "wb") as new_blob:
             blob_data.readinto(new_blob)
 
         logger.info(
@@ -165,13 +184,15 @@ class AzureBlobClient(CloudStorage):
         Google Blob objects
         """
         logger.debug(
-            f"Attempting to find all files in {self.container_name} with prefix {prefix}..."
+            f"Attempting to find all files in {self.container_name}"
+            f"{f' with prefix {prefix}' if prefix else 'without prefix'}."
         )
         blob_list = self.container.list_blobs(name_starts_with=prefix)
-        logger.bebug(
-            f"Found {len(blob_list)} files in {self.container_name} with prefix {prefix}"
-        )
-        return [blob.name for blob in blob_list]
+        blob_list = [blob.name for blob in blob_list]
+        logger.debug(f"Found {len(blob_list)} files in {self.container_name}")
+        logger.debug(f"Files found: {blob_list}")
+
+        return blob_list
 
     def remove(self, file_name: str) -> None:
         """
@@ -183,16 +204,22 @@ class AzureBlobClient(CloudStorage):
         Raises:
             exceptions.DeleteError: If the delete operation fails
         """
+        logger.debug(f"Attempting to delete {self.container_name}/{file_name}...")
         try:
             blob = self.container.get_blob_client(file_name)
             blob.delete_blob()
             logger.info(
                 f"{self.container_name}/{file_name} delete function successfully ran"
             )
+            logger.info(f"Successfully deleted {self.container_name}/{file_name}")
+        except ResourceNotFoundError as e:
+            raise exceptions.DeleteError(
+                f"Failed to delete {file_name} from {self.container_name}. The file {file_name} could not be found. "
+                f"Ensure that the name of the file is correct."
+            ) from e
         except ExitCodeException:
             raise
-        except:
+        except Exception as e:
             raise exceptions.DeleteError(
-                f"{file_name} delete failed to run. The file {file_name} could not be found. Ensure that the name of "
-                f"the file is correct"
-            )
+                f"Failed to delete {file_name} from {self.container_name}. Response from Azure: {e}"
+            ) from e
