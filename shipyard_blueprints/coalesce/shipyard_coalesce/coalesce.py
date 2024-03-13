@@ -1,5 +1,9 @@
 import requests
-from shipyard_templates import Etl
+from shipyard_templates import Etl, ShipyardLogger
+from typing import Dict, Any, Optional
+
+
+logger = ShipyardLogger.get_logger()
 
 
 class CoalesceClient(Etl):
@@ -14,11 +18,11 @@ class CoalesceClient(Etl):
         snowflake_username: str,
         snowflake_password: str,
         snowflake_role: str,
-        snowflake_warehouse: str = None,
+        snowflake_warehouse: Optional[str] = None,
         parallelism: int = 16,
-        include_nodes_selector: str = None,
+        include_nodes_selector: Optional[str] = None,
         exclude_nodes_selector=None,
-    ) -> dict[any, any]:
+    ) -> Dict[Any, Any]:
         """
         # reference is available here: https://docs.coalesce.io/reference/startrun
         Args:
@@ -66,15 +70,11 @@ class CoalesceClient(Etl):
         response = requests.post(url=url, json=payload, headers=headers)
 
         if response.status_code == 200:
-            self.logger.info("Successfully triggered job")
+            logger.info("Successfully triggered job")
             return response.json()
         else:
-            self.logger.error(
-                f"Error message: {response.json()['error']['errorString']}"
-            )
-            self.logger.error(
-                f"Error details: {response.json()['error']['errorDetail']}"
-            )
+            logger.error(f"Error message: {response.json()['error']['errorString']}")
+            logger.error(f"Error details: {response.json()['error']['errorDetail']}")
             raise Exception(
                 f"Error occurred when attempting to trigger sync: {response.json()['error']['errorString']}"
             )
@@ -96,7 +96,7 @@ class CoalesceClient(Etl):
         response = requests.get(url=url, headers=headers)
         return response
 
-    def determine_sync_status(self, run_counter: int) -> int:
+    def determine_sync_status(self, run_counter: int) -> Optional[int]:
         """Analyzes the statuses returned from the API and returns an exit code based on that for the Shipyard application
 
         Args:
@@ -112,35 +112,35 @@ class CoalesceClient(Etl):
             # go through the statuses and return the appropriate exit code
             # documentation does not provide options for status aside from completed
             if status == "completed":
-                self.logger.info("Status: completed")
+                logger.info("Status: completed")
                 return self.EXIT_CODE_FINAL_STATUS_COMPLETED
             elif status == "pending":
-                self.logger.info("Status: pending")
+                logger.info("Status: pending")
                 return self.EXIT_CODE_FINAL_STATUS_PENDING
             elif status == "running":
-                self.logger.info("Status: running")
+                logger.info("Status: running")
                 return self.EXIT_CODE_SYNC_ALREADY_RUNNING
             elif status == "timeout":
-                self.logger.info("Status: timeout")
+                logger.info("Status: timeout")
                 return self.EXIT_CODE_FINAL_STATUS_INCOMPLETE
             elif status == "canceled":
-                self.logger.info("Status: canceled")
+                logger.info("Status: canceled")
                 return self.EXIT_CODE_FINAL_STATUS_CANCELLED
             elif status == "failed":
-                self.logger.info("Status: failed")
+                logger.info("Status: failed")
                 return self.EXIT_CODE_FINAL_STATUS_ERRORED
             else:
-                self.logger.info(f"Status: {status}")
+                logger.info(f"Status: {status}")
                 return self.EXIT_CODE_UNKNOWN_STATUS
 
         elif response.status_code == 400:
-            self.logger.error(
+            logger.error(
                 f"There was an error when attempting to fetch the status of the job. The message returned from the API is {json['error']['errorString']}"
             )
             return self.EXIT_CODE_BAD_REQUEST
 
         elif response.status_code == 401:
-            self.logger.error(
+            logger.error(
                 "Error occurred when attempting to authenticate, please ensure that the token provided is valid"
             )
             return self.EXIT_CODE_INVALID_CREDENTIALS
