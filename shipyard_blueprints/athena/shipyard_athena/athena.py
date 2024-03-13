@@ -77,6 +77,18 @@ class AthenaClient:
         database: Optional[str] = None,
         log_folder: Optional[str] = None,
     ):
+        """
+        Executes a query in Athena and returns the execution status.
+
+        Args:
+            query (str): The SQL query to be executed.
+            database (Optional[str]): The name of the database to execute the query in. Defaults to None.
+            log_folder (Optional[str]): The folder path to store query logs. Defaults to None.
+
+        Returns:
+            str: The execution state of the query.
+
+        """
         job = self._execute_query(query, database, log_folder)
         logger.debug("Started query execution")
         job_id = job["QueryExecutionId"]
@@ -99,13 +111,21 @@ class AthenaClient:
         database: Optional[str] = None,
         log_folder: Optional[str] = None,
     ):
-        """Returns the results of an athena query as a csv file
+        """
+        Fetches the result of a query from Athena and saves it to a destination path.
 
         Args:
-            query:
-            dest_path:
-            database:
-            output_location:
+            query (str): The SQL query to execute.
+            dest_path (str): The path where the query result will be saved.
+            database (Optional[str]): The name of the database to execute the query in. Defaults to None.
+            log_folder (Optional[str]): The folder where query logs are stored. Defaults to None.
+
+        Returns:
+            str: The response from the download operation.
+
+        Raises:
+            ExitCodeException: If an exit code exception occurs.
+            errs.FetchError: If any other exception occurs during the fetch operation.
         """
         try:
             job = self._execute_query(
@@ -116,7 +136,7 @@ class AthenaClient:
             logger.debug(f"Query status is {status}")
             while not status:
                 time.sleep(5)
-                logger.debug("Wating another 5 seconds to check query status")
+                logger.debug("Waiting another 5 seconds to check query status")
                 status = self._get_query_status(job_id)
                 logger.debug(f"Query status is {status}")
 
@@ -154,6 +174,17 @@ class AthenaClient:
         database: Optional[str] = None,
         log_folder: Optional[str] = None,
     ) -> Dict[str, str]:
+        """
+        Helper function to execute the given query using Amazon Athena.
+
+        Args:
+            query (str): The SQL query to execute.
+            database (Optional[str]): The name of the database to execute the query in. Defaults to None.
+            log_folder (Optional[str]): The folder in S3 where the query logs will be stored. Defaults to None.
+
+        Returns:
+            Dict[str, str]: A dictionary containing information about the executed query job.
+        """
         context = {}
         if database:
             context = {"Database": database}
