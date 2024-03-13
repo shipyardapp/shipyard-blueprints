@@ -13,7 +13,7 @@ class AthenaClient:
         self,
         aws_access_key: str,
         aws_secret_key: str,
-        bucket: str,
+        bucket: Optional[str] = None,
         region: Optional[str] = None,
     ) -> None:
         self.aws_access_key = aws_access_key
@@ -34,6 +34,28 @@ class AthenaClient:
         if not self._s3:
             self._s3 = self.connect_bucket()
         return self._s3
+
+    def verify_auth(self):
+        try:
+            auth_client = boto3.client(
+                "sts",
+                aws_access_key_id=self.aws_access_key,
+                aws_secret_access_key=self.aws_secret_key,
+            )
+            resp = auth_client.get_caller_identity()
+            logger.debug(f"Contents of response: {resp}")
+            if resp["ResponseMetadata"]["HTTPStatusCode"] == 200:
+                return 0
+        except Exception as e:
+            logger.error(
+                f"Error occurred when trying to verify Access Key ID and Secret Access Key. Message from AWS: {e}"
+            )
+            return 1
+        else:
+            logger.error(
+                f"Client connected but with an unknown status code. Response from AWS: {resp}"
+            )
+            return 1
 
     def connect_athena(self):
         """Establishes the connection to Athena
