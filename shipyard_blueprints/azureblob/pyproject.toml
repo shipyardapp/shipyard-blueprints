@@ -11,7 +11,7 @@ packages = [{include = "shipyard_azureblob"}]
 python = "^3.9"
 azure-storage-blob = "^12.19.1"
 shipyard-templates = "0.6.3a0"
-shipyard-bp-utils = "1.0.4a1"
+shipyard-bp-utils = "^1.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.2"

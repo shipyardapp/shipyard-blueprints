@@ -1,15 +1,13 @@
-import os
-import re
 import csv
+import fnmatch
 import glob
 import json
+import os
+import re
 import tarfile
-import fnmatch
-
-from zipfile import ZipFile, ZIP_DEFLATED
 from shipyard_templates import ShipyardLogger
-from pandas import DataFrame
 from typing import List
+from zipfile import ZipFile, ZIP_DEFLATED
 
 logger = ShipyardLogger.get_logger()
 
@@ -30,7 +28,7 @@ def enumerate_destination_file_name(destination_file_name: str, file_number: int
 
 
 def determine_destination_file_name(
-    *, source_full_path: str, destination_file_name: str, file_number: int = None
+        *, source_full_path: str, destination_file_name: str, file_number: int = None
 ) -> str:
     """
     Determines the destination file name based on provided parameters.
@@ -97,10 +95,10 @@ def combine_folder_and_file_name(folder_name: str, file_name: str) -> str:
 
 
 def determine_destination_full_path(
-    destination_folder_name: str,
-    destination_file_name: str,
-    source_full_path: str,
-    file_number: int = None,
+        destination_folder_name: str,
+        destination_file_name: str,
+        source_full_path: str,
+        file_number: int = None,
 ) -> str:
     """
     Determines the full destination path of a file based on provided parameters.
@@ -390,17 +388,3 @@ def write_csv_to_file(csv_object: list, file_name: str) -> None:
         writer.writerows(csv_object)
     logger.info(f"CSV data stored at {file_name}")
     return
-
-
-def read_csv_file(filename: str) -> DataFrame:
-    """
-    Read a CSV file and return the contents as a DataFrame.
-
-    Args:
-    filename (str): The name of the file to be read.
-
-    Returns:
-    DataFrame: The contents of the CSV file as a DataFrame.
-    """
-    logger.debug(f"Reading CSV file: {filename}...")
-    return DataFrame.from_csv(filename)

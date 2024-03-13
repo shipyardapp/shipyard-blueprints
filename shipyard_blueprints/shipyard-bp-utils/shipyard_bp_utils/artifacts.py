@@ -1,7 +1,8 @@
 import os
 import pickle
-from . import files
 from shipyard_templates import ShipyardLogger
+
+from . import files
 
 logger = ShipyardLogger.get_logger()
 
@@ -16,8 +17,6 @@ class Artifact:
                 return self.read_json(filename)
             elif file_type == "pickle":
                 return self.read_pickle(filename)
-            elif file_type == "csv":
-                return self.read_csv(filename)
             else:
                 raise ValueError(f"Unsupported file type: {file_type}")
 
@@ -26,8 +25,6 @@ class Artifact:
                 return self.write_json(filename, data)
             elif file_type == "pickle":
                 return self.create_pickle(filename, data)
-            elif file_type == "csv":
-                return self.write_csv(filename, data)
             else:
                 raise ValueError(f"Unsupported file type: {file_type}")
 
@@ -58,19 +55,6 @@ class Artifact:
             data = files.read_json_file(json_file_name)
             logger.debug(f"JSON file read. Data: {data}")
             return data
-
-        def read_csv(self, filename):
-            logger.debug(f"Reading CSV file: {filename}...")
-            csv_file_name = os.path.join(self.path, f"{filename}.csv")
-            data = files.read_csv_file(csv_file_name)
-            logger.debug(f"CSV file read. Data: {data}")
-            return data
-
-        def write_csv(self, filename, data):
-            logger.debug(f"Writing CSV file: {filename}...")
-            csv_file_name = os.path.join(self.path, f"{filename}.csv")
-            files.write_csv_to_file(data, csv_file_name)
-            logger.debug("CSV file written.")
 
     def __init__(self, vendor):
         self.vendor = vendor
