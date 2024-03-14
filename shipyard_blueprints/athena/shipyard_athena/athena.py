@@ -9,6 +9,8 @@ logger = ShipyardLogger.get_logger()
 
 
 class AthenaClient(Database):
+    active = ["RUNNING", "QUEUED"]  # statuses for actively running queries
+
     def __init__(
         self,
         aws_access_key: str,
@@ -117,14 +119,14 @@ class AthenaClient(Database):
         logger.debug(f"Fetched job ID {job_id}")
         status = self._fetch_query_execution_status(job_id)
         logger.debug(f"Query status is {status}")
-        while not status:
+        while status in self.active:
             time.sleep(5)
-            logger.debug("Wating another 5 seconds to check query status")
+            logger.debug("Waiting another 5 seconds to check query status")
             status = self._fetch_query_execution_status(job_id)
             logger.debug(f"Query status is {status}")
-
-        logger.debug(f"Status JSON reads: {status}")
-        return status["QueryExecution"]["Status"]["State"]
+            if status == "SUCCEEDED":
+                break
+        return status
 
     def fetch(
         self,
@@ -156,12 +158,13 @@ class AthenaClient(Database):
             job_id = job["QueryExecutionId"]
             status = self._fetch_query_execution_status(job_id)
             logger.debug(f"Query status is {status}")
-            while not status:
+            while status in self.active:
                 time.sleep(5)
                 logger.debug("Waiting another 5 seconds to check query status")
                 status = self._fetch_query_execution_status(job_id)
                 logger.debug(f"Query status is {status}")
-
+                if status == "SUCCEEDED":
+                    break
             response = self.s3.Bucket(self.bucket).download_file(
                 f'{log_folder}{"/" if log_folder else ""}{job_id}.csv', dest_path
             )
@@ -183,12 +186,13 @@ class AthenaClient(Database):
         """
         result = self.athena.get_query_execution(QueryExecutionId=job_id)
         state = result["QueryExecution"]["Status"]["State"]
-        if state == "SUCCEEDED":
-            return result
+        if state in ["SUCCEEDED", "RUNNING", "QUEUED"]:
+            return state
         elif state == "FAILED":
             err_msg = result["QueryExecution"]["Stats"].get("StateChangeReason")
             raise errs.QueryFailed(err_msg)
-        return False
+        elif state == "CANCELLED":
+            raise errs.QueryCancelled
 
     def _execute_query(
         self,
