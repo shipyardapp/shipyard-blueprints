@@ -6,6 +6,7 @@ EXIT_CODE_S3_BUCKET_ACCESS_ERRROR = 102
 EXIT_CODE_QUERY_FAILED = 103
 EXIT_CODE_QUERY_EXECUTION_ERROR = 104
 EXIT_CODE_FETCH_ERROR = 105
+EXIT_CODE_QUERY_CANCELLED = 106
 
 
 class InvalidAthenaAccess(ExitCodeException):
@@ -38,3 +39,9 @@ class FetchError(ExitCodeException):
     def __init__(self, err_message: Exception):
         self.message = f"Error in attempting to download query results to file. Message from AWS: {err_message}"
         self.exit_code = EXIT_CODE_FETCH_ERROR
+
+
+class QueryCancelled(ExitCodeException):
+    def __init__(self):
+        self.message = "The provided query has been cancelled, aborting fetch job now."
+        self.exit_code = EXIT_CODE_QUERY_CANCELLED
