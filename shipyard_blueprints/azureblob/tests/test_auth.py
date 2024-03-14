@@ -1,6 +1,9 @@
 import os
 from shipyard_azureblob import AzureBlobClient
 from dotenv import load_dotenv, find_dotenv
+from shipyard_templates import ShipyardLogger
+
+logger = ShipyardLogger().get_logger()
 
 load_dotenv(find_dotenv())
 
@@ -10,10 +13,8 @@ def conn_helper(client: AzureBlobClient) -> int:
     try:
         client.connect()
         return 0
-    except Exception as e:
-        client.logger.error("Could not connect to azure")
-        return 1
-    else:
+    except Exception:
+        logger.error("Could not connect to azure")
         return 1
 
 
@@ -24,7 +25,7 @@ def test_good_connection():
     assert conn_helper(client) == 0
 
 
-def test_bad_connnection():
+def test_bad_connection():
     con_str = os.getenv("BAD_STORAGE_CONNECTION")
     client = AzureBlobClient(connection_string=con_str)
     assert conn_helper(client) == 1

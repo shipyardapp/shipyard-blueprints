@@ -1,17 +1,23 @@
 import os
 import sys
+
+from shipyard_templates import ShipyardLogger
+
 from shipyard_azureblob import AzureBlobClient
+
+logger = ShipyardLogger().get_logger()
 
 
 def main():
-    conn_str = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
-    azure = AzureBlobClient(connection_string=conn_str)
     try:
-        conn = azure.connect()
-        sys.exit(0)
+        sys.exit(
+            AzureBlobClient(
+                connection_string=os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+            ).connect()
+        )
     except Exception as e:
-        azure.logger.error(
-            "Could not connect to the Azure with the provided connection string"
+        logger.authtest(
+            f"Could not connect to the Azure with the provided connection string due to {e}"
         )
         sys.exit(1)
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-azureblob"
-version = "0.1.0"
+version = "0.2.0a0"
 description = "A local client to connect with and work with Azure Blob"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
@@ -8,14 +8,13 @@ readme = "README.md"
 packages = [{include = "shipyard_azureblob"}]
 
 [tool.poetry.dependencies]
-python = ">=3.7, < 3.10"
-azure-storage-blob = "12.3.2"
-shipyard-templates = "0.5.0a0"
-shipyard-utils = "^0.1.4"
+python = "^3.9"
+azure-storage-blob = "^12.19.1"
+shipyard-bp-utils = "^1.1.1"
+shipyard-templates = "^0.7.0"
 
 [tool.poetry.group.dev.dependencies]
-#shipyard-templates = {path = "../../shipyard-templates", develop = true}
-pytest = "^7.4.0"
+pytest = "^8.0.2"
 
 [build-system]
 requires = ["poetry-core"]
