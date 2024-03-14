@@ -1,6 +1,7 @@
 import requests
-from shipyard_templates import Etl, ShipyardLogger
+from shipyard_templates import Etl, ExitCodeException, ShipyardLogger
 from typing import Dict, Any, Optional
+from shipyard_coalesce.errors import exceptions as errs
 
 
 logger = ShipyardLogger.get_logger()
@@ -22,7 +23,8 @@ class CoalesceClient(Etl):
         parallelism: int = 16,
         include_nodes_selector: Optional[str] = None,
         exclude_nodes_selector=None,
-    ) -> Dict[Any, Any]:
+        parameters: Optional[str] = None,
+    ) -> requests.Response:
         """
         # reference is available here: https://docs.coalesce.io/reference/startrun
         Args:
@@ -35,49 +37,53 @@ class CoalesceClient(Etl):
             snowflake_role: the role associated with the snowflake username
             parallelism: maximum number of parallel nodes to run
             include_nodes_selector: nodes included for a job
+            parameters: The Coalesce parameters to be used in the refresh
 
         Returns: HTTP response from the API
 
         """
-        headers = {
-            "accept": "application/json",
-            "content-type": "application/json",
-            "Authorization": f"Bearer {self.access_token}",
-        }
-        url = f"{self.base_url}/startRun"
-        # populate the inner payload for the userCredentials object
-        credentials = {
-            "snowflakeUsername": snowflake_username,
-            "snowflakePassword": snowflake_password,
-            "snowflakeRole": snowflake_role,
-            "snowflakeAuthType": "Basic",
-        }
-        if snowflake_warehouse:
-            credentials["snowflakeWarehouse"] = snowflake_warehouse
-        # populate the inner payload for the runDetails object
-        # environmentId is required and parallelism has a default value
-        details = {"environmentID": environment_id, "parallelism": parallelism}
-        # jobId, and include/exclude_nodes_selector are optional
-        if job_id:
-            details["jobId"] = job_id
-        if include_nodes_selector:
-            details["includeNodesSelector"] = include_nodes_selector
-        if exclude_nodes_selector:
-            details["excludeNodesSelector"] = exclude_nodes_selector
+        try:
+            headers = {
+                "accept": "application/json",
+                "content-type": "application/json",
+                "Authorization": f"Bearer {self.access_token}",
+            }
+            url = f"{self.base_url}/startRun"
+            # populate the inner payload for the userCredentials object
+            credentials = {
+                "snowflakeUsername": snowflake_username,
+                "snowflakePassword": snowflake_password,
+                "snowflakeRole": snowflake_role,
+                "snowflakeAuthType": "Basic",
+            }
+            if snowflake_warehouse:
+                credentials["snowflakeWarehouse"] = snowflake_warehouse
+            # populate the inner payload for the runDetails object
+            # environmentId is required and parallelism has a default value
+            details = {"environmentID": environment_id, "parallelism": parallelism}
+            # jobId, and include/exclude_nodes_selector are optional
+            if job_id:
+                details["jobId"] = job_id
+            if include_nodes_selector:
+                details["includeNodesSelector"] = include_nodes_selector
+            if exclude_nodes_selector:
+                details["excludeNodesSelector"] = exclude_nodes_selector
 
-        payload = {"runDetails": details, "userCredentials": credentials}
+            payload = {"runDetails": details, "userCredentials": credentials}
 
-        response = requests.post(url=url, json=payload, headers=headers)
+            if parameters:
+                payload["parameters"] = parameters
 
-        if response.status_code == 200:
+            response = requests.post(url=url, json=payload, headers=headers)
+            response.raise_for_status()
+
             logger.info("Successfully triggered job")
-            return response.json()
-        else:
+        except Exception as e:
             logger.error(f"Error message: {response.json()['error']['errorString']}")
             logger.error(f"Error details: {response.json()['error']['errorDetail']}")
-            raise Exception(
-                f"Error occurred when attempting to trigger sync: {response.json()['error']['errorString']}"
-            )
+            raise errs.TriggerJobError(e)
+        else:
+            return response.json()
 
     def get_run_status(self, run_counter: int) -> requests.Response:
         """Returns the HTTP response for a Coalesce job status
@@ -88,13 +94,18 @@ class CoalesceClient(Etl):
         Returns:
             requests.Response: The HTTP response from the API
         """
-        url = f"{self.base_url}/runStatus?runCounter={run_counter}"
-        headers = {
-            "accept": "application/json",
-            "Authorization": f"Bearer {self.access_token}",
-        }
-        response = requests.get(url=url, headers=headers)
-        return response
+        try:
+            url = f"{self.base_url}/runStatus?runCounter={run_counter}"
+            headers = {
+                "accept": "application/json",
+                "Authorization": f"Bearer {self.access_token}",
+            }
+            response = requests.get(url=url, headers=headers)
+            response.raise_for_status()
+        except Exception as e:
+            raise errs.GetRunStatusError(e, run_counter)
+        else:
+            return response
 
     def determine_sync_status(self, run_counter: int) -> Optional[int]:
         """Analyzes the statuses returned from the API and returns an exit code based on that for the Shipyard application
@@ -105,54 +116,63 @@ class CoalesceClient(Etl):
         Returns:
             int: An exit code for the Shipyard Application
         """
-        response = self.get_run_status(run_counter)
-        json = response.json()
-        if response.status_code == 200:
-            status = json.get("runStatus")
-            # go through the statuses and return the appropriate exit code
-            # documentation does not provide options for status aside from completed
-            if status == "completed":
-                logger.info("Status: completed")
-                return self.EXIT_CODE_FINAL_STATUS_COMPLETED
-            elif status == "pending":
-                logger.info("Status: pending")
-                return self.EXIT_CODE_FINAL_STATUS_PENDING
-            elif status == "running":
-                logger.info("Status: running")
-                return self.EXIT_CODE_SYNC_ALREADY_RUNNING
-            elif status == "timeout":
-                logger.info("Status: timeout")
-                return self.EXIT_CODE_FINAL_STATUS_INCOMPLETE
-            elif status == "canceled":
-                logger.info("Status: canceled")
-                return self.EXIT_CODE_FINAL_STATUS_CANCELLED
-            elif status == "failed":
-                logger.info("Status: failed")
-                return self.EXIT_CODE_FINAL_STATUS_ERRORED
-            else:
-                logger.info(f"Status: {status}")
-                return self.EXIT_CODE_UNKNOWN_STATUS
+        try:
+            response = self.get_run_status(run_counter)
+            json = response.json()
+            if response.status_code == 200:
+                status = json.get("runStatus")
+                # go through the statuses and return the appropriate exit code
+                # documentation does not provide options for status aside from completed
+                if status == "completed":
+                    logger.info("Status: completed")
+                    return self.EXIT_CODE_FINAL_STATUS_COMPLETED
+                elif status == "pending":
+                    logger.info("Status: pending")
+                    return self.EXIT_CODE_FINAL_STATUS_PENDING
+                elif status == "running":
+                    logger.info("Status: running")
+                    return self.EXIT_CODE_SYNC_ALREADY_RUNNING
+                elif status == "timeout":
+                    logger.info("Status: timeout")
+                    return self.EXIT_CODE_FINAL_STATUS_INCOMPLETE
+                elif status == "canceled":
+                    logger.info("Status: canceled")
+                    return self.EXIT_CODE_FINAL_STATUS_CANCELLED
+                elif status == "failed":
+                    logger.info("Status: failed")
+                    return self.EXIT_CODE_FINAL_STATUS_ERRORED
+                else:
+                    logger.info(f"Status: {status}")
+                    return self.EXIT_CODE_UNKNOWN_STATUS
 
-        elif response.status_code == 400:
-            logger.error(
-                f"There was an error when attempting to fetch the status of the job. The message returned from the API is {json['error']['errorString']}"
-            )
-            return self.EXIT_CODE_BAD_REQUEST
+            elif response.status_code == 400:
+                logger.error(
+                    f"There was an error when attempting to fetch the status of the job. The message returned from the API is {json['error']['errorString']}"
+                )
+                return self.EXIT_CODE_BAD_REQUEST
 
-        elif response.status_code == 401:
-            logger.error(
-                "Error occurred when attempting to authenticate, please ensure that the token provided is valid"
-            )
-            return self.EXIT_CODE_INVALID_CREDENTIALS
+            elif response.status_code == 401:
+                logger.error(
+                    "Error occurred when attempting to authenticate, please ensure that the token provided is valid"
+                )
+                return self.EXIT_CODE_INVALID_CREDENTIALS
+        except ExitCodeException:
+            raise
 
     def connect(self):
         """
         Connects to the Coalesce API and returns the response
         """
-        url = "https://app.coalescesoftware.io/scheduler/runStatus?runCounter=1"
-        headers = {
-            "accept": "application/json",
-            "Authorization": f"Bearer {self.access_token}",
-        }
-        response = requests.get(url=url, headers=headers)
-        return response.status_code
+        # url = "https://app.coalescesoftware.io/scheduler/runStatus?runCounter=1"
+        try:
+            url = "https://app.coalescesoftware.io/api/v1/runs?limit=1&orderBy=id&orderByDirection=desc&detail=false"
+            headers = {
+                "accept": "application/json",
+                "Authorization": f"Bearer {self.access_token}",
+            }
+            response = requests.get(url=url, headers=headers)
+            response.raise_for_status()
+        except Exception:
+            return 1
+        else:
+            return 0
