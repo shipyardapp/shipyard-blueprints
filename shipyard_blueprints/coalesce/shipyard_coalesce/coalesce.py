@@ -24,7 +24,7 @@ class CoalesceClient(Etl):
         include_nodes_selector: Optional[str] = None,
         exclude_nodes_selector=None,
         parameters: Optional[Dict[str, str]] = None,
-    ) -> requests.Response:
+    ) -> Dict[str, str]:
         """
         # reference is available here: https://docs.coalesce.io/reference/startrun
         Args:
@@ -163,7 +163,6 @@ class CoalesceClient(Etl):
         """
         Connects to the Coalesce API and returns the response
         """
-        # url = "https://app.coalescesoftware.io/scheduler/runStatus?runCounter=1"
         try:
             url = "https://app.coalescesoftware.io/api/v1/runs?limit=1&orderBy=id&orderByDirection=desc&detail=false"
             headers = {
