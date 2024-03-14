@@ -23,7 +23,7 @@ class CoalesceClient(Etl):
         parallelism: int = 16,
         include_nodes_selector: Optional[str] = None,
         exclude_nodes_selector=None,
-        parameters: Optional[str] = None,
+        parameters: Optional[Dict[str, str]] = None,
     ) -> requests.Response:
         """
         # reference is available here: https://docs.coalesce.io/reference/startrun
