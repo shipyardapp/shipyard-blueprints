@@ -5,6 +5,7 @@ import shipyard_bp_utils as shipyard
 from shipyard_coalesce import CoalesceClient
 from shipyard_bp_utils.artifacts import Artifact
 from shipyard_templates import ExitCodeException, ShipyardLogger, Etl
+from ast import literal_eval
 
 logger = ShipyardLogger.get_logger()
 
@@ -61,7 +62,9 @@ def main():
             "exclude_nodes_selector": (
                 None if args.exclude_nodes == "" else args.exclude_nodes
             ),
-            "parameters": None if args.parameters == "" else args.parameters,
+            "parameters": None
+            if args.parameters == ""
+            else literal_eval(args.parameters),
         }
         client = CoalesceClient(access_token)
         response = client.trigger_sync(**sync_args)
