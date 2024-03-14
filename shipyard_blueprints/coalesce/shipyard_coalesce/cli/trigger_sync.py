@@ -67,8 +67,7 @@ def main():
             else literal_eval(args.parameters),
         }
         client = CoalesceClient(access_token)
-        response = client.trigger_sync(**sync_args)
-        response_json = response.json()
+        response_json = client.trigger_sync(**sync_args)
         if wait and (0 < int(args.poke_interval) <= 60):
             run_id = response_json["runCounter"]
             status = client.determine_sync_status(run_id)
@@ -88,8 +87,9 @@ def main():
             logger.error("Poke interval must be between 1 and 60 minutes")
             sys.exit(client.EXIT_CODE_SYNC_INVALID_POKE_INTERVAL)
         else:
-            a = Artifact("coalesce")
-            a.responses.create_pickle("coalesce_response", response)
+            Artifact("coalesce").responses.create_pickle(
+                "coalesce_response", response_json
+            )
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)
