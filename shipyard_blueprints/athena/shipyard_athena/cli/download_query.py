@@ -56,9 +56,6 @@ def main():
         if target_dir:
             shipyard.files.create_folder_if_dne(target_dir)
 
-        if not os.path.exists(target_dir) and (target_dir != ""):
-            os.makedirs(target_dir)
-
         client = AthenaClient(
             aws_access_key=access_key,
             aws_secret_key=secret_key,
@@ -72,8 +69,7 @@ def main():
         logger.info(f"Successfully downloaded query results to {target_path}")
         # create the artifacts if the response is not None
         if response:
-            a = Artifact("athena")
-            a.responses.write_json("athena_response.json", response)
+            Artifact("athena").responses.write_json("athena_response.json", response)
 
     except ExitCodeException as ec:
         logger.error(ec.message)

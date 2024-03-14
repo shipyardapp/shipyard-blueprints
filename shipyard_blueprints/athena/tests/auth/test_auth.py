@@ -27,7 +27,7 @@ def test_good_connection(creds):
         aws_access_key=creds["access_key"], aws_secret_key=creds["secret"]
     )
 
-    assert client.verify_auth() == 0
+    assert client.connect() == 0
 
 
 def test_bad_access_key(creds):
@@ -35,21 +35,21 @@ def test_bad_access_key(creds):
         aws_access_key="bad-access-key", aws_secret_key=creds["secret"]
     )
 
-    assert client.verify_auth() == 1
+    assert client.connect() == 1
 
 
 def test_bad_secret_key(creds):
     client = AthenaClient(
         aws_access_key=creds["access_key"], aws_secret_key="bad_secret_key"
     )
-    assert client.verify_auth() == 1
+    assert client.connect() == 1
 
 
 def test_bad_access_and_secret_key():
     client = AthenaClient(
         aws_access_key="bad_access_key", aws_secret_key="bad_secret_key"
     )
-    assert client.verify_auth() == 1
+    assert client.connect() == 1
 
 
 def test_credential_test(cmd):

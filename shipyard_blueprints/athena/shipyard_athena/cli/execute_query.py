@@ -46,7 +46,7 @@ def main():
             query=query, database=database, log_folder=log_folder
         )
         logger.debug(f"Query State is {state}")
-        if state != "FAILED":
+        if state == "SUCCEEDED":
             logger.info("Successfully executed query")
 
     except ExitCodeException as ec:
