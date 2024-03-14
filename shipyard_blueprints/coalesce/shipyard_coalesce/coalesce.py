@@ -2,6 +2,7 @@ import requests
 from shipyard_templates import Etl, ExitCodeException, ShipyardLogger
 from typing import Dict, Any, Optional
 from shipyard_coalesce.errors import exceptions as errs
+from copy import deepcopy
 
 
 logger = ShipyardLogger.get_logger()
@@ -10,6 +11,11 @@ logger = ShipyardLogger.get_logger()
 class CoalesceClient(Etl):
     def __init__(self, access_token: str):
         self.base_url = "https://app.coalescesoftware.io/scheduler"
+        self.headers = {
+            "accept": "application/json",
+            "Authorization": f"Bearer {self.access_token}",
+        }
+
         super().__init__(access_token)
 
     def trigger_sync(
@@ -43,11 +49,9 @@ class CoalesceClient(Etl):
 
         """
         try:
-            headers = {
-                "accept": "application/json",
-                "content-type": "application/json",
-                "Authorization": f"Bearer {self.access_token}",
-            }
+            headers = deepcopy(self.headers)
+            headers["content-type"] = "application/json"
+
             url = f"{self.base_url}/startRun"
             # populate the inner payload for the userCredentials object
             credentials = {
@@ -96,11 +100,7 @@ class CoalesceClient(Etl):
         """
         try:
             url = f"{self.base_url}/runStatus?runCounter={run_counter}"
-            headers = {
-                "accept": "application/json",
-                "Authorization": f"Bearer {self.access_token}",
-            }
-            response = requests.get(url=url, headers=headers)
+            response = requests.get(url=url, headers=self.headers)
             response.raise_for_status()
         except Exception as e:
             raise errs.GetRunStatusError(e, run_counter)
@@ -116,46 +116,23 @@ class CoalesceClient(Etl):
         Returns:
             int: An exit code for the Shipyard Application
         """
+        statuses = {
+            "completed": self.EXIT_CODE_FINAL_STATUS_COMPLETED,
+            "pending": self.EXIT_CODE_FINAL_STATUS_PENDING,
+            "running": self.EXIT_CODE_SYNC_ALREADY_RUNNING,
+            "timeout": self.EXIT_CODE_FINAL_STATUS_INCOMPLETE,
+            "timeout": self.EXIT_CODE_FINAL_STATUS_CANCELLED,
+            "failed": self.EXIT_CODE_FINAL_STATUS_ERRORED,
+        }
         try:
             response = self.get_run_status(run_counter)
+            response.raise_for_status()
             json = response.json()
-            if response.status_code == 200:
-                status = json.get("runStatus")
-                # go through the statuses and return the appropriate exit code
-                # documentation does not provide options for status aside from completed
-                if status == "completed":
-                    logger.info("Status: completed")
-                    return self.EXIT_CODE_FINAL_STATUS_COMPLETED
-                elif status == "pending":
-                    logger.info("Status: pending")
-                    return self.EXIT_CODE_FINAL_STATUS_PENDING
-                elif status == "running":
-                    logger.info("Status: running")
-                    return self.EXIT_CODE_SYNC_ALREADY_RUNNING
-                elif status == "timeout":
-                    logger.info("Status: timeout")
-                    return self.EXIT_CODE_FINAL_STATUS_INCOMPLETE
-                elif status == "canceled":
-                    logger.info("Status: canceled")
-                    return self.EXIT_CODE_FINAL_STATUS_CANCELLED
-                elif status == "failed":
-                    logger.info("Status: failed")
-                    return self.EXIT_CODE_FINAL_STATUS_ERRORED
-                else:
-                    logger.info(f"Status: {status}")
-                    return self.EXIT_CODE_UNKNOWN_STATUS
+            status = json.get("runStatus")
+            if not (exit_code := statuses.get(status)):
+                raise errs.UnknownRunStatus(status)
+            return exit_code
 
-            elif response.status_code == 400:
-                logger.error(
-                    f"There was an error when attempting to fetch the status of the job. The message returned from the API is {json['error']['errorString']}"
-                )
-                return self.EXIT_CODE_BAD_REQUEST
-
-            elif response.status_code == 401:
-                logger.error(
-                    "Error occurred when attempting to authenticate, please ensure that the token provided is valid"
-                )
-                return self.EXIT_CODE_INVALID_CREDENTIALS
         except ExitCodeException:
             raise
 
@@ -165,11 +142,7 @@ class CoalesceClient(Etl):
         """
         try:
             url = "https://app.coalescesoftware.io/api/v1/runs?limit=1&orderBy=id&orderByDirection=desc&detail=false"
-            headers = {
-                "accept": "application/json",
-                "Authorization": f"Bearer {self.access_token}",
-            }
-            response = requests.get(url=url, headers=headers)
+            response = requests.get(url=url, headers=self.headers)
             response.raise_for_status()
         except Exception:
             return 1

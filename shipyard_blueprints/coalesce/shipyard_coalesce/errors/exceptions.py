@@ -22,3 +22,9 @@ class AuthenticationError(ExitCodeException):
     def __init__(self, err_message: Exception):
         self.error_message = f"Error in attmepting to authenticate to the Coalesce API. Make sure you provide a valid token. Error message reads: {err_message}"
         self.exit_code = EXIT_CODE_AUTH_ERROR
+
+
+class UnknownRunStatus(ExitCodeException):
+    def __init__(self, status: str):
+        self.error_message = f"Unknown run status reported from Coalesce: {status}"
+        self.exit_code = Etl.EXIT_CODE_UNKNOWN_STATUS
