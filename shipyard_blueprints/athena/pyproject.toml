@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-athena"
-version = "0.2.0a1"
+version = "0.2.0a2"
 description = "A local client for connecting to and working with Amazon Athena"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
