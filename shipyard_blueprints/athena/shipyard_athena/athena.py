@@ -8,7 +8,7 @@ from typing import Dict, Optional
 logger = ShipyardLogger.get_logger()
 
 
-class AthenaClient:
+class AthenaClient(Database):
     def __init__(
         self,
         aws_access_key: str,
@@ -26,7 +26,7 @@ class AthenaClient:
     @property
     def athena(self):
         if not self._athena:
-            self._athena = self.connect_athena()
+            self._athena = self.create_client()
         return self._athena
 
     @property
@@ -35,7 +35,7 @@ class AthenaClient:
             self._s3 = self.connect_bucket()
         return self._s3
 
-    def verify_auth(self):
+    def connect(self):
         try:
             auth_client = boto3.client(
                 "sts",
@@ -57,7 +57,7 @@ class AthenaClient:
             )
             return 1
 
-    def connect_athena(self):
+    def create_client(self):
         """Establishes the connection to Athena
 
         Returns: The Athena client
@@ -115,12 +115,12 @@ class AthenaClient:
         logger.debug("Started query execution")
         job_id = job["QueryExecutionId"]
         logger.debug(f"Fetched job ID {job_id}")
-        status = self._get_query_status(job_id)
+        status = self._fetch_query_execution_status(job_id)
         logger.debug(f"Query status is {status}")
         while not status:
             time.sleep(5)
             logger.debug("Wating another 5 seconds to check query status")
-            status = self._get_query_status(job_id)
+            status = self._fetch_query_execution_status(job_id)
             logger.debug(f"Query status is {status}")
 
         logger.debug(f"Status JSON reads: {status}")
@@ -154,12 +154,12 @@ class AthenaClient:
                 query=query, database=database, log_folder=log_folder
             )
             job_id = job["QueryExecutionId"]
-            status = self._get_query_status(job_id)
+            status = self._fetch_query_execution_status(job_id)
             logger.debug(f"Query status is {status}")
             while not status:
                 time.sleep(5)
                 logger.debug("Waiting another 5 seconds to check query status")
-                status = self._get_query_status(job_id)
+                status = self._fetch_query_execution_status(job_id)
                 logger.debug(f"Query status is {status}")
 
             response = self.s3.Bucket(self.bucket).download_file(
@@ -175,7 +175,7 @@ class AthenaClient:
         else:
             return response
 
-    def _get_query_status(self, job_id: str):
+    def _fetch_query_execution_status(self, job_id: str):
         """Fetches the query status
 
         Args:
@@ -185,7 +185,7 @@ class AthenaClient:
         state = result["QueryExecution"]["Status"]["State"]
         if state == "SUCCEEDED":
             return result
-        elif state == "Failed":
+        elif state == "FAILED":
             err_msg = result["QueryExecution"]["Stats"].get("StateChangeReason")
             raise errs.QueryFailed(err_msg)
         return False
@@ -211,10 +211,9 @@ class AthenaClient:
         if database:
             context = {"Database": database}
 
+        output = f"s3://{self.bucket}"
         if log_folder:
-            output = f"s3://{self.bucket}/{log_folder.strip('/')}"
-        else:
-            output = f"s3://{self.bucket}"
+            output += f"/{log_folder.strip('/')}"
 
         job = self.athena.start_query_execution(
             QueryString=query,
@@ -222,3 +221,6 @@ class AthenaClient:
             ResultConfiguration={"OutputLocation": output},
         )
         return job
+
+    def upload(self):
+        pass
