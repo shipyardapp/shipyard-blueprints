@@ -83,7 +83,7 @@ def main():
                 status = client.determine_sync_status(run_id)
 
             sys.exit(status)
-        elif args.wait_for_completion == "TRUE":
+        elif wait:
             logger.error("Poke interval must be between 1 and 60 minutes")
             sys.exit(client.EXIT_CODE_SYNC_INVALID_POKE_INTERVAL)
         else:

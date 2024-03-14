@@ -1,6 +1,6 @@
 import requests
 from shipyard_templates import Etl, ExitCodeException, ShipyardLogger
-from typing import Dict, Any, Optional
+from typing import Dict, Optional, Union
 from shipyard_coalesce.errors import exceptions as errs
 from copy import deepcopy
 
@@ -89,7 +89,7 @@ class CoalesceClient(Etl):
         else:
             return response.json()
 
-    def get_run_status(self, run_counter: int) -> requests.Response:
+    def get_run_status(self, run_counter: Union[int, str]) -> requests.Response:
         """Returns the HTTP response for a Coalesce job status
 
         Args:
@@ -107,7 +107,7 @@ class CoalesceClient(Etl):
         else:
             return response
 
-    def determine_sync_status(self, run_counter: int) -> Optional[int]:
+    def determine_sync_status(self, run_counter: Union[int, str]) -> Optional[int]:
         """Analyzes the statuses returned from the API and returns an exit code based on that for the Shipyard application
 
         Args:
