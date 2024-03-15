@@ -1,25 +1,32 @@
-from shipyard_templates import CloudStorage
 from dropbox import Dropbox
+from shipyard_templates import CloudStorage, ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 class DropboxClient(CloudStorage):
     def __init__(self, access_key: str) -> None:
         self.access_key = access_key
-        super().__init__(access_key=access_key)
 
     def connect(self):
-        client = Dropbox(self.access_key)
-        client.users_get_current_account()
-        return client
+        try:
+            Dropbox(self.access_key).users_get_current_account()
+            logger.authtest("Successfully verified Dropbox access key.")
+            return 0
+        except Exception as e:
+            logger.authtest(
+                f"Failed to authenticate using key. Message from Dropbox Server{e}"
+            )
+            return 1
 
-    def upload_files(self):
+    def upload(self):
         pass
 
-    def download_files(self):
+    def download(self):
         pass
 
-    def move_or_rename_files(self):
+    def move(self):
         pass
 
-    def remove_files(self):
+    def remove(self):
         pass

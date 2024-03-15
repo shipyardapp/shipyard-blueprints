@@ -5,17 +5,18 @@ description = "A local client to connect and work with Dropox"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
 readme = "README.md"
-packages = [{include = "shipyard_dropbox"}]
+packages = [{ include = "shipyard_dropbox" }]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.10"
-dropbox = "11.36.0"
-shipyard-templates = "0.5.0a0"
+python = "^3.9"
+shipyard-templates = "^0.7.0"
+dropbox = "^11.36.2"
+shipyard-bp-utils = "^1.1.1"
 
 
 [tool.poetry.group.dev.dependencies]
-#shipyard-templates = {path = "../../shipyard-templates", develop = true}
-pytest = "^7.4.0"
+python-dotenv = "^1.0.1"
+pytest = "^8.1.1"
 
 [build-system]
 requires = ["poetry-core"]
