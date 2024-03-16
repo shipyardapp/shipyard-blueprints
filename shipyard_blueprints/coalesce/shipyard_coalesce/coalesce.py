@@ -10,6 +10,7 @@ logger = ShipyardLogger.get_logger()
 
 class CoalesceClient(Etl):
     def __init__(self, access_token: str):
+        self.access_token = access_token
         self.base_url = "https://app.coalescesoftware.io/scheduler"
         self.headers = {
             "accept": "application/json",
@@ -24,7 +25,7 @@ class CoalesceClient(Etl):
         job_id: str,
         snowflake_username: str,
         snowflake_password: str,
-        snowflake_role: str,
+        snowflake_role: Optional[str],
         snowflake_warehouse: Optional[str] = None,
         parallelism: int = 16,
         include_nodes_selector: Optional[str] = None,
@@ -57,11 +58,13 @@ class CoalesceClient(Etl):
             credentials = {
                 "snowflakeUsername": snowflake_username,
                 "snowflakePassword": snowflake_password,
-                "snowflakeRole": snowflake_role,
                 "snowflakeAuthType": "Basic",
             }
             if snowflake_warehouse:
                 credentials["snowflakeWarehouse"] = snowflake_warehouse
+            if snowflake_role:
+                credentials["snowflakeRole"] = snowflake_role
+
             # populate the inner payload for the runDetails object
             # environmentId is required and parallelism has a default value
             details = {"environmentID": environment_id, "parallelism": parallelism}
@@ -118,10 +121,11 @@ class CoalesceClient(Etl):
         """
         statuses = {
             "completed": self.EXIT_CODE_FINAL_STATUS_COMPLETED,
-            "pending": self.EXIT_CODE_FINAL_STATUS_PENDING,
+            "initializing": self.EXIT_CODE_FINAL_STATUS_PENDING,
+            "rendering": self.EXIT_CODE_SYNC_ALREADY_RUNNING,
+            "canceled": self.EXIT_CODE_FINAL_STATUS_CANCELLED,
             "running": self.EXIT_CODE_SYNC_ALREADY_RUNNING,
-            "timeout": self.EXIT_CODE_FINAL_STATUS_INCOMPLETE,
-            "timeout": self.EXIT_CODE_FINAL_STATUS_CANCELLED,
+            "waitingToRun": self.EXIT_CODE_FINAL_STATUS_PENDING,
             "failed": self.EXIT_CODE_FINAL_STATUS_ERRORED,
         }
         try:
@@ -129,7 +133,10 @@ class CoalesceClient(Etl):
             response.raise_for_status()
             json = response.json()
             status = json.get("runStatus")
-            if not (exit_code := statuses.get(status)):
+            logger.info(f"Current status is {status}")
+            logger.debug(f"JSON is {json}")
+            logger.debug(f"status from dict is {statuses.get(status)}")
+            if (exit_code := statuses.get(status)) is None:
                 raise errs.UnknownRunStatus(status)
             return exit_code
 
