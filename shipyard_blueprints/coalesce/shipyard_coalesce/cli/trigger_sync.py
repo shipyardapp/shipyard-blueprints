@@ -21,7 +21,7 @@ def get_args():
     parser.add_argument(
         "--snowflake-password", dest="snowflake_password", required=True
     )
-    parser.add_argument("--snowflake-role", dest="snowflake_role", required=True)
+    parser.add_argument("--snowflake-role", dest="snowflake_role", required=False)
     parser.add_argument(
         "--snowflake-warehouse", dest="snowflake_warehouse", required=True
     )
@@ -74,7 +74,6 @@ def main():
 
             while status not in (
                 client.EXIT_CODE_FINAL_STATUS_COMPLETED,
-                client.EXIT_CODE_FINAL_STATUS_INCOMPLETE,
                 client.EXIT_CODE_FINAL_STATUS_CANCELLED,
                 client.EXIT_CODE_FINAL_STATUS_ERRORED,
             ):
