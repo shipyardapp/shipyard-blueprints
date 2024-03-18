@@ -39,6 +39,7 @@ class SqlServerClient(Database):
     def conn(self):
         if self._conn is None:
             self.connect()
+        logger.info("Successfully connected to SQL Server")
         return self._conn
 
     def connect(self):

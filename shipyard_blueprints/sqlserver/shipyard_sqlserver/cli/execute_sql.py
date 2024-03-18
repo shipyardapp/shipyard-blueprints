@@ -40,8 +40,6 @@ def main():
             port=args.port,
             url_params=args.url_parameters,
         )
-        logger.info("Successfully connected to SQL Server")
-
         client.execute_query(query)
         logger.info("Successfully executed query")
 

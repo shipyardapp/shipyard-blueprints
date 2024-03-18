@@ -66,11 +66,6 @@ def main():
             port=args.port,
             url_params=args.url_parameters,
         )
-        logger.info("Successfully connected to SQL Server")
-
-        data = client.fetch(query)
-        logger.info("Successfully fetched query results")
-
         client.download_chunks(query=query, dest_path=dest_path, header=file_header)
 
         logger.info(f"Successfully stored query results to {dest_path}")
