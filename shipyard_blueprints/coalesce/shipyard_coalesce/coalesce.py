@@ -79,6 +79,7 @@ class CoalesceClient(Etl):
             payload = {"runDetails": details, "userCredentials": credentials}
 
             if parameters:
+                logger.debug(f"Using parameters {parameters}")
                 payload["parameters"] = parameters
 
             response = requests.post(url=url, json=payload, headers=headers)
