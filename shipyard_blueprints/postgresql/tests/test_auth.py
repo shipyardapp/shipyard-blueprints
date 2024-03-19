@@ -1,8 +1,16 @@
 import os
+import pytest
 from shipyard_postgresql import PostgresqlClient
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
+
+single_file = "test.csv"
+dest_file = "download.csv"
+nested_file = "mult_1.csv"
+dest_folder = "newdir"
+regex_file = "mult"
+regex_folder = "mult"
 
 
 def conn_helper(client: PostgresqlClient) -> int:
@@ -10,10 +18,6 @@ def conn_helper(client: PostgresqlClient) -> int:
         client.connect()
         return 0
     except Exception as e:
-        client.logger.error("Could not connect to Postgres")
-        return 1
-    else:
-        client.logger.error("Could not connect to Postgres")
         return 1
 
 

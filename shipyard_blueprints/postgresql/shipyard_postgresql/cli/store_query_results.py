@@ -60,9 +60,9 @@ def create_connection_string(args):
     if args.db_connection_url:
         os.environ["DB_CONNECTION_URL"] = args.db_connection_url
     elif args.host and args.database:
-        os.environ["DB_CONNECTION_URL"] = (
-            f"postgresql://{args.username}:{args.password}@{args.host}:{args.port}/{args.database}?{args.url_parameters}"
-        )
+        os.environ[
+            "DB_CONNECTION_URL"
+        ] = f"postgresql://{args.username}:{args.password}@{args.host}:{args.port}/{args.database}?{args.url_parameters}"
 
     db_string = os.environ.get("DB_CONNECTION_URL")
     return db_string
@@ -137,7 +137,7 @@ def main():
 
     db_string = create_connection_string(args)
     try:
-        db_connection = create_db_connection(db_string)
+        db_connection = create_db_connection(db_string).connect()
     except Exception as e:
         print(f"Failed to connect to database {args.database}")
         raise (e)
@@ -148,7 +148,7 @@ def main():
         destination_file_path=destination_full_path,
         file_header=file_header,
     )
-    db_connection.dispose()
+    db_connection.close()
 
 
 if __name__ == "__main__":

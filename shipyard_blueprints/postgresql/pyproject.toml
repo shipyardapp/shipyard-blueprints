@@ -15,6 +15,11 @@ psycopg2-binary = "^2.9.6"
 shipyard-templates = "0.5.0a0"
 
 
+[tool.pytest.ini_options]
+testpaths = [
+    "tests"
+]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
