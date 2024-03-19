@@ -89,7 +89,7 @@ class SqlServerClient(Database):
             self.conn.execute(query)
             logger.debug("Executed query")
             self.conn.commit()
-            logger.debug("Commiting transaction")
+            logger.debug("Committing transaction")
         except Exception as e:
             raise QueryError(e)
 
