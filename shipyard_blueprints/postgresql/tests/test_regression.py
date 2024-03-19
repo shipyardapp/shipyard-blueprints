@@ -3,7 +3,7 @@ import glob
 import pandas as pd
 import pytest
 import subprocess
-from shipyard_postgresql import PostgresqlClient
+from shipyard_postgresql import PostgresClient
 from dotenv import load_dotenv, find_dotenv
 from copy import deepcopy
 

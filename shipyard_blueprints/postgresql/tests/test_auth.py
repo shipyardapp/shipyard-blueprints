@@ -1,6 +1,6 @@
 import os
 import pytest
-from shipyard_postgresql import PostgresqlClient
+from shipyard_postgresql import PostgresClient
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
@@ -13,7 +13,7 @@ regex_file = "mult"
 regex_folder = "mult"
 
 
-def conn_helper(client: PostgresqlClient) -> int:
+def conn_helper(client: PostgresClient) -> int:
     try:
         client.connect()
         return 0
@@ -27,7 +27,7 @@ def test_good_connection():
     pwd = os.getenv("POSTGRES_PASSWORD")
     db = os.getenv("POSTGRES_DATABASE")
     port = os.getenv("POSTGRES_PORT")
-    client = PostgresqlClient(user=user, pwd=pwd, host=host, port=port, database=db)
+    client = PostgresClient(user=user, pwd=pwd, host=host, port=port, database=db)
     assert conn_helper(client) == 0
 
 
@@ -37,7 +37,7 @@ def test_bad_host():
     pwd = os.getenv("POSTGRES_PASSWORD")
     db = os.getenv("POSTGRES_DATABASE")
     port = os.getenv("POSTGRES_PORT")
-    client = PostgresqlClient(user=user, pwd=pwd, host=host, port=port, database=db)
+    client = PostgresClient(user=user, pwd=pwd, host=host, port=port, database=db)
     assert conn_helper(client) == 1
 
 
@@ -47,7 +47,7 @@ def test_bad_user():
     pwd = os.getenv("POSTGRES_PASSWORD")
     db = os.getenv("POSTGRES_DATABASE")
     port = os.getenv("POSTGRES_PORT")
-    client = PostgresqlClient(user=user, pwd=pwd, host=host, port=port, database=db)
+    client = PostgresClient(user=user, pwd=pwd, host=host, port=port, database=db)
     assert conn_helper(client) == 1
 
 
@@ -57,7 +57,7 @@ def test_bad_pwd():
     pwd = "bad_password"
     db = os.getenv("POSTGRES_DATABASE")
     port = os.getenv("POSTGRES_PORT")
-    client = PostgresqlClient(user=user, pwd=pwd, host=host, port=port, database=db)
+    client = PostgresClient(user=user, pwd=pwd, host=host, port=port, database=db)
     assert conn_helper(client) == 1
 
 
@@ -67,7 +67,7 @@ def test_bad_db():
     pwd = os.getenv("POSTGRES_PASSWORD")
     db = "bad_db"
     port = os.getenv("POSTGRES_PORT")
-    client = PostgresqlClient(user=user, pwd=pwd, host=host, port=port, database=db)
+    client = PostgresClient(user=user, pwd=pwd, host=host, port=port, database=db)
     assert conn_helper(client) == 1
 
 
@@ -77,7 +77,7 @@ def test_bad_port():
     pwd = os.getenv("POSTGRES_PASSWORD")
     db = os.getenv("POSTGRES_DATABASE")
     port = "bad_port"
-    client = PostgresqlClient(user=user, pwd=pwd, host=host, port=port, database=db)
+    client = PostgresClient(user=user, pwd=pwd, host=host, port=port, database=db)
     assert conn_helper(client) == 1
 
 
@@ -87,5 +87,5 @@ def test_diff_port():
     pwd = os.getenv("POSTGRES_PASSWORD")
     db = os.getenv("POSTGRES_DATABASE")
     port = 1234
-    client = PostgresqlClient(user=user, pwd=pwd, host=host, port=port, database=db)
+    client = PostgresClient(user=user, pwd=pwd, host=host, port=port, database=db)
     assert conn_helper(client) == 1

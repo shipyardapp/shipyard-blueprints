@@ -12,8 +12,14 @@ python = "^3.9"
 SQLAlchemy = "2.0.0"
 pandas = "^2.0"
 psycopg2-binary = "^2.9.9"
-shipyard-templates = "0.7.0"
+# shipyard-templates = "0.7.0"
+shipyard-bp-utils = "^1.1.1"
 
+[tool.poetry.group.dev.dependencies]
+black = "^24.2.0"
+python-dotenv = "^1.0.1"
+pytest = "^8.0.2"
+shipyard-templates = {path = "../../shipyard-templates", develop = true}
 
 [tool.pytest.ini_options]
 testpaths = [
