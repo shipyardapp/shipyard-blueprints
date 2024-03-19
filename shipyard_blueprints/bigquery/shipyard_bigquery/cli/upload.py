@@ -1,14 +1,14 @@
-import os
-import re
 import argparse
 import ast
+import os
+import re
 import sys
-from google.api_core.exceptions import BadRequest
 
+import shipyard_bp_utils as shipyard
 from shipyard_templates import ShipyardLogger, ExitCodeException
+
 from shipyard_bigquery import BigQueryClient
 from shipyard_bigquery.utils.exceptions import InvalidSchema, SchemaFormatError
-import shipyard_bp_utils as shipyard
 
 logger = ShipyardLogger.get_logger()
 
@@ -43,11 +43,11 @@ def get_args():
     parser.add_argument(
         "--quoted-newline", dest="quoted_newline", default="FALSE", required=False
     )
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():
+    schema = None
     try:
         args = get_args()
         dataset = args.dataset
@@ -71,7 +71,8 @@ def main():
 
         if schema and not skip_header_rows:
             logger.warning(
-                f"Skip Header Rows was not provided but a schema was defined. Setting the Skip Header Rows to 1 to properly load"
+                "Skip Header Rows was not provided but a schema was defined. Setting the Skip Header Rows to 1 to "
+                "properly load"
             )
             skip_header_rows = 1
 
@@ -84,6 +85,8 @@ def main():
             matching_file_names = shipyard.files.find_all_file_matches(
                 file_names, re.compile(file_name)
             )
+            if not matching_file_names:
+                raise FileNotFoundError(f"No files found matching {file_name}")
             logger.info(
                 f"{len(matching_file_names)} files found. Preparing to upload..."
             )
@@ -118,7 +121,9 @@ def main():
         logger.error(ec.message)
         if schema:
             logger.warning(
-                "Ensure that the data types provided in the schema input are correct. Visit https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#data_type_properties for more details"
+                "Ensure that the data types provided in the schema input are correct. Visit "
+                "https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#data_type_properties for "
+                "more details"
             )
         sys.exit(ec.exit_code)
     except Exception as e:

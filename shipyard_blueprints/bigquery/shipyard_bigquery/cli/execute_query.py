@@ -11,8 +11,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--query", dest="query", required=True)
     parser.add_argument("--service-account", dest="service_account", required=True)
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():
