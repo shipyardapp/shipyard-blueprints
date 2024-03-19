@@ -1,5 +1,6 @@
 from shipyard_templates import Database
 from sqlalchemy import create_engine
+from typing import Optional
 
 
 class PostgresqlClient(Database):
@@ -7,9 +8,9 @@ class PostgresqlClient(Database):
         self,
         user: str,
         pwd: str,
-        host: str = None,
+        host: str,
         port: int = 5432,
-        database: str = None,
+        database: Optional[str] = None,
         url_params=None,
     ) -> None:
         self.user = user
@@ -18,9 +19,16 @@ class PostgresqlClient(Database):
         self.port = port
         self.database = database
         self.url_params = url_params
+        self._conn = None
         super().__init__(
             user, pwd, host=host, port=port, database=database, url_params=url_params
         )
+
+    @property
+    def conn(self):
+        if self._conn is None:
+            self._conn = self.connect()
+        return self._conn
 
     def connect(self):
         con_str = f"postgresql://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?{self.url_params}"
