@@ -1,7 +1,6 @@
 import argparse
-import os
 import sys
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from shipyard_sqlserver import SqlServerClient
 from shipyard_templates import ExitCodeException, ShipyardLogger, Database
 
