@@ -143,3 +143,56 @@ def test_row_counts(creds):
     assert orig.shape[0] == new.shape[0]
     print("Removing downloaded file")
     os.remove(dest_file)
+
+
+def test_upload_exact_match_append(creds: dict[str, str], up: list):
+    up_copy = deepcopy(up)
+    up_copy.extend(
+        [
+            "--source-file-name-match-type",
+            "exact_match",
+            "--source-file-name",
+            single_file,
+            "--insert-method",
+            "append",
+            "--table-name",
+            creds["table"],
+        ]
+    )
+
+    process = subprocess.run(up_copy)
+
+    assert process.returncode == 0
+
+
+def test_download_table_append(creds: dict[str, str], down: list):
+    down_copy = deepcopy(down)
+    down_copy.extend(
+        [
+            "--query",
+            f'select * from {creds["table"]}',
+            "--destination-file-name",
+            dest_file,
+        ]
+    )
+
+    process = subprocess.run(down_copy)
+
+    assert process.returncode == 0
+
+
+def test_row_counts_append(creds):
+    orig = pd.read_csv(single_file)
+    new = pd.read_csv(dest_file)
+    assert (2 * orig.shape[0]) == new.shape[0]
+    print("Removing downloaded file")
+    os.remove(dest_file)
+
+
+def test_drop_table_1(creds, query):
+    query_copy = deepcopy(query)
+    query_copy.extend(["--query", f'drop table {creds["table"]}'])
+
+    process = subprocess.run(query_copy)
+
+    assert process.returncode == 0
