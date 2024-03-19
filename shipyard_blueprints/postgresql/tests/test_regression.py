@@ -145,6 +145,9 @@ def test_row_counts(creds):
     os.remove(dest_file)
 
 
+# End to End 2: Single file exact match, append
+
+
 def test_upload_exact_match_append(creds: dict[str, str], up: list):
     up_copy = deepcopy(up)
     up_copy.extend(
@@ -189,9 +192,116 @@ def test_row_counts_append(creds):
     os.remove(dest_file)
 
 
+# End to End 3: Single file within a folder, exact match, replace
+
+
+def test_upload_nested_file_replace(creds: dict[str, str], up: list):
+    up_copy = deepcopy(up)
+    up_copy.extend(
+        [
+            "--source-file-name-match-type",
+            "exact_match",
+            "--source-file-name",
+            nested_file,
+            "--source-folder-name",
+            "mult",
+            "--insert-method",
+            "replace",
+            "--table-name",
+            creds["table"],
+        ]
+    )
+
+    process = subprocess.run(up_copy)
+
+    assert process.returncode == 0
+
+
+def test_download_table_nested(creds: dict[str, str], down: list):
+    down_copy = deepcopy(down)
+    down_copy.extend(
+        [
+            "--query",
+            f'select * from {creds["table"]}',
+            "--destination-file-name",
+            dest_file,
+            "--destination-folder-name",
+            dest_folder,
+        ]
+    )
+
+    process = subprocess.run(down_copy)
+
+    assert process.returncode == 0
+
+
+def test_row_counts_nested(creds):
+    orig = pd.read_csv(f"mult/{nested_file}")
+    new = pd.read_csv(f"{dest_folder}/{dest_file}")
+    assert (orig.shape[0]) == new.shape[0]
+    print("Removing downloaded file and directory")
+    subprocess.run(["rm", "-fr", dest_folder])
+
+
+# End to End 4: Upload many files within a folder
+def test_upload_regex_match_replace(creds, up):
+    up_copy = deepcopy(up)
+    up_copy.extend(
+        [
+            "--source-file-name-match-type",
+            "regex_match",
+            "--source-file-name",
+            regex_file,
+            "--source-folder-name",
+            regex_folder,
+            "--insert-method",
+            "replace",
+            "--table-name",
+            creds["regex_table"],
+        ]
+    )
+
+    process = subprocess.run(up_copy)
+    assert process.returncode == 0
+
+
+def test_download_regex_match_table(creds, down):
+    down_copy = deepcopy(down)
+    down_copy.extend(
+        [
+            "--query",
+            f'select * from {creds["regex_table"]}',
+            "--destination-file-name",
+            dest_file,
+        ]
+    )
+
+    process = subprocess.run(down_copy)
+
+    assert process.returncode == 0
+
+
+# BUG: This is failing in the original version, post refactor should pass
+def test_rows_regex():
+    orig = read_all_csvs(regex_folder)
+    new = pd.read_csv(dest_file)
+    assert (orig.shape[0]) == new.shape[0]
+    print("Removing downloaded file")
+    os.remove(dest_file)
+
+
 def test_drop_table_1(creds, query):
     query_copy = deepcopy(query)
     query_copy.extend(["--query", f'drop table {creds["table"]}'])
+
+    process = subprocess.run(query_copy)
+
+    assert process.returncode == 0
+
+
+def test_drop_table_regex(creds, query):
+    query_copy = deepcopy(query)
+    query_copy.extend(["--query", f'drop table {creds["regex_table"]}'])
 
     process = subprocess.run(query_copy)
 
