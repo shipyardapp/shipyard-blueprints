@@ -4,7 +4,11 @@ from sqlalchemy import create_engine
 from shipyard_templates import Database, ExitCodeException, ShipyardLogger
 from shipyard_templates.database import FetchError, UploadError, QueryError
 from sqlalchemy import create_engine, TextClause
-from shipyard_mysql.errors.exceptions import InvalidMySQLCredentials, ChunkDownloadError
+from shipyard_mysql.errors.exceptions import (
+    InvalidMySQLCredentials,
+    ChunkDownloadError,
+    MySqlUploadError,
+)
 from typing import Optional
 
 logger = ShipyardLogger.get_logger()
@@ -12,7 +16,7 @@ logger = ShipyardLogger.get_logger()
 
 class MySqlClient(Database):
     CHUNKSIZE = 10_000
-    MAX_FILE_SIZE = 50_000_000
+    MAX_FILE_SIZE = 50_000_000  # about 50 MB
 
     def __init__(
         self,
@@ -101,7 +105,7 @@ class MySqlClient(Database):
         except ExitCodeException:
             raise
         except Exception as e:
-            raise
+            raise MySqlUploadError(e)
 
     def fetch(self, query: TextClause) -> pd.DataFrame:
         """
