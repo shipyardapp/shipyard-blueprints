@@ -38,7 +38,7 @@ def get_args():
     parser.add_argument(
         "--insert-method",
         dest="insert_method",
-        choices={"fail", "replace", "append"},
+        choices={"replace", "append"},
         default="append",
         required=False,
     )
