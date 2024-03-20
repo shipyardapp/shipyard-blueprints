@@ -58,6 +58,18 @@ class PostgresClient(Database):
             return engine
 
     def execute_query(self, query: TextClause):
+        """
+        Executes the given SQL query on the database connection.
+
+        Args:
+            query (TextClause): The SQL query to execute.
+
+        Raises:
+            QueryError: If an error occurs while executing the query.
+
+        Returns:
+            None
+        """
         try:
             self.conn.execute(query)
             logger.debug("Executed query")
@@ -67,6 +79,19 @@ class PostgresClient(Database):
             raise QueryError(e)
 
     def upload(self, file: str, table_name: str, insert_method: str = "replace"):
+        """
+        Uploads data from a file to a PostgreSQL table.
+
+        Args:
+            file (str): The path to the file containing the data to be uploaded.
+            table_name (str): The name of the PostgreSQL table to upload the data to.
+            insert_method (str, optional): The method to use for inserting the data into the table.
+                Defaults to "replace".
+
+        Raises:
+            ExitCodeException: If an exit code exception occurs during the upload process.
+            Exception: If any other exception occurs during the upload process.
+        """
         try:
             if os.path.getsize(file) < self.MAX_FILE_SIZE:
                 df = pd.read_csv(file)
@@ -81,6 +106,18 @@ class PostgresClient(Database):
             raise
 
     def fetch(self, query: TextClause) -> pd.DataFrame:
+        """
+        Fetches data from the database using the provided SQL query.
+
+        Args:
+            query (TextClause): The SQL query to execute.
+
+        Returns:
+            pd.DataFrame: A pandas DataFrame containing the fetched results.
+
+        Raises:
+            FetchError: If an error occurs while fetching the results.
+        """
         try:
             df = pd.read_sql(sql=query, con=self.conn)
             logger.debug("Successfully fetched results")
@@ -92,6 +129,19 @@ class PostgresClient(Database):
     def upload_df(
         self, df: pd.DataFrame, table_name: str, insert_method: str = "replace"
     ):
+        """
+        Uploads a pandas DataFrame to a PostgreSQL table.
+
+        Args:
+            df (pd.DataFrame): The DataFrame to be uploaded.
+            table_name (str): The name of the table in the PostgreSQL database.
+            insert_method (str, optional): The method to use for inserting the data into the table.
+                Defaults to "replace".
+
+        Raises:
+            UploadError: If an error occurs during the upload process.
+
+        """
         try:
             df.to_sql(
                 table_name,
@@ -107,6 +157,19 @@ class PostgresClient(Database):
     def upload_file(
         self, file_path: str, table_name: str, insert_method: str = "replace"
     ):
+        """
+        Uploads a file to a PostgreSQL table.
+
+        Args:
+            file_path (str): The path to the file to be uploaded.
+            table_name (str): The name of the table to upload the file to.
+            insert_method (str, optional): The method to use for inserting the data into the table.
+                Defaults to "replace".
+
+        Raises:
+            UploadError: If an error occurs during the upload process.
+
+        """
         try:
             for index, chunk in enumerate(
                 pd.read_csv(file_path, chunksize=self.CHUNKSIZE)
@@ -125,6 +188,20 @@ class PostgresClient(Database):
             raise UploadError(table=table_name, error_msg=e)
 
     def read_chunks(self, query: TextClause, dest_path: str, header: bool = True):
+        """
+        Reads data from the database in chunks and saves it to a CSV file.
+
+        Args:
+            query (TextClause): The SQL query to execute.
+            dest_path (str): The path to the destination CSV file.
+            header (bool, optional): Whether to include a header row in the CSV file. Defaults to True.
+
+        Raises:
+            ChunkDownloadError: If an error occurs while downloading the chunks.
+
+        Returns:
+            None
+        """
         try:
             chunksize = self.CHUNKSIZE
             first_write = False
@@ -138,6 +215,13 @@ class PostgresClient(Database):
             raise ChunkDownloadError(e)
 
     def close(self):
+        """
+        Closes the database connection if it is open.
+
+        This function closes the connection to the PostgreSQL database if it is currently open.
+        If the connection is closed successfully, it logs a message indicating that the connection has been closed.
+
+        """
         if self.conn:
             self.conn.close()
             logger.info("Connection closed")
