@@ -11,7 +11,7 @@ def main():
         sys.exit(DropboxClient(os.getenv("DROPBOX_ACCESS_TOKEN")).connect())
     except Exception as e:
         logger.authtest(
-            f"Could not connect to Dropbox with the access key provided due to {e}"
+            f"Failed to authenticate using key. Message from Dropbox Server: {e}"
         )
         sys.exit(1)
 

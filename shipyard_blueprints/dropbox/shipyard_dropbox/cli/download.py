@@ -157,6 +157,8 @@ def main():
             f"Failed to download {args.source_file_name} from Dropbox due to {e}"
         )
         sys.exit(1)
+    else:
+        logger.info("Download completed successfully")
 
 
 if __name__ == "__main__":
