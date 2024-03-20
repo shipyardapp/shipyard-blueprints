@@ -19,8 +19,8 @@ class SqlServerClient(Database):
         self,
         user: str,
         pwd: str,
-        host: str = None,
-        database: str = None,
+        host: str,
+        database: Optional[str] = None,
         port: int = 1433,
         url_params=None,
     ) -> None:
@@ -39,7 +39,6 @@ class SqlServerClient(Database):
     def conn(self):
         if self._conn is None:
             self.connect()
-        logger.info("Successfully connected to SQL Server")
         return self._conn
 
     def connect(self):
@@ -60,6 +59,8 @@ class SqlServerClient(Database):
             ).connect()
         except Exception as e:
             raise SqlServerConnectionError(e)
+        else:
+            logger.info("Successfully connected to SQL Server")
 
     def close(self):
         """
@@ -86,7 +87,9 @@ class SqlServerClient(Database):
         """
         try:
             self.conn.execute(query)
-            logger.debug("executed query")
+            logger.debug("Executed query")
+            self.conn.commit()
+            logger.debug("Committing transaction")
         except Exception as e:
             raise QueryError(e)
 
