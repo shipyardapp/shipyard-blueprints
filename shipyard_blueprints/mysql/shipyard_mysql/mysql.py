@@ -1,9 +1,11 @@
-import sys
-from sqlalchemy import create_engine, text
+import pandas as pd
+import os
+from sqlalchemy import create_engine
 from shipyard_templates import Database, ExitCodeException, ShipyardLogger
 from shipyard_templates.database import FetchError, UploadError, QueryError
 from sqlalchemy import create_engine, TextClause
-from shipyard_mysql.errors.exceptions import InvalidMySQLCredentials
+from shipyard_mysql.errors.exceptions import InvalidMySQLCredentials, ChunkDownloadError
+from typing import Optional
 
 logger = ShipyardLogger.get_logger()
 
@@ -19,9 +21,9 @@ class MySqlClient(Database):
         host: str,
         database: str,
         port: int = 3306,
-        url_params=None,
+        url_params: Optional[str] = None,
     ) -> None:
-        self.user = username
+        self.username = username
         self.pwd = pwd
         self.host = host
         self.port = port
@@ -144,7 +146,6 @@ class MySqlClient(Database):
                 con=self.conn,
                 index=False,
                 if_exists=insert_method,
-                schema=self.schema,
                 method="multi",
             )
         except Exception as e:
@@ -174,7 +175,6 @@ class MySqlClient(Database):
                     table_name,
                     con=self.conn,
                     index=False,
-                    schema=self.schema,
                     if_exists=insert_method,
                     method="multi",
                 )
