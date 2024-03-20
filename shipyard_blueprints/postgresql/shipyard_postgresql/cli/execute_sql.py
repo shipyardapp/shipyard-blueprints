@@ -19,7 +19,6 @@ def get_args():
     parser.add_argument("--database", dest="database", required=False)
     parser.add_argument("--port", dest="port", default="5432", required=False)
     parser.add_argument("--url-parameters", dest="url_parameters", required=False)
-    # parser.add_argument("--db-connection-url", dest="db_connection_url", required=False)
     parser.add_argument("--query", dest="query", required=True)
     args = parser.parse_args()
 
