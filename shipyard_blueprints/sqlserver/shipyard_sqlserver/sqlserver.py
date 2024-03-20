@@ -34,7 +34,7 @@ class SqlServerClient(Database):
     @property
     def conn(self):
         if self._conn is None:
-            self.connect()
+            self._conn = self.connect()
         return self._conn
 
     def connect(self):
@@ -49,14 +49,12 @@ class SqlServerClient(Database):
         """
         try:
             connection_string = f"mssql+pyodbc://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?driver=ODBC+Driver+17+for+SQL+Server&{self.url_params}"
-            logger.debug("Successfully connected")
-            self._conn = create_engine(
-                connection_string, fast_executemany=True
-            ).connect()
+            engine = create_engine(connection_string, fast_executemany=True).connect()
         except Exception as e:
             raise SqlServerConnectionError(e)
         else:
             logger.info("Successfully connected to SQL Server")
+            return engine
 
     def close(self):
         """
