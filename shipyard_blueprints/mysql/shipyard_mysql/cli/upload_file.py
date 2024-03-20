@@ -98,6 +98,7 @@ def main():
             mysql.upload(
                 file=src_path, table_name=table_name, insert_method=insert_method
             )
+            logger.info(f"Successfully loaded {src_path} to {table_name}")
 
     except FileNotFoundError:
         logger.error(
