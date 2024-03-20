@@ -21,7 +21,7 @@ def main():
     port = args["port"]
     database = args["database"]
     mysql = MySqlClient(
-        user=user, pwd=password, host=host, port=port, database=database
+        username=user, pwd=password, host=host, port=port, database=database
     )
     try:
         con = mysql.connect()

@@ -23,7 +23,7 @@ def test_good_connection():
     pwd = os.getenv("MYSQL_PASSWORD")
     host = os.getenv("MYSQL_HOST")
     db = os.getenv("MYSQL_DATABASE")
-    client = MySqlClient(user=user, pwd=pwd, host=host, database=db)
+    client = MySqlClient(username=user, pwd=pwd, host=host, database=db)
     print(f" port is {client.port}")
     assert conn_helper(client) == 0
 
@@ -34,7 +34,7 @@ def test_good_connection_with_port():
     host = os.getenv("MYSQL_HOST")
     db = os.getenv("MYSQL_DATABASE")
     port = os.getenv("MYSQL_PORT")
-    client = MySqlClient(user=user, pwd=pwd, host=host, database=db, port=port)
+    client = MySqlClient(username=user, pwd=pwd, host=host, database=db, port=port)
     print(f"port is {client.port}")
     assert conn_helper(client) == 0
 
@@ -44,7 +44,7 @@ def test_bad_user():
     pwd = os.getenv("MYSQL_PASSWORD")
     host = os.getenv("MYSQL_HOST")
     db = os.getenv("MYSQL_DATABASE")
-    client = MySqlClient(user=user, pwd=pwd, host=host, database=db)
+    client = MySqlClient(username=user, pwd=pwd, host=host, database=db)
     assert conn_helper(client) == 1
 
 
@@ -53,7 +53,7 @@ def test_bad_pwd():
     pwd = "bad_pwd"
     host = os.getenv("MYSQL_HOST")
     db = os.getenv("MYSQL_DATABASE")
-    client = MySqlClient(user=user, pwd=pwd, host=host, database=db)
+    client = MySqlClient(username=user, pwd=pwd, host=host, database=db)
     assert conn_helper(client) == 1
 
 
@@ -62,7 +62,7 @@ def test_bad_host():
     pwd = os.getenv("MYSQL_PASSWORD")
     host = "bad_host"
     db = os.getenv("MYSQL_DATABASE")
-    client = MySqlClient(user=user, pwd=pwd, host=host, database=db)
+    client = MySqlClient(username=user, pwd=pwd, host=host, database=db)
     assert conn_helper(client) == 1
 
 
@@ -71,5 +71,5 @@ def test_bad_db():
     pwd = os.getenv("MYSQL_PASSWORD")
     host = os.getenv("MYSQL_HOST")
     db = "bad_db"
-    client = MySqlClient(user=user, pwd=pwd, host=host, database=db)
+    client = MySqlClient(username=user, pwd=pwd, host=host, database=db)
     assert conn_helper(client) == 1
