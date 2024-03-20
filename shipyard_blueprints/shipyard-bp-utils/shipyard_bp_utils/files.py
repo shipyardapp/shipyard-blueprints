@@ -5,9 +5,10 @@ import json
 import os
 import re
 import tarfile
-from shipyard_templates import ShipyardLogger
 from typing import List
 from zipfile import ZipFile, ZIP_DEFLATED
+
+from shipyard_templates import ShipyardLogger
 
 logger = ShipyardLogger.get_logger()
 
@@ -266,9 +267,8 @@ def find_all_file_matches(file_names: list, file_name_re: str) -> list:
     Returns:
     list: A list of all matching_file_names that matched the regular expression.
     """
-    matching_file_names = [
-        file for file in file_names if re.search(file_name_re, os.path.basename(file))
-    ]
+
+    matching_file_names = [file for file in file_names if re.search(file_name_re, file)]
 
     logger.debug(f"Found {len(matching_file_names)} file matches.")
     logger.debug(matching_file_names)
