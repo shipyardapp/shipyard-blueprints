@@ -1,10 +1,14 @@
-from json import load
 import os
-from shipyard_googlecloud import GoogleCloudClient
+
 from dotenv import load_dotenv, find_dotenv
 
+from shipyard_googlecloud import GoogleCloudClient
+from shipyard_templates import ShipyardLogger
+
+logger = ShipyardLogger().get_logger()
+
 # load the local environment variables
-load_dotenv(find_dotenv())
+load_dotenv(find_dotenv(raise_error_if_not_found=True))
 
 
 def conn_helper(client: GoogleCloudClient):
@@ -12,7 +16,7 @@ def conn_helper(client: GoogleCloudClient):
         client.connect()
         return 0
     except Exception as e:
-        client.logger.exception(e)
+        logger.authtest(e)
         return 1
 
 

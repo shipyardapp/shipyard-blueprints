@@ -1,13 +1,14 @@
+import argparse
 import os
 import re
-import json
-import tempfile
-import argparse
 import sys
-import shipyard_utils as shipyard
-from google.cloud import storage
-from google.cloud.exceptions import *
-from shipyard_googlecloud.cli import exit_codes as ec
+
+from shipyard_bp_utils import files as shipyard
+from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
+
+from shipyard_googlecloud import utils
+
+logger = ShipyardLogger().get_logger()
 
 
 def get_args():
@@ -50,94 +51,18 @@ def get_args():
     return parser.parse_args()
 
 
-def set_environment_variables(args):
-    """
-    Set GCP credentials as environment variables if they're provided via keyword
-    arguments rather than seeded as environment variables. This will override
-    system defaults.
-    """
-    credentials = args.gcp_application_credentials
-    try:
-        json_credentials = json.loads(credentials)
-        fd, path = tempfile.mkstemp()
-        print(f"Storing json credentials temporarily at {path}")
-        with os.fdopen(fd, "w") as tmp:
-            tmp.write(credentials)
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path
-        return path
-    except Exception:
-        print("Using specified json credentials file")
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials
-        return
-
-
-def find_google_cloud_storage_file_names(bucket, prefix=""):
-    """
-    Fetched all the files in the bucket which are returned in a list as
-    Google Blob objects
-    """
-    return list(bucket.list_blobs(prefix=prefix))
-
-
 def download_google_cloud_storage_file(blob, destination_file_name=None):
     """
     Download a selected file from Google Cloud Storage to local storage in
     the current working directory.
     """
-    local_path = os.path.normpath(f"{os.getcwd()}/{destination_file_name}")
+    local_path = os.path.join(os.getcwd(), destination_file_name)
 
     blob.download_to_filename(local_path)
 
-    print(f"{blob.bucket.name}/{blob.name} successfully downloaded to {local_path}")
-
-    return
-
-
-def get_gclient(args):
-    """
-    Attempts to create the Google Cloud Storage Client with the associated
-    environment variables
-    """
-    try:
-        gclient = storage.Client()
-    except Exception:
-        print(
-            f"Error accessing Google Cloud Storage with service account ",
-            f"{args.gcp_application_credentials}",
-        )
-        sys.exit(ec.EXIT_CODE_INVALID_CREDENTIALS)
-
-    return gclient
-
-
-def get_bucket(*, gclient, bucket_name):
-    """
-    Fetches and returns the bucket from Google Cloud Storage
-    """
-    try:
-        bucket = gclient.get_bucket(bucket_name)
-    except Exception as e:
-        print(f"Bucket {bucket_name} does not exist\n {e}")
-        sys.exit(ec.EXIT_CODE_INVALID_BUCKET)
-
-    return bucket
-
-
-def get_storage_blob(bucket, source_folder_name, source_file_name):
-    """
-    Fetches and returns the single source file blob from the buck on
-    Google Cloud Storage
-    """
-    source_path = source_file_name
-    if source_folder_name != "":
-        source_path = f"{source_folder_name}/{source_file_name}"
-    blob = bucket.get_blob(source_path)
-    try:
-        blob.exists()
-        return blob
-    except Exception as e:
-        print(f"File {source_path} does not exist")
-        sys.exit(ec.EXIT_CODE_FILE_NOT_FOUND)
+    logger.info(
+        f"{blob.bucket.name}/{blob.name} successfully downloaded to {local_path}"
+    )
 
 
 def move_google_cloud_storage_file(
@@ -157,82 +82,94 @@ def move_google_cloud_storage_file(
     # delete in old destination
     source_blob.delete()
 
-    print(f"File moved from {source_blob} to {dest_blob}")
+    logger.info(f"File moved from {source_blob} to {dest_blob}")
 
 
 def main():
-    args = get_args()
-    tmp_file = set_environment_variables(args)
-    source_bucket_name = args.source_bucket_name
-    destination_bucket_name = args.destination_bucket_name
-    source_file_name = args.source_file_name
-    source_folder_name = shipyard.files.clean_folder_name(args.source_folder_name)
-    source_file_name_match_type = args.source_file_name_match_type
+    tmp_file = None
+    try:
+        args = get_args()
+        source_bucket_name = args.source_bucket_name
+        destination_bucket_name = args.destination_bucket_name
+        source_file_name = args.source_file_name
+        source_folder_name = shipyard.clean_folder_name(args.source_folder_name)
+        source_file_name_match_type = args.source_file_name_match_type
 
-    destination_folder_name = shipyard.files.clean_folder_name(
-        args.destination_folder_name
-    )
-    destination_file_name = args.destination_file_name
+        destination_folder_name = shipyard.clean_folder_name(
+            args.destination_folder_name
+        )
+        destination_file_name = args.destination_file_name
 
-    gclient = get_gclient(args)
-    source_bucket = get_bucket(gclient=gclient, bucket_name=source_bucket_name)
-    destination_bucket = get_bucket(
-        gclient=gclient, bucket_name=destination_bucket_name
-    )
-    if source_file_name_match_type == "regex_match":
-        try:
-            blobs = find_google_cloud_storage_file_names(
-                bucket=source_bucket, prefix=source_folder_name
+        tmp_file = utils.set_environment_variables(args.gcp_application_credentials)
+        gclient = utils.get_gclient(args.gcp_application_credentials)
+
+        source_bucket = utils.get_bucket(
+            gclient=gclient, bucket_name=source_bucket_name
+        )
+        destination_bucket = utils.get_bucket(
+            gclient=gclient, bucket_name=destination_bucket_name
+        )
+
+        if args.source_file_name_match_type == "exact_match":
+            blob = utils.get_storage_blob(
+                bucket=source_bucket,
+                source_folder_name=source_folder_name,
+                source_file_name=source_file_name,
             )
-            file_names = list(map(lambda x: x.name, blobs))
-            matching_file_names = shipyard.files.find_all_file_matches(
-                file_names, re.compile(source_file_name)
+            dest_file = shipyard.determine_destination_file_name(
+                source_full_path=blob.name, destination_file_name=destination_file_name
             )
-
-            print(f"{len(matching_file_names)} files found. Preparing to move...")
-        except Exception as e:
-            print(
-                f"Error in finding regex matches. Please make sure a valid regex is entered"
-            )
-            sys.exit(ec.EXIT_CODE_FILE_NOT_FOUND)
-
-        for index, blob in enumerate(matching_file_names, 1):
-            destination_full_path = shipyard.files.determine_destination_full_path(
+            destination_full_path = shipyard.determine_destination_full_path(
                 destination_folder_name=destination_folder_name,
-                destination_file_name=destination_file_name,
+                destination_file_name=dest_file,
                 source_full_path=blob,
-                file_number=None if len(matching_file_names) == 1 else index,
             )
-            print(f"moving file {index} of {len(matching_file_names)}")
             move_google_cloud_storage_file(
                 source_bucket=source_bucket,
-                source_blob_path=blob,
+                source_blob_path=blob.name,
                 destination_bucket=destination_bucket,
                 destination_blob_path=destination_full_path,
             )
-    else:
-        blob = get_storage_blob(
-            bucket=source_bucket,
-            source_folder_name=source_folder_name,
-            source_file_name=source_file_name,
-        )
-        dest_file = shipyard.files.determine_destination_file_name(
-            source_full_path=blob.name, destination_file_name=destination_file_name
-        )
-        destination_full_path = shipyard.files.determine_destination_full_path(
-            destination_folder_name=destination_folder_name,
-            destination_file_name=dest_file,
-            source_full_path=blob,
-        )
-        move_google_cloud_storage_file(
-            source_bucket=source_bucket,
-            source_blob_path=blob.name,
-            destination_bucket=destination_bucket,
-            destination_blob_path=destination_full_path,
-        )
-    if tmp_file:
-        print(f"Removing temporary credentials file {tmp_file}")
-        os.remove(tmp_file)
+        elif source_file_name_match_type == "regex_match":
+            blobs = list(source_bucket.list_blobs(prefix=source_folder_name))
+            file_names = list(map(lambda x: x.name, blobs))
+            matching_file_names = shipyard.find_all_file_matches(
+                file_names, re.compile(source_file_name)
+            )
+
+            if not matching_file_names:
+                raise FileNotFoundError(f"No files found matching {source_file_name}")
+            number_of_matches = len(matching_file_names)
+            logger.info(f"{number_of_matches} files found. Preparing to move...")
+
+            for index, blob in enumerate(matching_file_names, 1):
+                destination_full_path = shipyard.determine_destination_full_path(
+                    destination_folder_name=destination_folder_name,
+                    destination_file_name=destination_file_name,
+                    source_full_path=blob,
+                    file_number=None if number_of_matches == 1 else index,
+                )
+                logger.info(f"moving file {index} of {number_of_matches}")
+                move_google_cloud_storage_file(
+                    source_bucket=source_bucket,
+                    source_blob_path=blob,
+                    destination_bucket=destination_bucket,
+                    destination_blob_path=destination_full_path,
+                )
+    except ExitCodeException as e:
+        logger.error(e)
+        sys.exit(e.exit_code)
+
+    except FileNotFoundError as e:
+        logger.error(e)
+        sys.exit(CloudStorage.EXIT_CODE_FILE_NOT_FOUND)
+    except Exception as e:
+        logger.error(e)
+        sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
+    finally:
+        if tmp_file:
+            logger.info(f"Removing temporary credentials file {tmp_file}")
+            os.remove(tmp_file)
 
 
 if __name__ == "__main__":

@@ -1,14 +1,15 @@
-from google.cloud import storage
-from shipyard_templates import CloudStorage
 import json
 import os
 import tempfile
+
+from google.cloud import storage
+from shipyard_templates import CloudStorage
 
 
 class GoogleCloudClient(CloudStorage):
     def __init__(self, service_account: str) -> None:
         self.service_account = service_account
-        super().__init__(service_account=self.service_account)
+        # super().__init__(service_account=self.service_account)
 
     def _set_env_vars(self):
         try:
@@ -26,14 +27,14 @@ class GoogleCloudClient(CloudStorage):
         fd = self._set_env_vars()
         return storage.Client()
 
-    def move_or_rename_files(self):
+    def move(self):
         pass
 
-    def upload_files(self):
+    def upload(self):
         pass
 
-    def download_files(self):
+    def download(self):
         pass
 
-    def remove_files(self):
+    def remove(self):
         pass
