@@ -274,7 +274,6 @@ def test_download_regex_match_table(creds, down):
     assert process.returncode == 0
 
 
-# BUG: This is failing with the legacy way. After the refactor this should pass
 def test_rows_regex():
     orig = read_all_csvs(regex_folder)
     new = pd.read_csv(dest_file)
