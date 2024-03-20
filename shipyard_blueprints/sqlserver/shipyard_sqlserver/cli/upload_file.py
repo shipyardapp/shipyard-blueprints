@@ -73,6 +73,7 @@ def main():
             port=args.port,
             url_params=args.url_parameters,
         )
+        logger.info("Successfully connected to SQL Server")
 
         if match_type == "regex_match":
             file_names = shipyard.files.find_all_local_file_names(dir_name)
