@@ -46,7 +46,7 @@ class MySqlClient(Database):
         return self._conn
 
     def connect(self):
-        con_str = f"mysql+mysqlconnector://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?{self.url_params}"
+        con_str = f"mysql+mysqlconnector://{self.username}:{self.pwd}@{self.host}:{self.port}/{self.database}?{self.url_params}"
         try:
             conn = create_engine(con_str).connect()
         except Exception as e:

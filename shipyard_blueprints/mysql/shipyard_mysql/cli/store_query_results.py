@@ -52,7 +52,8 @@ def main():
         target_path = shipyard.files.combine_folder_and_file_name(
             folder_name=target_dir, file_name=target_file
         )
-        shipyard.files.create_folder_if_dne(target_dir)
+        if target_dir:
+            shipyard.files.create_folder_if_dne(target_dir)
         file_header = shipyard.args.convert_to_boolean(args.file_header)
 
         query = text(args.query)
