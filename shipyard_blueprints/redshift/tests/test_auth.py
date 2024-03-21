@@ -8,6 +8,7 @@ def conn_helper(client: RedshiftClient) -> int:
         return 0
     except Exception as e:
         client.logger.error("Could not connect to redshift")
+        client.logger.error(e)
         return 1
     else:
         client.logger.error("Could not connect to redshift")
