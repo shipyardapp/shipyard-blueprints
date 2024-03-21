@@ -59,7 +59,8 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        postgres.close()
+        if postgres:
+            postgres.close()
 
 
 if __name__ == "__main__":

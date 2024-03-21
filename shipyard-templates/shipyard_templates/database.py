@@ -28,6 +28,12 @@ class QueryError(ExitCodeException):
         self.exit_code = Database.EXIT_CODE_QUERY_ERROR
 
 
+class ConnectionError(ExitCodeException):
+    def __init__(self, message: str):
+        self.message = message
+        self.exit_code = Database.EXIT_CODE_INVALID_CREDENTIALS
+
+
 class Database(ABC):
     EXIT_CODE_INVALID_CREDENTIALS = 200
     EXIT_CODE_INVALID_ACCOUNT = 201  # snowflake specific

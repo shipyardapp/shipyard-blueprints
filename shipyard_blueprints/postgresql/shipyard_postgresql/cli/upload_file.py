@@ -3,7 +3,6 @@ import re
 import sys
 import shipyard_bp_utils as shipyard
 from shipyard_templates import (
-    DatabricksDatabase,
     ShipyardLogger,
     Database,
     ExitCodeException,
@@ -70,7 +69,6 @@ def main():
         table_name = args.table_name
         insert_method = args.insert_method
 
-        # args for client
         client_args = {
             "user": args.username,
             "pwd": args.password,
@@ -126,7 +124,8 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        postgres.close()
+        if postgres:
+            postgres.close()
 
 
 if __name__ == "__main__":

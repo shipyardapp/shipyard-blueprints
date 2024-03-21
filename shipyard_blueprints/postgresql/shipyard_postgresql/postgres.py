@@ -1,8 +1,13 @@
 import pandas as pd
 import os
 from shipyard_templates import Database, ExitCodeException, ShipyardLogger
-from shipyard_templates.database import FetchError, UploadError, QueryError
-from shipyard_postgresql.errors.exceptions import ChunkDownloadError, InvalidCredentials
+from shipyard_templates.database import (
+    FetchError,
+    UploadError,
+    QueryError,
+    ConnectionError,
+)
+from shipyard_postgresql.exceptions import ChunkDownloadError
 from sqlalchemy import create_engine, TextClause
 from typing import Optional
 
@@ -53,7 +58,9 @@ class PostgresClient(Database):
             engine = create_engine(con_str).connect()
             logger.info("Successfully connected to Postgres")
         except Exception as e:
-            raise InvalidCredentials(e)
+            raise ConnectionError(
+                f"Error attempting to connect to Postgres. Message from the server reads: {e}"
+            )
         else:
             return engine
 
