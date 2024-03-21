@@ -5,7 +5,7 @@ from shipyard_templates import Database, ShipyardLogger
 from shipyard_templates.database import QueryError, FetchError, UploadError
 from typing import Optional
 
-from exceptions import SqlServerConnectionError
+from shipyard_sqlserver.exceptions import SqlServerConnectionError
 
 logger = ShipyardLogger.get_logger()
 
