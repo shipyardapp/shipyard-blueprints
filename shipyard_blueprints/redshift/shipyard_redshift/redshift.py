@@ -25,11 +25,18 @@ class RedshiftClient(Database):
         )
 
     def connect(self):
-        # con_str = URL.create(drivername= 'redshift+redshift_connector', host = self.host, password= self.pwd, username= self.user, port = self.port, database= self.database)
-        # conn = create_engine(con_str).connect()
-        conn = redshift_connector.connect(
-            host=self.host, database=self.database, user=self.user, password=self.pwd
+        con_str = URL.create(
+            drivername="redshift+redshift_connector",
+            host=self.host,
+            password=self.pwd,
+            username=self.user,
+            port=self.port,
+            database=self.database,
         )
+        conn = create_engine(con_str)
+        # conn = redshift_connector.connect(
+        #     host=self.host, database=self.database, user=self.user, password=self.pwd
+        # )
         return conn
 
     def execute_query(self, query: str):
