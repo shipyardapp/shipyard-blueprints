@@ -19,14 +19,14 @@ def enumerate_destination_file_name(destination_file_name: str, file_number: int
     Only used when multiple files are matched to, preventing the destination file from being continuously overwritten.
     """
     return (
-        re.sub(r'\.', f'_{file_number}.', destination_file_name, 1)
-        if re.search(r'\.', destination_file_name)
-        else f'{destination_file_name}_{file_number}'
+        re.sub(r"\.", f"_{file_number}.", destination_file_name, 1)
+        if re.search(r"\.", destination_file_name)
+        else f"{destination_file_name}_{file_number}"
     )
 
 
 def determine_destination_file_name(
-        *, source_full_path: str, destination_file_name: str, file_number: int = None
+    *, source_full_path: str, destination_file_name: str, file_number: int = None
 ) -> str:
     """
     Determines the destination file name based on provided parameters.
@@ -91,15 +91,16 @@ def combine_folder_and_file_name(folder_name: str, file_name: str) -> str:
     """
 
     combined_name = os.path.normpath(
-        f'{folder_name}{"/" if folder_name else ""}{file_name}')
+        f'{folder_name}{"/" if folder_name else ""}{file_name}'
+    )
     return os.path.normpath(combined_name)
 
 
 def determine_destination_full_path(
-        destination_folder_name: str,
-        destination_file_name: str,
-        source_full_path: str,
-        file_number: int = None,
+    destination_folder_name: str,
+    destination_file_name: str,
+    source_full_path: str,
+    file_number: int = None,
 ) -> str:
     """
     Determines the full destination path of a file based on provided parameters.
@@ -116,10 +117,9 @@ def determine_destination_full_path(
     destination_file_name = determine_destination_file_name(
         destination_file_name=destination_file_name,
         source_full_path=source_full_path,
-        file_number=file_number)
-    return combine_folder_and_file_name(
-        destination_folder_name, destination_file_name
+        file_number=file_number,
     )
+    return combine_folder_and_file_name(destination_folder_name, destination_file_name)
 
 
 def compress_files(file_paths: list, destination_full_path: str, compression: str):
@@ -234,7 +234,7 @@ def find_all_local_file_names(source_folder_name: str = None) -> List[str]:
     logger.debug(f"Finding all local file names in {source_folder_name}...")
 
     cwd = os.getcwd()
-    cwd_extension = os.path.normpath(f'{cwd}/{source_folder_name}/**')
+    cwd_extension = os.path.normpath(f"{cwd}/{source_folder_name}/**")
     all_paths = glob.glob(cwd_extension, recursive=True)
 
     return remove_directories_from_path_list(all_paths)
@@ -431,12 +431,14 @@ def fetch_file_paths_from_directory(directory: str, base_directory: str = None) 
     return files
 
 
-def file_match(search_term: str,
-               match_type: str,
-               files: list,
-               source_directory: str = "",
-               destination_directory: str = "",
-               destination_filename: str = "") -> list[dict]:
+def file_match(
+    search_term: str,
+    match_type: str,
+    files: list,
+    source_directory: str = "",
+    destination_directory: str = "",
+    destination_filename: str = "",
+) -> list[dict]:
     """
     Match a file based on a search term and match type.
 
@@ -468,18 +470,18 @@ def file_match(search_term: str,
         filename = determine_destination_full_path(
             destination_folder_name=destination_directory,
             destination_file_name=destination_filename,
-            source_full_path=source_full_path
+            source_full_path=source_full_path,
         )
 
-        matches.append({"source_path": source_full_path, "destination_filename": filename})
+        matches.append(
+            {"source_path": source_full_path, "destination_filename": filename}
+        )
 
     elif match_type == "regex_match":
         matching_files = find_all_file_matches(files, search_term)
 
         if not matching_files:
-            raise FileNotFoundError(
-                f"No files found matching the regex {search_term}"
-            )
+            raise FileNotFoundError(f"No files found matching the regex {search_term}")
 
         logger.info(f"{len(matching_files)} files found.")
         for index, file_name in enumerate(matching_files, start=1):
@@ -490,8 +492,12 @@ def file_match(search_term: str,
                 source_full_path=file_name,
                 file_number=index if len(matching_files) > 1 else None,
             )
-            matches.append({"source_path": source_full_path, "destination_filename": filename})
+            matches.append(
+                {"source_path": source_full_path, "destination_filename": filename}
+            )
     else:
-        raise ValueError(f"Match type {match_type} is not supported. Supported types are 'exact_match' and "
-                         f"'regex_match'.")
+        raise ValueError(
+            f"Match type {match_type} is not supported. Supported types are 'exact_match' and "
+            f"'regex_match'."
+        )
     return matches
