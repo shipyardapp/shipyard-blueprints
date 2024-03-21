@@ -2,7 +2,7 @@ import os
 import pytest
 from dotenv import load_dotenv, find_dotenv
 from shipyard_sqlserver import SqlServerClient
-from shipyard_sqlserver.errors.exceptions import SqlServerConnectionError
+from shipyard_sqlserver.exceptions import SqlServerConnectionError
 from shipyard_templates import ShipyardLogger
 
 logger = ShipyardLogger.get_logger()

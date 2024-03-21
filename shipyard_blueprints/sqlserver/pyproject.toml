@@ -13,7 +13,7 @@ pandas = "^2.0"
 shipyard-templates = "0.8.0a1"
 pyodbc = "^5.0.1"
 sqlalchemy = "^2.0.28"
-shipyard-bp-utils = "^1.2"
+shipyard-bp-utils = "1.2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.2.0"

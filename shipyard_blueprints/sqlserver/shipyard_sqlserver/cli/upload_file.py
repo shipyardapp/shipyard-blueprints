@@ -111,7 +111,8 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        client.close()
+        if client:
+            client.close()
 
 
 if __name__ == "__main__":
