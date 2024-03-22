@@ -1,6 +1,9 @@
 import os
 import sys
 from shipyard_googlecloud import GoogleCloudClient
+from shipyard_templates import ShipyardLogger
+
+logger = ShipyardLogger().get_logger()
 
 
 def main():
@@ -11,8 +14,8 @@ def main():
         client.connect()
         sys.exit(0)
     except Exception as e:
-        client.logger.error(
-            "Could not connect to Google Cloud with the service account provided"
+        logger.error(
+            f"Could not connect to Google Cloud with the service account provided. {e}"
         )
         sys.exit(1)
 
