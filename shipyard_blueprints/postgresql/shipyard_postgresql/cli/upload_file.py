@@ -101,13 +101,15 @@ def main():
             else:
                 logger.info(f"Successfully uploaded all files to {table_name}")
 
-        else:
+        elif match_type == "exact_match":
             postgres.upload(
                 src_path, table_name=table_name, insert_method=insert_method
             )
             logger.info(f"Successfully uploaded data to {table_name}")
+        else:
+            raise ValueError("Only regex_match and exact_match are valid match types")
 
-    except FileNotFoundError as fe:
+    except FileNotFoundError:
         logger.error(
             "The file {file_name} could not be found. Ensure that the file name and extension are correct"
         )

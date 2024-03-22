@@ -7,7 +7,6 @@ from shipyard_templates.database import (
     QueryError,
     ConnectionError,
 )
-from shipyard_postgresql.exceptions import ChunkDownloadError
 from sqlalchemy import create_engine, TextClause
 from typing import Optional
 
@@ -109,7 +108,7 @@ class PostgresClient(Database):
                 )
         except ExitCodeException:
             raise
-        except Exception as e:
+        except Exception:
             raise
 
     def fetch(self, query: TextClause) -> pd.DataFrame:
@@ -219,7 +218,7 @@ class PostgresClient(Database):
                 else:
                     chunk.to_csv(dest_path, mode="a", header=False, index=False)
         except Exception as e:
-            raise ChunkDownloadError(e)
+            raise FetchError(e)
 
     def close(self):
         """

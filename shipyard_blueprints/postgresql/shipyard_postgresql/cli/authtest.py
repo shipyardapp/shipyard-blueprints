@@ -15,7 +15,7 @@ def main():
             port=os.getenv("POSTGRES_PORT"),
             database=os.getenv("POSTGRES_DATABASE"),
         )
-        con = postgres.connect()
+        postgres.connect()
         sys.exit(0)
     except Exception as e:
         logger.authtest(e)

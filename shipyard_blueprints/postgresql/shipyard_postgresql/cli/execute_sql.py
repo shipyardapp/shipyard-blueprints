@@ -1,9 +1,5 @@
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
-
-from sqlalchemy.pool import NullPool
+from sqlalchemy import text
 import argparse
-import os
 import sys
 from shipyard_postgresql import PostgresClient
 from shipyard_templates import ShipyardLogger, ExitCodeException, Database
