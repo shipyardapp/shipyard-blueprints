@@ -347,6 +347,20 @@ files = [
 six = ">=1.5"
 
 [[package]]
+name = "python-dotenv"
+version = "1.0.1"
+description = "Read key-value pairs from a .env file and set them as environment variables"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "python-dotenv-1.0.1.tar.gz", hash = "sha256:e324ee90a023d808f1959c46bcbc04446a10ced277783dc6ee09987c37ec10ca"},
+    {file = "python_dotenv-1.0.1-py3-none-any.whl", hash = "sha256:f7b63ef50f1b690dddf550d03497b66d609393b40b564ed0d674909a68ebf16a"},
+]
+
+[package.extras]
+cli = ["click (>=5.0)"]
+
+[[package]]
 name = "pytz"
 version = "2024.1"
 description = "World timezone definitions, modern and historical"
@@ -359,29 +373,28 @@ files = [
 
 [[package]]
 name = "shipyard-bp-utils"
-version = "1.1.1"
+version = "1.2.0"
 description = "Utility functions for blueprints"
 optional = false
-python-versions = ">=3.9,<4.0"
+python-versions = "<4.0,>=3.9"
 files = [
-    {file = "shipyard_bp_utils-1.1.1-py3-none-any.whl", hash = "sha256:83379abd4eed6af935c7dde914375d7e0965e84dbe12a008537762f1d7bb8ce5"},
-    {file = "shipyard_bp_utils-1.1.1.tar.gz", hash = "sha256:5656c816654d9c1431bc9ade7e2d5b51357c9f5215078344474b4d83639f9463"},
+    {file = "shipyard_bp_utils-1.2.0-py3-none-any.whl", hash = "sha256:790a5a0f561b58eb3e592764204b36e612d243bcbd46994747ba4130f5988e03"},
+    {file = "shipyard_bp_utils-1.2.0.tar.gz", hash = "sha256:bbed2cb71899462a73cd5d3f323315aa012ac81b7c1a193a49ebb17b75778372"},
 ]
 
 [package.dependencies]
-pytest = ">=8.0.1,<9.0.0"
 python-dateutil = ">=2.8.2,<3.0.0"
 shipyard-templates = ">0.6.2,<1.0.0"
 
 [[package]]
 name = "shipyard-templates"
-version = "0.8.0a1"
+version = "0.8.0a2"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "shipyard_templates-0.8.0a1-py3-none-any.whl", hash = "sha256:d44a3ce68fb13faf92e9814615295167cdaedc9c949759309f73cf530e003527"},
-    {file = "shipyard_templates-0.8.0a1.tar.gz", hash = "sha256:7e0be600f0a4f048d1805b66d7e2a3482effcb31494386f4a4ade0c2511f2af2"},
+    {file = "shipyard_templates-0.8.0a2-py3-none-any.whl", hash = "sha256:043b0a2544cd72624824790b5458872f819f55409ea06f8c2a3077e707b91f83"},
+    {file = "shipyard_templates-0.8.0a2.tar.gz", hash = "sha256:3dec04144b38208bd82bdbaf6cddf725b098e3864a6435cd7f20a778cc0323a7"},
 ]
 
 [[package]]
@@ -518,4 +531,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "b1fd8ed14148765bb51ad76d492868bbe0774d658da1bd952d75deab3f147fe5"
+content-hash = "992ef5040de51ab7ced9734fd4d3a0ae5afc5c2e841d27924fd60ee3325cadd2"

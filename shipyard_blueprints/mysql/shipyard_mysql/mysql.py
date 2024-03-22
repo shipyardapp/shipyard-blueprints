@@ -2,13 +2,13 @@ import pandas as pd
 import os
 from sqlalchemy import create_engine
 from shipyard_templates import Database, ExitCodeException, ShipyardLogger
-from shipyard_templates.database import FetchError, UploadError, QueryError
-from sqlalchemy import create_engine, TextClause
-from shipyard_mysql.errors.exceptions import (
-    InvalidMySQLCredentials,
-    ChunkDownloadError,
-    MySqlUploadError,
+from shipyard_templates.database import (
+    FetchError,
+    UploadError,
+    QueryError,
+    ConnectionError,
 )
+from sqlalchemy import create_engine, TextClause
 from typing import Optional
 
 logger = ShipyardLogger.get_logger()
@@ -54,7 +54,9 @@ class MySqlClient(Database):
         try:
             conn = create_engine(con_str).connect()
         except Exception as e:
-            raise InvalidMySQLCredentials(e)
+            raise ConnectionError(
+                f"Error connecting to MySQL. Message from the server reads: {e}"
+            )
         else:
             logger.info("Successfully connected to MySQL")
             return conn
@@ -105,7 +107,7 @@ class MySqlClient(Database):
         except ExitCodeException:
             raise
         except Exception as e:
-            raise MySqlUploadError(e)
+            raise UploadError(table=table_name, error_msg=e)
 
     def fetch(self, query: TextClause) -> pd.DataFrame:
         """
@@ -212,7 +214,7 @@ class MySqlClient(Database):
                 else:
                     chunk.to_csv(dest_path, mode="a", header=False, index=False)
         except Exception as e:
-            raise ChunkDownloadError(e)
+            raise FetchError(e)
 
     def close(self):
         """

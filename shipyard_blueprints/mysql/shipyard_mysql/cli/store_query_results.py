@@ -57,7 +57,6 @@ def main():
         file_header = shipyard.args.convert_to_boolean(args.file_header)
 
         query = text(args.query)
-        # client args
         client_args = {
             "username": args.username,
             "pwd": args.password,
@@ -83,7 +82,8 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        mysql.close()
+        if mysql:
+            mysql.close()
 
 
 if __name__ == "__main__":

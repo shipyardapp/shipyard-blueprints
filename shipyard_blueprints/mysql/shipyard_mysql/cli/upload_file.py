@@ -61,7 +61,6 @@ def main():
         )
         table_name = args.table_name
         insert_method = args.insert_method
-        # client args
         client_args = {
             "username": args.username,
             "pwd": args.password,
@@ -116,7 +115,8 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        mysql.close()
+        if mysql:
+            mysql.close()
 
 
 if __name__ == "__main__":
