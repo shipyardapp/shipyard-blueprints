@@ -15,7 +15,6 @@ def main():
             database=os.getenv("MYSQL_DATABASE"),
         )
         mysql.connect()
-        logger.authtest(f"Connected to MySQL")
         sys.exit(0)
     except Exception as e:
         logger.authtest(

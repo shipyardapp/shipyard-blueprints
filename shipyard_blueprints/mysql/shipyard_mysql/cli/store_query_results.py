@@ -45,28 +45,27 @@ def get_args():
 
 
 def main():
+    args = get_args()
+    target_file = args.destination_file_name
+    target_dir = args.destination_folder_name
+    query = text(args.query)
+    client_args = {
+        "username": args.username,
+        "pwd": args.password,
+        "host": args.host,
+        "database": args.database,
+        "port": args.port,
+        "url_params": args.url_parameters if args.url_parameters != "" else None,
+    }
+
+    mysql = MySqlClient(**client_args)
     try:
-        args = get_args()
-        target_file = args.destination_file_name
-        target_dir = args.destination_folder_name
         target_path = shipyard.files.combine_folder_and_file_name(
             folder_name=target_dir, file_name=target_file
         )
         if target_dir:
             shipyard.files.create_folder_if_dne(target_dir)
         file_header = shipyard.args.convert_to_boolean(args.file_header)
-
-        query = text(args.query)
-        client_args = {
-            "username": args.username,
-            "pwd": args.password,
-            "host": args.host,
-            "database": args.database,
-            "port": args.port,
-            "url_params": args.url_parameters if args.url_parameters != "" else None,
-        }
-
-        mysql = MySqlClient(**client_args)
 
         mysql.read_chunks(query=query, dest_path=target_path, header=file_header)
         logger.info(f"Successfully downloaded query results to {target_path}")
@@ -82,8 +81,7 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        if mysql:
-            mysql.close()
+        mysql.close()
 
 
 if __name__ == "__main__":
