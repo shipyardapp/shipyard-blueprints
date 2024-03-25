@@ -1,10 +1,5 @@
 import argparse
-import os
 import sys
-import code
-import csv
-from typing import final
-import pandas as pd
 import shipyard_bp_utils as shipyard
 from shipyard_redshift import RedshiftClient
 from shipyard_templates import ExitCodeException, ShipyardLogger, Database
@@ -66,8 +61,8 @@ def main():
     }
     redshift = RedshiftClient(**redshift_args)
     try:
-        shipyard.files.create_folder_if_dne(target_path)
-
+        if target_dir:
+            shipyard.files.create_folder_if_dne(target_dir)
         redshift.read_chunks(query, target_path, file_header)
         logger.info(f"Successfully downloaded query results to {target_path}")
 

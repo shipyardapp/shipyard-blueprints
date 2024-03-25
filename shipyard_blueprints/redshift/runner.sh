@@ -27,3 +27,15 @@ if [ "$1" = 'ex1' ]; then
         --query "drop table if exists $UP_TABLE"
 
 fi
+
+if [ "$1" = 'dl1' ]; then
+    python3 ./shipyard_redshift/cli/download.py \
+        --username "$REDSHIFT_USERNAME" \
+        --password "$REDSHIFT_PASSWORD" \
+        --host "$REDSHIFT_HOST" \
+        --database "$REDSHIFT_DATABASE" \
+        --port "$REDSHIFT_PORT" \
+        --query "select * from $UP_TABLE" \
+        --destination-file-name "test_download.csv"
+fi
+

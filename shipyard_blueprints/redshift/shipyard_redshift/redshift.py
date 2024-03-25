@@ -48,6 +48,15 @@ class RedshiftClient(Database):
         return self._conn
 
     def connect(self):
+        """
+        Connects to the Redshift database using the provided credentials.
+
+        Returns:
+            sqlalchemy.engine.Connection: A connection object representing the connection to the Redshift database.
+
+        Raises:
+            ConnectionError: If there is an error connecting to the Redshift database.
+        """
         try:
             con_str = URL.create(
                 drivername="redshift+redshift_connector",
@@ -58,9 +67,6 @@ class RedshiftClient(Database):
                 database=self.database,
             )
             conn = create_engine(con_str)
-            # conn = redshift_connector.connect(
-            #     host=self.host, database=self.database, user=self.user, password=self.pwd
-            # )
         except Exception as e:
             logger.error("Error in connecting to Redshift")
             raise ConnectionError(
@@ -68,9 +74,21 @@ class RedshiftClient(Database):
             )
         else:
             logger.info("Successfully connected to Redshift")
-            return conn
+            return conn.connect()
 
     def execute_query(self, query: str):
+        """
+        Executes the given query on the Redshift database.
+
+        Args:
+            query (str): The SQL query to be executed.
+
+        Raises:
+            QueryError: If an error occurs while executing the query.
+
+        Returns:
+            None
+        """
         try:
             query_text = text(query)
             self.conn.execute(query_text)
@@ -80,6 +98,18 @@ class RedshiftClient(Database):
             logger.info("Successfully executed query")
 
     def fetch(self, query: str) -> pd.DataFrame:
+        """
+        Executes the given SQL query and returns the results as a pandas DataFrame.
+
+        Args:
+            query (str): The SQL query to execute.
+
+        Returns:
+            pd.DataFrame: The results of the query as a pandas DataFrame.
+
+        Raises:
+            FetchError: If an error occurs while fetching the results.
+        """
         try:
             query_text = text(query)
             df = pd.read_sql(sql=query_text, con=self.conn)
@@ -90,6 +120,20 @@ class RedshiftClient(Database):
             return df
 
     def upload(self, file: str, table_name: str, insert_method: str = "replace"):
+        """
+        Uploads data from a file to a Redshift table.
+
+        Args:
+            file (str): The path to the file containing the data to be uploaded.
+            table_name (str): The name of the Redshift table to upload the data to.
+            insert_method (str, optional): The method to use for inserting the data into the table.
+                Defaults to "replace".
+
+        Raises:
+            ExitCodeException: If an exit code exception occurs during the execution of the method.
+            UploadError: If an error occurs during the upload process.
+
+        """
         try:
             if self.schema:
                 self.execute_query(f"CREATE SCHEMA IF NOT EXISTS {self.schema}")
@@ -176,9 +220,7 @@ class RedshiftClient(Database):
 
         """
         try:
-            for index, chunk in enumerate(
-                pd.read_csv(file_path, chunksize=self.CHUNKSIZE)
-            ):
+            for chunk in pd.read_csv(file_path, chunksize=self.CHUNKSIZE):
                 chunk.to_sql(
                     table_name,
                     con=self.conn,
@@ -192,6 +234,11 @@ class RedshiftClient(Database):
             raise UploadError(table=table_name, error_msg=e)
 
     def close(self):
+        """
+        Closes the connection to the Redshift database.
+
+        This method closes the connection to the Redshift database if it is open.
+        """
         if self._conn is not None:
             logger.info("Closing connection")
-            self._conn.dispose()
+            self._conn.close()

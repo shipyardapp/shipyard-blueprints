@@ -1,17 +1,20 @@
 import os
 from shipyard_redshift import RedshiftClient
+from shipyard_templates import ShipyardLogger
+from dotenv import find_dotenv, load_dotenv
+
+load_dotenv(find_dotenv())
+
+logger = ShipyardLogger.get_logger()
 
 
 def conn_helper(client: RedshiftClient) -> int:
     try:
-        client.connect()
+        client.connect().connect()
         return 0
     except Exception as e:
-        client.logger.error("Could not connect to redshift")
-        client.logger.error(e)
-        return 1
-    else:
-        client.logger.error("Could not connect to redshift")
+        logger.error("Could not connect to redshift")
+        logger.error(e)
         return 1
 
 

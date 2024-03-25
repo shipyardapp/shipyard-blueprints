@@ -53,48 +53,6 @@ def get_args():
     return args
 
 
-def upload_data(
-    source_full_path, table_name, insert_method, db_connection, schema=None
-):
-    # Resort to chunks for larger files to avoid memory issues.
-    chunk_size = 10000
-
-    conn = db_connection.connect()
-    if schema:
-        conn.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
-
-    for index, chunk in enumerate(pd.read_csv(source_full_path, chunksize=chunk_size)):
-        """
-        For the first iteration of the loop, we will either drop the table or append to it based on the user's input.
-        The following iterations will always append to the table.
-        """
-        if index != 0:
-            insert_method = "append"
-        if schema:
-            chunk.to_sql(
-                table_name,
-                con=db_connection,
-                index=False,
-                schema=schema,
-                if_exists=insert_method,
-                method="multi",
-                chunksize=chunk_size,
-            )
-        elif not schema:
-            chunk.to_sql(
-                table_name,
-                con=db_connection,
-                index=False,
-                if_exists=insert_method,
-                method="multi",
-                chunksize=chunk_size,
-            )
-    if schema:
-        print(f"{source_full_path} successfully uploaded to {schema}.{table_name}.")
-    else:
-        print(f"{source_full_path} successfully uploaded to {table_name}.")
-
-
 def main():
     args = get_args()
     match_type = args.source_file_name_match_type
@@ -142,6 +100,11 @@ def main():
                 file=src_path, table_name=table_name, insert_method=insert_method
             )
             logger.info(f"Successfully loaded {src_path} to {table_name}")
+    except FileNotFoundError:
+        logger.error(
+            f"File {src_path} was not found. Please ensure that file name and folder name (if provided) are correcet"
+        )
+        sys.exit(Database.EXIT_CODE_FILE_NOT_FOUND)
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)
