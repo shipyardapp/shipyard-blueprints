@@ -1,4 +1,5 @@
 import os
+import subprocess
 from shipyard_redshift import RedshiftClient
 from shipyard_templates import ShipyardLogger
 from dotenv import find_dotenv, load_dotenv
@@ -76,3 +77,37 @@ def test_bad_database():
     )
 
     assert conn_helper(client) == 1
+
+
+def test_authtest_good():
+    cmd = ["python3", "./shipyard_redshift/cli/authtest.py"]
+    process = subprocess.run(cmd)
+    assert process.returncode == 0
+
+
+def test_authtest_bad_user():
+    cmd = ["python3", "./shipyard_redshift/cli/authtest.py"]
+    os.environ["REDSHIFT_USERNAME"] = "bad_username"
+    process = subprocess.run(cmd)
+    assert process.returncode == 1
+
+
+def test_authtest_bad_host():
+    cmd = ["python3", "./shipyard_redshift/cli/authtest.py"]
+    os.environ["REDSHIFT_HOST"] = "bad_host"
+    process = subprocess.run(cmd)
+    assert process.returncode == 1
+
+
+def test_authtest_bad_pwd():
+    cmd = ["python3", "./shipyard_redshift/cli/authtest.py"]
+    os.environ["REDSHIFT_PASSWORD"] = "bad_password"
+    process = subprocess.run(cmd)
+    assert process.returncode == 1
+
+
+def test_authtest_bad_database():
+    cmd = ["python3", "./shipyard_redshift/cli/authtest.py"]
+    os.environ["REDSHIFT_DATABASE"] = "bad_database"
+    process = subprocess.run(cmd)
+    assert process.returncode == 1
