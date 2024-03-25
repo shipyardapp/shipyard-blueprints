@@ -26,3 +26,27 @@ def cmd():
 def test_good_connection(cmd):
     process = subprocess.run(cmd)
     assert process.returncode == 0
+
+
+def test_authtest_bad_user(cmd):
+    os.environ["POSTGRES_USERNAME"] = "bad_username"
+    process = subprocess.run(cmd)
+    assert process.returncode == 1
+
+
+def test_authtest_bad_pwd(cmd):
+    os.environ["POSTGRES_PASSWORD"] = "bad_password"
+    process = subprocess.run(cmd)
+    assert process.returncode == 1
+
+
+def test_authtest_bad_db(cmd):
+    os.environ["POSTGRES_DATABASE"] = "bad_db"
+    process = subprocess.run(cmd)
+    assert process.returncode == 1
+
+
+def test_authtest_bad_host(cmd):
+    os.environ["POSTGRES_HOST"] = "bad_host"
+    process = subprocess.run(cmd)
+    assert process.returncode == 1

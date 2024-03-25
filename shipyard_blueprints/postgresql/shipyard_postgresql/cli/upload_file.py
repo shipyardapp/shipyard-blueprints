@@ -58,28 +58,27 @@ def get_args():
 
 
 def main():
+    args = get_args()
+    match_type = args.source_file_name_match_type
+    src_file = args.source_file_name
+    src_dir = args.source_folder_name
+    src_path = shipyard.files.combine_folder_and_file_name(
+        folder_name=src_dir, file_name=src_file
+    )
+    table_name = args.table_name
+    insert_method = args.insert_method
+
+    client_args = {
+        "user": args.username,
+        "pwd": args.password,
+        "host": args.host,
+        "database": args.database,
+        "port": args.port,
+        "schema": args.schema if args.schema != "" else None,
+        "url_params": args.url_parameters if args.url_parameters != "" else None,
+    }
+    postgres = PostgresClient(**client_args)
     try:
-        args = get_args()
-        match_type = args.source_file_name_match_type
-        src_file = args.source_file_name
-        src_dir = args.source_folder_name
-        src_path = shipyard.files.combine_folder_and_file_name(
-            folder_name=src_dir, file_name=src_file
-        )
-        table_name = args.table_name
-        insert_method = args.insert_method
-
-        client_args = {
-            "user": args.username,
-            "pwd": args.password,
-            "host": args.host,
-            "database": args.database,
-            "port": args.port,
-            "schema": args.schema if args.schema != "" else None,
-            "url_params": args.url_parameters if args.url_parameters != "" else None,
-        }
-        postgres = PostgresClient(**client_args)
-
         if match_type == "regex_match":
             file_names = shipyard.files.find_all_local_file_names(src_dir)
             matching_file_names = shipyard.files.find_all_file_matches(
@@ -91,7 +90,7 @@ def main():
 
             logger.info(f"{n_matches} files found. Preparing to upload...")
 
-            for index, key_name in enumerate(matching_file_names):
+            for key_name in matching_file_names:
                 postgres.upload(
                     key_name, table_name=table_name, insert_method=insert_method
                 )
@@ -126,8 +125,7 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        if postgres:
-            postgres.close()
+        postgres.close()
 
 
 if __name__ == "__main__":
