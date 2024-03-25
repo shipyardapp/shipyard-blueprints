@@ -1,31 +1,6 @@
 from abc import ABC, abstractmethod
 from .shipyard_logger import ShipyardLogger
-from .exit_code_exception import ExitCodeException
 from typing import Optional
-
-
-class UploadError(ExitCodeException):
-    def __init__(self, table: str, error_msg: Exception):
-        self.message = (
-            f"Error in loading data to {table}. Message from the server is: {error_msg}"
-        )
-        self.exit_code = Database.EXIT_CODE_UPLOAD_ERROR
-
-
-class FetchError(ExitCodeException):
-    def __init__(self, error_msg: Exception):
-        self.message = (
-            f"Error in downloading data. Message from the server is: {error_msg}"
-        )
-        self.exit_code = Database.EXIT_CODE_DOWNLOAD_ERROR
-
-
-class QueryError(ExitCodeException):
-    def __init__(self, error_msg: Exception):
-        self.message = (
-            f"Error in executing query. Message from the server is: {error_msg}"
-        )
-        self.exit_code = Database.EXIT_CODE_QUERY_ERROR
 
 
 class Database(ABC):
@@ -33,20 +8,14 @@ class Database(ABC):
     EXIT_CODE_INVALID_ACCOUNT = 201  # snowflake specific
     EXIT_CODE_INVALID_WAREHOUSE = 202
     EXIT_CODE_INVALID_DATABASE = 203
-    EXIT_CODE_INVALID_SCHEMA = 204
+    EXIT_CODE_INVALID_SCHEMA = 204  # snowflake specific
     EXIT_CODE_INVALID_QUERY = 205
     EXIT_CODE_NO_RESULTS = 206
+    EXIT_CODE_FILE_NOT_FOUND = 205
+    EXIT_CODE_INVALID_UPLOAD_VALUE = 206
     EXIT_CODE_INVALID_UPLOAD_COLUMNS = 207
     EXIT_CODE_INVALID_ARGUMENTS = 208
     EXIT_CODE_INVALID_DATA_TYPES = 209
-    EXIT_CODE_FILE_NOT_FOUND = 210
-    EXIT_CODE_INVALID_UPLOAD_VALUE = 211
-    EXIT_CODE_NO_FILE_MATCHES = 212
-
-    # method errors
-    EXIT_CODE_UPLOAD_ERROR = 220
-    EXIT_CODE_QUERY_ERROR = 221
-    EXIT_CODE_DOWNLOAD_ERROR = 222
 
     EXIT_CODE_UNKNOWN = 249
 
