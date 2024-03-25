@@ -31,7 +31,7 @@ def main():
     query = args.query
     redshift_args = {
         "host": args.host,
-        "user": args.user,
+        "user": args.username,
         "pwd": args.password,
         "database": args.database,
         "port": args.port,

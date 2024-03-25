@@ -57,7 +57,7 @@ class RedshiftClient(Database):
                 port=self.port,
                 database=self.database,
             )
-            conn = create_engine(con_str).connect()
+            conn = create_engine(con_str)
             # conn = redshift_connector.connect(
             #     host=self.host, database=self.database, user=self.user, password=self.pwd
             # )
@@ -194,4 +194,4 @@ class RedshiftClient(Database):
     def close(self):
         if self._conn is not None:
             logger.info("Closing connection")
-            self._conn.close()
+            self._conn.dispose()

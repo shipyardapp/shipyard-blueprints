@@ -2,6 +2,7 @@ import argparse
 import re
 import sys
 import shipyard_bp_utils as shipyard
+import pandas as pd
 from shipyard_templates import ShipyardLogger, Database, ExitCodeException
 from shipyard_redshift import RedshiftClient
 
@@ -99,14 +100,14 @@ def main():
     match_type = args.source_file_name_match_type
     src_file = args.source_file_name
     src_dir = args.source_folder_name
-    src_path = shipyard.file.combine_folder_and_file_name(
+    src_path = shipyard.files.combine_folder_and_file_name(
         folder_name=src_dir, file_name=src_file
     )
     table_name = args.table_name
     insert_method = args.insert_method
     redshift_args = {
         "host": args.host,
-        "user": args.user,
+        "user": args.username,
         "pwd": args.password,
         "database": args.database,
         "port": args.port,
@@ -140,6 +141,7 @@ def main():
             redshift.upload(
                 file=src_path, table_name=table_name, insert_method=insert_method
             )
+            logger.info(f"Successfully loaded {src_path} to {table_name}")
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)
