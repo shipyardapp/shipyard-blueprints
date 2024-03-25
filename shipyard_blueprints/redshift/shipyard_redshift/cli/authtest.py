@@ -1,38 +1,28 @@
 import os
 import sys
 from shipyard_redshift import RedshiftClient
+from shipyard_templates import ShipyardLogger
 
-
-def get_args():
-    args = {
-        "host": os.environ.get("REDSHIFT_HOST"),
-        "user": os.environ.get("REDSHIFT_USERNAME"),
-    }
-    try:
-        args["port"] = os.environ.get("REDSHIFT_PORT")
-    except Exception as e:
-        args["port"] = "5432"
-    args["password"] = os.environ.get("REDSHIFT_PASSWORD")
-    args["database"] = os.environ.get("REDSHIFT_DATABASE")
-    return args
+logger = ShipyardLogger.get_logger()
 
 
 def main():
-    args = get_args()
-    host = args["host"]
-    user = args["user"]
-    pwd = args["password"]
-    port = args["port"]
-    database = args["database"]
+    host = os.getenv("REDSHIFT_HOST")
+    user = os.getenv("REDSHIFT_USERNAME")
+    pwd = os.getenv("REDSHIFT_PASSWORD")
+    port = os.getenv("REDSHIFT_PORT")
+    database = os.getenv("REDSHIFT_DATABASE")
     redshift = RedshiftClient(
         user=user, pwd=pwd, host=host, port=port, database=database
     )
     try:
         con = redshift.connect()
-        redshift.logger.info("Connected to Redshift")
+        logger.info("Connected to Redshift")
         sys.exit(0)
     except Exception as e:
-        redshift.logger.error("Could not connect to Redshift with given credentials")
+        logger.authtest(
+            f"Could not connect to Redshift with given credentials. Message from the server reads: {e}"
+        )
         sys.exit(1)
 
 
