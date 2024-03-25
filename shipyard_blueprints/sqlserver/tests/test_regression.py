@@ -33,12 +33,13 @@ def read_all_csvs(dir: str) -> pd.DataFrame:
 @pytest.fixture(scope="module")
 def creds():
     return {
-        "host": os.getenv("SQL_HOST"),
-        "pwd": os.getenv("SQL_PWD"),
-        "user": os.getenv("SQL_USER"),
-        "db": os.getenv("SQL_DB"),
+        "host": os.getenv("MSSQL_HOST"),
+        "pwd": os.getenv("MSSQL_PASSWORD"),
+        "user": os.getenv("MSSQL_USERNAME"),
+        "db": os.getenv("MSSQL_DATABASE"),
         "table": os.getenv("UP_TABLE"),
         "regex_table": os.getenv("REGEX_TABLE"),
+        "port": os.getenv("MSSQL_PORT"),
     }
 
 

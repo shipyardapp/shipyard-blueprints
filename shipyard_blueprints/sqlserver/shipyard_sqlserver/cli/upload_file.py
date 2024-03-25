@@ -54,6 +54,7 @@ def get_args():
 
 
 def main():
+    client = None
     try:
         args = get_args()
         match_type = args.source_file_name_match_type

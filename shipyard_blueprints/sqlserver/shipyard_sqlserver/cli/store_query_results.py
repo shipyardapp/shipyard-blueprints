@@ -46,6 +46,7 @@ def get_args():
 
 
 def main():
+    client = None
     try:
         args = get_args()
         dest_file = args.destination_file_name
@@ -81,7 +82,8 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        client.close()
+        if client:
+            client.close()
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-sqlserver"
-version = "0.2.0a5"
+version = "0.2.0a6"
 description = "A local client for connecting and working with Sql Server Databases"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
