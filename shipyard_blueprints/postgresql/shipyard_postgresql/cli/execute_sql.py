@@ -29,18 +29,19 @@ def get_args():
 
 
 def main():
-    args = get_args()
-    query = text(args.query)
-    client_args = {
-        "user": args.username,
-        "pwd": args.password,
-        "host": args.host,
-        "database": args.database,
-        "port": args.port,
-        "url_params": args.url_parameters if args.url_parameters != "" else None,
-    }
-    postgres = PostgresClient(**client_args)
+    postgres = None
     try:
+        args = get_args()
+        query = text(args.query)
+        client_args = {
+            "user": args.username,
+            "pwd": args.password,
+            "host": args.host,
+            "database": args.database,
+            "port": args.port,
+            "url_params": args.url_parameters if args.url_parameters != "" else None,
+        }
+        postgres = PostgresClient(**client_args)
         postgres.execute_query(query)
         logger.info("Successfully executed query")
 
@@ -55,7 +56,8 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        postgres.close()
+        if postgres is not None:
+            postgres.close()
 
 
 if __name__ == "__main__":
