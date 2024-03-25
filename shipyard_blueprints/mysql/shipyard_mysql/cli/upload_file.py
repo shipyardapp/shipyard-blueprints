@@ -51,23 +51,24 @@ def get_args():
 
 
 def main():
-    args = get_args()
-    match_type = args.source_file_name_match_type
-    src_file = args.source_file_name
-    src_dir = args.source_folder_name
-    table_name = args.table_name
-    insert_method = args.insert_method
-    client_args = {
-        "username": args.username,
-        "pwd": args.password,
-        "host": args.host,
-        "database": args.database,
-        "port": args.port,
-        "url_params": args.url_parameters if args.url_parameters != "" else None,
-    }
-
-    mysql = MySqlClient(**client_args)
+    mysql = None
     try:
+        args = get_args()
+        match_type = args.source_file_name_match_type
+        src_file = args.source_file_name
+        src_dir = args.source_folder_name
+        table_name = args.table_name
+        insert_method = args.insert_method
+        client_args = {
+            "username": args.username,
+            "pwd": args.password,
+            "host": args.host,
+            "database": args.database,
+            "port": args.port,
+            "url_params": args.url_parameters if args.url_parameters != "" else None,
+        }
+
+        mysql = MySqlClient(**client_args)
         src_path = shipyard.files.combine_folder_and_file_name(
             folder_name=src_dir, file_name=src_file
         )
@@ -114,7 +115,8 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        mysql.close()
+        if mysql is not None:
+            mysql.close()
 
 
 if __name__ == "__main__":

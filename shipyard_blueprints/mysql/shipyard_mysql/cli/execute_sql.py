@@ -29,21 +29,21 @@ def get_args():
 
 
 def main():
-    args = get_args()
-    query = text(args.query)
-
-    client_args = {
-        "username": args.username,
-        "pwd": args.password,
-        "host": args.host,
-        "database": args.database,
-        "port": args.port,
-        "url_params": args.url_parameters if args.url_parameters != "" else None,
-    }
-
-    mysql = MySqlClient(**client_args)
-
+    mysql = None
     try:
+        args = get_args()
+        query = text(args.query)
+
+        client_args = {
+            "username": args.username,
+            "pwd": args.password,
+            "host": args.host,
+            "database": args.database,
+            "port": args.port,
+            "url_params": args.url_parameters if args.url_parameters != "" else None,
+        }
+
+        mysql = MySqlClient(**client_args)
         mysql.execute_query(query)
 
         logger.info("Successfully executed query")
@@ -59,7 +59,8 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        mysql.close()
+        if mysql is not None:
+            mysql.close()
 
 
 if __name__ == "__main__":
