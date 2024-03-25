@@ -1,11 +1,17 @@
-import os
-import sys
-import re
 import argparse
+import os
+import re
+import sys
 
 from dropbox import Dropbox
-from dropbox.files import FileMetadata, FolderMetadata
 from dropbox.exceptions import *
+from dropbox.files import UploadSessionCursor, CommitInfo
+from shipyard_bp_utils import files as shipyard
+from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
+
+logger = ShipyardLogger.get_logger()
+
+CHUNK_SIZE = 10 * 1024 * 1024
 
 
 def get_args():
@@ -17,15 +23,9 @@ def get_args():
         choices={"exact_match", "regex_match"},
         required=False,
     )
-    parser.add_argument(
-        "--source-folder-name", dest="source_folder_name", default="", required=False
-    )
     parser.add_argument("--source-file-name", dest="source_file_name", required=True)
     parser.add_argument(
-        "--destination-file-name",
-        dest="destination_file_name",
-        default=None,
-        required=False,
+        "--source-folder-name", dest="source_folder_name", default="", required=False
     )
     parser.add_argument(
         "--destination-folder-name",
@@ -33,155 +33,80 @@ def get_args():
         default="",
         required=False,
     )
+    parser.add_argument(
+        "--destination-file-name",
+        dest="destination_file_name",
+        default=None,
+        required=False,
+    )
     parser.add_argument("--access-key", dest="access_key", default=None, required=True)
     return parser.parse_args()
 
 
-def extract_file_name_from_source_full_path(source_full_path):
+def upload_dropbox_file(client, source_full_path, destination_full_path):
     """
-    Use the file name provided in the source_file_name variable. Should be run only
-    if a destination_file_name is not provided.
+    Uploads a single file to Dropbox.
     """
-    destination_file_name = os.path.basename(source_full_path)
-    return destination_file_name
-
-
-def enumerate_destination_file_name(destination_file_name, file_number=1):
-    """
-    Append a number to the end of the provided destination file name.
-    Only used when multiple files are matched to, preventing the destination file from being continuously overwritten.
-    """
-    if re.search(r"\.", destination_file_name):
-        destination_file_name = re.sub(
-            r"\.", f"_{file_number}.", destination_file_name, 1
+    if os.path.getsize(source_full_path) <= CHUNK_SIZE:
+        upload_small_dropbox_file(
+            client=client,
+            source_full_path=source_full_path,
+            destination_full_path=destination_full_path,
         )
     else:
-        destination_file_name = f"{destination_file_name}_{file_number}"
-    return destination_file_name
+        upload_large_dropbox_file(
+            client=client,
+            source_full_path=source_full_path,
+            destination_full_path=destination_full_path,
+        )
 
 
-def determine_destination_file_name(
-    *, source_full_path, destination_file_name, file_number=None
-):
+def upload_small_dropbox_file(client, source_full_path, destination_full_path):
     """
-    Determine if the destination_file_name was provided, or should be extracted from the source_file_name,
-    or should be enumerated for multiple file downloads.
+    Uploads a small (<=CHUNK_SIZE) single file to Dropbox.
     """
-    if destination_file_name:
-        if file_number:
-            destination_file_name = enumerate_destination_file_name(
-                destination_file_name, file_number
+    with open(source_full_path, "rb") as f:
+        try:
+            client.files_upload(f.read(CHUNK_SIZE), destination_full_path)
+            logger.info(
+                f"{source_full_path} successfully uploaded to "
+                f"{destination_full_path}"
             )
-        else:
-            destination_file_name = destination_file_name
-    else:
-        destination_file_name = extract_file_name_from_source_full_path(
-            source_full_path
-        )
 
-    return destination_file_name
+        except ApiError as e:
+            logger.error(f"Failed to upload file {source_full_path} due to {e}")
 
 
-def clean_folder_name(folder_name):
+def upload_large_dropbox_file(client, source_full_path, destination_full_path):
     """
-    Cleans folders name by removing duplicate '/' as well as leading and trailing '/' characters.
+    Uploads a large (>CHUNK_SIZE) single file to Dropbox.
     """
-    folder_name = folder_name.strip("/")
-    if folder_name != "":
-        folder_name = os.path.normpath(folder_name)
-    return folder_name
+    file_size = os.path.getsize(source_full_path)
+    with open(source_full_path, "rb") as f:
+        try:
+            upload_session_start_result = client.files_upload_session_start(
+                f.read(CHUNK_SIZE)
+            )
+            session_id = upload_session_start_result.session_id
+            cursor = UploadSessionCursor(session_id=session_id, offset=f.tell())
+            commit = CommitInfo(path=destination_full_path)
 
+            while f.tell() < file_size:
+                if (file_size - f.tell()) <= CHUNK_SIZE:
+                    logger.info(
+                        client.files_upload_session_finish(
+                            f.read(CHUNK_SIZE), cursor, commit
+                        )
+                    )
+                else:
+                    client.files_upload_session_append(
+                        f.read(CHUNK_SIZE), cursor.session_id, cursor.offset
+                    )
+                    cursor.offset = f.tell()
+        except ApiError as e:
+            logger.error(f"Failed to upload file {source_full_path} due to {e}")
 
-def combine_folder_and_file_name(folder_name, file_name):
-    """
-    Combine together the provided folder_name and file_name into one path variable.
-    """
-    combined_name = os.path.normpath(
-        f'{folder_name}{"/" if folder_name else ""}{file_name}'
-    )
-    combined_name = os.path.normpath(combined_name)
-
-    return combined_name
-
-
-def determine_destination_name(
-    destination_folder_name, destination_file_name, source_full_path, file_number=None
-):
-    """
-    Determine the final destination name of the file being downloaded.
-    """
-    destination_file_name = determine_destination_file_name(
-        destination_file_name=destination_file_name,
-        source_full_path=source_full_path,
-        file_number=file_number,
-    )
-    destination_name = combine_folder_and_file_name(
-        destination_folder_name, destination_file_name
-    )
-    return destination_name
-
-
-def find_dropbox_file_names(client, prefix=None):
-    """
-    Fetched all the files in the bucket which are returned in a list as
-    file names
-    """
-    result = []
-    folders = []
-    if prefix and not prefix.startswith("/"):
-        prefix = f"/{prefix}"
-    try:
-        files = client.files_list_folder(prefix)
-    except Exception as e:
-        print(f"Failed to search folder {prefix}")
-        return []
-
-    for f in files.entries:
-        if isinstance(f, FileMetadata):
-            result.append(f.path_lower)
-        elif isinstance(f, FolderMetadata):
-            folders.append(f.path_lower)
-    for folder in folders:
-        result.extend(find_dropbox_file_names(client, prefix=folder))
-    return result
-
-
-def find_matching_files(file_names, file_name_re):
-    """
-    Return a list of all file_names that matched the regular expression.
-    """
-    matching_file_names = []
-    for file_name in file_names:
-        if re.search(file_name_re, file_name):
-            matching_file_names.append(file_name)
-
-    return matching_file_names
-
-
-def download_dropbox_file(file_name, client, destination_file_name=None):
-    """
-    Download a selected file from Dropbox to local storage in
-    the current working directory.
-    """
-    local_path = os.path.normpath(f"{os.getcwd()}/{destination_file_name}")
-
-    try:
-        with open(local_path, "wb") as f:
-            metadata, _file = client.files_download(path=file_name)
-            f.write(_file.content)
-    except Exception as e:
-        if "not_found" in str(e):
-            print(f"Download failed. Could not find {file_name}")
-        elif "not_file" in str(e):
-            print(f"Download failed. {file_name} is not a file")
-        else:
-            print(f"Failed to download {file_name} to {local_path}")
-        os.remove(local_path)
-        raise (e)
-
-    print(f"{file_name} successfully downloaded to {local_path}")
-
-    return
+    logger.info(f"{source_full_path} successfully uploaded to {destination_full_path}")
 
 
 def get_dropbox_client(access_key):
@@ -193,63 +118,79 @@ def get_dropbox_client(access_key):
         client.users_get_current_account()
         return client
     except AuthError as e:
-        print(f"Failed to authenticate using key {access_key}")
-        raise (e)
+        raise ExitCodeException(
+            f"Failed to authenticate using key {access_key}",
+            CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
+        ) from e
 
 
 def main():
-    args = get_args()
-    access_key = args.access_key
-    source_file_name = args.source_file_name
-    source_folder_name = clean_folder_name(args.source_folder_name)
-    source_full_path = combine_folder_and_file_name(
-        folder_name=source_folder_name, file_name=source_file_name
-    )
-    source_file_name_match_type = args.source_file_name_match_type
-
-    destination_folder_name = clean_folder_name(args.destination_folder_name)
-    if not os.path.exists(destination_folder_name) and (destination_folder_name != ""):
-        os.makedirs(destination_folder_name)
-
-    client = get_dropbox_client(access_key=access_key)
-
-    if source_file_name_match_type == "regex_match":
-        file_names = find_dropbox_file_names(client=client, prefix=source_folder_name)
-        matching_file_names = find_matching_files(
-            file_names, re.compile(source_file_name)
+    try:
+        args = get_args()
+        access_key = args.access_key
+        source_file_name = args.source_file_name
+        source_folder_name = args.source_folder_name
+        source_full_path = shipyard.combine_folder_and_file_name(
+            folder_name=os.path.join(os.getcwd(), source_folder_name),
+            file_name=source_file_name,
         )
-        print(f"{len(matching_file_names)} files found. Preparing to download...")
+        destination_folder_name = shipyard.clean_folder_name(
+            args.destination_folder_name
+        )
 
-        for index, file_name in enumerate(matching_file_names):
-            destination_name = determine_destination_name(
+        client = get_dropbox_client(access_key=access_key)
+        if args.source_file_name_match_type == "exact_match":
+            destination_full_path = shipyard.determine_destination_full_path(
                 destination_folder_name=destination_folder_name,
                 destination_file_name=args.destination_file_name,
-                source_full_path=file_name,
-                file_number=index + 1,
+                source_full_path=source_full_path,
             )
-
-            if not file_name.startswith("/"):
-                file_name = f"/{file_name}"
-            print(f"Downloading file {index+1} of {len(matching_file_names)}")
-            download_dropbox_file(
-                file_name=file_name,
+            upload_dropbox_file(
+                source_full_path=source_full_path,
+                destination_full_path=destination_full_path,
                 client=client,
-                destination_file_name=destination_name,
             )
-    else:
-        destination_name = determine_destination_name(
-            destination_folder_name=destination_folder_name,
-            destination_file_name=args.destination_file_name,
-            source_full_path=source_full_path,
-        )
 
-        if not source_full_path.startswith("/"):
-            source_full_path = f"/{source_full_path}"
-        download_dropbox_file(
-            file_name=source_full_path,
-            client=client,
-            destination_file_name=destination_name,
-        )
+        elif args.source_file_name_match_type == "regex_match":
+            file_names = shipyard.find_all_local_file_names(source_folder_name)
+            matching_file_names = shipyard.find_all_file_matches(
+                file_names, re.compile(source_file_name)
+            )
+            if not matching_file_names:
+                raise ExitCodeException(
+                    f"No files found matching {source_file_name}",
+                    CloudStorage.EXIT_CODE_FILE_NOT_FOUND,
+                )
+            logger.info(
+                f"{len(matching_file_names)} files found. Preparing to upload..."
+            )
+
+            for index, key_name in enumerate(matching_file_names, start=1):
+                destination_full_path = shipyard.determine_destination_full_path(
+                    destination_folder_name=destination_folder_name,
+                    destination_file_name=args.destination_file_name,
+                    source_full_path=key_name,
+                    file_number=index,
+                )
+                if not os.path.exists(key_name):
+                    raise ExitCodeException(
+                        f"File {key_name} does not exist",
+                        CloudStorage.EXIT_CODE_FILE_NOT_FOUND,
+                    )
+                logger.info(f"Uploading file {index} of {len(matching_file_names)}")
+                upload_dropbox_file(
+                    source_full_path=key_name,
+                    destination_full_path=destination_full_path,
+                    client=client,
+                )
+    except ExitCodeException as e:
+        logger.error(e)
+        sys.exit(e.exit_code)
+    except Exception as e:
+        logger.error(f"Failed to upload to Dropbox due to {e}")
+        sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
+    else:
+        logger.info("All files uploaded successfully")
 
 
 if __name__ == "__main__":
