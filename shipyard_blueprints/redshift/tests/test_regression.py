@@ -9,11 +9,11 @@ from copy import deepcopy
 
 load_dotenv(find_dotenv())
 
-single_file = "test.csv"
+single_file = "soccer.csv"
 dest_file = "download.csv"
-nested_file = "mult_1.csv"
+nested_file = "births_00.csv"
 dest_folder = "newdir"
-regex_file = "mult"
+regex_file = "births"
 regex_folder = "mult"
 
 
@@ -285,9 +285,9 @@ def test_download_regex_match_table(creds, down):
 def test_rows_regex():
     orig = read_all_csvs(regex_folder)
     new = pd.read_csv(dest_file)
-    assert (orig.shape[0]) == new.shape[0]
     print("Removing downloaded file")
     os.remove(dest_file)
+    assert (orig.shape[0]) == new.shape[0]
 
 
 def test_drop_table_1(creds, query):
