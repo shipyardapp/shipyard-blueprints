@@ -1,8 +1,12 @@
-import tableauserverclient as TSC
 import argparse
 import sys
-import shipyard_utils as shipyard
-from shipyard_tableau.cli import errors, authorization
+
+from shipyard_bp_utils.artifacts import Artifact
+from shipyard_templates import ShipyardLogger, ExitCodeException, DataVisualization
+
+from shipyard_tableau import tableau_utils
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -19,76 +23,32 @@ def get_args():
         required=False,
     )
     parser.add_argument("--job-id", dest="job_id", required=False)
-    args = parser.parse_args()
-    return args
-
-
-def get_job_info(server, job_id):
-    """
-    Gets information about the specified job_id.
-    """
-    try:
-        job_info = server.jobs.get_by_id(job_id)
-    except Exception as e:
-        print(f"Job {job_id} was not found.")
-        print(e)
-        sys.exit(errors.EXIT_CODE_INVALID_JOB)
-    return job_info
-
-
-def determine_job_status(server, job_id):
-    """
-    Job status response handler.
-
-    The finishCode indicates the status of the job: -1 for incomplete, 0 for success, 1 for error, or 2 for cancelled.
-    """
-    job_info = get_job_info(server, job_id)
-    if job_info.finish_code == -1:
-        if job_info.started_at is None:
-            print(f"Tableau reports that the job {job_id} has not yet started.")
-        else:
-            print(f"Tableau reports that the job {job_id} is not yet complete.")
-        exit_code = errors.EXIT_CODE_STATUS_INCOMPLETE
-    elif job_info.finish_code == 0:
-        print(f"Tableau reports that job {job_id} was successful.")
-        exit_code = errors.EXIT_CODE_FINAL_STATUS_SUCCESS
-    elif job_info.finish_code == 1:
-        print(f"Tableau reports that job {job_id} errored.")
-        exit_code = errors.EXIT_CODE_FINAL_STATUS_ERRORED
-    elif job_info.finish_code == 2:
-        print(f"Tableau reports that job {job_id} was cancelled.")
-        exit_code = errors.EXIT_CODE_FINAL_STATUS_CANCELLED
-    else:
-        print(f"Something went wrong when fetching status for job {job_id}")
-        exit_code = errors.EXIT_CODE_UNKNOWN_ERROR
-    return exit_code
+    return parser.parse_args()
 
 
 def main():
-    args = get_args()
-    username = args.username
-    password = args.password
-    site_id = args.site_id
-    server_url = args.server_url
-    sign_in_method = args.sign_in_method
+    try:
+        args = get_args()
+        username = args.username
+        password = args.password
+        site_id = args.site_id
+        server_url = args.server_url
+        sign_in_method = args.sign_in_method
+        artifact = Artifact("tableau")
+        job_id = args.job_id or artifact.variables.read_pickle("job_id")
 
-    base_folder_name = shipyard.logs.determine_base_artifact_folder("tableau")
-    artifact_subfolder_paths = shipyard.logs.determine_artifact_subfolders(
-        base_folder_name
-    )
-    shipyard.logs.create_artifacts_folders(artifact_subfolder_paths)
+        server, connection = tableau_utils.connect_to_tableau(
+            username, password, site_id, server_url, sign_in_method
+        )
 
-    if args.job_id:
-        job_id = args.job_id
-    else:
-        job_id = shipyard.logs.read_pickle_file(artifact_subfolder_paths, "job_id")
-
-    server, connection = authorization.connect_to_tableau(
-        username, password, site_id, server_url, sign_in_method
-    )
-
-    with connection:
-        sys.exit(determine_job_status(server, job_id))
+        with connection:
+            sys.exit(tableau_utils.determine_job_status(server, job_id))
+    except ExitCodeException as e:
+        logger.error(e)
+        sys.exit(e.exit_code)
+    except Exception as e:
+        logger.error(f"An unexpected error occurred {e}")
+        sys.exit(DataVisualization.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":

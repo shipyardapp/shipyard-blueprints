@@ -1,9 +1,12 @@
 import argparse
 import sys
-import shipyard_utils as shipyard
 
-import tableauserverclient as TSC
-from shipyard_tableau.cli import authorization, errors, lookup
+from shipyard_bp_utils import files as shipyard
+from shipyard_templates import ExitCodeException, ShipyardLogger, DataVisualization
+
+from shipyard_tableau import tableau_utils
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -24,7 +27,6 @@ def get_args():
         "--file-type",
         dest="file_type",
         choices=["png", "pdf", "csv"],
-        type=str.lower,
         required=True,
     )
     parser.add_argument(
@@ -42,14 +44,14 @@ def get_args():
     parser.add_argument("--file-options", dest="file_options", required=False)
     parser.add_argument("--workbook-name", dest="workbook_name", required=True)
     parser.add_argument("--project-name", dest="project_name", required=True)
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def generate_view_content(server, view_id, file_type):
     """
     Given a specific view_id, populate the view and return the bytes necessary for creating the file.
     """
+    view_content = None
     view_object = server.views.get_by_id(view_id)
     if file_type == "png":
         server.views.populate_image(view_object)
@@ -75,62 +77,71 @@ def write_view_content_to_file(
                 f.writelines(view_content)
             else:
                 f.write(view_content)
-        print(f"Successfully downloaded {view_name} to {destination_full_path}")
+        logger.info(f"Successfully downloaded {view_name} to {destination_full_path}")
     except OSError as e:
-        print(f"Could not write file: {destination_full_path}")
-        print(e)
-        sys.exit(errors.EXIT_CODE_FILE_WRITE_ERROR)
+        raise ExitCodeException(
+            f"Could not write file: {destination_full_path}",
+            tableau_utils.EXIT_CODE_FILE_WRITE_ERROR,
+        ) from e
 
 
 def main():
-    args = get_args()
-    username = args.username
-    password = args.password
-    site_id = args.site_id
-    server_url = args.server_url
-    sign_in_method = args.sign_in_method
-    view_name = args.view_name
-    file_type = args.file_type
-    project_name = args.project_name
-    workbook_name = args.workbook_name
+    try:
+        args = get_args()
 
-    # Set all file parameters
-    destination_file_name = args.destination_file_name
-    destination_folder_name = shipyard.files.clean_folder_name(
-        args.destination_folder_name
-    )
-    destination_full_path = shipyard.files.combine_folder_and_file_name(
-        folder_name=destination_folder_name, file_name=destination_file_name
-    )
-
-    server, connection = authorization.connect_to_tableau(
-        username, password, site_id, server_url, sign_in_method
-    )
-
-    with connection:
-        project_id = lookup.get_project_id(server=server, project_name=project_name)
-        workbook_id = lookup.get_workbook_id(
-            server=server, project_id=project_id, workbook_name=workbook_name
+        # Set all file parameters
+        destination_folder_name = shipyard.clean_folder_name(
+            args.destination_folder_name
         )
-        view_id = lookup.get_view_id(
-            server=server,
-            project_id=project_id,
-            workbook_id=workbook_id,
-            view_name=view_name,
+        shipyard.create_folder_if_dne(destination_folder_name=destination_folder_name)
+
+        destination_full_path = shipyard.combine_folder_and_file_name(
+            folder_name=destination_folder_name, file_name=args.destination_file_name
         )
 
-        view_content = generate_view_content(
-            server=server, view_id=view_id, file_type=file_type
+        server, connection = tableau_utils.connect_to_tableau(
+            args.username,
+            args.password,
+            args.site_id,
+            args.server_url,
+            args.sign_in_method,
         )
-        shipyard.files.create_folder_if_dne(
-            destination_folder_name=destination_folder_name
-        )
-        write_view_content_to_file(
-            destination_full_path=destination_full_path,
-            view_content=view_content,
-            file_type=file_type,
-            view_name=view_name,
-        )
+
+        with connection:
+            view_name = args.view_name
+            file_type = args.file_type
+
+            project_id = tableau_utils.get_project_id(
+                server=server, project_name=args.project_name
+            )
+            workbook_id = tableau_utils.get_workbook_id(
+                server=server, project_id=project_id, workbook_name=args.workbook_name
+            )
+            view_id = tableau_utils.get_view_id(
+                server=server,
+                project_id=project_id,
+                workbook_id=workbook_id,
+                view_name=view_name,
+            )
+
+            view_content = generate_view_content(
+                server=server, view_id=view_id, file_type=file_type
+            )
+
+            write_view_content_to_file(
+                destination_full_path=destination_full_path,
+                view_content=view_content,
+                file_type=file_type,
+                view_name=view_name,
+            )
+
+    except ExitCodeException as e:
+        logger.error(e)
+        sys.exit(e.exit_code)
+
+    except Exception as e:
+        logger.error(f"An unexpected error occurred {e}")
+        sys.exit(DataVisualization.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":
