@@ -1,9 +1,11 @@
-from sqlalchemy import create_engine
 import argparse
-import os
-import glob
 import re
-import pandas as pd
+import sys
+import shipyard_bp_utils as shipyard
+from shipyard_mysql import MySqlClient
+from shipyard_templates import ShipyardLogger, ExitCodeException, Database
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -33,24 +35,12 @@ def get_args():
     parser.add_argument(
         "--insert-method",
         dest="insert_method",
-        choices={"fail", "replace", "append"},
+        choices={"replace", "append"},
         default="append",
         required=False,
     )
-    parser.add_argument("--db-connection-url", dest="db_connection_url", required=False)
     args = parser.parse_args()
 
-    if (
-        not args.db_connection_url
-        and not (args.host or args.database or args.username)
-        and not os.environ.get("DB_CONNECTION_URL")
-    ):
-        parser.error(
-            """This Blueprint requires at least one of the following to be provided:\n
-            1) --db-connection-url\n
-            2) --host, --database, and --username\n
-            3) DB_CONNECTION_URL set as environment variable"""
-        )
     if args.host and not (args.database or args.username):
         parser.error("--host requires --database and --username")
     if args.database and not (args.host or args.username):
@@ -60,119 +50,73 @@ def get_args():
     return args
 
 
-def create_connection_string(args):
-    """
-    Set the database connection string as an environment variable using the keyword arguments provided.
-    This will override system defaults.
-    """
-    if args.db_connection_url:
-        os.environ["DB_CONNECTION_URL"] = args.db_connection_url
-    elif args.host and args.username and args.database:
-        os.environ["DB_CONNECTION_URL"] = (
-            f"mysql+mysqlconnector://{args.username}:{args.password}@{args.host}:{args.port}/{args.database}?{args.url_parameters}"
-        )
-
-    db_string = os.environ.get("DB_CONNECTION_URL")
-    return db_string
-
-
-def find_all_local_file_names(source_folder_name):
-    """
-    Returns a list of all files that exist in the current working directory,
-    filtered by source_folder_name if provided.
-    """
-    cwd = os.getcwd()
-    cwd_extension = os.path.normpath(f"{cwd}/{source_folder_name}/**")
-    file_names = glob.glob(cwd_extension, recursive=True)
-    return [file_name for file_name in file_names if os.path.isfile(file_name)]
-
-
-def find_all_file_matches(file_names, file_name_re):
-    """
-    Return a list of all file_names that matched the regular expression.
-    """
-    matching_file_names = []
-    for file in file_names:
-        if re.search(file_name_re, file):
-            matching_file_names.append(file)
-
-    return matching_file_names
-
-
-def combine_folder_and_file_name(folder_name, file_name):
-    """
-    Combine together the provided folder_name and file_name into one path variable.
-    """
-    combined_name = os.path.normpath(
-        f'{folder_name}{"/" if folder_name else ""}{file_name}'
-    )
-
-    return combined_name
-
-
-def upload_data(source_full_path, table_name, insert_method, db_connection):
-    # Resort to chunks for larger files to avoid memory issues.
-    for index, chunk in enumerate(pd.read_csv(source_full_path, chunksize=10000)):
-        if insert_method == "replace" and index > 0:
-            # First chunk replaces the table, the following chunks
-            # append to the end.
-            insert_method = "append"
-
-        chunk.to_sql(
-            table_name,
-            con=db_connection,
-            index=False,
-            if_exists=insert_method,
-            method="multi",
-            chunksize=10000,
-        )
-    print(f"{source_full_path} successfully uploaded to {table_name}.")
-
-
 def main():
-    args = get_args()
-    source_file_name_match_type = args.source_file_name_match_type
-    source_file_name = args.source_file_name
-    source_folder_name = args.source_folder_name
-    source_full_path = combine_folder_and_file_name(
-        folder_name=source_folder_name, file_name=source_file_name
-    )
-    table_name = args.table_name
-    insert_method = args.insert_method
-
-    db_string = create_connection_string(args)
+    mysql = None
     try:
-        db_connection = create_engine(
-            db_string, pool_recycle=3600, execution_options=dict(stream_results=True)
-        )
-    except Exception as e:
-        print(f"Failed to connect to database {args.database}")
-        raise (e)
+        args = get_args()
+        match_type = args.source_file_name_match_type
+        src_file = args.source_file_name
+        src_dir = args.source_folder_name
+        table_name = args.table_name
+        insert_method = args.insert_method
+        client_args = {
+            "username": args.username,
+            "pwd": args.password,
+            "host": args.host,
+            "database": args.database,
+            "port": args.port,
+            "url_params": args.url_parameters if args.url_parameters != "" else None,
+        }
 
-    if source_file_name_match_type == "regex_match":
-        file_names = find_all_local_file_names(source_folder_name)
-        matching_file_names = find_all_file_matches(
-            file_names, re.compile(source_file_name)
+        mysql = MySqlClient(**client_args)
+        src_path = shipyard.files.combine_folder_and_file_name(
+            folder_name=src_dir, file_name=src_file
         )
-        print(f"{len(matching_file_names)} files found. Preparing to upload...")
-
-        for index, key_name in enumerate(matching_file_names):
-            upload_data(
-                source_full_path=key_name,
-                table_name=table_name,
-                insert_method=insert_method,
-                db_connection=db_connection,
+        if match_type == "regex_match":
+            file_names = shipyard.files.find_all_local_file_names(src_dir)
+            matching_file_names = shipyard.files.find_all_file_matches(
+                file_names, re.compile(src_file)
             )
+            if n_matches := len(matching_file_names) == 0:
+                logger.error("No files found matching the regex provided")
+                sys.exit(Database.EXIT_CODE_NO_FILE_MATCHES)
 
-    else:
-        upload_data(
-            source_full_path=source_full_path,
-            table_name=table_name,
-            insert_method=insert_method,
-            db_connection=db_connection,
+            logger.info(f"{n_matches} files found. Preparing to upload...")
+
+            for key_name in matching_file_names:
+                mysql.upload(
+                    file=key_name, table_name=table_name, insert_method=insert_method
+                )
+                if insert_method == "replace":
+                    insert_method = "append"
+
+            else:
+                logger.info(f"Successfully loaded all files to table {table_name}")
+
+        else:
+            mysql.upload(
+                file=src_path, table_name=table_name, insert_method=insert_method
+            )
+            logger.info(f"Successfully loaded {src_path} to {table_name}")
+
+    except FileNotFoundError:
+        logger.error(
+            f"The file {src_file} could not be found. Ensure that the file name and extension are correct"
         )
+        sys.exit(Database.EXIT_CODE_FILE_NOT_FOUND)
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
 
-    db_connection.dispose()
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred when attempting to upload to MySQL. Message from the server reads: {e}"
+        )
+        sys.exit(Database.EXIT_CODE_UNKNOWN)
+
+    finally:
+        if mysql is not None:
+            mysql.close()
 
 
 if __name__ == "__main__":

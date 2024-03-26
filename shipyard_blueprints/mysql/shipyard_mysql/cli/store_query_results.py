@@ -1,7 +1,12 @@
 from sqlalchemy import create_engine, text
 import argparse
+import sys
 import os
-import pandas as pd
+import shipyard_bp_utils as shipyard
+from shipyard_templates import ExitCodeException, ShipyardLogger, Database
+from shipyard_mysql import MySqlClient
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -25,23 +30,11 @@ def get_args():
         default="",
         required=False,
     )
-    parser.add_argument("--db-connection-url", dest="db_connection_url", required=False)
     parser.add_argument(
         "--file-header", dest="file_header", default="True", required=False
     )
     args = parser.parse_args()
 
-    if (
-        not args.db_connection_url
-        and not (args.host or args.database or args.username)
-        and not os.environ.get("DB_CONNECTION_URL")
-    ):
-        parser.error(
-            """This Blueprint requires at least one of the following to be provided:\n
-            1) --db-connection-url\n
-            2) --host, --database, and --username\n
-            3) DB_CONNECTION_URL set as environment variable"""
-        )
     if args.host and not (args.database or args.username):
         parser.error("--host requires --database and --username")
     if args.database and not (args.host or args.username):
@@ -51,92 +44,46 @@ def get_args():
     return args
 
 
-def create_connection_string(args):
-    """
-    Set the database connection string as an environment variable using the keyword arguments provided.
-    This will override system defaults.
-    """
-    if args.db_connection_url:
-        os.environ["DB_CONNECTION_URL"] = args.db_connection_url
-    elif args.host and args.username and args.database:
-        os.environ["DB_CONNECTION_URL"] = (
-            f"mysql+mysqlconnector://{args.username}:{args.password}@{args.host}:{args.port}/{args.database}?{args.url_parameters}"
-        )
-
-    db_string = os.environ.get("DB_CONNECTION_URL")
-    return db_string
-
-
-def convert_to_boolean(string):
-    """
-    Shipyard can't support passing Booleans to code, so we have to convert
-    string values to their boolean values.
-    """
-    if string in ["True", "true", "TRUE"]:
-        value = True
-    else:
-        value = False
-    return value
-
-
-def combine_folder_and_file_name(folder_name, file_name):
-    """
-    Combine together the provided folder_name and file_name into one path variable.
-    """
-    combined_name = os.path.normpath(
-        f'{folder_name}{"/" if folder_name else ""}{file_name}'
-    )
-
-    return combined_name
-
-
-def create_csv(query, db_connection, destination_file_path, file_header=True):
-    """
-    Read in data from a SQL query. Store the data as a csv.
-    """
-    i = 1
-    for chunk in pd.read_sql_query(query, db_connection, chunksize=10000):
-        if i == 1:
-            chunk.to_csv(
-                destination_file_path, mode="a", header=file_header, index=False
-            )
-        else:
-            chunk.to_csv(destination_file_path, mode="a", header=False, index=False)
-        i += 1
-    print(f"Successfully stored results as {destination_file_path}.")
-    return
-
-
 def main():
-    args = get_args()
-    destination_file_name = args.destination_file_name
-    destination_folder_name = args.destination_folder_name
-    destination_full_path = combine_folder_and_file_name(
-        folder_name=destination_folder_name, file_name=destination_file_name
-    )
-    file_header = convert_to_boolean(args.file_header)
-    query = text(args.query)
-
-    db_string = create_connection_string(args)
+    mysql = None
     try:
-        db_connection = create_engine(
-            db_string, pool_recycle=3600, execution_options=dict(stream_results=True)
+        args = get_args()
+        target_file = args.destination_file_name
+        target_dir = args.destination_folder_name
+        query = text(args.query)
+        client_args = {
+            "username": args.username,
+            "pwd": args.password,
+            "host": args.host,
+            "database": args.database,
+            "port": args.port,
+            "url_params": args.url_parameters if args.url_parameters != "" else None,
+        }
+
+        mysql = MySqlClient(**client_args)
+        target_path = shipyard.files.combine_folder_and_file_name(
+            folder_name=target_dir, file_name=target_file
         )
+        if target_dir:
+            shipyard.files.create_folder_if_dne(target_dir)
+        file_header = shipyard.args.convert_to_boolean(args.file_header)
+
+        mysql.read_chunks(query=query, dest_path=target_path, header=file_header)
+        logger.info(f"Successfully downloaded query results to {target_path}")
+
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
+
     except Exception as e:
-        print(f"Failed to connect to database {args.database}")
-        raise (e)
+        logger.error(
+            f"An unexpected error occurred when attempting to download from MySQL. Message from the server reads: {e}"
+        )
+        sys.exit(Database.EXIT_CODE_UNKNOWN)
 
-    if not os.path.exists(destination_folder_name) and (destination_folder_name != ""):
-        os.makedirs(destination_folder_name)
-
-    create_csv(
-        query=query,
-        db_connection=db_connection,
-        destination_file_path=destination_full_path,
-        file_header=file_header,
-    )
-
-    db_connection.dispose()
+    finally:
+        if mysql is not None:
+            mysql.close()
 
 
 if __name__ == "__main__":
