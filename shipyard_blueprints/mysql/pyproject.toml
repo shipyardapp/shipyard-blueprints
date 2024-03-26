@@ -11,7 +11,7 @@ packages = [{include = "shipyard_mysql"}]
 python = "^3.9"
 SQLAlchemy = "^2.0"
 mysql-connector-python = "8.0.21"
-shipyard-templates = "0.8.0a2"
+shipyard-templates = "0.8.0"
 pandas = "^2.2.0"
 shipyard-bp-utils = "1.2.0"
 
