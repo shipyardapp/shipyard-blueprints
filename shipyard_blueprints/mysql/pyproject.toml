@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-mysql"
-version = "0.1.0a5"
+version = "0.1.0"
 description = "A local client for connecting and working with MySQL databases"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
