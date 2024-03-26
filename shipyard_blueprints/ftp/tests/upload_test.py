@@ -103,7 +103,7 @@ def test_simple_nested_upload(setup):
             "--destination-folder-name",
             "pytest",
             "--destination-file-name",
-            "test.txt",
+            "new_name_test.txt",
         ],
         text=True,
         capture_output=True,
