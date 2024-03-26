@@ -451,30 +451,28 @@ files = [
 
 [[package]]
 name = "shipyard-bp-utils"
-version = "1.0.3"
+version = "1.2.0"
 description = "Utility functions for blueprints"
 optional = false
-python-versions = ">=3.9,<4.0"
+python-versions = "<4.0,>=3.9"
 files = [
-    {file = "shipyard_bp_utils-1.0.3-py3-none-any.whl", hash = "sha256:ae5f209fcc29e2b75caf1990b9f686f7d236355c7734d31a8b652fa00861c77a"},
-    {file = "shipyard_bp_utils-1.0.3.tar.gz", hash = "sha256:98faaf507e13100b048ba31ff62b77fe6b19312a1de86aa359176f3146b79071"},
+    {file = "shipyard_bp_utils-1.2.0-py3-none-any.whl", hash = "sha256:790a5a0f561b58eb3e592764204b36e612d243bcbd46994747ba4130f5988e03"},
+    {file = "shipyard_bp_utils-1.2.0.tar.gz", hash = "sha256:bbed2cb71899462a73cd5d3f323315aa012ac81b7c1a193a49ebb17b75778372"},
 ]
 
 [package.dependencies]
-pandas = ">=2.2.0,<3.0.0"
-pytest = ">=8.0.1,<9.0.0"
 python-dateutil = ">=2.8.2,<3.0.0"
-shipyard-templates = "0.6.2"
+shipyard-templates = ">0.6.2,<1.0.0"
 
 [[package]]
 name = "shipyard-templates"
-version = "0.6.2"
+version = "0.8.0"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "shipyard_templates-0.6.2-py3-none-any.whl", hash = "sha256:e4e90bd04729416c70d5209b444346cb1c1d1d7eb9704289bc8ff444f494f39d"},
-    {file = "shipyard_templates-0.6.2.tar.gz", hash = "sha256:65961be691cb5ca09bd96918c587dd21fc9e380f1b7fe0b9dd14583890f67cec"},
+    {file = "shipyard_templates-0.8.0-py3-none-any.whl", hash = "sha256:aeb7b0f6d9a23076da4ede2931f467746c8d18911d2310665585c49da05c890e"},
+    {file = "shipyard_templates-0.8.0.tar.gz", hash = "sha256:663d4fd7e42193a431fb63e0d784ef7cb724ea2ebeb800b66d5686f8e92ad52f"},
 ]
 
 [[package]]
@@ -611,4 +609,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "4955096cc89e43826ebd4425572b348aea0527b07bd08ee28a12715c6e5e5d9d"
+content-hash = "250c45b777a468a7f23ed85a798cc6b69b944ce49d48618e9aa24dd574abb528"

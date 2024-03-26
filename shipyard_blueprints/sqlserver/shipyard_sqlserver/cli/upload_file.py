@@ -38,7 +38,7 @@ def get_args():
     parser.add_argument(
         "--insert-method",
         dest="insert_method",
-        choices={"fail", "replace", "append"},
+        choices={"replace", "append"},
         default="append",
         required=False,
     )
@@ -54,6 +54,7 @@ def get_args():
 
 
 def main():
+    client = None
     try:
         args = get_args()
         match_type = args.source_file_name_match_type
@@ -73,7 +74,6 @@ def main():
             port=args.port,
             url_params=args.url_parameters,
         )
-        logger.info("Successfully connected to SQL Server")
 
         if match_type == "regex_match":
             file_names = shipyard.files.find_all_local_file_names(dir_name)
@@ -112,7 +112,8 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        client.close()
+        if client:
+            client.close()
 
 
 if __name__ == "__main__":

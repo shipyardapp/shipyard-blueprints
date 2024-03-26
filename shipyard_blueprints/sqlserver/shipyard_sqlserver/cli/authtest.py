@@ -1,42 +1,30 @@
 import os
-import pytest
-from dotenv import load_dotenv, find_dotenv
+import sys
 from shipyard_sqlserver import SqlServerClient
-from shipyard_sqlserver.errors.exceptions import SqlServerConnectionError
 from shipyard_templates import ShipyardLogger
 
 logger = ShipyardLogger.get_logger()
 
-load_dotenv(find_dotenv())
 
-
-@pytest.fixture(scope="module")
-def creds():
-    return {
-        "host": os.getenv("SQL_HOST"),
-        "pwd": os.getenv("SQL_PWD"),
-        "user": os.getenv("SQL_USER"),
-        "db": os.getenv("SQL_DB"),
-    }
-
-
-def conn_helper(client: SqlServerClient):
+def main():
     try:
+        client = SqlServerClient(
+            user=os.getenv("MSSQL_USERNAME"),
+            pwd=os.getenv("MSSQL_PASSWORD"),
+            host=os.getenv("MSSQL_HOST"),
+            database=os.getenv("MSSQL_DATABASE"),
+            port=os.getenv("MSSQL_PORT"),
+        )
         client.connect()
-        logger.info("Successfully connected to SQL Server")
-        return 0
-    except SqlServerConnectionError:
-        return 1
     except Exception as e:
-        return 1
+        logger.authtest(
+            f"Error in connecting to SQL Server. Message from the server reads: {e}"
+        )
+        sys.exit(1)
+    else:
+        logger.authtest("Successfully connected to SQL Server")
+        sys.exit(0)
 
 
-def test_auth(creds):
-    client = SqlServerClient(
-        user=creds["user"], pwd=creds["pwd"], host=creds["host"], database=creds["db"]
-    )
-    assert conn_helper(client) == 0
-
-
-def test_auth_bad():
-    pass
+if __name__ == "__main__":
+    main()

@@ -1,7 +1,6 @@
 import argparse
-import os
 import sys
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from shipyard_sqlserver import SqlServerClient
 from shipyard_templates import ExitCodeException, ShipyardLogger, Database
 
@@ -29,6 +28,7 @@ def get_args():
 
 
 def main():
+    client = None
     try:
         args = get_args()
         query = text(args.query)
@@ -40,8 +40,6 @@ def main():
             port=args.port,
             url_params=args.url_parameters,
         )
-        logger.info("Successfully connected to SQL Server")
-
         client.execute_query(query)
         logger.info("Successfully executed query")
 
@@ -56,7 +54,8 @@ def main():
         sys.exit(Database.EXIT_CODE_UNKNOWN)
 
     finally:
-        client.close()
+        if client:
+            client.close()
 
 
 if __name__ == "__main__":

@@ -1,15 +1,11 @@
 import pyodbc
 import pandas as pd
-from sqlalchemy import create_engine, text, TextClause
+from sqlalchemy import create_engine, TextClause
 from shipyard_templates import Database, ShipyardLogger
+from shipyard_templates.database import QueryError, FetchError, UploadError
 from typing import Optional
 
-from shipyard_sqlserver.errors.exceptions import (
-    FetchError,
-    QueryError,
-    SqlServerConnectionError,
-    UploadError,
-)
+from shipyard_sqlserver.exceptions import SqlServerConnectionError
 
 logger = ShipyardLogger.get_logger()
 
@@ -19,8 +15,8 @@ class SqlServerClient(Database):
         self,
         user: str,
         pwd: str,
-        host: str = None,
-        database: str = None,
+        host: str,
+        database: Optional[str] = None,
         port: int = 1433,
         url_params=None,
     ) -> None:
@@ -38,7 +34,7 @@ class SqlServerClient(Database):
     @property
     def conn(self):
         if self._conn is None:
-            self.connect()
+            self._conn = self.connect()
         return self._conn
 
     def connect(self):
@@ -53,12 +49,12 @@ class SqlServerClient(Database):
         """
         try:
             connection_string = f"mssql+pyodbc://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.database}?driver=ODBC+Driver+17+for+SQL+Server&{self.url_params}"
-            logger.debug("Successfully connected")
-            self._conn = create_engine(
-                connection_string, fast_executemany=True
-            ).connect()
+            engine = create_engine(connection_string, fast_executemany=True).connect()
         except Exception as e:
             raise SqlServerConnectionError(e)
+        else:
+            logger.info("Successfully connected to SQL Server")
+            return engine
 
     def close(self):
         """
@@ -85,7 +81,9 @@ class SqlServerClient(Database):
         """
         try:
             self.conn.execute(query)
-            logger.debug("executed query")
+            logger.debug("Executed query")
+            self.conn.commit()
+            logger.debug("Committing transaction")
         except Exception as e:
             raise QueryError(e)
 
