@@ -115,6 +115,42 @@ def test_simple_nested_upload(setup):
 
     os.remove(file_path)
     os.rmdir(os.path.dirname(file_path))
+def test_simple_nested_upload_with_rename(setup):
+    file_path = "sub-folder/test.txt"
+    content = "Some content to write to the file."
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    with open(file_path, "w") as test_file:
+        test_file.write(content)
+
+    with open(file_path, "w") as f:
+        f.write(content)
+    connection_args = setup
+    test_run = subprocess.run(
+        [
+            *RUN_COMMAND,
+            *connection_args,
+            "--source-file-name",
+            os.path.basename(file_path),
+            "--source-folder-name",
+            os.path.dirname(file_path),
+            "--source-file-name-match-type",
+            "exact_match",
+            "--destination-folder-name",
+            "pytest",
+            "--destination-file-name",
+            "new_name_test.txt",
+        ],
+        text=True,
+        capture_output=True,
+    )
+
+    assert (
+        test_run.returncode == 0
+    ), f"{test_run.returncode} != 0 {test_run.stdout} {test_run.stderr}"
+
+    os.remove(file_path)
+    os.rmdir(os.path.dirname(file_path))
 
 
 def test_invalid_filename(setup):
