@@ -60,6 +60,7 @@ class SftpClient(CloudStorage):
         Returns:
         - paramiko.SFTPClient: An SFTP client connected to the server.
         """
+        logger.debug(f"Getting SFTP client for {self.host}")
         if self._client is None:
             self._client = self.get_sftp_client()
         return self._client
@@ -143,6 +144,7 @@ class SftpClient(CloudStorage):
         except ExitCodeException:
             raise
         except Exception as e:
+            logger.error(f"Error occurred while moving {source} to {destination}")
             raise UnknownException(e) from e
 
     def remove(self, filename: str):
@@ -208,6 +210,8 @@ class SftpClient(CloudStorage):
                 else:
                     files_list.append(file_path)
             return files_list
+        except ExitCodeException:
+            raise
         except Exception as e:
             raise FileMatchException(e) from e
 
@@ -242,23 +246,34 @@ class SftpClient(CloudStorage):
         - UnknownException: If an unknown error occurred while creating the SFTP client.
         """
         try:
-            transport = paramiko.Transport((self.host, int(self.port)))
-            transport.default_window_size = 4294967294
-            transport.packetizer.REKEY_BYTES = pow(2, 40)
-            transport.packetizer.REKEY_PACKETS = pow(2, 40)
-
             if self.key:
-                private_key = paramiko.RSAKey.from_private_key_file(self.key)
-                transport.connect(None, self.user, pkey=private_key)
-            else:
-                transport.connect(None, self.user, self.pwd)
+                logger.debug(
+                    f"Connecting to {self.host} using key-based authentication"
+                )
+                ssh = paramiko.SSHClient()
+                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                key = paramiko.RSAKey.from_private_key_file(self.key)
+                ssh.connect(
+                    hostname=self.host, port=self.port, username=self.user, pkey=key
+                )
+                return ssh.open_sftp()
 
-            return paramiko.SFTPClient.from_transport(transport)
+            else:
+                logger.debug(
+                    f"Connecting to {self.host} using password-based authentication"
+                )
+                transport = paramiko.Transport((self.host, int(self.port)))
+                transport.default_window_size = 4294967294
+                transport.packetizer.REKEY_BYTES = pow(2, 40)
+                transport.packetizer.REKEY_PACKETS = pow(2, 40)
+                transport.connect(None, self.user, self.pwd)
+                return paramiko.SFTPClient.from_transport(transport)
 
         except (
             paramiko.SSHException,
             paramiko.AuthenticationException,
             ValueError,
+            FileNotFoundError,
         ) as auth_error:
             raise InvalidCredentialsError(auth_error) from auth_error
         except Exception as err:
