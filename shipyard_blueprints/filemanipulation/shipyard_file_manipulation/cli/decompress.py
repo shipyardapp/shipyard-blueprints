@@ -1,9 +1,17 @@
 import argparse
 import os
-from zipfile import ZipFile
-import tarfile
-import glob
-import re
+import sys
+
+import shipyard_bp_utils as shipyard
+from shipyard_file_manipulation import decompress
+from shipyard_file_manipulation.errors import (
+    EXIT_CODE_UNKNOWN_ERROR,
+    EXIT_CODE_FILE_NOT_FOUND,
+    EXIT_CODE_NO_FILE_MATCHES,
+)
+from shipyard_templates import ShipyardLogger, ExitCodeException
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -30,62 +38,6 @@ def get_args():
     return parser.parse_args()
 
 
-def clean_folder_name(folder_name):
-    """
-    Cleans folders name by removing duplicate '/' as well as leading and trailing '/' characters.
-    """
-    folder_name = folder_name.strip("/")
-    if folder_name != "":
-        folder_name = os.path.normpath(folder_name)
-    return folder_name
-
-
-def combine_folder_and_file_name(folder_name, file_name):
-    """
-    Combine together the provided folder_name and file_name into one path variable.
-    """
-    combined_name = os.path.normpath(
-        f'{folder_name}{"/" if folder_name else ""}{file_name}'
-    )
-    combined_name = os.path.normpath(combined_name)
-
-    return combined_name
-
-
-def decompress_file(source_full_path, destination_full_path, compression):
-    """
-    Decompress a given file, using the specified compression method.
-    """
-
-    if compression == "zip":
-        with ZipFile(source_full_path, "r") as zip:
-            zip.extractall(destination_full_path)
-        print(
-            f"Successfully extracted files from {source_full_path} to {destination_full_path}"
-        )
-
-    if compression == "tar.bz2":
-        file = tarfile.open(source_full_path, "r:bz2")
-        file.extractall(path=destination_full_path)
-        print(
-            f"Successfully extracted files from {source_full_path} to {destination_full_path}"
-        )
-
-    if compression == "tar":
-        file = tarfile.open(source_full_path, "r")
-        file.extractall(path=destination_full_path)
-        print(
-            f"Successfully extracted files from {source_full_path} to {destination_full_path}"
-        )
-
-    if compression == "tar.gz":
-        file = tarfile.open(source_full_path, "r:gz")
-        file.extractall(path=destination_full_path)
-        print(
-            f"Successfully extracted files from {source_full_path} to {destination_full_path}"
-        )
-
-
 def create_fallback_destination_file_name(source_file_name, compression):
     """
     If a destination_file_name is not provided, uses the source_file_name with a removal of the compression extension.
@@ -96,28 +48,44 @@ def create_fallback_destination_file_name(source_file_name, compression):
 
 
 def main():
-    args = get_args()
-    compression = args.compression
-    source_file_name = args.source_file_name
-    source_folder_name = clean_folder_name(args.source_folder_name)
-    source_full_path = combine_folder_and_file_name(
-        folder_name=source_folder_name, file_name=source_file_name
-    )
-    destination_folder_name = clean_folder_name(args.destination_folder_name)
-    destination_file_name = args.destination_file_name
+    try:
+        args = get_args()
+        compression = args.compression
+        src_file = args.source_file_name
+        src_dir = shipyard.files.clean_folder_name(args.source_folder_name)
+        src_path = shipyard.files.combine_folder_and_file_name(
+            folder_name=src_dir, file_name=src_file
+        )
+        target_dir = shipyard.files.clean_folder_name(args.destination_folder_name)
+        target_file = args.destination_file_name
 
-    if not destination_file_name:
-        destination_file_name = create_fallback_destination_file_name(
-            source_file_name, compression
+        if not target_file:
+            target_file = create_fallback_destination_file_name(src_file, compression)
+
+        target_path = shipyard.files.combine_folder_and_file_name(
+            target_dir, target_file
         )
 
-    destination_full_path = combine_folder_and_file_name(
-        destination_folder_name, destination_file_name
-    )
+        if target_dir:
+            shipyard.files.create_folder_if_dne(target_dir)
 
-    if not os.path.exists(destination_folder_name) and (destination_folder_name != ""):
-        os.makedirs(destination_folder_name)
-    decompress_file(source_full_path, destination_full_path, compression)
+        logger.info("Decompressing file")
+        decompress(src_path, target_path, compression)
+
+    except FileNotFoundError as e:
+        logger.error(f"File {src_path} not found")
+        sys.exit(EXIT_CODE_FILE_NOT_FOUND)
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred when attempting to convert files: {e}"
+        )
+        sys.exit(EXIT_CODE_UNKNOWN_ERROR)
+
+    else:
+        logger.info(f"Successfully decompressed {src_path} to {target_path}")
 
 
 if __name__ == "__main__":

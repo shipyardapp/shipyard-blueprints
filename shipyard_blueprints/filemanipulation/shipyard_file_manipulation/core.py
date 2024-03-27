@@ -21,38 +21,39 @@ def compress(file_paths: List[str], target_path: str, compression: str):
         else:
             compressed_file_name = f"{target_path}.{compression}"
 
+        logger.debug(f"Files within the function are {file_paths}")
         if compression == "zip":
             with ZipFile(compressed_file_name, "w") as zip:
                 for file in file_paths:
-                    file = file.replace(os.getcwd(), "")
+                    # file = file.replace(os.getcwd(), "")
                     zip.write(file)
                     logger.info(f"Successfully compressed {file}")
 
         if compression == "tar.bz2":
             with tarfile.open(compressed_file_name, "w:bz2") as tar:
                 for file in file_paths:
-                    file = file.replace(os.getcwd(), "")
+                    # file = file.replace(os.getcwd(), "")
                     tar.add(file)
                     logger.info(f"Successfully compressed files")
 
         if compression == "tar":
             with tarfile.open(compressed_file_name, "w") as tar:
                 for file in file_paths:
-                    file = file.replace(os.getcwd(), "")
+                    # file = file.replace(os.getcwd(), "")
                     tar.add(file)
                     logger.info(f"Successfully compressed {file}")
 
         if compression == "tar.gz":
             with tarfile.open(compressed_file_name, "w:gz") as tar:
                 for file in file_paths:
-                    file = file.replace(os.getcwd(), "")
+                    # file = file.replace(os.getcwd(), "")
                     tar.add(file)
                     logger.info(f"Successfully compressed {file}")
     except Exception as e:
         raise errors.CompressionError(e)
 
 
-def decrompress(src_path: str, target_path: str, compression):
+def decompress(src_path: str, target_path: str, compression):
     """
     Decompress a given file, using the specified compression method.
     """
@@ -89,27 +90,22 @@ def decrompress(src_path: str, target_path: str, compression):
         raise errors.DecompressionError(e)
 
 
-def convert(src_path: str, target_file_type: str, target_path: str, **extra_args):
+def convert(src_path: str, target_file_type: str, target_path: str):
     try:
         input_df = pd.read_csv(src_path)
+        extra_args = {"chunksize": 10000, "index": False}
 
         if target_file_type in ["tsv", "psv"]:
-            if "chunksize" not in extra_args:
-                extra_args["chunksize"] = 10000
-            if "index" not in extra_args:
-                extra_args["index"] = False
             if target_file_type == "tsv":
-                input_df.to_csv(target_path, sep="\t", **extra_args)
+                input_df.to_csv(target_path, sep="\t", index=False)
             if target_file_type == "psv":
-                input_df.to_csv(target_path, sep="|", **extra_args)
+                input_df.to_csv(target_path, sep="|", index=False)
         if target_file_type == "xlsx":
-            if "index" not in extra_args:
-                extra_args["index"] = False
-            input_df.to_excel(target_path, engine="xlsxwriter", **extra_args)
+            input_df.to_excel(target_path, engine="xlsxwriter", index=False)
         if target_file_type == "parquet":
-            input_df.to_parquet(target_path, **extra_args)
+            input_df.to_parquet(target_path, index=False)
         if target_file_type == "stata":
-            input_df.to_stata(target_path, **extra_args)
+            input_df.to_stata(target_path)
         if target_file_type == "hdf5":
             store = pd.HDFStore(src_path)
             store.put(target_path, input_df)

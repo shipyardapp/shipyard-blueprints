@@ -18,6 +18,14 @@ shipyard-bp-utils = "^1.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
+python-dotenv = "^1.0.1"
+black = "^24.3.0"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests"
+]
+
 
 [build-system]
 requires = ["poetry-core"]
