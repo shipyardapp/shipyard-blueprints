@@ -91,10 +91,10 @@ def test_simple_nested_download(upload_test_file, setup):
         [
             *RUN_COMMAND,
             *connection_args,
-            "--source-file-name",
-            "test.txt",
             "--source-folder-name",
             "pytest",
+            "--source-file-name",
+            "test.txt",
             "--source-file-name-match-type",
             "exact_match",
         ],

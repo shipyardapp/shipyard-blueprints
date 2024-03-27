@@ -20,7 +20,9 @@ class UnknownException(ExitCodeException):
     def __init__(self, raised_from: Exception = None, *args, **kwargs):
         message = "UNKNOWN: An unexpected error occurred."
         if raised_from:
-            message += f"Message from server...\n{raised_from.__class__.__name__}: {raised_from}"
+            message += (
+                f"Message from server...{raised_from.__class__.__name__}: {raised_from}"
+            )
 
         super().__init__(message, CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
 
