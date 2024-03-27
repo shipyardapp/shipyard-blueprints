@@ -149,7 +149,7 @@ def test_invalid_filename(setup):
     )
 
     assert (
-        test_run.returncode == SftpClient.EXIT_CODE_FILE_MATCH_ERROR
+        test_run.returncode == SftpClient.EXIT_CODE_FILE_NOT_FOUND
     ), f"{test_run.returncode} {test_run.stdout} {test_run.stderr}"
 
 
