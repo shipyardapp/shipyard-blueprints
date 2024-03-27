@@ -1,34 +1,24 @@
 import os
 import sys
-from shipyard_postgresql import PostgresqlClient
+from shipyard_postgresql import PostgresClient
+from shipyard_templates import ShipyardLogger
 
-
-def get_args():
-    return {
-        "host": os.environ.get("POSTGRES_HOST"),
-        "username": os.environ.get("POSTGRES_USERNAME"),
-        "password": os.environ.get("POSTGRES_PASSWORD"),
-        "port": os.environ.get("POSTGRES_PORT"),
-        "database": os.environ.get("POSTGRES_DATABASE"),
-    }
+logger = ShipyardLogger.get_logger()
 
 
 def main():
-    args = get_args()
-    host = args["host"]
-    user = args["username"]
-    pwd = args["password"]
-    port = args["port"]
-    database = args["database"]
-    postgres = PostgresqlClient(
-        user=user, pwd=pwd, host=host, port=port, database=database
-    )
     try:
-        con = postgres.connect()
-        postgres.logger.info("Successfully established connection")
+        postgres = PostgresClient(
+            user=os.getenv("POSTGRES_USERNAME"),
+            pwd=os.getenv("POSTGRES_PASSWORD"),
+            host=os.getenv("POSTGRES_HOST"),
+            port=os.getenv("POSTGRES_PORT"),
+            database=os.getenv("POSTGRES_DATABASE"),
+        )
+        postgres.connect()
         sys.exit(0)
     except Exception as e:
-        postgres.logger.error("Could not connect to postgres with given credentials")
+        logger.authtest(e)
         sys.exit(1)
 
 
