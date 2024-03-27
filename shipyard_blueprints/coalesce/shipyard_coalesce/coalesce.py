@@ -70,7 +70,7 @@ class CoalesceClient(Etl):
             details = {"environmentID": environment_id, "parallelism": parallelism}
             # jobId, and include/exclude_nodes_selector are optional
             if job_id:
-                details["jobId"] = job_id
+                details["jobID"] = job_id
             if include_nodes_selector:
                 details["includeNodesSelector"] = include_nodes_selector
             if exclude_nodes_selector:
