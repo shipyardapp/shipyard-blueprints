@@ -111,7 +111,8 @@ def convert(src_path: str, target_file_type: str, target_path: str, **extra_args
         if target_file_type == "stata":
             input_df.to_stata(target_path, **extra_args)
         if target_file_type == "hdf5":
-            input_df.to_hdf(target_path, key="shipyard", **extra_args)
+            store = pd.HDFStore(src_path)
+            store.put(target_path, input_df)
 
         logger.info(f"Successfully converted {src_path} to {target_path}")
     except Exception as e:
