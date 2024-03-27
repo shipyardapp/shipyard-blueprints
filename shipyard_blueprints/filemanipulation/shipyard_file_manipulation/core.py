@@ -1,5 +1,3 @@
-from logging import log
-import os
 import tarfile
 import pandas as pd
 from zipfile import ZipFile
@@ -25,28 +23,24 @@ def compress(file_paths: List[str], target_path: str, compression: str):
         if compression == "zip":
             with ZipFile(compressed_file_name, "w") as zip:
                 for file in file_paths:
-                    # file = file.replace(os.getcwd(), "")
                     zip.write(file)
                     logger.info(f"Successfully compressed {file}")
 
         if compression == "tar.bz2":
             with tarfile.open(compressed_file_name, "w:bz2") as tar:
                 for file in file_paths:
-                    # file = file.replace(os.getcwd(), "")
                     tar.add(file)
                     logger.info(f"Successfully compressed files")
 
         if compression == "tar":
             with tarfile.open(compressed_file_name, "w") as tar:
                 for file in file_paths:
-                    # file = file.replace(os.getcwd(), "")
                     tar.add(file)
                     logger.info(f"Successfully compressed {file}")
 
         if compression == "tar.gz":
             with tarfile.open(compressed_file_name, "w:gz") as tar:
                 for file in file_paths:
-                    # file = file.replace(os.getcwd(), "")
                     tar.add(file)
                     logger.info(f"Successfully compressed {file}")
     except Exception as e:
@@ -91,6 +85,9 @@ def decompress(src_path: str, target_path: str, compression):
 
 
 def convert(src_path: str, target_file_type: str, target_path: str):
+    """
+    Convert a file from one format to another.
+    """
     try:
         input_df = pd.read_csv(src_path)
         extra_args = {"chunksize": 10000, "index": False}
