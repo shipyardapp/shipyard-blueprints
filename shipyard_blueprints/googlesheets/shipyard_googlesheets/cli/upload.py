@@ -3,11 +3,12 @@ import csv
 import json
 import os
 import socket
+import sys
 
 from shipyard_bp_utils import files as shipyard
-from shipyard_templates import ShipyardLogger
+from shipyard_templates import ShipyardLogger, Spreadsheets, ExitCodeException
 
-from shipyard_googlesheets import utils
+from shipyard_googlesheets import utils, exceptions
 
 logger = ShipyardLogger.get_logger()
 
@@ -96,59 +97,68 @@ def upload_google_sheets_file(
                     " being to large (Limit is 5,000,000 cells)"
                 )
         else:
-            logger.error(f"Failed to upload spreadsheet {source_full_path} to " f"{file_name}")
+            logger.error(
+                f"Failed to upload spreadsheet {source_full_path} to " f"{file_name}"
+            )
         raise e
 
     logger.info(f"{source_full_path} successfully uploaded to {file_name}")
 
 
 def main():
-    args = get_args()
-    tmp_file = utils.set_environment_variables(args)
-    source_file_name = args.source_file_name
-    source_folder_name = args.source_folder_name
-    source_full_path = shipyard.combine_folder_and_file_name(
-        folder_name=f"{os.getcwd()}/{source_folder_name}", file_name=source_file_name
-    )
-    file_name = shipyard.clean_folder_name(args.file_name)
-    tab_name = args.tab_name
-    starting_cell = args.starting_cell or "A1"
-    drive = args.drive
-
-    if not os.path.isfile(source_full_path):
-        logger.error(f"{source_full_path} does not exist")
-        raise SystemExit(1)
-
-    if tmp_file:
-        service, drive_service = utils.get_service(credentials=tmp_file)
-    else:
-        service, drive_service = utils.get_service(
-            credentials=args.gcp_application_credentials
+    try:
+        args = get_args()
+        tmp_file = utils.set_environment_variables(args)
+        source_file_name = args.source_file_name
+        source_folder_name = args.source_folder_name
+        source_full_path = shipyard.combine_folder_and_file_name(
+            folder_name=f"{os.getcwd()}/{source_folder_name}", file_name=source_file_name
         )
+        file_name = shipyard.clean_folder_name(args.file_name)
+        tab_name = args.tab_name
+        starting_cell = args.starting_cell or "A1"
+        drive = args.drive
 
-    spreadsheet_id = utils.get_spreadsheet_id_by_name(
-        drive_service=drive_service, file_name=file_name, drive=drive
-    )
-    if not spreadsheet_id:
-        if len(file_name) >= 44:
-            spreadsheet_id = file_name
+        if not os.path.isfile(source_full_path):
+            raise FileNotFoundError(f"{source_full_path} does not exist")
+
+        if tmp_file:
+            service, drive_service = utils.get_service(credentials=tmp_file)
         else:
-            logger.error(f"The spreadsheet {file_name} does not exist")
-            raise SystemExit(1)
+            service, drive_service = utils.get_service(
+                credentials=args.gcp_application_credentials
+            )
 
-    # check if workbook exists in the spreadsheet
-    upload_google_sheets_file(
-        service=service,
-        file_name=file_name,
-        source_full_path=source_full_path,
-        spreadsheet_id=spreadsheet_id,
-        tab_name=tab_name,
-        starting_cell=starting_cell,
-    )
+        spreadsheet_id = utils.get_spreadsheet_id_by_name(
+            drive_service=drive_service, file_name=file_name, drive=drive
+        )
+        if not spreadsheet_id:
+            if len(file_name) >= 44:
+                spreadsheet_id = file_name
+            else:
+                raise exceptions.InvalidSheetError(file_name)
 
-    if tmp_file:
-        logger.info(f"Removing temporary credentials file {tmp_file}")
-        os.remove(tmp_file)
+        # check if workbook exists in the spreadsheet
+        upload_google_sheets_file(
+            service=service,
+            file_name=file_name,
+            source_full_path=source_full_path,
+            spreadsheet_id=spreadsheet_id,
+            tab_name=tab_name,
+            starting_cell=starting_cell,
+        )
+        if tmp_file:
+            logger.info(f"Removing temporary credentials file {tmp_file}")
+            os.remove(tmp_file)
+    except FileNotFoundError as e:
+        logger.error(e)
+        sys.exit(Spreadsheets.EXIT_CODE_FILE_NOT_FOUND)
+    except ExitCodeException as e:
+        logger.error(e)
+        sys.exit(e.exit_code)
+    except Exception as e:
+        logger.error(f"An unexpected error occurred\n{e}")
+        sys.exit(Spreadsheets.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":

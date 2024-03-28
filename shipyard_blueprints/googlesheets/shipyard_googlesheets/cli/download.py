@@ -1,10 +1,12 @@
 import argparse
 import csv
 import os
+import sys
 
 from shipyard_bp_utils import files as shipyard
-from shipyard_templates import ShipyardLogger
+from shipyard_templates import ShipyardLogger, Spreadsheets, ExitCodeException
 
+from shipyard_googlesheets import exceptions
 from shipyard_googlesheets import utils
 
 logger = ShipyardLogger.get_logger()
@@ -56,8 +58,8 @@ def download_google_sheet_file(
             ):
                 cell_range = f"{tab_name}!{cell_range}"
             else:
-                print(f"The tab {tab_name} could not be found")
-                raise SystemExit(1)
+                raise exceptions.TabNotFoundError(tab_name)
+
         sheet = (
             service.spreadsheets()
             .values()
@@ -80,56 +82,66 @@ def download_google_sheet_file(
 
 
 def main():
-    args = get_args()
-    tmp_file = utils.set_environment_variables(args)
-    file_name = shipyard.clean_folder_name(args.file_name)
-    tab_name = args.tab_name
-    cell_range = args.cell_range or "A1:ZZZ5000000"
-    drive = args.drive
+    try:
+        args = get_args()
+        tmp_file = utils.set_environment_variables(args)
+        file_name = shipyard.clean_folder_name(args.file_name)
+        tab_name = args.tab_name
+        cell_range = args.cell_range or "A1:ZZZ5000000"
+        drive = args.drive
 
-    destination_folder_name = shipyard.clean_folder_name(args.destination_folder_name)
-    if not os.path.exists(destination_folder_name) and (destination_folder_name != ""):
-        os.makedirs(destination_folder_name)
+        destination_folder_name = shipyard.clean_folder_name(args.destination_folder_name)
+        if not os.path.exists(destination_folder_name) and (destination_folder_name != ""):
+            os.makedirs(destination_folder_name)
 
-    if tmp_file:
-        service, drive_service = utils.get_service(credentials=tmp_file)
-    else:
-        service, drive_service = utils.get_service(
-            credentials=args.gcp_application_credentials
+        if tmp_file:
+            service, drive_service = utils.get_service(credentials=tmp_file)
+        else:
+            service, drive_service = utils.get_service(
+                credentials=args.gcp_application_credentials
+            )
+
+        spreadsheet_id = utils.get_spreadsheet_id_by_name(
+            drive_service=drive_service, file_name=file_name, drive=drive
+        )
+        if not spreadsheet_id:
+            if len(file_name) >= 44:
+                spreadsheet_id = file_name
+            else:
+                raise exceptions.InvalidSheetError(file_name)
+
+        if not args.destination_file_name:
+            args.destination_file_name = f"{file_name} - {tab_name}.csv"
+
+        destination_name = shipyard.combine_folder_and_file_name(
+            destination_folder_name, args.destination_file_name
         )
 
-    spreadsheet_id = utils.get_spreadsheet_id_by_name(
-        drive_service=drive_service, file_name=file_name, drive=drive
-    )
-    if not spreadsheet_id:
-        if len(file_name) >= 44:
-            spreadsheet_id = file_name
-        else:
-            logger.error(f"Sheet {file_name} does not exist")
-            raise SystemExit(1)
+        if len(destination_name.rsplit("/", 1)) > 1:
+            path = destination_name.rsplit("/", 1)[0]
+            if not os.path.exists(path):
+                os.makedirs(path)
 
-    if not args.destination_file_name:
-        args.destination_file_name = f"{file_name} - {tab_name}.csv"
-
-    destination_name = shipyard.combine_folder_and_file_name(destination_folder_name, args.destination_file_name)
-
-    if len(destination_name.rsplit("/", 1)) > 1:
-        path = destination_name.rsplit("/", 1)[0]
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-    download_google_sheet_file(
-        service=service,
-        tab_name=tab_name,
-        spreadsheet_id=spreadsheet_id,
-        file_name=file_name,
-        cell_range=cell_range,
-        destination_file_name=destination_name,
-    )
-
-    if tmp_file:
-        logger.info(f"Removing temporary credentials file {tmp_file}")
-        os.remove(tmp_file)
+        download_google_sheet_file(
+            service=service,
+            tab_name=tab_name,
+            spreadsheet_id=spreadsheet_id,
+            file_name=file_name,
+            cell_range=cell_range,
+            destination_file_name=destination_name,
+        )
+        if tmp_file:
+            logger.info(f"Removing temporary credentials file {tmp_file}")
+            os.remove(tmp_file)
+    except FileNotFoundError as e:
+        logger.error(e)
+        sys.exit(Spreadsheets.EXIT_CODE_FILE_NOT_FOUND)
+    except ExitCodeException as e:
+        logger.error(e)
+        sys.exit(e.exit_code)
+    except Exception as e:
+        logger.error(e)
+        sys.exit(Spreadsheets.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":
