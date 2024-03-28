@@ -1,14 +1,13 @@
-import os
+import argparse
 import re
 import sys
-import argparse
-import tempfile
 
-from shipyard_sftp.sftp import SftpClient
 from shipyard_bp_utils import files as shipyard
 from shipyard_templates import CloudStorage, ExitCodeException
 from shipyard_templates.shipyard_logger import ShipyardLogger
 
+from shipyard_sftp.sftp import SftpClient
+from shipyard_sftp.utils import setup_connection, tear_down
 
 logger = ShipyardLogger().get_logger()
 
@@ -35,28 +34,14 @@ def get_args():
 
 
 def main():
+    exit_code = 0
     key_path = None
+    sftp = None
 
     try:
+
         args = get_args()
-        if not args.password and not args.key:
-            raise ExitCodeException(
-                "Must specify a password or a private key",
-                CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
-            )
-
-        connection_args = {"host": args.host, "port": args.port, "user": args.username}
-
-        if args.password:
-            connection_args["pwd"] = args.password
-
-        if key := args.key:
-            if not os.path.isfile(key):
-                fd, key_path = tempfile.mkstemp()
-                logger.info(f"Storing private key temporarily at {key_path}")
-                with os.fdopen(fd, "w") as tmp:
-                    tmp.write(key)
-                connection_args["key"] = key_path
+        connection_args, key_path = setup_connection(args)
         sftp = SftpClient(**connection_args)
 
         source_file_name = args.source_file_name
@@ -91,18 +76,13 @@ def main():
             sftp.remove(source_full_path)
     except ExitCodeException as e:
         logger.error(e)
-        sys.exit(e.exit_code)
+        exit_code = e.exit_code
     except Exception as e:
         logger.error(e)
-        sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
+        exit_code = CloudStorage.EXIT_CODE_UNKNOWN_ERROR
     finally:
-        if key_path:
-            logger.info(f"Removing temporary private key file {key_path}")
-            os.remove(key_path)
-        try:
-            sftp.close()
-        except Exception:
-            pass
+        tear_down(key_path, sftp)
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":
