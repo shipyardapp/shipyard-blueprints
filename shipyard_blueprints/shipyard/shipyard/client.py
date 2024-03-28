@@ -25,9 +25,13 @@ class ShipyardClient:
 
     def get_fleet_runs(self, fleet_id: str):
         """
+        Retrieves the runs associated with a fleet.
 
         Args:
-            fleet_id:
+            fleet_id (str): The ID of the fleet.
+
+        Returns:
+            dict: The JSON response containing the fleet runs.
         """
         if not self.project_id:
             raise MissingProjectID
@@ -52,6 +56,20 @@ class ShipyardClient:
     def export_fleet_runs(
         self, fleet_id: str, target_path: str, file_type: str = "csv"
     ):
+        """
+        Export fleet runs to a file.
+
+        Args:
+            fleet_id (str): The ID of the fleet.
+            target_path (str): The path to the target file.
+            file_type (str, optional): The type of the file to export. Defaults to "csv".
+
+        Raises:
+            InvalidFileType: If an invalid file type is provided.
+            ExitCodeException: If an exit code exception occurs.
+            Exception: If any other exception occurs.
+
+        """
         try:
             data = self.get_fleet_runs(fleet_id)
             if file_type == "csv":
@@ -72,6 +90,16 @@ class ShipyardClient:
             logger.error(f"Error exporting fleet runs: {e}")
 
     def get_voyages(self):
+        """
+        Retrieves the voyages from the shipyard API.
+
+        Returns:
+            str: The response text from the API.
+
+        Raises:
+            ExitCodeException: If an exit code exception occurs.
+            UnauthorizedAccess: If the API returns a 401 status code.
+        """
         url = f"{self.base_url}/voyages"
         try:
             response = requests.get(url, headers=self.headers)
@@ -91,6 +119,16 @@ class ShipyardClient:
             return response.text
 
     def export_voyages(self, target_path: str):
+        """
+        Export voyages data to a file.
+
+        Args:
+            target_path (str): The path of the file to export the voyages data to.
+
+        Raises:
+            ExitCodeException: If an error occurs during the export process.
+
+        """
         try:
             data = self.get_voyages()
             with open(target_path, "w") as f:
