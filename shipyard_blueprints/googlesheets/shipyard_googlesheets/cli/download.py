@@ -42,7 +42,7 @@ def get_args():
 
 
 def download_google_sheet_file(
-        service, spreadsheet_id, file_name, tab_name, cell_range, destination_file_name=None
+    service, spreadsheet_id, file_name, tab_name, cell_range, destination_file_name=None
 ):
     """
     Download th contents of a spreadsheet from Google Sheets to local storage in
@@ -52,7 +52,7 @@ def download_google_sheet_file(
     try:
         if tab_name:
             if utils.check_workbook_exists(
-                    service=service, spreadsheet_id=spreadsheet_id, tab_name=tab_name
+                service=service, spreadsheet_id=spreadsheet_id, tab_name=tab_name
             ):
                 cell_range = f"{tab_name}!{cell_range}"
             else:
@@ -111,7 +111,9 @@ def main():
     if not args.destination_file_name:
         args.destination_file_name = f"{file_name} - {tab_name}.csv"
 
-    destination_name = shipyard.combine_folder_and_file_name(destination_folder_name, args.destination_file_name)
+    destination_name = shipyard.combine_folder_and_file_name(
+        destination_folder_name, args.destination_file_name
+    )
 
     if len(destination_name.rsplit("/", 1)) > 1:
         path = destination_name.rsplit("/", 1)[0]

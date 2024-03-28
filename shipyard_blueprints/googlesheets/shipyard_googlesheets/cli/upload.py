@@ -38,7 +38,7 @@ def get_args():
 
 
 def upload_google_sheets_file(
-        service, file_name, source_full_path, starting_cell, spreadsheet_id, tab_name
+    service, file_name, source_full_path, starting_cell, spreadsheet_id, tab_name
 ):
     """
     Uploads a single file to Google Sheets.
@@ -67,7 +67,7 @@ def upload_google_sheets_file(
 
         data = []
         with open(
-                source_full_path, encoding="utf-8", newline=""
+            source_full_path, encoding="utf-8", newline=""
         ) as f:  # adding unicode encoding
             reader = csv.reader((line.replace("\0", "") for line in f), delimiter=",")
             data.extend(row for row in reader if set(row) != {""})
@@ -96,7 +96,9 @@ def upload_google_sheets_file(
                     " being to large (Limit is 5,000,000 cells)"
                 )
         else:
-            logger.error(f"Failed to upload spreadsheet {source_full_path} to " f"{file_name}")
+            logger.error(
+                f"Failed to upload spreadsheet {source_full_path} to " f"{file_name}"
+            )
         raise e
 
     logger.info(f"{source_full_path} successfully uploaded to {file_name}")

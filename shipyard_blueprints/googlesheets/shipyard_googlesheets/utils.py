@@ -19,7 +19,9 @@ def check_workbook_exists(service, spreadsheet_id, tab_name):
     """
     Checks if the workbook exists within the spreadsheet.
     """
-    logger.debug(f"Checking if workbook {tab_name} exists in spreadsheet {spreadsheet_id}")
+    logger.debug(
+        f"Checking if workbook {tab_name} exists in spreadsheet {spreadsheet_id}"
+    )
     try:
         spreadsheet = service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
         sheets = spreadsheet["sheets"]
@@ -121,7 +123,9 @@ def get_service(credentials):
         logger.debug("Google Drive Client created successfully")
         return service, drive_service
     except Exception as e:
-        logger.error(f"Error accessing Google Drive with service account " f"{credentials}")
+        logger.error(
+            f"Error accessing Google Drive with service account " f"{credentials}"
+        )
         raise e
 
 
