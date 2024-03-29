@@ -64,6 +64,12 @@ class LookerClient(DataVisualization):
         return sdk
 
     def connect(self):
+        """
+        Connects to the Looker SDK and checks the ME endpoint.
+
+        Returns:
+            int: 0 if the connection is successful, 1 otherwise.
+        """
         try:
             sdk = self._get_sdk()
             logger.debug(f"Checking ME endpoint: {sdk.me()}")
@@ -77,6 +83,17 @@ class LookerClient(DataVisualization):
             return 0
 
     def download_look(self, look_id: int, output_file: str, file_format: str):
+        """Download a look to a local file in the specified format
+
+        Args:
+            look_id: The ID of the look to download
+            output_file: The name or path of the file to save the look to
+            file_format: choice of csv, json, json_detail, txt, html, md, xlsx, sql , png, jpg
+
+        Raises:
+            InvalidLookID:
+            LookDownloadError:
+        """
         try:
             all_looks = self.sdk.all_looks()
             all_look_ids = list(map(lambda x: x.id, all_looks))
@@ -101,6 +118,16 @@ class LookerClient(DataVisualization):
         height: int = 600,
         file_format: str = "pdf",
     ):
+        """Download a dashboard to a local file in the specified format
+
+        Args:
+            dashboard_id: The ID of the dashboard to download
+            output_file: The name or path of the file to save the dashboard to
+            width: The width of the dashboard in pixels
+            height: The height of the dashboard in pixels
+            file_format: choice of pdf, png, jpg
+
+        """
         try:
             task = self.sdk.create_dashboard_render_task(
                 dashboard_id=dashboard_id,
@@ -147,6 +174,17 @@ class LookerClient(DataVisualization):
         connection_name: Optional[str] = None,
         model_name: Optional[str] = None,
     ):
+        """Create a SQL query in Looker
+
+        Args:
+            sql_query: The SQL query to create
+            connection_name: The optional name of the connection to use
+            model_name: The optional name of the model to use
+
+
+        Returns:
+
+        """
         try:
             sql_body = models40.SqlQueryCreate(
                 connection_name=connection_name, model_name=model_name, sql=sql_query
@@ -159,6 +197,16 @@ class LookerClient(DataVisualization):
             return res_slug
 
     def download_sql_query(self, slug: str, output_file: str, file_format: str):
+        """Download a SQL query to a local file in the specified format
+
+        Args:
+            slug: The slug of the SQL query to use. If left blank, the slug will attempted to be fetched from the artifacts directory (only pertinent within the Shipyard application)
+            output_file: The name or path of the file to save the SQL query to
+            file_format: choice of csv, json, json_detail, txt, html, md, xlsx, png, jpg
+
+        Raises:
+            SQLCreationError:
+        """
         try:
             response = self.sdk.run_sql_query(slug=slug, result_format=file_format)
             logger.debug(f"SQL Query {slug} created successfully")
