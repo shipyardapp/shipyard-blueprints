@@ -1,8 +1,21 @@
 import looker_sdk
+import time
+from typing import Optional
 from looker_sdk import api_settings
+from looker_sdk import models
 from shipyard_templates import DataVisualization
-import os
-import logging
+from shipyard_templates import ShipyardLogger, ExitCodeException
+from looker_sdk import methods40, models40
+
+from shipyard_looker.exceptions import (
+    DashboardDownloadError,
+    InvalidLookID,
+    SQLCreationError,
+    SdkInitializationError,
+    LookDownloadError,
+)
+
+logger = ShipyardLogger.get_logger()
 
 
 class MyApiSettings(api_settings.ApiSettings):
@@ -27,12 +40,16 @@ class LookerClient(DataVisualization):
         self.base_url = base_url
         self.client_id = client_id
         self.client_secret = client_secret
-        super().__init__(
-            base_url=base_url, client_id=client_id, client_secret=client_secret
-        )
+        self._sdk = None
+
+    @property
+    def sdk(self):
+        if self._sdk is None:
+            self._sdk = self._get_sdk()
+        return self._sdk
 
     def _get_sdk(self):
-        print(self.base_url)
+        logger.debug(f"Using {self.base_url} as base_url for looker connection")
         try:
             sdk = looker_sdk.init40(
                 config_settings=MyApiSettings(
@@ -42,16 +59,113 @@ class LookerClient(DataVisualization):
                 )
             )
         except Exception as e:
-            logging.exception(f"Error initializing Looker SDK: {e}")
-            raise e
+            logger.error("Error initializing Looker SDK")
+            raise SdkInitializationError(e)
         return sdk
 
     def connect(self):
         try:
             sdk = self._get_sdk()
-            print(sdk.me())
+            logger.debug(f"Checking ME endpoint: {sdk.me()}")
+        except ExitCodeException as ec:
+            logger.authtest(f"Error connecting to Looker: {ec.message}")
+            return 1
         except Exception as e:
-            logging.exception(f"Error connecting to Looker: {e}")
+            logger.authtest(f"Error connecting to Looker: {e}")
             return 1
         else:
             return 0
+
+    def download_look(self, look_id: int, output_file: str, file_format: str):
+        try:
+            all_looks = self.sdk.all_looks()
+            all_look_ids = list(map(lambda x: x.id, all_looks))
+            if look_id not in all_look_ids:
+                raise InvalidLookID(look_id)
+            # Options are csv, json, json_detail, txt, html, md, xlsx, sql (raw query), png, jpg
+            response = self.sdk.run_look(look_id=look_id, result_format=file_format)
+            logger.debug(f"look {look_id} as {file_format} generated successfully")
+            if type(response) == str:
+                response = bytes(response, encoding="utf-8")
+            with open(output_file, "wb") as f:
+                f.write(response)
+            logger.info(f"Successfully downloaded look {look_id} to {output_file}")
+        except Exception as e:
+            raise LookDownloadError(e)
+
+    def download_dashboard(
+        self,
+        dashboard_id: int,
+        output_file: str,
+        width: int = 800,
+        height: int = 600,
+        file_format: str = "pdf",
+    ):
+        try:
+            task = self.sdk.create_dashboard_render_task(
+                dashboard_id=dashboard_id,
+                result_format=file_format,
+                body=models.CreateDashboardRenderTask(
+                    dashboard_style="tiled", dashboard_filters=None
+                ),
+                width=width,
+                height=height,
+            )
+            if not (task and task.id):
+                logger.debug(f"Failed to create render task for {dashboard_id}")
+                raise DashboardDownloadError(
+                    f"Failed to create render task for {dashboard_id}"
+                )
+            # poll the render task until it completes
+            elapsed = 0.0
+            delay = 0.5  # wait .5 seconds
+            while True:
+                poll = self.sdk.render_task(task.id)
+                if poll.status == "failure":
+                    logger.debug(f'Render failed for "{dashboard_id}"')
+                    raise DashboardDownloadError(f"Render failed for {dashboard_id}")
+                elif poll.status == "success":
+                    break
+
+                time.sleep(delay)
+                elapsed += delay
+            logger.debug(f"Render task completed in {elapsed} seconds")
+
+            result = self.sdk.render_task_results(task.id)
+
+            with open(output_file, "wb") as f:
+                f.write(result)
+            logger.info(f"Successfully downloaded dashboard to {output_file}")
+        except ExitCodeException:
+            raise
+        except Exception as e:
+            raise DashboardDownloadError(e)
+
+    def create_sql_query(
+        self,
+        sql_query: str,
+        connection_name: Optional[str] = None,
+        model_name: Optional[str] = None,
+    ):
+        try:
+            sql_body = models40.SqlQueryCreate(
+                connection_name=connection_name, model_name=model_name, sql=sql_query
+            )
+            res_slug = self.sdk.create_sql_query(body=sql_body).slug
+            logger.info(f"Looker slug {res_slug} created successfully")
+        except Exception as e:
+            raise SQLCreationError(e)
+        else:
+            return res_slug
+
+    def download_sql_query(self, slug: str, output_file: str, file_format: str):
+        try:
+            response = self.sdk.run_sql_query(slug=slug, result_format=file_format)
+            logger.debug(f"SQL Query {slug} created successfully")
+            if type(response) == str:
+                response = bytes(response, encoding="utf-8")
+            with open(output_file, "wb") as f:
+                f.write(response)
+            logger.info(f"Successfully downloaded SQL Query {slug} to {output_file}")
+        except Exception as e:
+            raise SQLCreationError(e)

@@ -3,7 +3,7 @@ import unittest
 from shipyard_looker import LookerClient
 
 
-class ModeClientConnectTestCase(unittest.TestCase):
+class LookerClientConnectTestCase(unittest.TestCase):
     def setUp(self):
         self.client_id = os.getenv("LOOKER_CLIENT_ID")
         self.client_secret = os.getenv("LOOKER_CLIENT_SECRET")
