@@ -49,6 +49,15 @@ def create_test_file():
 
 
 def test_valid_simple_move(create_test_file, setup):
+    def _delete_test_file(file_path):
+        with contextlib.suppress(Exception):  # Delete file in case it already exists
+            SftpClient(
+                host=os.getenv("SFTP_HOST"),
+                port=os.getenv("SFTP_PORT"),
+                user=os.getenv("SFTP_USERNAME"),
+                pwd=os.getenv("SFTP_PASSWORD"),
+            ).remove(file_path)
+
     file_path = create_test_file
     SftpClient(
         host=os.getenv("SFTP_HOST"),
@@ -57,13 +66,7 @@ def test_valid_simple_move(create_test_file, setup):
         pwd=os.getenv("SFTP_PASSWORD"),
     ).upload(file_path, "test.txt")
 
-    with contextlib.suppress(Exception):  # Delete file in case it already exists
-        SftpClient(
-            host=os.getenv("SFTP_HOST"),
-            port=os.getenv("SFTP_PORT"),
-            user=os.getenv("SFTP_USERNAME"),
-            pwd=os.getenv("SFTP_PASSWORD"),
-        ).remove("pytest/moved_test.csv")
+    _delete_test_file("pytest/moved_test.csv")
 
     connection_args = setup
     test_run = subprocess.run(
@@ -80,6 +83,54 @@ def test_valid_simple_move(create_test_file, setup):
         text=True,
         capture_output=True,
     )
+    _delete_test_file("pytest/moved_test_again.csv")
     assert (
             test_run.returncode == 0
     ), f"File move failed: {test_run.returncode} {test_run.stdout} {test_run.stderr}"
+    test_run = subprocess.run(
+        [
+            *RUN_COMMAND,
+            *connection_args,
+            "--source-folder-name", "pytest",
+            "--source-file-name", "moved_test.csv",
+            "--destination-folder-name", "pytest",
+            "--destination-file-name", "moved_test_again.csv",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    _delete_test_file("moved_test_again.csv")
+    assert (
+            test_run.returncode == 0
+    ), f"File move failed: {test_run.returncode} {test_run.stdout} {test_run.stderr}"
+    test_run = subprocess.run(
+        [
+            *RUN_COMMAND,
+            *connection_args,
+            "--source-folder-name", "pytest",
+            "--source-file-name", "moved_test_again.csv",
+            "--destination-file-name", "moved_test_again.csv",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    assert (
+            test_run.returncode == 0
+    ), f"File move failed: {test_run.returncode} {test_run.stdout} {test_run.stderr}"
+
+# A test for a specific case
+#     test_run = subprocess.run(
+#         [
+#             *RUN_COMMAND,
+#             *connection_args,
+#             "--source-folder-name", "SFTP Folder",
+#             "--source-file-name", "rsatest.csv",
+#             "--destination-folder-name", "pytest-new-folder",
+#             "--destination-file-name", "folder_with_space.csv",
+#         ],
+#         text=True,
+#         capture_output=True,
+#     )
+#     assert (
+#             test_run.returncode == 0
+#     ), f"File move failed: {test_run.returncode} {test_run.stdout} {test_run.stderr}"

@@ -135,8 +135,10 @@ class SftpClient(CloudStorage):
         - ExitCodeException(EXIT_CODE_UNKNOWN_ERROR): If an unknown error occurred while moving the file.
         - ExitCodeException: If a class method raises an exception, it is re-raised as an ExitCodeException.
         """
+        logger.debug(f"Moving {source} to {destination}")
         try:
             self.client.stat(source)
+            self.create_directory(os.path.dirname(destination))
             self.client.rename(source, destination)
         except FileNotFoundError as e:
             logger.error(f"Error: the file {source} was not not found")
@@ -162,6 +164,7 @@ class SftpClient(CloudStorage):
         - ExitCodeException(EXIT_CODE_DELETE_ERROR): If an error occurred while deleting the file.
         - ExitCodeException: If a class method raises an exception, it is re-raised as an ExitCodeException.
         """
+        logger.debug(f"Deleting {filename}")
         try:
             self.client.remove(filename)
         except ExitCodeException:
@@ -180,6 +183,7 @@ class SftpClient(CloudStorage):
         Raises:
             UploadError: If an error occurred while uploading the file.
         """
+        logger.debug(f"Uploading {localpath} to {remotepath}")
         try:
             self.create_directory(os.path.dirname(remotepath))
             self.client.put(localpath, remotepath, confirm=True)
@@ -204,6 +208,7 @@ class SftpClient(CloudStorage):
         Raises:
             - FileMatchException: If an error occurred while listing the directory.
         """
+        logger.debug(f"Listing files in {path}")
         try:
             if files_list is None:
                 files_list = []
@@ -213,6 +218,7 @@ class SftpClient(CloudStorage):
                     self.list_files_recursive(file_path, files_list)
                 else:
                     files_list.append(file_path)
+            logger.debug(f"Files found: {files_list}")
             return files_list
         except ExitCodeException:
             raise
@@ -327,8 +333,10 @@ class SftpClient(CloudStorage):
         """
         try:
             self.client.stat(path)
+            logger.debug(f"{path} exists.")
             return True
         except FileNotFoundError:
+            logger.debug(f"{path} does not exist.")
             return False
 
     @staticmethod
