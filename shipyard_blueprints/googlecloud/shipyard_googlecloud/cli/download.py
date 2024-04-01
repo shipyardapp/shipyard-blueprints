@@ -87,7 +87,6 @@ def main():
         bucket = utils.get_bucket(gclient=gclient, bucket_name=bucket_name)
 
         if args.source_file_name_match_type == "exact_match":
-
             source_full_path = shipyard.combine_folder_and_file_name(
                 folder_name=source_folder_name, file_name=source_file_name
             )

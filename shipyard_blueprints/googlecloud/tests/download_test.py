@@ -35,7 +35,6 @@ def setup():
             os.makedirs(folder_structure)
 
         with open(test_file, "w") as f:
-
             f.write(faker.paragraph(1000))
 
         blob = bucket.blob(test_file)

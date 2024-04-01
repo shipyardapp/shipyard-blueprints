@@ -39,7 +39,6 @@ def main():
     sftp = None
 
     try:
-
         args = get_args()
         connection_args, key_path = setup_connection(args)
         sftp = SftpClient(**connection_args)

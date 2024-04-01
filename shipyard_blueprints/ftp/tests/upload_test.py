@@ -115,6 +115,8 @@ def test_simple_nested_upload(setup):
 
     os.remove(file_path)
     os.rmdir(os.path.dirname(file_path))
+
+
 def test_simple_nested_upload_with_rename(setup):
     file_path = "sub-folder/test.txt"
     content = "Some content to write to the file."
