@@ -1,9 +1,9 @@
 import argparse
 import sys
 import shipyard_bp_utils as utils
-from shipyard import ShipyardClient
+from shipyard_api import ShipyardClient
 from shipyard_templates import ShipyardLogger, ExitCodeException
-from shipyard.errors import EXIT_CODE_UNKNOWN_ERROR
+from shipyard_api.errors import EXIT_CODE_UNKNOWN_ERROR
 
 logger = ShipyardLogger.get_logger()
 

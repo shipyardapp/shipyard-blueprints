@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "shipyard"
+name = "shipyard-api"
 version = "0.1.0"
 description = ""
 authors = ["wrp801 <wespoulsen@gmail.com>"]
