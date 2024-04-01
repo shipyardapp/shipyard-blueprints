@@ -23,7 +23,7 @@ def creds():
 def command(creds):
     return [
         "python3",
-        "./shipyard/cli/get_logs.py",
+        "./shipyard_api/cli/get_logs.py",
         "--api-key",
         creds["token"],
         "--organization-id",

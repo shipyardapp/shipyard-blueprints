@@ -4,7 +4,7 @@ from shipyard_bp_utils.files import create_folder_if_dne, combine_folder_and_fil
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from typing import Optional
 
-from shipyard.errors import (
+from shipyard_api.errors import (
     EXIT_CODE_LIST_FLEET_RUNS_ERROR,
     EXIT_CODE_VOYAGE_EXPORT_ERROR,
     InvalidFileType,
