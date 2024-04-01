@@ -51,7 +51,11 @@ def main():
         )
         source_file_name_match_type = args.source_file_name_match_type or "exact_match"
 
-        if source_file_name_match_type == "regex_match":
+        if source_file_name_match_type == "exact_match":
+            logger.info(f"Attempting to delete file {source_full_path}...")
+            sftp.remove(source_full_path)
+            logger.info(f"File {source_full_path} deleted successfully")
+        elif source_file_name_match_type == "regex_match":
             file_names = sftp.list_files_recursive(source_folder_name or ".")
             matching_file_names = shipyard.find_all_file_matches(
                 file_names, re.compile(source_file_name)
@@ -71,9 +75,7 @@ def main():
                 try:
                     sftp.remove(delete_file_path)
                 except Exception as e:
-                    print(f"Failed to delete {file_name} due to {e}... Skipping")
-        elif source_file_name_match_type == "exact_match":
-            sftp.remove(source_full_path)
+                    logger.info(f"Failed to delete {file_name} due to {e}... Skipping")
     except ExitCodeException as e:
         logger.error(e)
         exit_code = e.exit_code

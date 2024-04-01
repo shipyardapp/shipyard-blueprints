@@ -1,5 +1,5 @@
 import argparse
-import re
+import os
 import sys
 
 from shipyard_bp_utils import files as shipyard
@@ -54,44 +54,46 @@ def main():
         connection_args, key_path = setup_connection(args)
         sftp = SftpClient(**connection_args)
 
-        source_file_name = args.source_file_name
-        source_folder_name = args.source_folder_name
-        source_full_path = shipyard.combine_folder_and_file_name(
-            source_folder_name, source_file_name
-        )
+        source_folder_name = args.source_folder_name or "."
+
         destination_folder_name = shipyard.clean_folder_name(
             args.destination_folder_name
         )
-        source_file_name_match_type = args.source_file_name_match_type or "exact_match"
+        logger.debug(f"Source folder name: {source_folder_name}")
 
-        if source_file_name_match_type == "exact_match":
-            destination_full_path = shipyard.determine_destination_full_path(
-                destination_folder_name=destination_folder_name,
-                destination_file_name=args.destination_file_name,
-                source_full_path=source_full_path,
+        sftp_files_full_paths = sftp.list_files_recursive(source_folder_name or ".")
+        if not sftp_files_full_paths:
+            raise ExitCodeException(
+                f"No files found in the folder {source_folder_name}",
+                CloudStorage.EXIT_CODE_FILE_NOT_FOUND,
             )
-            sftp.move(source_full_path, destination_full_path)
+        # Get the relative path of the files which is the format that shipyard.file_match expects
+        sftp_files = [
+            os.path.relpath(path, start=source_folder_name)
+            for path in sftp_files_full_paths
+        ]
+        files = shipyard.file_match(
+            search_term=args.source_file_name,
+            files=sftp_files,
+            source_directory=source_folder_name,
+            destination_directory=destination_folder_name,
+            destination_filename=args.destination_file_name,
+            match_type=args.source_file_name_match_type or "exact_match",
+        )
 
-        elif source_file_name_match_type == "regex_match":
-            file_names = sftp.list_files_recursive(source_folder_name or ".")
-            matching_file_names = shipyard.find_all_file_matches(
-                file_names, re.compile(source_file_name)
-            )
-            logger.info(f"{len(matching_file_names)} files found. Preparing to move...")
+        for file in files:
+            source_file = file["source_path"]
+            destination_full_path = file["destination_filename"]
+            logger.info(f"Attempting to move {source_file} to {destination_full_path}...")
+            sftp.move(source_file, destination_full_path)
+            logger.info(f"Successfully moved {source_file} to {destination_full_path}")
 
-            for index, key_name in enumerate(matching_file_names, 1):
-                destination_full_path = shipyard.determine_destination_full_path(
-                    destination_folder_name=destination_folder_name,
-                    destination_file_name=args.destination_file_name,
-                    source_full_path=key_name,
-                    file_number=None if len(matching_file_names) == 1 else index,
-                )
-
-                logger.info(f"Moving file {index} of {len(matching_file_names)}")
-                sftp.move(key_name, destination_full_path)
     except ExitCodeException as e:
         logger.error(e)
         exit_code = e.exit_code
+    except FileNotFoundError as e:
+        logger.error(e)
+        exit_code = CloudStorage.EXIT_CODE_FILE_MATCH_ERROR
     except Exception as e:
         logger.error(e)
         exit_code = CloudStorage.EXIT_CODE_UNKNOWN_ERROR

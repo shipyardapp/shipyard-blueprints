@@ -61,6 +61,11 @@ def main():
         )
         shipyard.create_folder_if_dne(destination_folder_name)
         sftp_files_full_paths = sftp.list_files_recursive(source_folder_name or ".")
+        if not sftp_files_full_paths:
+            raise ExitCodeException(
+                f"No files found in source folder {source_folder_name}",
+                CloudStorage.EXIT_CODE_FILE_NOT_FOUND,
+            )
 
         # Get the relative path of the files which is the format that shipyard.file_match expects
         sftp_files = [
@@ -80,7 +85,9 @@ def main():
         for file in files:
             source_file = file["source_path"]
             destination_full_path = file["destination_filename"]
+            logger.info(f"Attempting to download {source_file} to {destination_full_path}...")
             sftp.download(source_file, destination_full_path)
+            logger.info(f"Downloaded {source_file} to {destination_full_path}")
 
     except ExitCodeException as e:
         logger.error(e)

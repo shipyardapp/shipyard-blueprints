@@ -5,8 +5,6 @@ import tempfile
 
 from shipyard_templates import CloudStorage, ExitCodeException, ShipyardLogger
 
-from shipyard_sftp.sftp import SftpClient
-
 logger = ShipyardLogger().get_logger()
 
 

@@ -77,7 +77,9 @@ def main():
                 raise ExitCodeException(
                     f"{source_file} is not a file", sftp.EXIT_CODE_FILE_MATCH_ERROR
                 )
+            logger.info(f"Attempting to upload {source_file} to {destination_full_path}...")
             sftp.upload(source_file, destination_full_path)
+            logger.info(f"Successfully uploaded {source_file} to {destination_full_path}")
 
     except ExitCodeException as e:
         logger.error(e)

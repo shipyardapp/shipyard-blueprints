@@ -49,7 +49,7 @@ def create_test_file():
 
 def test_valid_simple_upload(setup):
     content = "Testing simple upload"
-    filename = "test.txt"
+    filename = "test_valid_simple_upload.txt"
     with open(filename, "w") as f:
         f.write(content)
     connection_args = setup
@@ -78,18 +78,18 @@ def test_valid_simple_upload(setup):
             user=os.getenv("SFTP_USERNAME"),
             pwd=os.getenv("SFTP_PASSWORD"),
         )
-        .client.open("test.txt")
+        .client.open(filename)
         .read()
         .decode()
     )
     assert server_content == content
 
-    os.remove("test.txt")
+    os.remove(filename)
 
 
 def test_simple_nested_upload(setup):
     content = "Testing nested upload"
-    filename = "subfolder/test.txt"
+    filename = "subfolder/test_simple_nested_upload.txt"
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "w") as f:
         f.write(content)
