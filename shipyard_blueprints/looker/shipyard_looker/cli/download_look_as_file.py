@@ -1,8 +1,11 @@
 import argparse
 import sys
-import os
-import shipyard_utils as shipyard
-from shipyard_looker.cli import helpers, exit_codes as ec
+import shipyard_bp_utils as shipyard
+
+from shipyard_templates import ShipyardLogger, ExitCodeException, DataVisualization
+from shipyard_looker import LookerClient
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -13,7 +16,7 @@ def get_args():
     parser.add_argument("--look-id", dest="look_id", required=True)
     parser.add_argument("--destination-file-name", dest="dest_file_name", required=True)
     parser.add_argument(
-        "--destination-folder-name", dest="dest_folder_name", required=False
+        "--destination-folder-name", dest="dest_folder_name", required=False, default=""
     )
     parser.add_argument(
         "--file-type",
@@ -36,50 +39,39 @@ def get_args():
     return args
 
 
-def download_look(look_sdk, look_id, file_format):
-    all_looks = look_sdk.all_looks()
-    all_look_ids = list(map(lambda x: x.id, all_looks))
-    if look_id not in all_look_ids:
-        print(f"The look id {look_id} does not exist, please provide a valid look id")
-        sys.exit(ec.EXIT_CODE_INVALID_LOOK_ID)
-    try:
-        # Options are csv, json, json_detail, txt, html, md, xlsx, sql (raw query), png, jpg
-        response = look_sdk.run_look(look_id=look_id, result_format=file_format)
-        print(f"look {look_id} as {file_format} generated successfully")
-    except Exception as e:
-        print(f"Error running {look_id}: {e}")
-        sys.exit(ec.EXIT_CODE_LOOK_ERROR)
-    if type(response) == str:
-        response = bytes(response, encoding="utf-8")
-    return response
-
-
 def main():
-    args = get_args()
-    base_url = args.base_url
-    client_id = args.client_id
-    client_secret = args.client_secret
-    file_type = args.file_type
-    look_id = args.look_id
-    dest_file_name = args.dest_file_name
-    dest_folder_name = args.dest_folder_name
+    try:
+        args = get_args()
+        base_url = args.base_url
+        client_id = args.client_id
+        client_secret = args.client_secret
+        file_type = args.file_type
+        look_id = args.look_id
+        target_file = args.dest_file_name
+        target_dir = args.dest_folder_name
 
-    # get cwd if no folder name is specified
-    if not dest_folder_name:
-        dest_folder_name = os.getcwd()
-    else:
-        shipyard.files.create_folder_if_dne(dest_folder_name)
-    destination_file_path = shipyard.files.combine_folder_and_file_name(
-        dest_folder_name, dest_file_name
-    )
-    # generate SDK
-    look_sdk = helpers.get_sdk(base_url, client_id, client_secret)
+        if target_dir:
+            shipyard.files.create_folder_if_dne(target_dir)
 
-    # download look and write to file
-    result = download_look(look_sdk, look_id, file_format=file_type)
+        target_path = shipyard.files.combine_folder_and_file_name(
+            target_dir, target_file
+        )
+        # generate SDK
+        looker = LookerClient(
+            base_url=base_url, client_id=client_id, client_secret=client_secret
+        )
 
-    with open(destination_file_path, "wb+") as f:
-        f.write(result)
+        looker.download_look(look_id, target_path, file_format=file_type)
+
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
+
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred when attempting to download the Look: {e}"
+        )
+        sys.exit(DataVisualization.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":
