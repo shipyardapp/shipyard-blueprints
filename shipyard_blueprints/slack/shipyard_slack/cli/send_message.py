@@ -1,12 +1,12 @@
+import argparse
 import os
 import sys
-import json
-import argparse
+
+from shipyard_bp_utils.artifacts import Artifact
+from shipyard_templates import ShipyardLogger, ExitCodeException, Messaging
 
 from shipyard_slack import SlackClient
 from shipyard_slack.slack_utils import create_user_id_list, create_name_tags
-from shipyard_templates import ShipyardLogger, ExitCodeException, Messaging
-from shipyard_bp_utils.artifacts import Artifact
 
 logger = ShipyardLogger().get_logger()
 
@@ -100,10 +100,9 @@ def main():
 
         if args.users_to_notify:
             user_id_list = create_user_id_list(
-                slack_client, args.users_to_notify, args.user_lookup_method
+                slack_client=slack_client, users_to_notify=args.users_to_notify,
+                user_lookup_method=args.user_lookup_method
             )
-            message = create_name_tags(user_id_list) + message
-
         else:
             user_id_list = []
 
@@ -114,13 +113,17 @@ def main():
                 )
                 responses.append(response.data)
 
-        else:
+        elif destination_type == "channel":
             response = slack_client.send_message(
-                message=message,
+                message=create_name_tags(user_id_list) + message,
                 channel_name=channel_name,
             )
             responses.append(response.data)
-
+        else:
+            raise ExitCodeException(
+                f"Invalid destination type: {destination_type}",
+                slack_client.EXIT_CODE_INVALID_INPUT,
+            )
         artifact.responses.write_json(
             os.getenv("SHIPYARD_BLUEPRINT_NAME", "send_message"), responses
         )
