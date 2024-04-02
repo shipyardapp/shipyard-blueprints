@@ -105,7 +105,7 @@ def main():
         if destination_folder_name:
             shipyard.create_folder_if_dne(destination_folder_name)
 
-        client = Dropbox(access_key=access_key)
+        client = Dropbox(access_key)
         if args.source_file_name_match_type == "exact_match":
             destination_name = shipyard.determine_destination_full_path(
                 destination_folder_name=destination_folder_name,
