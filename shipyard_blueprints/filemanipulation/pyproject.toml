@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "shipyard-file-manipulation"
 version = "0.2.0a0"
-description = ""
+description = "A set of utility functions for maniuplating datasets. This is primarily used within the Shipyard Application"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 readme = "README.md"
 
