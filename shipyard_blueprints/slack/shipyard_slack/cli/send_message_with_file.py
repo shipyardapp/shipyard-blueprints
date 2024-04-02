@@ -1,11 +1,12 @@
+import argparse
 import os
 import sys
-import argparse
+
+from shipyard_bp_utils import files as file_utils
+from shipyard_bp_utils.artifacts import Artifact
+from shipyard_templates import ShipyardLogger, ExitCodeException, Messaging
 
 from shipyard_slack import SlackClient
-from shipyard_bp_utils.artifacts import Artifact
-from shipyard_bp_utils import files as file_utils
-from shipyard_templates import ShipyardLogger, ExitCodeException, Messaging
 from shipyard_slack.slack_utils import (
     format_user_list,
     create_name_tags,
@@ -127,24 +128,24 @@ def main():
             user_id_list = format_user_list(
                 slack_client, args.users_to_notify, args.user_lookup_method
             )
-            message = create_name_tags(user_id_list) + message
         else:
             user_id_list = []
 
         if args.destination_type == "dm":
             for user_id in user_id_list:
                 response = send_slack_message_with_file(
-                    slack_client, message, upload, user_id, include_in_thread
+                    slack_client=slack_client, message=message, file=upload, channel=user_id,
+                    include_in_thread=include_in_thread
                 )
                 responses.append(response.data)
 
-        else:
+        elif args.destination_type == "channel":
             response = send_slack_message_with_file(
-                slack_client,
-                message,
-                upload,
-                args.channel_name,
-                include_in_thread,
+                slack_client=slack_client,
+                message=create_name_tags(user_id_list) + message,
+                file=upload,
+                channel=args.channel_name,
+                include_in_thread=include_in_thread,
             )
             responses.append(response.data)
 
