@@ -8,14 +8,13 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 requests = "^2.31.0"
-# shipyard-templates = "^0.8.0"
+shipyard-templates = "^0.8.1a0"
 shipyard-bp-utils = "^1.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
 python-dotenv = "^1.0.1"
-shipyard-templates = {path = "../../shipyard-templates", develop = true}
 
 [build-system]
 requires = ["poetry-core"]
