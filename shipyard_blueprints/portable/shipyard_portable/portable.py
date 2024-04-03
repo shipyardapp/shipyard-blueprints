@@ -106,7 +106,7 @@ class PortableClient(Etl):
                     self.EXIT_CODE_UNKNOWN_ERROR,
                 )
         else:
-            logger.info(f"Successfully fetched sync status")
+            logger.debug(f"Successfully fetched sync status")
             return response.json()
 
     def determine_sync_status(self, response_data: Dict[str, str]) -> int:

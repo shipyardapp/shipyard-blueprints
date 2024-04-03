@@ -37,14 +37,14 @@ def main():
         flow_disposition = flow_status["disposition"]
         exit_code = portable.determine_sync_status(flow_status)
         if wait:
-            logger.info("Waiting for flow to complete")
+            logger.info("The flow will be checked every 60 seconds until completion")
             while flow_disposition not in ("SUCCEEDED", "FAILED"):
                 flow_status = portable.get_sync_status(args.flow_id)
                 flow_disposition = flow_status["disposition"]
                 flow_lifecyle = flow_status["lifecycle"]
                 exit_code = portable.determine_sync_status(flow_status)
                 logger.info(
-                    f"Flow has a status of {flow_lifecyle}, waiting for completion"
+                    f"Current state of flow is {flow_lifecyle}, waiting for completion"
                 )
                 time.sleep(INTERVAL)
 
@@ -57,7 +57,6 @@ def main():
         logger.error(f"An unexpected error occurred: {e}")
         sys.exit(Etl.EXIT_CODE_UNKNOWN_ERROR)
     else:
-        logger.debug("Saving response data to artifacts")
         Artifact("portable").responses.write_json("flow_response.json", flow_status)
         sys.exit(exit_code)
 
