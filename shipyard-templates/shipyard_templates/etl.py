@@ -1,4 +1,17 @@
 from abc import ABC, abstractmethod
+from .exit_code_exception import ExitCodeException
+
+
+class UnauthorizedError(ExitCodeException):
+    def __init__(self, message: str):
+        self.message = f"Failed to connect to the API. Ensure that the API key provided is correct. Message from the API: {message}"
+        self.exit_code = Etl.EXIT_CODE_INVALID_CREDENTIALS
+
+
+class BadRequestError(ExitCodeException):
+    def __init__(self, message: str):
+        self.message = f"The request is malformed. Message from the API: {message}"
+        self.exit_code = Etl.EXIT_CODE_BAD_REQUEST
 
 
 class Etl(ABC):
@@ -21,7 +34,7 @@ class Etl(ABC):
     EXIT_CODE_FINAL_STATUS_CANCELLED = 213
     EXIT_CODE_FINAL_STATUS_PENDING = 214
     EXIT_CODE_UNKNOWN_STATUS = 215
-    EXIT_CODE_UNKNOWN_ERROR = 299
+    EXIT_CODE_UNKNOWN_ERROR = 249
 
     # API TIMEOUT
     TIMEOUT = 30

@@ -29,9 +29,7 @@ def test_authtest_good_connection(auth):
     assert result.returncode == 0
 
 
-def test_authtest_bad_connection(auth):
-    original = os.getenv("PORTABLE_API_TOKEN")
-    os.environ["PORTABLE_API_TOKEN"] = "bad_token"  # set bad token temporarily
+def test_authtest_bad_connection(auth, monkeypatch):
+    monkeypatch.setenv("PORTABLE_API_TOKEN", "bad_token")
     result = subprocess.run(auth, capture_output=True)
     assert result.returncode == 1
-    os.environ["PORTABLE_API_TOKEN"] = original  # reset token

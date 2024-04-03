@@ -1,8 +1,6 @@
 import requests
-import time
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_templates import Etl
-from shipyard_portable.errors import UnauthorizedError, BadRequestError
 from typing import Dict
 
 logger = ShipyardLogger.get_logger()
@@ -63,15 +61,15 @@ class PortableClient(Etl):
 
         except Exception as e:
             if response.status_code == 401:
-                raise UnauthorizedError(response.text)
+                raise self.UnauthorizedError(response.text)
 
             elif response.status_code == 400:
-                raise BadRequestError(response.text)
+                raise self.BadRequestError(response.text)
             else:
                 logger.debug(f"Status code {response.status_code}")
                 raise ExitCodeException(
                     f"Failed to trigger sync for flow {flow_id} due to an expected error. Message from the API: {response.text}",
-                    Etl.EXIT_CODE_UNKNOWN_ERROR,
+                    self.EXIT_CODE_UNKNOWN_ERROR,
                 )
         else:
             return response.json()
@@ -92,19 +90,20 @@ class PortableClient(Etl):
             ExitCodeException: If an unexpected error occurs while fetching the status.
         """
         try:
-            flow_url = f"{self.flow_url}/{flow_id}/status"
-            response = requests.get(flow_url, headers=self.headers)
+            response = requests.get(
+                f"{self.flow_url}/{flow_id}/status", headers=self.headers
+            )
             response.raise_for_status()
         except Exception as e:
             if response.status_code == 401:
-                raise UnauthorizedError(response.text)
+                raise self.UnauthorizedError(response.text)
             elif response.status_code == 400:
-                raise BadRequestError(response.text)
+                raise self.BadRequestError(response.text)
             else:
                 logger.debug(f"Status code {response.status_code}")
                 raise ExitCodeException(
                     f"Failed to fetch status for flow {flow_id} due to an expected error. Message from the API: {response.text}",
-                    Etl.EXIT_CODE_UNKNOWN_ERROR,
+                    self.EXIT_CODE_UNKNOWN_ERROR,
                 )
         else:
             logger.info(f"Successfully fetched sync status")
@@ -129,24 +128,27 @@ class PortableClient(Etl):
 
         if disposition == "SUCCEEDED":
             logger.debug("Flow completed successfully")
-            return Etl.EXIT_CODE_FINAL_STATUS_COMPLETED
+            return self.EXIT_CODE_FINAL_STATUS_COMPLETED
 
         elif disposition == "FAILED":
             logger.error("Flow failed")
-            return Etl.EXIT_CODE_FINAL_STATUS_ERRORED
+            return self.EXIT_CODE_FINAL_STATUS_ERRORED
         elif disposition == "NONE":
             if status == "RUNNING":
                 logger.debug("Flow status is: still running")
-                return Etl.EXIT_CODE_SYNC_ALREADY_RUNNING
+                return self.EXIT_CODE_SYNC_ALREADY_RUNNING
             elif status == "PENDING":
                 logger.debug("Flow status is: pending")
-                return Etl.EXIT_CODE_FINAL_STATUS_PENDING
+                return self.EXIT_CODE_FINAL_STATUS_PENDING
             elif status == "NOT_RUNNING":
                 logger.debug("Flow status is: not running")
-                return Etl.EXIT_CODE_FINAL_STATUS_INCOMPLETE
+                return self.EXIT_CODE_FINAL_STATUS_INCOMPLETE
             else:
                 logger.error(f"Unknown status: {status}")
-                return Etl.EXIT_CODE_UNKNOWN_ERROR
+                raise ExitCodeException(
+                    f"Unknown status: {status}", self.EXIT_CODE_UNKNOWN_ERROR
+                )
         else:
-            logger.error(f"Unknown disposition: {disposition}")
-            return Etl.EXIT_CODE_UNKNOWN_ERROR
+            raise ExitCodeException(
+                f"Unknown disposition: {disposition}", self.EXIT_CODE_UNKNOWN_ERROR
+            )
