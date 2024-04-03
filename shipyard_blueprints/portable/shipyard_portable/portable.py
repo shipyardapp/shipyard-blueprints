@@ -66,10 +66,16 @@ class PortableClient(Etl):
 
             elif response.status_code == 400:
                 raise BadRequestError(response.text)
+            elif response.status_code == 404:
+                raise ExitCodeException(
+                    f"Failed to trigger sync for flow {flow_id}. Flow not found",
+                    self.EXIT_CODE_BAD_REQUEST,
+                )
+
             else:
                 logger.debug(f"Status code {response.status_code}")
                 raise ExitCodeException(
-                    f"Failed to trigger sync for flow {flow_id} due to an expected error. Message from the API: {response.text}",
+                    f"Failed to trigger sync for flow {flow_id} due to an unexpected error. Message from the API: {response.text}",
                     self.EXIT_CODE_UNKNOWN_ERROR,
                 )
         else:
