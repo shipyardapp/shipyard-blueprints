@@ -29,7 +29,6 @@ def main():
         args = get_args()
         flow_id = args.flow_id
         portable = PortableClient(args.access_token)
-        portable.connect()
         flow_response = portable.trigger_sync(args.flow_id)
 
         wait = shipyard.args.convert_to_boolean(args.wait_for_completion)
@@ -37,7 +36,9 @@ def main():
         flow_disposition = flow_status["disposition"]
         exit_code = portable.determine_sync_status(flow_status)
         if wait:
-            logger.info("The flow will be checked every 60 seconds until completion")
+            logger.info(
+                f"The flow will be checked every {INTERVAL} seconds until completion"
+            )
             while flow_disposition not in ("SUCCEEDED", "FAILED"):
                 flow_status = portable.get_sync_status(args.flow_id)
                 flow_disposition = flow_status["disposition"]
@@ -57,7 +58,7 @@ def main():
         logger.error(f"An unexpected error occurred: {e}")
         sys.exit(Etl.EXIT_CODE_UNKNOWN_ERROR)
     else:
-        Artifact("portable").responses.write_json("flow_response.json", flow_status)
+        Artifact("portable").responses.write_json("flow_response", flow_status)
         sys.exit(exit_code)
 
 

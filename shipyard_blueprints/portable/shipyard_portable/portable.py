@@ -1,6 +1,7 @@
 import requests
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_templates import Etl
+from shipyard_templates.etl import UnauthorizedError, BadRequestError
 from typing import Dict
 
 logger = ShipyardLogger.get_logger()
@@ -61,10 +62,10 @@ class PortableClient(Etl):
 
         except Exception as e:
             if response.status_code == 401:
-                raise self.UnauthorizedError(response.text)
+                raise UnauthorizedError(response.text)
 
             elif response.status_code == 400:
-                raise self.BadRequestError(response.text)
+                raise BadRequestError(response.text)
             else:
                 logger.debug(f"Status code {response.status_code}")
                 raise ExitCodeException(
@@ -96,9 +97,9 @@ class PortableClient(Etl):
             response.raise_for_status()
         except Exception as e:
             if response.status_code == 401:
-                raise self.UnauthorizedError(response.text)
+                raise UnauthorizedError(response.text)
             elif response.status_code == 400:
-                raise self.BadRequestError(response.text)
+                raise BadRequestError(response.text)
             else:
                 logger.debug(f"Status code {response.status_code}")
                 raise ExitCodeException(
