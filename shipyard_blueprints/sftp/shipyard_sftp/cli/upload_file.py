@@ -58,8 +58,9 @@ def main():
         source_folder_name = args.source_folder_name
 
         destination_folder_name = shipyard.clean_folder_name(
-            args.destination_folder_name
+            args.destination_folder_name.strip("/")
         )
+
         source_file_name_match_type = args.source_file_name_match_type or "exact_match"
         files = shipyard.file_match(
             search_term=args.source_file_name,

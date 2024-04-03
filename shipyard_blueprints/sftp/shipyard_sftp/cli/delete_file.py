@@ -71,7 +71,7 @@ def main():
                 try:
                     sftp.remove(delete_file_path)
                 except Exception as e:
-                    print(f"Failed to delete {file_name} due to {e}... Skipping")
+                    logger.warning(f"Failed to delete {file_name} due to {e}... Skipping")
         elif source_file_name_match_type == "exact_match":
             sftp.remove(source_full_path)
     except ExitCodeException as e:
