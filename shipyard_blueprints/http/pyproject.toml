@@ -7,9 +7,14 @@ readme = "README.md"
 packages = [{include = "shipyard_http"}]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.9"
 requests = "^2.31.0"
+shipyard-templates = "^0.7.0"
+shipyard-bp-utils = "^1.1.1"
 
+
+[tool.poetry.group.dev.dependencies]
+requests-mock = "^1.12.1"
 
 [build-system]
 requires = ["poetry-core"]
