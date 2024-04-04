@@ -13,6 +13,27 @@ class BadRequestError(ExitCodeException):
         self.message = f"The request is malformed. Message from the API: {message}"
         self.exit_code = Etl.EXIT_CODE_BAD_REQUEST
 
+from .exit_code_exception import ExitCodeException
+
+
+class UnauthorizedError(ExitCodeException):
+    def __init__(self, message: str):
+        self.message = (f"Failed to connect to the API. Ensure that the credential item provided is correct. Message "
+                        f"from the API: {message}")
+        self.exit_code = Etl.EXIT_CODE_INVALID_CREDENTIALS
+
+
+class BadRequestError(ExitCodeException):
+    def __init__(self, message: str):
+        self.message = f"The request is malformed. Message from the API: {message}"
+        self.exit_code = Etl.EXIT_CODE_BAD_REQUEST
+
+
+class UnknownError(ExitCodeException):
+    def __init__(self, message: str):
+        self.message = f"An unexpected error occurred. Message from the API: {message}"
+        self.exit_code = Etl.EXIT_CODE_UNKNOWN_ERROR
+
 
 class Etl(ABC):
     # Class level exit codes
