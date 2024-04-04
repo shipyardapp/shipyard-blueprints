@@ -2,14 +2,20 @@ import argparse
 import os
 import sys
 
+import paramiko
 from shipyard_bp_utils import files as shipyard
 from shipyard_templates import CloudStorage, ExitCodeException
 from shipyard_templates.shipyard_logger import ShipyardLogger
 
+from shipyard_sftp.exceptions import InvalidCredentialsError
 from shipyard_sftp.sftp import SftpClient
 from shipyard_sftp.utils import setup_connection, tear_down
 
 logger = ShipyardLogger().get_logger()
+
+DEFAULT_WINDOW_SIZE = 4294967294
+DEFAULT_REKEY_BYTES = pow(2, 40)
+DEFAULT_REKEY_PACKETS = pow(2, 40)
 
 
 def get_args():
@@ -50,8 +56,20 @@ def main():
     sftp = None
     try:
         args = get_args()
-        connection_args, key_path = setup_connection(args)
-        sftp = SftpClient(**connection_args)
+
+        try:
+            connection_args, key_path = setup_connection(args)
+
+            transport = paramiko.Transport((args.host, int(args.port)))
+            transport.default_window_size = DEFAULT_WINDOW_SIZE
+            transport.packetizer.REKEY_BYTES = DEFAULT_REKEY_BYTES
+            transport.packetizer.REKEY_PACKETS = DEFAULT_REKEY_PACKETS
+            transport.connect(None, args.username, args.password)
+
+            connection_args["transport"] = transport
+            sftp = SftpClient(**connection_args)
+        except Exception as e:
+            raise InvalidCredentialsError(e) from e
 
         source_folder_name = shipyard.clean_folder_name(args.source_folder_name)
         source_file_name_match_type = args.source_file_name_match_type or "exact_match"

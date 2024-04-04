@@ -1,6 +1,7 @@
 import os
 import re
 import stat
+from typing import Optional
 
 import paramiko
 from shipyard_templates import CloudStorage, ExitCodeException
@@ -18,16 +19,14 @@ from shipyard_sftp.exceptions import (
 
 logger = ShipyardLogger().get_logger()
 
-DEFAULT_WINDOW_SIZE = 4294967294
-DEFAULT_REKEY_BYTES = pow(2, 40)
-DEFAULT_REKEY_PACKETS = pow(2, 40)
-
 
 class SftpClient(CloudStorage):
     EXIT_CODE_DELETE_ERROR = 100
 
     def __init__(
-            self, host: str, port: int, key: str = None, user: str = None, pwd: str = None
+            self, host: str, port: int, key: Optional[str] = None, user: Optional[str] = None,
+            pwd: Optional[str] = None,
+            transport: Optional[paramiko.Transport] = None
     ) -> None:
         """
         Initializes an SFTP client with the given connection parameters.
@@ -44,6 +43,7 @@ class SftpClient(CloudStorage):
             sftp = SftpClient(host, port, key, user, pwd)
             sftp.client.listdir()
         """
+        self.transport = transport
         self.host = host
         self.port = port
         self.key = key
@@ -272,11 +272,14 @@ class SftpClient(CloudStorage):
                 logger.debug(
                     f"Connecting to {self.host} using password-based authentication"
                 )
-                transport = paramiko.Transport((self.host, int(self.port)))
-                transport.default_window_size = 4294967294
-                transport.packetizer.REKEY_BYTES = pow(2, 40)
-                transport.packetizer.REKEY_PACKETS = pow(2, 40)
-                transport.connect(None, self.user, self.pwd)
+                if self.transport is None:
+                    logger.debug(f"Creating simple transport to {self.host}")
+                    transport = paramiko.Transport((self.host, int(self.port)))
+                    transport.connect(None, self.user, self.pwd)
+                else:
+                    logger.debug("Explicit transport provided.")
+                    transport = self.transport
+
                 return paramiko.SFTPClient.from_transport(transport)
 
         except (
