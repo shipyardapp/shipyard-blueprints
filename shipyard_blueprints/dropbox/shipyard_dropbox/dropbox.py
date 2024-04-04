@@ -1,11 +1,10 @@
-from shipyard_templates import CloudStorage
 from dropbox import Dropbox
+from shipyard_templates import CloudStorage
 
 
 class DropboxClient(CloudStorage):
     def __init__(self, access_key: str) -> None:
         self.access_key = access_key
-        super().__init__(access_key=access_key)
 
     def connect(self):
         client = Dropbox(self.access_key)

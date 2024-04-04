@@ -1,18 +1,17 @@
 import sys
 import os
 from shipyard_dropbox import DropboxClient
+from shipyard_templates import ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 def main():
-    key = os.getenv("DROPBOX_ACCESS_TOKEN")
-    dropbox = DropboxClient(key)
     try:
-        dropbox.connect()
-        dropbox.logger.info("Successfully connected to Dropbox")
-        sys.exit(0)
+        sys.exit(DropboxClient(os.getenv("DROPBOX_ACCESS_TOKEN")).connect())
     except Exception as e:
-        dropbox.logger.error(
-            "Could not connect to Dropbox with the access key provided"
+        logger.authtest(
+            f"Failed to authenticate using key. Message from Dropbox Server: {e}"
         )
         sys.exit(1)
 

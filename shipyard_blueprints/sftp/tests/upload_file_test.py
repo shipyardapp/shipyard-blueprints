@@ -85,6 +85,46 @@ def test_valid_simple_upload(setup):
     assert server_content == content
 
     os.remove("test.txt")
+def test_valid_simple_upload_with_leading_slash(setup):
+    content = "test_valid_simple_upload_with_leading_slash"
+    filename = "test.txt"
+    with open(filename, "w") as f:
+        f.write(content)
+    connection_args = setup
+    test_run = subprocess.run(
+        [
+            *RUN_COMMAND,
+            *connection_args,
+            "--source-file-name-match-type",
+            "exact_match",
+            "--source-file-name",
+            os.path.basename(filename),
+            "--source-folder-name",
+            f'{os.path.dirname(filename)}',
+            "--destination-folder-name",
+            "/pytest",
+        ],
+        text=True,
+        capture_output=True,
+    )
+
+    assert (
+        test_run.returncode == 0
+    ), f"{test_run.returncode} {test_run.stdout} {test_run.stderr}"
+    server_content = (
+        SftpClient(
+            host=os.getenv("SFTP_HOST"),
+            port=os.getenv("SFTP_PORT"),
+            user=os.getenv("SFTP_USERNAME"),
+            pwd=os.getenv("SFTP_PASSWORD"),
+        )
+        .client.open("pytest/test.txt")
+        .read()
+        .decode()
+    )
+    assert server_content == content
+
+    os.remove("test.txt")
 
 
 def test_simple_nested_upload(setup):
@@ -149,7 +189,7 @@ def test_invalid_filename(setup):
     )
 
     assert (
-        test_run.returncode == SftpClient.EXIT_CODE_FILE_MATCH_ERROR
+        test_run.returncode == SftpClient.EXIT_CODE_FILE_NOT_FOUND
     ), f"{test_run.returncode} {test_run.stdout} {test_run.stderr}"
 
 

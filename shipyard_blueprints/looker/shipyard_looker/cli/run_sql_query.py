@@ -1,8 +1,15 @@
 import argparse
 import sys
 import os
-import shipyard_utils as shipyard
-from shipyard_looker.cli import helpers, exit_codes as ec
+import shipyard_bp_utils as shipyard
+
+from shipyard_templates import ShipyardLogger, ExitCodeException, DataVisualization
+from shipyard_looker import LookerClient
+from shipyard_bp_utils.artifacts import Artifact
+
+from shipyard_looker.exceptions import EXIT_CODE_SLUG_NOT_FOUND
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -13,7 +20,7 @@ def get_args():
     parser.add_argument("--slug", dest="slug", required=False)
     parser.add_argument("--destination-file-name", dest="dest_file_name", required=True)
     parser.add_argument(
-        "--destination-folder-name", dest="dest_folder_name", required=False
+        "--destination-folder-name", dest="dest_folder_name", required=False, default=""
     )
     parser.add_argument(
         "--file-type",
@@ -51,49 +58,45 @@ def run_sql_query_and_download(sdk, slug, file_format):
 
 
 def main():
-    args = get_args()
-    base_url = args.base_url
-    client_id = args.client_id
-    client_secret = args.client_secret
-    file_type = args.file_type
-    dest_file_name = args.dest_file_name
-    arg_slug = args.slug
-    if arg_slug == "":
-        arg_slug = None
-    # get cwd if no folder name is specified
-    if args.dest_folder_name:
-        # create folder path if non-existent
-        shipyard.files.create_folder_if_dne(args.dest_folder_name)
-        dest_folder_name = args.dest_folder_name
-    else:
-        dest_folder_name = os.getcwd()
+    try:
+        args = get_args()
+        base_url = args.base_url
+        client_id = args.client_id
+        client_secret = args.client_secret
+        file_type = args.file_type
+        output_file = args.dest_file_name
+        arg_slug = args.slug if args.slug != "" else None
+        target_dir = args.dest_folder_name
+        # get cwd if no folder name is specified
+        looker = LookerClient(
+            base_url=base_url, client_id=client_id, client_secret=client_secret
+        )
+        if target_dir:
+            shipyard.files.create_folder_if_dne(target_dir)
 
-    destination_file_path = shipyard.files.combine_folder_and_file_name(
-        dest_folder_name, dest_file_name
-    )
-    # generate SDK
-    look_sdk = helpers.get_sdk(base_url, client_id, client_secret)
-    if arg_slug is not None:
-        slug = arg_slug
-    else:
-        try:
-            artifact_subfolder_paths = helpers.artifact_subfolder_paths
-            slug = shipyard.logs.read_pickle_file(artifact_subfolder_paths, "slug")
-        except Exception as e:
-            print(
-                "Error - there was no slug provided and was not found in an upstream vessel. Either enter a slug id for a query already run, or run the 'Create SQL Runner Query' blueprint immediately before this vessel"
-            )
-            sys.exit(ec.EXIT_CODE_SLUG_NOT_FOUND)
+        target_path = shipyard.files.combine_folder_and_file_name(
+            target_dir, output_file
+        )
+        if arg_slug:
+            slug = arg_slug
+        else:
+            artifacts = Artifact("looker")
+            slug = artifacts.variables.read_pickle("slug")
+        looker.download_sql_query(slug, target_path, file_format=file_type)
+        logger.info(f"SQL Query {slug} successfully downloaded to {target_path}")
 
-    # download look and write to file
-    result = run_sql_query_and_download(look_sdk, slug, file_type)
+    except FileNotFoundError as e:
+        logger.error("Slug not found in artifacts directory")
+        sys.exit(EXIT_CODE_SLUG_NOT_FOUND)
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
 
-    with open(destination_file_path, "wb+") as f:
-        # convert to bytes if str
-        if type(result) == str:
-            result = bytes(result, "utf-8")
-        f.write(result)
-    print(f"query with file: {dest_file_name} created successfully!")
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred when attempting to download the SQL query: {e}"
+        )
+        sys.exit(DataVisualization.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":

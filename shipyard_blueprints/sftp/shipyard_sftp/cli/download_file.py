@@ -1,15 +1,13 @@
-import os
-import re
-import sys
-import time
 import argparse
-import tempfile
+import os
+import sys
 
-from shipyard_sftp.sftp import SftpClient
 from shipyard_bp_utils import files as shipyard
 from shipyard_templates import CloudStorage, ExitCodeException
 from shipyard_templates.shipyard_logger import ShipyardLogger
 
+from shipyard_sftp.sftp import SftpClient
+from shipyard_sftp.utils import setup_connection, tear_down
 
 logger = ShipyardLogger().get_logger()
 
@@ -47,121 +45,55 @@ def get_args():
 
 
 def main():
+    exit_code = 0
     key_path = None
+    sftp = None
     try:
         args = get_args()
-        if not args.password and not args.key:
-            raise ExitCodeException(
-                "Must specify a password or a private key",
-                CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
-            )
-
-        connection_args = {"host": args.host, "port": args.port, "user": args.username}
-
-        if args.password:
-            connection_args["pwd"] = args.password
-
-        if key := args.key:
-            if not os.path.isfile(key):
-                fd, key_path = tempfile.mkstemp()
-                logger.info(f"Storing private temporarily at {key_path}")
-                with os.fdopen(fd, "w") as tmp:
-                    tmp.write(key)
-                connection_args["key"] = key_path
+        connection_args, key_path = setup_connection(args)
         sftp = SftpClient(**connection_args)
 
-        errors = []
-        source_file_name = args.source_file_name
         source_folder_name = shipyard.clean_folder_name(args.source_folder_name)
-        source_full_path = shipyard.combine_folder_and_file_name(
-            folder_name=source_folder_name, file_name=source_file_name
-        )
         source_file_name_match_type = args.source_file_name_match_type or "exact_match"
 
         destination_folder_name = shipyard.clean_folder_name(
-            args.destination_folder_name
+            args.destination_folder_name.strip("/")
         )
         shipyard.create_folder_if_dne(destination_folder_name)
+        sftp_files_full_paths = sftp.list_files_recursive(source_folder_name or ".")
 
-        if source_file_name_match_type == "exact_match":
-            destination_name = shipyard.determine_destination_full_path(
-                destination_folder_name=destination_folder_name,
-                destination_file_name=args.destination_file_name,
-                source_full_path=source_full_path,
-            )
-            sftp.download(source_full_path, destination_name)
+        # Get the relative path of the files which is the format that shipyard.file_match expects
+        sftp_files = [
+            os.path.relpath(path, start=source_folder_name)
+            for path in sftp_files_full_paths
+        ]
 
-            try:
-                destination_name = shipyard.determine_destination_full_path(
-                    destination_folder_name=destination_folder_name,
-                    destination_file_name=args.destination_file_name,
-                    source_full_path=source_full_path,
-                )
-                sftp.download(source_full_path, destination_name)
+        files = shipyard.file_match(
+            search_term=args.source_file_name,
+            files=sftp_files,
+            source_directory=source_folder_name,
+            destination_directory=destination_folder_name,
+            destination_filename=args.destination_file_name,
+            match_type=source_file_name_match_type,
+        )
 
-            except Exception as e:
-                logger.error(f"Failed to download {source_full_path} due to {e}")
-                errors.append({"filename": source_full_path, "error": e})
-            finally:
-                sftp.close()
+        for file in files:
+            source_file = file["source_path"]
+            destination_full_path = file["destination_filename"]
+            sftp.download(source_file, destination_full_path)
 
-            if errors:
-                logger.error(f"Failed to download {len(errors)} file(s): {errors}")
-                sys.exit(CloudStorage.EXIT_CODE_DOWNLOAD_ERROR)
-
-        elif source_file_name_match_type == "regex_match":
-            files = sftp.list_files_recursive(source_folder_name or ".")
-            matching_file_names = shipyard.find_all_file_matches(
-                files, re.compile(source_file_name)
-            )
-            if matching_file_names:
-                logger.info(
-                    f"{len(matching_file_names)} files found. Preparing to download..."
-                )
-            else:
-                raise ExitCodeException(
-                    f"No files matching {source_file_name} found",
-                    sftp.EXIT_CODE_FILE_MATCH_ERROR,
-                )
-            for index, file_name in enumerate(matching_file_names):
-                destination_name = shipyard.determine_destination_full_path(
-                    destination_folder_name=destination_folder_name,
-                    destination_file_name=args.destination_file_name,
-                    source_full_path=file_name,
-                    file_number=index + 1,
-                )
-
-                logger.info(
-                    f"Downloading file {index + 1} of {len(matching_file_names)}"
-                )
-
-                try:
-                    sftp.download(file_name, destination_name)
-
-                except Exception as e:
-                    errors.append({"filename": file_name, "error": e})
-
-                    logger.error(
-                        f"Failed to download {file_name} due to {e}... Skipping"
-                    )
-                    logger.info("Closing current SFTP session and reconnecting..")
-                    sftp.client.close()
-                    time.sleep(1)
-            sftp.close()
     except ExitCodeException as e:
         logger.error(e)
-        sys.exit(e.exit_code)
+        exit_code = e.exit_code
+    except FileNotFoundError as e:
+        logger.error(e)
+        exit_code = CloudStorage.EXIT_CODE_FILE_NOT_FOUND
     except Exception as e:
         logger.error(e)
-        sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
+        exit_code = CloudStorage.EXIT_CODE_UNKNOWN_ERROR
     finally:
-        if key_path:
-            logger.info(f"Removing temporary private key file {key_path}")
-            os.remove(key_path)
-        try:
-            sftp.close()
-        except Exception:
-            pass
+        tear_down(key_path, sftp)
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":

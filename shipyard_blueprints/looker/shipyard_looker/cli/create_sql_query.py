@@ -1,8 +1,11 @@
 import argparse
 import sys
-import shipyard_utils as shipyard
-from shipyard_looker.cli import exit_codes as ec, helpers
-from looker_sdk import methods40, models40
+
+from shipyard_templates import ShipyardLogger, ExitCodeException, DataVisualization
+from shipyard_looker import LookerClient
+from shipyard_bp_utils.artifacts import Artifact
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -22,52 +25,40 @@ def get_args():
     return args
 
 
-def create_sql_query(look_sdk, connection_name, model_name, sql_query):
-    sql_body = models40.SqlQueryCreate(
-        connection_name=connection_name, model_name=model_name, sql=sql_query
-    )
-    try:
-        res_slug = look_sdk.create_sql_query(body=sql_body).slug
-        print(f"Looker slug {res_slug} created successfully")
-    except Exception as e:
-        print(f"Error running create query: {e}")
-        sys.exit(ec.EXIT_CODE_LOOK_QUERY_ERROR)
-    return res_slug
-
-
 def main():
-    args = get_args()
-    base_url = args.base_url
-    client_id = args.client_id
-    client_secret = args.client_secret
-    connection_target = args.connection_target
-    connection_value = args.connection_value
-    sql = args.sql
-
-    # generate SDK
-    look_sdk = helpers.get_sdk(base_url, client_id, client_secret)
-
-    # create sql query
-    if connection_target == "connection_name":
-        sql_body = models40.SqlQueryCreate(
-            connection_name=connection_value, model_name=None, sql=sql
-        )
-
-    elif connection_target == "model_name":
-        sql_body = models40.SqlQueryCreate(
-            model_name=connection_value, connection_name=None, sql=sql
-        )
-
     try:
-        new_slug = look_sdk.create_sql_query(body=sql_body).slug
-        print(f"Looker slug {new_slug} created successfully")
+        args = get_args()
+        base_url = args.base_url
+        client_id = args.client_id
+        client_secret = args.client_secret
+        connection_target = args.connection_target
+        connection_value = args.connection_value
+        sql = args.sql
+
+        looker = LookerClient(
+            base_url=base_url, client_id=client_id, client_secret=client_secret
+        )
+
+        # create SQL Query
+        if connection_target == "connection_name":
+            new_slug = looker.create_sql_query(
+                sql_body, connection_name=connection_value
+            )
+        elif connection_target == "model_name":
+            new_slug = looker.create_sql_query(sql_body, model_name=connection_value)
+
+        logger.info(f"Looker slug {new_slug} created successfully")
         # save slug to pickle file
-        artifact_subfolder_paths = helpers.artifact_subfolder_paths
-        shipyard.logs.create_pickle_file(artifact_subfolder_paths, "slug", new_slug)
+        artifact = Artifact("looker")
+        artifact.variables.write("slug", "pickle", new_slug)
+
+    except ExitCodeException as ec:
+        logger.error(ec.message)
+        sys.exit(ec.exit_code)
 
     except Exception as e:
-        print(f"Error running create query: {e}")
-        sys.exit(ec.EXIT_CODE_LOOK_QUERY_ERROR)
+        logger.error(f"An unexpected error occurred: {e}")
+        sys.exit(DataVisualization.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":
