@@ -38,7 +38,7 @@ def main():
         artifact.responses.write_json(f"job_{job_id}_response", job_run_response)
 
         run_id = job_run_response["data"]["id"]
-        artifact.variables.create_pickle_file("run_id", run_id)
+        artifact.variables.create_pickle("run_id", run_id)
 
         if wait_for_completion:
             is_complete = False

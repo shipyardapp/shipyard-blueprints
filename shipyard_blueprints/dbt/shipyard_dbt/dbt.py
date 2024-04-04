@@ -3,12 +3,18 @@ import platform
 
 import requests
 from shipyard_templates import Etl, ShipyardLogger, ExitCodeException
+from shipyard_templates.etl import BadRequestError, UnauthorizedError, UnknownError
 
 logger = ShipyardLogger.get_logger()
 
+CHUNK_SIZE = 16 * 1024 * 1024
+EXIT_CODE_INVALID_RESOURCE = 101
+
+class InvalidResourceError(ExitCodeException):
+    def __init__(self, message):
+        super().__init__(message, EXIT_CODE_INVALID_RESOURCE)
 
 class DbtClient(Etl):
-    EXIT_CODE_INVALID_RESOURCE = 101
     EXIT_CODE_STATUS_INCOMPLETE = 110
     EXIT_CODE_FINAL_STATUS_ERRORED = 111
     EXIT_CODE_FINAL_STATUS_CANCELLED = 112
@@ -37,28 +43,29 @@ class DbtClient(Etl):
 
         try:
             response = requests.request(method, url, **request_details)
+            if response.ok:
+                return response.json()
+            if response.status_code == 401:
+                raise UnauthorizedError(response.text)
+
+            if response.status_code == 404:
+                raise InvalidResourceError(
+                    f"Resource not found. Check to make sure that the URL was typed correctly.\n{response.json()}"
+                )
+
             response.raise_for_status()
-            return response.json()
 
         except requests.exceptions.HTTPError as eh:
-            logger.error("URL returned an HTTP Error.\n", eh)
-            raise ExitCodeException(
-                f"URL returned an HTTP Error.\n{eh}", self.EXIT_CODE_BAD_REQUEST
-            ) from eh
+            raise BadRequestError(f"URL returned an HTTP Error.\n{eh}") from eh
         except requests.exceptions.ConnectionError as ec:
-            raise ExitCodeException(
-                f"Could not connect to the URL. Check to make sure that it was typed correctly.\n{ec}",
-                self.EXIT_CODE_UNKNOWN_ERROR,
-            ) from ec
+            raise UnknownError(ec)
         except requests.exceptions.Timeout as et:
+
             raise ExitCodeException(
                 f"Timed out while connecting to the URL.\n{et}", self.TIMEOUT
             ) from et
         except requests.exceptions.RequestException as e:
-            raise ExitCodeException(
-                f"Unexpected error occurred. Please try again.\n {e}",
-                self.EXIT_CODE_BAD_REQUEST,
-            ) from e
+            raise BadRequestError(e) from e
 
     def trigger_sync(self, job_id):
         logger.info(f"Triggering sync for job {job_id} on account {self.account_id}")
@@ -116,22 +123,19 @@ class DbtClient(Etl):
         user_message = response["status"]["user_message"]
         if status_code == 401:
             if "Invalid token" in user_message:
-                raise ExitCodeException(
+                raise UnauthorizedError(
                     f"The Service Token provided was invalid. Check to make sure there are no typos or "
                     f"preceding/trailing spaces. dbt API says: {user_message}",
-                    self.EXIT_CODE_INVALID_CREDENTIALS,
                 )
             else:
-                raise ExitCodeException(
+                raise UnknownError(
                     f"An unknown error occurred with a status code of {status_code}. dbt API says: {user_message}",
-                    self.EXIT_CODE_UNKNOWN_ERROR,
                 )
         if status_code == 404:
-            raise ExitCodeException(
+            raise InvalidResourceError(
                 f"The Account ID, Job ID, or Run ID provided was either invalid or your API Key doesn't"
                 f"have access to it. Check to make sure there are no typos or preceding/trailing spaces. "
-                f"dbt API says: {user_message}",
-                self.EXIT_CODE_INVALID_RESOURCE,
+                f"dbt API says: {user_message}"
             )
 
     def get_run_details(self, run_id):
@@ -166,11 +170,10 @@ class DbtClient(Etl):
             ) as r:
                 r.raise_for_status()
                 with open(filename, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=(16 * 1024 * 1024)):
+                    for chunk in r.iter_content(chunk_size=CHUNK_SIZE):
                         f.write(chunk)
             logger.info(f"Successfully downloaded file {get_artifact_details_url}")
         except Exception as e:
-            raise ExitCodeException(
+            raise UnknownError(
                 f"Failed to download file {get_artifact_details_url}",
-                self.EXIT_CODE_UNKNOWN_ERROR,
             ) from e
