@@ -8,7 +8,7 @@ from shipyard_templates.shipyard_logger import ShipyardLogger
 
 from shipyard_sftp.sftp import SftpClient
 from shipyard_sftp.utils import setup_connection, tear_down
-
+from shipyard_sftp.exceptions import InvalidCredentialsError
 logger = ShipyardLogger().get_logger()
 
 
@@ -41,8 +41,11 @@ def main():
     try:
 
         args = get_args()
-        connection_args, key_path = setup_connection(args)
-        sftp = SftpClient(**connection_args)
+        try:
+            connection_args, key_path = setup_connection(args)
+            sftp = SftpClient(**connection_args)
+        except Exception as e:
+            raise InvalidCredentialsError(e) from e
 
         source_file_name = args.source_file_name
         source_folder_name = shipyard.clean_folder_name(args.source_folder_name)
