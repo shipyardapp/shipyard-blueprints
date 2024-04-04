@@ -16,7 +16,7 @@ shipyard-templates = "0.4.1"
 
 [tool.poetry.group.dev.dependencies]
 #shipyard-templates = {path = "../../shipyard-templates"}
-black = "^23.10.0"
+black = "^24.3.0"
 python-dotenv = "^1.0.0"
 
 [build-system]
