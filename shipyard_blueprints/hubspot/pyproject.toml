@@ -16,7 +16,7 @@ shipyard-templates = "0.3.1"
 
 [tool.poetry.group.dev.dependencies]
 #shipyard-templates = { path = "../../shipyard-templates", develop = true }
-black = { version = "^23.7.0", optional = true }
+black = { version = ">=23.7,<25.0", optional = true }
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"
