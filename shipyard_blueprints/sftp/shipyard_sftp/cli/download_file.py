@@ -64,9 +64,8 @@ def main():
             transport.default_window_size = DEFAULT_WINDOW_SIZE
             transport.packetizer.REKEY_BYTES = DEFAULT_REKEY_BYTES
             transport.packetizer.REKEY_PACKETS = DEFAULT_REKEY_PACKETS
-            transport.connect(None, args.username, args.password)
-
             connection_args["transport"] = transport
+
             sftp = SftpClient(**connection_args)
         except Exception as e:
             raise InvalidCredentialsError(e) from e
