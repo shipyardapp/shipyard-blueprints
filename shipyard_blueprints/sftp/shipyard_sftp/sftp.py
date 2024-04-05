@@ -272,7 +272,7 @@ class SftpClient(CloudStorage):
                 logger.debug(
                     f"Connecting to {self.host} using password-based authentication"
                 )
-                if self.transport is None:
+                if not self.transport:
                     logger.debug(f"Creating simple transport to {self.host}")
                     transport = paramiko.Transport((self.host, int(self.port)))
                     transport.connect(None, self.user, self.pwd)
