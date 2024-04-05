@@ -275,10 +275,11 @@ class SftpClient(CloudStorage):
                 if not self.transport:
                     logger.debug(f"Creating simple transport to {self.host}")
                     transport = paramiko.Transport((self.host, int(self.port)))
-                    transport.connect(None, self.user, self.pwd)
                 else:
                     logger.debug("Explicit transport provided.")
                     transport = self.transport
+
+                transport.connect(None, self.user, self.pwd)
 
                 return paramiko.SFTPClient.from_transport(transport)
 

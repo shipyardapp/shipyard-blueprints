@@ -60,14 +60,11 @@ def main():
         try:
             connection_args, key_path = setup_connection(args)
 
-            if args.password:
-                transport = paramiko.Transport((args.host, int(args.port)))
-                transport.default_window_size = DEFAULT_WINDOW_SIZE
-                transport.packetizer.REKEY_BYTES = DEFAULT_REKEY_BYTES
-                transport.packetizer.REKEY_PACKETS = DEFAULT_REKEY_PACKETS
-                transport.connect(None, args.username, args.password)
-                connection_args["transport"] = transport
-
+            transport = paramiko.Transport((args.host, int(args.port)))
+            transport.default_window_size = DEFAULT_WINDOW_SIZE
+            transport.packetizer.REKEY_BYTES = DEFAULT_REKEY_BYTES
+            transport.packetizer.REKEY_PACKETS = DEFAULT_REKEY_PACKETS
+            connection_args["transport"] = transport
 
             sftp = SftpClient(**connection_args)
         except Exception as e:
