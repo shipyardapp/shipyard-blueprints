@@ -1,7 +1,6 @@
-from shipyard_bp_utils import files
-
 import pytest
-import os
+
+from shipyard_bp_utils import files
 
 
 @pytest.mark.parametrize(
@@ -16,7 +15,7 @@ import os
     ],
 )
 def test_determine_destination_file_name(
-    destination_file_name, file_number, expected_result
+        destination_file_name, file_number, expected_result
 ):
     source_full_path = "/parent/child/source.txt"
     result = files.determine_destination_file_name(
@@ -92,3 +91,21 @@ def test_find_all_python_files_in_folder():
     local_files = files.find_all_local_file_names()
     result = files.find_all_file_matches(local_files, regex)
     assert len(result) == ans
+
+
+def test_clean_folder_name():
+    folder_name = "folder/"
+    result = files.clean_folder_name(folder_name)
+    assert result == "folder", f"Expected 'folder', got {result}"
+
+    folder_name = "/folder"
+    result = files.clean_folder_name(folder_name)
+    assert result == "folder", f"Expected 'folder', got {result}"
+
+    folder_name = "/folder/"
+    result = files.clean_folder_name(folder_name)
+    assert result == "folder", f"Expected 'folder', got {result}"
+
+    folder_name = "/"
+    result = files.clean_folder_name(folder_name)
+    assert result == "", f"Expected '', got {result}"

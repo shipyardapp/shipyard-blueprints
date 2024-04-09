@@ -1,6 +1,6 @@
 import argparse
 import sys
-
+import os
 from shipyard_bp_utils import files as shipyard
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
 
@@ -45,7 +45,7 @@ def main():
         args = get_args()
 
         source_file_name = args.source_file_name
-        source_folder_name = args.source_folder_name
+        source_folder_name = os.path.normpath(args.source_folder_name)
         destination_filename = args.destination_file_name or source_file_name
         destination_folder_name = shipyard.clean_folder_name(
             args.destination_folder_name

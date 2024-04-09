@@ -60,7 +60,10 @@ def clean_folder_name(folder_name: str) -> str:
     Returns:
     str: The cleaned folder name.
     """
-    folder_name = os.path.normpath(folder_name)
+    folder_name = folder_name.strip("/")
+    if folder_name != "":
+        folder_name = os.path.normpath(folder_name.strip("/"))
+
     logger.debug(f"Cleaned folder name: {folder_name}")
     return folder_name
 
@@ -405,7 +408,7 @@ def fetch_file_paths_from_directory(directory: str, base_directory: str = None) 
     list: A list of all file paths in the directory and its subdirectories.
 
     """
-    directory = clean_folder_name(directory)
+    directory = os.path.normpath(directory)
     if base_directory is None:
         base_directory = directory  # Set the base directory during the first call
 
