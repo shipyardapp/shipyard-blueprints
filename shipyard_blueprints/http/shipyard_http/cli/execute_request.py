@@ -95,7 +95,8 @@ def main():
     artifact = Artifact("httprequest")
 
     destination_folder_name = shipyard_utils.files.clean_folder_name(args.destination_folder_name)
-    shipyard_utils.files.create_folder_if_dne(destination_folder_name)
+    if destination_folder_name:
+        shipyard_utils.files.create_folder_if_dne(destination_folder_name)
 
     destination_name = shipyard_utils.files.combine_folder_and_file_name(
         destination_folder_name, args.destination_file_name
