@@ -886,29 +886,28 @@ testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jar
 
 [[package]]
 name = "shipyard-bp-utils"
-version = "1.1.0"
+version = "1.2.0"
 description = "Utility functions for blueprints"
 optional = false
-python-versions = ">=3.9,<4.0"
+python-versions = "<4.0,>=3.9"
 files = [
-    {file = "shipyard_bp_utils-1.1.0-py3-none-any.whl", hash = "sha256:8c43c8b706fdc998810dfc5488d163eb76f83a3c6f34e3363899274c3abfa96b"},
-    {file = "shipyard_bp_utils-1.1.0.tar.gz", hash = "sha256:f5936958bdc2f728387b684340aa2c70f5a25c237094e2b8724c49b8fb4f1dfa"},
+    {file = "shipyard_bp_utils-1.2.0-py3-none-any.whl", hash = "sha256:790a5a0f561b58eb3e592764204b36e612d243bcbd46994747ba4130f5988e03"},
+    {file = "shipyard_bp_utils-1.2.0.tar.gz", hash = "sha256:bbed2cb71899462a73cd5d3f323315aa012ac81b7c1a193a49ebb17b75778372"},
 ]
 
 [package.dependencies]
-pytest = ">=8.0.1,<9.0.0"
 python-dateutil = ">=2.8.2,<3.0.0"
-shipyard-templates = ">=0.6.2,<0.7.0"
+shipyard-templates = ">0.6.2,<1.0.0"
 
 [[package]]
 name = "shipyard-templates"
-version = "0.6.2"
+version = "0.8.1"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "shipyard_templates-0.6.2-py3-none-any.whl", hash = "sha256:e4e90bd04729416c70d5209b444346cb1c1d1d7eb9704289bc8ff444f494f39d"},
-    {file = "shipyard_templates-0.6.2.tar.gz", hash = "sha256:65961be691cb5ca09bd96918c587dd21fc9e380f1b7fe0b9dd14583890f67cec"},
+    {file = "shipyard_templates-0.8.1-py3-none-any.whl", hash = "sha256:5d8ce4ef2b284c82f464d6ba450bbb949d726077b5f4201b98bb0cf28d576130"},
+    {file = "shipyard_templates-0.8.1.tar.gz", hash = "sha256:049b0d1a4a46f8856129b235a38c5e0d172bfa0cb0b92d3dbc1cd310c97d95eb"},
 ]
 
 [[package]]
@@ -1013,4 +1012,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "7a5ba40c8be8d7d3c8da8a95f83feeddd8cc14b9ff7d01506d3da772e267d191"
+content-hash = "28fbbee4889f7bc33eee7a50d68926628c0a83feb60cd45779a48a109f265299"

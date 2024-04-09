@@ -1,9 +1,12 @@
 import argparse
 import os
 import sys
+import shipyard_bp_utils as shipyard
 
 from shipyard_templates import ExitCodeException, ShipyardLogger
 from shipyard_databricks_sql import DatabricksSqlClient
+from shipyard_databricks_sql.utils import exceptions as errs
+
 
 logger = ShipyardLogger.get_logger()
 
@@ -33,11 +36,11 @@ def main():
     args = get_args()
     catalog = args.catalog if args.catalog != "" else None
     schema = args.schema if args.schema != "" else None
-    folder_name = args.folder_name if args.folder_name != "" else None
+    folder_name = args.folder_name
+    client = None
     try:
         if folder_name:
-            if not os.path.exists(os.path.join(os.getcwd(), folder_name)):
-                os.mkdir(folder_name)
+            shipyard.files.create_folder_if_dne(folder_name)
             full_path = os.path.join(os.getcwd(), folder_name, args.file_name)
         else:
             full_path = os.path.join(os.getcwd(), args.file_name)
@@ -49,7 +52,6 @@ def main():
             catalog=catalog,
             schema=schema,
         )
-        client.connect()
         data = client.fetch(args.query)
         logger.info(f"Successfully fetched {data.shape[0]} rows")
 
@@ -66,11 +68,12 @@ def main():
         sys.exit(ec.exit_code)
     except Exception as e:
         logger.error(f"Error in attempting to fetch query results:{str(e)}")
-        sys.exit(client.EXIT_CODE_INVALID_QUERY)
+        sys.exit(errs.EXIT_CODE_INVALID_QUERY)
     else:
         logger.info(f"Downloaded results to {full_path}")
     finally:
-        client.close()
+        if client:
+            client.close()
 
 
 if __name__ == "__main__":

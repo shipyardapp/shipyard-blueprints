@@ -184,6 +184,23 @@ if [ "$1" = 'down-test' ]; then
 fi
 
 
+if [ "$1" = 'up-glob2' ]; then 
+    python3 ./shipyard_databricks_sql/cli/upload.py --access-token $DATABRICKS_SQL_ACCESS_TOKEN \
+    --server-host $DATABRICKS_SERVER_HOST \
+    --http-path $DATABRICKS_HTTP_PATH \
+    --catalog "shipyard_demos" \
+    --schema "datagen" \
+    --volume "datagen_stg" \
+    --table-name "large_parq_local" \
+    --insert-method "replace" \
+    --file-type "parquet" \
+    --file-name "*.parquet" \
+    --match-type "glob_match"  \
+    --folder-name "mult"
+
+fi
+
+
  
 
 
