@@ -157,14 +157,11 @@ class FtpClient(CloudStorage):
         if not self.client:
             self.get_client()
 
-        os.makedirs(os.path.dirname(destination_full_path), exist_ok=True)
         try:
             logger.info(f"Attempting to download {file_name}...")
             with open(destination_full_path, "wb") as f:
                 self.client.retrbinary(f"RETR {file_name}", f.write)
-            logger.info(
-                f"{file_name} successfully downloaded to {destination_full_path}"
-            )
+
         except exceptions.InvalidCredentials:
             raise
 
@@ -263,7 +260,7 @@ class FtpClient(CloudStorage):
             return False
 
     def get_all_nested_items(
-        self, working_directory: str, dir_list: list = None
+            self, working_directory: str, dir_list: list = None
     ) -> list:
         """
         Recursive function to get all the nested files and directories on the FTP server.

@@ -43,19 +43,6 @@ def get_args():
     return parser.parse_args()
 
 
-def find_matching_files(file_names, file_name_re):
-    """
-    Return a list of all file_names that matched the regular expression.
-    """
-    matching_file_names = []
-    for file_name in file_names:
-        fname = file_name.rsplit("/", 1)[-1]
-        if re.search(file_name_re, fname):
-            matching_file_names.append(file_name)
-
-    return matching_file_names
-
-
 def main():
     try:
         args = get_args()
