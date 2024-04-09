@@ -58,7 +58,7 @@ def main():
         except Exception as e:
             raise InvalidCredentialsError(e) from e
 
-        source_folder_name = args.source_folder_name
+        source_folder_name = os.path.normpath(args.source_folder_name)
 
         destination_folder_name = shipyard.clean_folder_name(
             args.destination_folder_name.strip("/")

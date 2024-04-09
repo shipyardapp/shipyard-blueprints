@@ -76,7 +76,8 @@ def main():
         destination_folder_name = shipyard.clean_folder_name(
             args.destination_folder_name.strip("/")
         )
-        shipyard.create_folder_if_dne(destination_folder_name)
+        if destination_folder_name:
+            shipyard.create_folder_if_dne(destination_folder_name)
         sftp_files_full_paths = sftp.list_files_recursive(source_folder_name or ".")
 
         # Get the relative path of the files which is the format that shipyard.file_match expects
