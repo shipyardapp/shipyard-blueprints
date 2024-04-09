@@ -88,6 +88,7 @@ def main():
     folder_name = args.folder_name if args.folder_name != "" else None
     data_types = ast.literal_eval(args.data_types) if args.data_types != "" else None
     dir_path = None
+    client = None
 
     try:
         if folder_name:
@@ -107,7 +108,6 @@ def main():
             volume=volume,
             staging_allowed_local_path=real_path,
         )
-        client.connect()
         if args.match_type == "glob_match":
             local_files = shipyard.files.find_all_local_file_names(folder_name)
             file_matches = shipyard.files.find_matching_files(
@@ -145,7 +145,7 @@ def main():
 
     except ExitCodeException as ec:
         logger.error(
-            f"ExitCodeException: Error in attempting to upload {full_path}. Message from Databricks is: {ec.message}"
+            f"Error in attempting to upload {full_path}. Message from Databricks is: {ec.message}"
         )
         sys.exit(ec.exit_code)
     except Exception as e:
@@ -154,7 +154,8 @@ def main():
         )
         sys.exit(errs.EXIT_CODE_INVALID_QUERY)
     finally:
-        client.close()
+        if client:
+            client.close()
 
 
 if __name__ == "__main__":

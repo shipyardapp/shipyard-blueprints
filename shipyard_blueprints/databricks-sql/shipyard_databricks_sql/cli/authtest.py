@@ -1,5 +1,9 @@
 import os
+import sys
 from shipyard_databricks_sql import DatabricksSqlClient
+from shipyard_templates import ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 def main():
@@ -10,14 +14,14 @@ def main():
             http_path=os.getenv("DATABRICKS_HTTP_PATH"),
         ).connect()
     except Exception as e:
-        print("Error in connecting to Databricks with provided credentials")
-        print(str(e))
-        return 1
+        logger.authtest(
+            f"Error in connecting to Databricks with provided credentials. Message: {e}"
+        )
+        sys.exit(1)
 
     else:
-        print("Successfully connected to Databricks SQL Warehouse")
         conn.close()
-        return 0
+        sys.exit(0)
 
 
 if __name__ == "__main__":

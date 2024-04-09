@@ -20,9 +20,7 @@ def credentials():
 
 @pytest.fixture(scope="module")
 def vars():
-    return {
-        "table1": "pytest_upload",
-    }
+    return {"table1": "pytest_upload", "glob_table": "pytest_glob"}
 
 
 def create_file(name: str, file_type: str = "csv", n: int = 1, rows: int = 1000):
@@ -184,6 +182,62 @@ def test_drop_table(credentials, vars):
         os.getenv("DEMO_SCHEMA"),
         "--query",
         f'drop table if exists {vars["table1"]}',
+    ]
+    res = subprocess.run(exec_cmd)
+
+    assert res.returncode == 0
+
+
+def test_glob_upload(credentials, vars):
+    up_cmd = [
+        "python3",
+        "./shipyard_databricks_sql/cli/upload.py",
+        "--access-token",
+        credentials["token"],
+        "--server-host",
+        credentials["server"],
+        "--http-path",
+        credentials["http_path"],
+        "--catalog",
+        os.getenv("DEMO_CATALOG"),
+        "--schema",
+        os.getenv("DEMO_SCHEMA"),
+        "--table-name",
+        vars["glob_table"],
+        "--volume",
+        os.getenv("DEMO_VOLUME"),
+        "--insert-method",
+        "replace",
+        "--file-type",
+        "csv",
+        "--file-name",
+        "data*",
+        "--folder-name",
+        "mult",
+        "--match-type",
+        "glob_match",
+    ]
+
+    up_result = subprocess.run(up_cmd)
+    assert up_result.returncode == 0
+
+
+def test_drop_glob(credentials, vars):
+    exec_cmd = [
+        "python3",
+        "./shipyard_databricks_sql/cli/execute.py",
+        "--access-token",
+        credentials["token"],
+        "--server-host",
+        credentials["server"],
+        "--http-path",
+        credentials["http_path"],
+        "--catalog",
+        os.getenv("DEMO_CATALOG"),
+        "--schema",
+        os.getenv("DEMO_SCHEMA"),
+        "--query",
+        f'drop table if exists {vars["glob_table"]}',
     ]
     res = subprocess.run(exec_cmd)
 

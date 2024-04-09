@@ -32,7 +32,6 @@ def main():
             catalog=catalog,
             schema=schema,
         )
-        client.connect()
         client.execute_query(args.query)
     except ExitCodeException as ec:
         logger.error(f"ExitCodeException: Error in executing query {ec.message}")

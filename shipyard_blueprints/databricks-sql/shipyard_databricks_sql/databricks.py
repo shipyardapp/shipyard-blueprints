@@ -85,15 +85,24 @@ class DatabricksSqlClient(DatabricksDatabase):
         )
 
     def connect(self) -> Connection:
-        return sql.connect(
-            server_hostname=self.server_host,
-            http_path=self.http_path,
-            access_token=self.access_token,
-            catalog=self.catalog,
-            schema=self.schema,
-            _user_agent_entry=self.user_agent,
-            staging_allowed_local_path=self.staging_allowed_local_path,
-        )
+        try:
+            conn = sql.connect(
+                server_hostname=self.server_host,
+                http_path=self.http_path,
+                access_token=self.access_token,
+                catalog=self.catalog,
+                schema=self.schema,
+                _user_agent_entry=self.user_agent,
+                staging_allowed_local_path=self.staging_allowed_local_path,
+            )
+        except Exception as e:
+            raise ExitCodeException(
+                f"Error in connecting to Databricks: {str(e)}",
+                self.EXIT_CODE_INVALID_CREDENTIALS,
+            )
+        else:
+            logger.info("Successfully connected to Databricks")
+            return conn
 
     @property
     def connection(self):

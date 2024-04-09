@@ -184,6 +184,23 @@ if [ "$1" = 'down-test' ]; then
 fi
 
 
+if [ "$1" = 'up-glob2' ]; then 
+    python3 ./shipyard_databricks_sql/cli/upload.py --access-token $DATABRICKS_SQL_ACCESS_TOKEN \
+    --server-host $DATABRICKS_SERVER_HOST \
+    --http-path $DATABRICKS_HTTP_PATH \
+    --catalog $DEMO_CATALOG \
+    --schema $DEMO_SCHEMA \
+    --volume $DEMO_VOLUME \
+    --table-name "pytest_glob_upload" \
+    --insert-method "replace" \
+    --file-type "csv" \
+    --file-name "*.csv" \
+    --match-type "glob_match"  \
+    --folder-name "mult"
+
+fi
+
+
  
 
 
