@@ -47,45 +47,13 @@ def get_args():
     return parser.parse_args()
 
 
-def list_local_files(directory: Optional[str] = None) -> List[str]:
-    """Returns all the files located within the directory path. If the dirname is not provided, then the current working directory will be used and it will span all subdirectories
-
-    Args:
-        dirname: The optional directory to span
-
-    Returns: List of all the files
-
-    """
-    if directory is None:
-        directory = os.getcwd()
-
-    files = []
-    for root, _, filenames in os.walk(directory):
-        for filename in filenames:
-            file_path = os.path.join(root, filename)
-            files.append(file_path)
-
-    return files
-
-
-def find_all_file_matches(file_names, file_name_re):
-    """
-    Return a list of all matching_file_names that matched the regular expression.
-    """
-    matching_file_names = []
-    for file in file_names:
-        if re.search(file_name_re, file):
-            matching_file_names.append(file)
-
-    return matching_file_names
-
-
 def main():
     args = get_args()
     catalog = args.catalog if args.catalog != "" else None
     schema = args.schema if args.schema != "" else None
     volume = args.volume if args.volume != "" else None
-    folder_name = args.folder_name if args.folder_name != "" else None
+    # folder_name = args.folder_name if args.folder_name != "" else None
+    folder_name = args.folder_name
     data_types = ast.literal_eval(args.data_types) if args.data_types != "" else None
     dir_path = None
     client = None

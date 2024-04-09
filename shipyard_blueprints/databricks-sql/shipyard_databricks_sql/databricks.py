@@ -20,12 +20,6 @@ logger = ShipyardLogger.get_logger()
 
 
 class DatabricksSqlClient(DatabricksDatabase):
-    # EXIT_CODE_VOLUME_CREATION = 101
-    # EXIT_CODE_VOLUME_SQL = 102
-    # EXIT_CODE_VOLUME_UPLOAD_ERROR = 103
-    # EXIT_CODE_COPY_INTO_ERROR = 104
-    # EXIT_CODE_REMOVE_VOLUME_ERROR = 105
-    # EXIT_CODE_SCHEMA_CREATION_ERROR = 106
     SPARK_TYPES = {
         "array": "numpy.ndarray",
         "bigint": "int",
