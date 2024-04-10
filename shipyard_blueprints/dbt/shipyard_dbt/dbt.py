@@ -10,9 +10,11 @@ logger = ShipyardLogger.get_logger()
 CHUNK_SIZE = 16 * 1024 * 1024
 EXIT_CODE_INVALID_RESOURCE = 101
 
+
 class InvalidResourceError(ExitCodeException):
     def __init__(self, message):
         super().__init__(message, EXIT_CODE_INVALID_RESOURCE)
+
 
 class DbtClient(Etl):
     EXIT_CODE_STATUS_INCOMPLETE = 110
@@ -166,7 +168,7 @@ class DbtClient(Etl):
 
         try:
             with requests.get(
-                    get_artifact_details_url, headers=self.headers, stream=True
+                get_artifact_details_url, headers=self.headers, stream=True
             ) as r:
                 r.raise_for_status()
                 with open(filename, "wb") as f:

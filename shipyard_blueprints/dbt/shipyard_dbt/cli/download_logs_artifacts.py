@@ -15,11 +15,16 @@ def get_args():
     parser.add_argument("--api-key", dest="api_key", required=True)
     parser.add_argument("--account-id", dest="account_id", required=True)
     parser.add_argument("--run-id", dest="run_id", required=False)
-
+    parser.add_argument(
+        "--download-log",
+        default="False",
+        required=False,
+        help="Legacy flag, not used in this blueprint.",
+    )
     return parser.parse_args()
 
 
-def download_steps(run_details_response, artifact):
+def download_steps(run_details_response, artifact, run_id):
     logger.info("Downloading logs for run steps")
     number_of_steps = len(run_details_response["data"]["run_steps"])
     if number_of_steps > 0:
@@ -40,11 +45,16 @@ def download_steps(run_details_response, artifact):
             )
             artifact.responses.write_json(f"step_{step_id}_response", step)
 
-            with open(debug_log_name, "a") as debug_file:
-                debug_file.write(step["debug_logs"])
-
-            with open(output_log_name, "a") as log_file:
-                log_file.write(step["logs"])
+            if debug_log := step.get("debug_logs"):
+                with open(debug_log_name, "a") as debug_file:
+                    debug_file.write(debug_log)
+            else:
+                logger.warning(f"No debug logs for step {step_id}. Skipping ...")
+            if log := step.get("logs"):
+                with open(output_log_name, "a") as log_file:
+                    log_file.write(log)
+            else:
+                logger.warning(f"No logs for step {step_id}. Skipping ...")
 
         logger.info(f"Successfully wrote logs to {output_log_name}")
         logger.info(f"Successfully wrote debug_logs to {debug_log_name}")
@@ -74,13 +84,13 @@ def main():
         )  # Note: dbt has a concept of artifact as well. This is a different artifact.
         args = get_args()
 
-        run_id = args.run_id or artifact.variables("run_id")
+        run_id = args.run_id or artifact.variables.read_pickle("run_id")
 
         client = DbtClient(args.api_key, args.account_id)
         run_details_response = client.get_run_details(run_id)
         artifact.responses.write_json(f"run_{run_id}_response", run_details_response)
 
-        download_steps(run_details_response, artifact)
+        download_steps(run_details_response, artifact, run_id)
 
         download_dbt_artifacts(client, run_id, artifact)
     except ExitCodeException as e:
