@@ -136,6 +136,7 @@ class RedshiftClient(Database):
         """
         try:
             if self.schema:
+                logger.info("Creating schema if it does not already exist")
                 self.execute_query(f"CREATE SCHEMA IF NOT EXISTS {self.schema}")
             if os.path.getsize(file) < self.MAX_FILE_SIZE:
                 df = pd.read_csv(file)
@@ -198,6 +199,7 @@ class RedshiftClient(Database):
                 con=self.conn,
                 index=False,
                 if_exists=insert_method,
+                schema=self.schema,
                 method="multi",
             )
         except Exception as e:
@@ -226,6 +228,7 @@ class RedshiftClient(Database):
                     con=self.conn,
                     index=False,
                     if_exists=insert_method,
+                    schema=self.schema,
                     method="multi",
                 )
                 if insert_method == "replace":

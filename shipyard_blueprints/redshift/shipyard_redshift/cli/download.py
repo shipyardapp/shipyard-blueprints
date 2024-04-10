@@ -59,8 +59,10 @@ def main():
         "port": args.port,
         "url_params": args.url_parameters if args.url_parameters != "" else None,
     }
-    redshift = RedshiftClient(**redshift_args)
+
+    redshift = None
     try:
+        redshift = RedshiftClient(**redshift_args)
         if target_dir:
             shipyard.files.create_folder_if_dne(target_dir)
         redshift.read_chunks(query, target_path, file_header)
@@ -76,7 +78,8 @@ def main():
         )
         sys.exit(Database.EXIT_CODE_UNKNOWN)
     finally:
-        redshift.close()
+        if redshift:
+            redshift.close()
 
 
 if __name__ == "__main__":

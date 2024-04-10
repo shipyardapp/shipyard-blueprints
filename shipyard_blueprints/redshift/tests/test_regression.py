@@ -15,6 +15,7 @@ nested_file = "births_00.csv"
 dest_folder = "newdir"
 regex_file = "births"
 regex_folder = "mult"
+schema = "pytest"
 
 
 def read_all_csvs(dir: str) -> pd.DataFrame:

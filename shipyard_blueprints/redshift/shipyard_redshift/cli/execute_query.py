@@ -38,8 +38,9 @@ def main():
         "url_params": args.url_parameters if args.url_parameters != "" else None,
     }
 
-    redshift = RedshiftClient(**redshift_args)
+    redshift = None
     try:
+        redshift = RedshiftClient(**redshift_args)
         redshift.execute_query(query)
     except ExitCodeException as ec:
         logger.error(ec.message)
@@ -50,7 +51,8 @@ def main():
         )
         sys.exit(Database.EXIT_CODE_UNKNOWN)
     finally:
-        redshift.close()
+        if redshift:
+            redshift.close()
 
 
 if __name__ == "__main__":
