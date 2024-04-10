@@ -181,14 +181,14 @@ fixture = ["fixtures"]
 
 [[package]]
 name = "shipyard-bp-utils"
-version = "1.2.0"
+version = "1.2.1"
 description = "Utility functions for blueprints"
 category = "main"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "shipyard_bp_utils-1.2.0-py3-none-any.whl", hash = "sha256:790a5a0f561b58eb3e592764204b36e612d243bcbd46994747ba4130f5988e03"},
-    {file = "shipyard_bp_utils-1.2.0.tar.gz", hash = "sha256:bbed2cb71899462a73cd5d3f323315aa012ac81b7c1a193a49ebb17b75778372"},
+    {file = "shipyard_bp_utils-1.2.1-py3-none-any.whl", hash = "sha256:a95314497917e7cf9db8e8d5fe202b5b92104d53f8805c48b098bfc6e4881ab5"},
+    {file = "shipyard_bp_utils-1.2.1.tar.gz", hash = "sha256:a65ac05319fdabed46644345ea4106d60d2dc9ad6cc9225dcb07968e4a8bd708"},
 ]
 
 [package.dependencies]
@@ -240,4 +240,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "e1d8acac6085b9353fa8b10a4591e0e10ca12aa6d476faa4ea8d0daf235300cb"
+content-hash = "e508061ba3b2b40c03d9e6a7f8dfc336ceb2104d189e8b4cadd91b6fbce42e93"
