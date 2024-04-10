@@ -73,8 +73,9 @@ def main():
         "url_params": args.url_parameters if args.url_parameters != "" else None,
     }
 
-    redshift = RedshiftClient(**redshift_args)
+    redshift = None
     try:
+        redshift = RedshiftClient(**redshift_args)
         if match_type == "regex_match":
             file_names = shipyard.files.find_all_local_file_names(src_dir)
             matching_file_names = shipyard.files.find_all_file_matches(
@@ -115,7 +116,8 @@ def main():
         )
 
     finally:
-        redshift.close()
+        if redshift:
+            redshift.close()
 
 
 if __name__ == "__main__":

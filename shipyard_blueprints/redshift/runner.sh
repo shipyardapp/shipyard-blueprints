@@ -38,3 +38,30 @@ if [ "$1" = 'dl1' ]; then
         --query "select * from $UP_TABLE" \
         --destination-file-name "test_download.csv"
 fi
+
+if [ "$1" = 'up2' ]; then 
+    python3 ./shipyard_redshift/cli/upload.py \
+        --username "$REDSHIFT_USERNAME" \
+        --password "$REDSHIFT_PASSWORD" \
+        --host "$REDSHIFT_HOST" \
+        --database "$REDSHIFT_DATABASE" \
+        --port "$REDSHIFT_PORT" \
+        --source-file-name-match-type "regex_match" \
+        --source-file-name "births" \
+        --source-folder-name "mult" \
+        --table-name $REGEX_TABLE \
+        --insert-method "append" \
+        --schema "pytest"
+fi
+
+if [ "$1" = 'ex2' ]; then
+    python3 ./shipyard_redshift/cli/execute_query.py \
+        --username "$REDSHIFT_USERNAME" \
+        --password "$REDSHIFT_PASSWORD" \
+        --host "$REDSHIFT_HOST" \
+        --database "$REDSHIFT_DATABASE" \
+        --port "$REDSHIFT_PORT" \
+        --query "drop table if exists pytest.local_reg"
+
+fi
+
