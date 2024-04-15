@@ -29,7 +29,7 @@ def get_args():
         default="TRUE",
         choices={"TRUE", "FALSE"},
         required=False,
-    )
+    ),
 
     return parser.parse_args()
 
@@ -79,19 +79,23 @@ def main():
 
                 logger.info(f"Downloading logs for {number_of_steps} steps")
                 for index, step in enumerate(
-                    run_details_response["data"]["run_steps"], start=1
+                        run_details_response["data"]["run_steps"], start=1
                 ):
                     step_id = step["id"]
                     logger.info(
                         f"Grabbing step details for step {step_id} ({index} of {number_of_steps})"
                     )
                     artifact.responses.write_json(f"step_{step_id}_response", step)
-
-                    with open(debug_log_name, "a") as debug_file:
-                        debug_file.write(step["debug_logs"])
-
-                    with open(output_log_name, "a") as log_file:
-                        log_file.write(step["logs"])
+                    if debug_log := step.get("debug_logs"):
+                        with open(debug_log_name, "a") as debug_file:
+                            debug_file.write(debug_log)
+                    else:
+                        logger.warning(f"No debug logs for step {step_id}. Skipping ...")
+                    if log := step.get("logs"):
+                        with open(output_log_name, "a") as log_file:
+                            log_file.write(log)
+                    else:
+                        logger.warning(f"No logs for step {step_id}. Skipping ...")
 
                 logger.info(f"Successfully wrote logs to {output_log_name}")
                 logger.info(f"Successfully wrote debug_logs to {debug_log_name}")

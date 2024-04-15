@@ -22,6 +22,12 @@ def get_args():
         default="TRUE",
         required=False,
     )
+    parser.add_argument(
+        "--download-log",
+        default="False",
+        required=False,
+        help="Legacy flag, not used in this blueprint.",
+    )
     return parser.parse_args()
 
 
