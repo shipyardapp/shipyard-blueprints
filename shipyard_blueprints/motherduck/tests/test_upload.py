@@ -41,6 +41,16 @@ def exec_cmd():
 
 
 @pytest.fixture(scope="module")
+def fetch_cmd():
+    return [
+        "python3",
+        "./shipyard_motherduck/cli/fetch.py",
+        "--token",
+        os.getenv("MOTHERDUCK_TOKEN"),
+    ]
+
+
+@pytest.fixture(scope="module")
 def duck() -> MotherDuckClient:
     return MotherDuckClient(os.getenv("MOTHERDUCK_TOKEN"))
 
@@ -294,6 +304,57 @@ def test_upload_csv_to_other_databse(up_cmd):
             "exact_match",
             "--database",
             new_database,
+        ]
+    )
+    result = subprocess.run(cmd, capture_output=True)
+    assert result.returncode == 0
+
+
+# download
+def test_download_to_csv(fetch_cmd):
+    cmd = deepcopy(fetch_cmd)
+    cmd.extend(
+        [
+            "--query",
+            f"SELECT * FROM {csv_replace}",
+            "--file-name",
+            "downloaded.csv",
+            "--file-type",
+            "csv",
+        ]
+    )
+    result = subprocess.run(cmd, capture_output=True)
+    assert result.returncode == 0
+
+
+def test_download_to_parquet(fetch_cmd):
+    cmd = deepcopy(fetch_cmd)
+    cmd.extend(
+        [
+            "--query",
+            f"SELECT * FROM {parquet_replace}",
+            "--file-name",
+            "downloaded.parquet",
+            "--file-type",
+            "parquet",
+        ]
+    )
+    result = subprocess.run(cmd, capture_output=True)
+    assert result.returncode == 0
+
+
+def test_download_to_csv_to_dir(fetch_cmd):
+    cmd = deepcopy(fetch_cmd)
+    cmd.extend(
+        [
+            "--query",
+            f"SELECT * FROM {csv_replace}",
+            "--file-name",
+            "downloaded.csv",
+            "--file-type",
+            "csv",
+            "--directory",
+            "download",
         ]
     )
     result = subprocess.run(cmd, capture_output=True)
