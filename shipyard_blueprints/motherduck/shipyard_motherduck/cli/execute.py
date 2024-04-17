@@ -11,6 +11,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--token", required=True)
     parser.add_argument("--query", required=True)
+    parser.add_argument("--database", required=False, dest="database", default="")
     return parser.parse_args()
 
 

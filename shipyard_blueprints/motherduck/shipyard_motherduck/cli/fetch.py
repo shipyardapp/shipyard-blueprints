@@ -11,6 +11,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--token", required=True)
     parser.add_argument("--query", required=True)
+    parser.add_argument("--database", required=False, dest="database", default="")
     parser.add_argument("--file-name", required=True)
     parser.add_argument("--directory", required=False, default=None)
     parser.add_argument(
@@ -23,10 +24,11 @@ def get_args():
 def main():
     try:
         args = get_args()
-        client = MotherDuckClient(args.token)
         query = args.query
         target_file = args.file_name
         target_dir = args.directory
+        database = args.database if args.database != "" else None
+        client = MotherDuckClient(args.token, database=database)
         if target_dir:
             shipyard.files.create_folder_if_dne(target_dir)
             target_file = shipyard.files.combine_folder_and_file_name(
