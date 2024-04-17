@@ -18,8 +18,9 @@ def get_args():
 def main():
     try:
         args = get_args()
-        client = MotherDuckClient(args.token)
         query = args.query
+        database = args.database if args.database != "" else None
+        client = MotherDuckClient(args.token, database=database)
         client.execute_query(query)
 
     except ExitCodeException as ec:
