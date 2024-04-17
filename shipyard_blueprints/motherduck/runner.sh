@@ -35,3 +35,14 @@ if [ "$1" = 'ex1' ]; then
         --token $MOTHERDUCK_TOKEN \
         --query "drop table pytest_parquet_multiple_upload"
 fi
+
+
+if [ "$1" = 'up3' ]; then 
+    python3 ./shipyard_motherduck/cli/upload.py \
+        --token $MOTHERDUCK_TOKEN \
+        --table-name "new_test_table" \
+        --file-name "test.csv" \
+        --insert-method "append" \
+        --match-type "exact_match"
+
+fi

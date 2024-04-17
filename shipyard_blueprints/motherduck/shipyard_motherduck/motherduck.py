@@ -6,7 +6,7 @@ from shipyard_templates.database import (
     ConnectionError,
     QueryError,
 )
-from shipyard_motherduck.errors import (
+from shipyard_motherduck.exceptions import (
     TempTableCreationFailed,
     TempTableInsertFailed,
     TempTableDropFailed,
@@ -180,8 +180,12 @@ class MotherDuckClient(Database):
             None
         """
         try:
-            cmd = f"INSERT INTO {target_table} SELECT * FROM '{src_table}'"
-            self.conn.sql(cmd)
+            if not self._exists(target_table):
+                cmd = f"CREATE TABLE {target_table} AS SELECT * FROM '{src_table}'"
+                self.conn.sql(cmd)
+            else:
+                cmd = f"INSERT INTO {target_table} SELECT * FROM '{src_table}'"
+                self.conn.sql(cmd)
         except Exception:
             raise TempTableInsertFailed(src_table, target_table)
 
@@ -200,3 +204,20 @@ class MotherDuckClient(Database):
             self.conn.sql(cmd)
         except Exception:
             raise TempTableDropFailed(table_name)
+
+    def _exists(self, table_name: str) -> bool:
+        """
+        Checks if a table exists in the database.
+
+        Args:
+            table_name (str): The name of the table to check for existence.
+
+        Returns:
+            bool: True if the table exists, False otherwise.
+        """
+        try:
+            cmd = f"SELECT * FROM {table_name} LIMIT 1"
+            self.conn.sql(cmd)
+            return True
+        except Exception:
+            return False

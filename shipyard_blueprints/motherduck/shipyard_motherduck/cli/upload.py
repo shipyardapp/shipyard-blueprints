@@ -62,8 +62,13 @@ def main():
                 if insert_method == "replace":
                     insert_method = "append"
             logger.info("Successfully uploaded all files")
-        else:
+        elif args.match_type == "exact_match":
             client.upload(table_name, file_path, insert_method=insert_method)
+        else:
+            logger.error(
+                "Invalid match type, select either 'glob_match', 'exact_match', or 'regex_match'"
+            )
+            sys.exit(Database.EXIT_CODE_INVALID_ARGUMENTS)
     except FileNotFoundError:
         logger.error(f"File {file_path} not found")
         sys.exit(Database.EXIT_CODE_FILE_NOT_FOUND)
