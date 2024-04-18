@@ -1,10 +1,9 @@
-import os
 import json
+import os
 import tempfile
 
-
-from googleapiclient.discovery import build
 from google.oauth2 import service_account
+from googleapiclient.discovery import build
 from shipyard_templates import Spreadsheets
 
 
@@ -22,7 +21,7 @@ class GoogleSheetsClient(Spreadsheets):
                 tmp.write(self.service_account)
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path
             return path
-        except Exception as e:
+        except Exception:
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.service_account
 
     def connect(self):
