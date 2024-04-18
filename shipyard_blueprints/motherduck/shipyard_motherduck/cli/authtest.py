@@ -8,7 +8,6 @@ logger = ShipyardLogger.get_logger()
 
 def main():
     try:
-        print(f"Token is {os.getenv('MOTHERDUCK_TOKEN')}")
         client = MotherDuckClient(os.getenv("MOTHERDUCK_TOKEN"))
         client.connect()
         logger.authtest("Successfully connected to MotherDuck")
