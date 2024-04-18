@@ -168,6 +168,7 @@ class AthenaClient(Database):
             response = self.s3.Bucket(self.bucket).download_file(
                 f'{log_folder}{"/" if log_folder else ""}{job_id}.csv', dest_path
             )
+
             logger.debug("Download complete")
             if response:
                 logger.debug(f"Contents of response: {response}")

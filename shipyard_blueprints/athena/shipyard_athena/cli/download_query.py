@@ -46,7 +46,7 @@ def main():
         region_name = args.aws_default_region if args.aws_default_region else None
         database = args.database if args.database else None
         bucket = args.bucket.strip("/")
-        log_folder = args.log_folder if args.log_folder else None
+        log_folder = args.log_folder
         query = args.query
         target_file = args.destination_file_name
         target_dir = args.destination_folder_name

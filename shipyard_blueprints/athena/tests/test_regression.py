@@ -107,3 +107,28 @@ def test_download_with_folder(creds, down_cmd):
 
     os.remove(f"nested/{BASECASE_FILE}")
     os.removedirs("nested")
+
+
+def test_download_with_no_log_folder(creds):
+    cmd = [
+        "python3",
+        "./shipyard_athena/cli/download_query.py",
+        "--aws-access-key-id",
+        creds["access_key"],
+        "--aws-secret-access-key",
+        creds["secret_key"],
+        "--aws-default-region",
+        creds["region"],
+        "--bucket-name",
+        creds["bucket"],
+        "--database",
+        "shipyardtest",
+        "--query",
+        "select * from persons where id is not null limit 100;",
+        "--destination-file-name",
+        "output.csv",
+    ]
+    process = subprocess.run(cmd)
+    assert process.returncode == 0
+
+    os.remove("output.csv")
