@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-motherduck"
-version = "0.1.0a3"
+version = "0.1.0"
 description = "A local client for working with Python and MotherDuck"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 readme = "README.md"
