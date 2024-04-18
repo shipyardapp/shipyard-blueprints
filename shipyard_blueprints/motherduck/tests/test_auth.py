@@ -22,5 +22,4 @@ def test_authtest_good_connection(authtest):
 def test_authtest_bad_connection(authtest, monkeypatch):
     monkeypatch.setenv("MOTHERDUCK_TOKEN", "bad_token")
     result = subprocess.run(authtest, capture_output=True)
-    print(result.stdout)
     assert result.returncode == 1
