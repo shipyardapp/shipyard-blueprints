@@ -87,12 +87,9 @@ def main():
         bucket = utils.get_bucket(gclient=gclient, bucket_name=bucket_name)
 
         if args.source_file_name_match_type == "exact_match":
-
             source_full_path = shipyard.combine_folder_and_file_name(
                 folder_name=source_folder_name, file_name=source_file_name
             )
-            if not os.path.exists(source_full_path):
-                raise FileNotFoundError(f"File {source_full_path} does not exist")
 
             blob = utils.get_storage_blob(
                 bucket=bucket,
