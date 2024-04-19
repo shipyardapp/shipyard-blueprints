@@ -1,7 +1,8 @@
 import requests
-import json
 from requests.auth import HTTPBasicAuth
-from shipyard_templates import DataVisualization
+from shipyard_templates import DataVisualization, ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 class ModeClient(DataVisualization):
@@ -23,17 +24,17 @@ class ModeClient(DataVisualization):
                 auth=HTTPBasicAuth(self.api_token, self.api_secret),
             )
         except Exception as error:
-            self.logger.error(
+            logger.error(
                 f"Could not connect to Mode API with the token id and token secret provided. Error: {error}"
             )
             return 1
         else:
             if response.status_code == 200:
-                self.logger.info("Successfully connected to Mode API")
-                print(response.json())
+                logger.info(f"Successfully connected to Mode API. {response.json()}")
+
                 return 0
             else:
-                self.logger.error(
+                logger.error(
                     f"Could not connect to Mode API with the token id and token secret provided {response.json()}"
                 )
                 return 1
