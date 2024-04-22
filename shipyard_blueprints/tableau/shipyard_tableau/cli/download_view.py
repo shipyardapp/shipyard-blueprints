@@ -93,7 +93,10 @@ def main():
         destination_folder_name = shipyard.clean_folder_name(
             args.destination_folder_name
         )
-        shipyard.create_folder_if_dne(destination_folder_name=destination_folder_name)
+        if destination_folder_name:
+            shipyard.create_folder_if_dne(
+                destination_folder_name=destination_folder_name
+            )
 
         destination_full_path = shipyard.combine_folder_and_file_name(
             folder_name=destination_folder_name, file_name=args.destination_file_name
