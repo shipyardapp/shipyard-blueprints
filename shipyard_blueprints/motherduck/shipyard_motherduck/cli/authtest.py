@@ -12,7 +12,7 @@ def main():
         client.connect()
         logger.authtest("Successfully connected to MotherDuck")
     except Exception as e:
-        logger.authtest.error(
+        logger.authtest(
             f"Error connecting to MotherDuck with the provided access token. Message from server: {e}"
         )
         sys.exit(1)
