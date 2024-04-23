@@ -1,5 +1,6 @@
 import os
 import sys
+import duckdb
 from shipyard_motherduck import MotherDuckClient
 from shipyard_templates import ShipyardLogger
 
@@ -8,6 +9,9 @@ logger = ShipyardLogger.get_logger()
 
 def main():
     try:
+        duckdb.sql(
+            'SET home_directory= "/tmp"'
+        )  # this is necessary for the lambda runtime
         client = MotherDuckClient(os.getenv("MOTHERDUCK_TOKEN"))
         client.connect()
         logger.authtest("Successfully connected to MotherDuck")
