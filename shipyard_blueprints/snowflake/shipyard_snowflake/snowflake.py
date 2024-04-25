@@ -77,6 +77,7 @@ class SnowflakeClient(Database):
                     database=self.database,
                     schema=self.schema,
                     role=self.role,
+                    application=self.application,
                 )
                 logger.info("Successfully connected to Snowflake")
                 self.conn = con
@@ -96,6 +97,7 @@ class SnowflakeClient(Database):
                     database=self.database,
                     schema=self.schema,
                     role=self.role,
+                    application=self.application,
                 )
                 logger.info("Successfully connected to snowflake")
                 self.conn = con
