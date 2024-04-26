@@ -12,7 +12,6 @@ class TableauClient(DataVisualization):
         self.password = password
         self.server_url = server_url
         self.site = site
-        super().__init__(username=username, password=password, site=site)
 
     def connect(self, sign_in_method, **kwargs):
         try:
