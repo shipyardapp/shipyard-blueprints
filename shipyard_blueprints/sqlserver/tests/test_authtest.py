@@ -32,19 +32,19 @@ def test_good_connection(cmd):
     assert process.returncode == 0
 
 
-def test_bad_host(cmd):
-    os.environ["MSSQL_HOST"] = "bad_host"
+def test_bad_host(cmd, monkeypatch):
+    monkeypatch.setenv("MSSQL_HOST", "bad_host")
     process = subprocess.run(cmd)
     assert process.returncode == 1
 
 
-def test_bad_user(cmd):
-    os.environ["MSSQL_USERNAME"] = "bad_user"
+def test_bad_user(cmd, monkeypatch):
+    monkeypatch.setenv("MSSQL_USERNAME", "bad_user")
     process = subprocess.run(cmd)
     assert process.returncode == 1
 
 
-def test_bad_pwd(cmd):
-    os.environ["MSSQL_PASSWORD"] = "bad_pwd"
+def test_bad_pwd(cmd, monkeypatch):
+    monkeypatch.setenv("MSSQL_PASSWORD", "bad_pwd")
     process = subprocess.run(cmd)
     assert process.returncode == 1
