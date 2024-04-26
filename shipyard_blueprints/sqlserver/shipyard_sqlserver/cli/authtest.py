@@ -17,15 +17,11 @@ def main():
         )
         client.connect()
     except Exception as e:
-        logger.error(
-            f"Error in connecting to SQL Server. Message from the server reads: {e}"
-        )
         logger.authtest(
             f"Error in connecting to SQL Server. Message from the server reads: {e}"
         )
         sys.exit(1)
     else:
-        logger.info("Successfully connected to SQL Server")
         logger.authtest("Successfully connected to SQL Server")
         sys.exit(0)
 
