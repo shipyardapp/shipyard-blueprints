@@ -5,6 +5,7 @@ from shipyard_motherduck import MotherDuckClient
 from shipyard_templates import ShipyardLogger
 
 logger = ShipyardLogger.get_logger()
+logger.setLevel("AUTHTEST")
 
 
 def main():
