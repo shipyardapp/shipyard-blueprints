@@ -138,11 +138,21 @@ class AzureBlobClient(CloudStorage):
                 blob.upload_blob(data)
         except ExitCodeException:
             raise
-        except ResourceExistsError as e:
-            raise exceptions.UploadError(
-                f"Failed to upload {source_full_path} to {self.container_name}/{destination_full_path}. "
-                f"File {destination_full_path} already exists in the container"
-            ) from e
+        except ResourceExistsError:
+
+            logger.info(
+                f'File "{destination_full_path}" already exists in the container. Overwriting...'
+            )
+            try:
+                blob.delete_blob()
+                with open(source_full_path, "rb") as data:
+                    blob.upload_blob(data)
+            except Exception as e:
+                raise exceptions.UploadError(
+                    f"Failed to upload {source_full_path} to {self.container_name}/{destination_full_path}. "
+                    f"Response from Azure: {e}"
+                ) from e
+
         except Exception as e:
             raise exceptions.UploadError(
                 f"Failed to upload {source_full_path} to {self.container_name}/{destination_full_path}. "

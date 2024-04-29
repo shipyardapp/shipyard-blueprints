@@ -52,7 +52,6 @@ def main():
             args.destination_folder_name
         )
         client = AzureBlobClient(args.connection_string, args.container_name)
-
         if args.source_file_name_match_type == "exact_match":
             source_full_path = shipyard.combine_folder_and_file_name(
                 folder_name=f"{os.getcwd()}/{source_folder_name}",
