@@ -50,7 +50,7 @@ def main():
         )
         if number_of_matches := len(matching_file_names) == 0:
             logger.error("No file matches found")
-            sys.exit(client.EXIT_CODE_NO_MATCHES_FOUND)
+            sys.exit(client.EXIT_CODE_FILE_MATCH_ERROR)
 
         logger.info(f"{number_of_matches} files found. Preparing to delete...")
         for index, file_name in enumerate(matching_file_names, start=1):
