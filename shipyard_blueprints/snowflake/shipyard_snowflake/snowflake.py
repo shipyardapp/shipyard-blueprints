@@ -242,9 +242,9 @@ class SnowflakeClient(Database):
         """
         # this is for backwards compatibility
         if isinstance(columns, list):
-            column_string = ",".join([f"{col[0]} {col[1]}" for col in columns])
+            column_string = ",".join([f'"{col[0]}" {col[1]}' for col in columns])
         else:
-            column_string = ",".join([f"{k} {v}" for k, v in columns.items()])
+            column_string = ",".join([f'"{k}" {v}' for k, v in columns.items()])
 
         create_statement = f"""CREATE OR REPLACE TABLE {table_name} ({column_string})"""
         return create_statement
