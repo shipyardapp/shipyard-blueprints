@@ -14,10 +14,9 @@ def main():
     )
     try:
         conn = snowflake.connect()
-        logger.authtest("Successfully connected to Snowflake")
         sys.exit(0)
     except ExitCodeException as e:
-        logger.authtest("Could not connect to Snowflake")
+        logger.authtest(f"Credential test failed for the following reason: {e}")
         sys.exit(1)
 
 
