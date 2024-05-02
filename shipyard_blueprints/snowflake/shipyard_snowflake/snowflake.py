@@ -19,6 +19,7 @@ from shipyard_snowflake.utils.exceptions import (
 logger = ShipyardLogger.get_logger()
 
 
+# TODO: Refactor the exit codes and exceptions to confrom to the new standard by the other databases
 class SnowflakeClient(Database):
     EXIT_CODE_PUT_ERROR = 101
     EXIT_CODE_COPY_INTO_ERROR = 102
@@ -60,6 +61,7 @@ class SnowflakeClient(Database):
             application=self.application,
         )
 
+    # TODO: "Refactor this function to be more concise"
     def connect(self):
         """Helper function for authentication tests to see if provided credentials are valid"""
         if self.rsa_key:
@@ -69,16 +71,27 @@ class SnowflakeClient(Database):
                 )
             private_key = utils._decode_rsa(self.rsa_key)
             try:
-                con = snowflake.connector.connect(
-                    user=self.username,
-                    account=self.account,
-                    private_key=private_key,
-                    warehouse=self.warehouse,
-                    database=self.database,
-                    schema=self.schema,
-                    role=self.role,
-                    application=self.application,
-                )
+                if not self.application:
+                    con = snowflake.connector.connect(
+                        user=self.username,
+                        account=self.account,
+                        private_key=private_key,
+                        warehouse=self.warehouse,
+                        database=self.database,
+                        schema=self.schema,
+                        role=self.role,
+                    )
+                else:
+                    con = snowflake.connector.connect(
+                        user=self.username,
+                        account=self.account,
+                        private_key=private_key,
+                        warehouse=self.warehouse,
+                        database=self.database,
+                        schema=self.schema,
+                        role=self.role,
+                        application=self.application,
+                    )
                 logger.info("Successfully connected to Snowflake")
                 self.conn = con
                 return con
@@ -89,17 +102,29 @@ class SnowflakeClient(Database):
                 )
         else:
             try:
-                con = snowflake.connector.connect(
-                    user=self.username,
-                    password=self.password,
-                    account=self.account,
-                    warehouse=self.warehouse,
-                    database=self.database,
-                    schema=self.schema,
-                    role=self.role,
-                    application=self.application,
-                )
+                if not self.application:
+                    con = snowflake.connector.connect(
+                        user=self.username,
+                        password=self.password,
+                        account=self.account,
+                        warehouse=self.warehouse,
+                        database=self.database,
+                        schema=self.schema,
+                        role=self.role,
+                    )
+                else:
+                    con = snowflake.connector.connect(
+                        user=self.username,
+                        password=self.password,
+                        account=self.account,
+                        warehouse=self.warehouse,
+                        database=self.database,
+                        schema=self.schema,
+                        role=self.role,
+                        application=self.application,
+                    )
                 logger.info("Successfully connected to snowflake")
+                # TODO: Refactor this to be a property like the other databases
                 self.conn = con
                 return con
             except Exception as e:
