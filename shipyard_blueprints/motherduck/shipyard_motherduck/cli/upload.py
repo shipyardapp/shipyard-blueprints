@@ -52,7 +52,7 @@ def main():
                 file_name, directory, match_type=args.match_type
             )
 
-            if n_matches := (len(file_matches)) == 0:
+            if (n_matches := len(file_matches)) == 0:
                 logger.error(f"No file matches found for pattern {file_name}")
                 sys.exit(Database.EXIT_CODE_FILE_NOT_FOUND)
             logger.info(f"Found {n_matches} file matches, preparing to upload...")

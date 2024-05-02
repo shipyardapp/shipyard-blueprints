@@ -46,3 +46,14 @@ if [ "$1" = 'up3' ]; then
         --match-type "exact_match"
 
 fi
+
+
+if [ "$1" = 'dl2' ]; then   
+    python3 ./shipyard_motherduck/cli/fetch.py \
+        --token $MOTHERDUCK_TOKEN \
+        --query "select * from stg_upload" \
+        --file-name "results.csv" \
+        --file-type "csv" \
+        --database "staging"
+fi
+    

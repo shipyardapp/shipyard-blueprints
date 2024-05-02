@@ -45,7 +45,10 @@ class MotherDuckClient(Database):
         try:
             conn = duckdb.connect(self._conn_str)
         except Exception as e:
-            raise ConnectionError(f"Failed to connect to MotherDuck: {e}")
+            logger.debug(f"Connection Error. Message from the Server: {e}")
+            raise ConnectionError(
+                f"Failed to connect to MotherDuck. Ensure that the token is valid"
+            )
         else:
             logger.info("Successfully connected to MotherDuck")
             return conn
