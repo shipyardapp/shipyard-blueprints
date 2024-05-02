@@ -1,11 +1,13 @@
 import json
 import os
-import tempfile
 import socket
+import tempfile
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from shipyard_templates import ShipyardLogger
+
+from shipyard_googlesheets import exceptions
 
 logger = ShipyardLogger.get_logger()
 SCOPES = [
@@ -154,4 +156,4 @@ def add_workbook(service, spreadsheet_id, tab_name):
             .execute()
         )
     except Exception as e:
-        logger.error(e)
+        raise exceptions.WorkbookAddException(e) from e

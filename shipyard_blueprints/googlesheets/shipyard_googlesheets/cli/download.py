@@ -69,7 +69,7 @@ def download_google_sheet_file(
 
         if not sheet.get("values"):
             logger.warning(f"No values for {file_name}.. Not downloading")
-            return
+            raise exceptions.DownloadError(file_name)
 
         values = sheet["values"]
         with open(local_path, "+w") as f:
