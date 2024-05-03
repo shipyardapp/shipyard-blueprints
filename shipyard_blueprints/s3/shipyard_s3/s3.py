@@ -1,8 +1,11 @@
-import boto3
 import os
-from shipyard_templates import CloudStorage, ExitCodeException, ShipyardLogger
-from boto3.exceptions import S3UploadFailedError
 from typing import Optional, Dict, Any, List
+
+import boto3
+from boto3.exceptions import S3UploadFailedError
+from shipyard_templates import CloudStorage, ExitCodeException, ShipyardLogger
+
+from shipyard_s3.utils import utils
 from shipyard_s3.utils.exceptions import (
     BucketDoesNotExist,
     DownloadError,
@@ -14,8 +17,6 @@ from shipyard_s3.utils.exceptions import (
     RemoveError,
     UploadError,
 )
-from shipyard_s3.utils import utils
-
 
 logger = ShipyardLogger.get_logger()
 
@@ -35,12 +36,30 @@ class S3Client(CloudStorage):
     @property
     def s3_conn(self):
         if not self._s3_conn:
-            self._s3_conn = self.connect()
+            self._s3_conn = self.get_connection()
         return self._s3_conn
 
     def connect(self):
+        try:
+            boto3.client(
+                "sts",
+                region_name=self.region,
+                aws_access_key_id=self.aws_access_key,
+                aws_secret_access_key=self.aws_secret_access_key,
+            ).get_caller_identity()
+        except Exception as e:
+            logger.authtest(
+                f"Could not validate credentials to S3 with the provided credentials. Response from the "
+                f"server: {str(e)}"
+            )
+            return 1
+        else:
+            logger.authtest("Successfully connected to S3")
+            return 0
+
+    def get_connection(self):
         if self._s3_conn:
-            return self._s3_conn  # resuse existing connection
+            return self._s3_conn  # reuse existing connection
         try:
             logger.debug("Establishing connection with S3")
             client = boto3.client(
