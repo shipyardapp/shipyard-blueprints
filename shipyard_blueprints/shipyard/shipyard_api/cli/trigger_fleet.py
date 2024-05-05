@@ -3,7 +3,7 @@ import sys
 import shipyard_bp_utils as utils
 from shipyard_api import ShipyardClient
 from shipyard_templates import ShipyardLogger, ExitCodeException
-from shipyard_api.errors import EXIT_CODE_UNKNOWN_ERROR
+from shipyard_api.errors import EXIT_CODE_ARTIFACTS_ERROR, EXIT_CODE_UNKNOWN_ERROR
 from shipyard_bp_utils.artifacts import Artifact
 
 logger = ShipyardLogger.get_logger()
@@ -34,7 +34,8 @@ def main():
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         sys.exit(EXIT_CODE_UNKNOWN_ERROR)
-    else:
+
+    try:
         logger.debug(
             "Response is being stored in the artifacts directory for downstream use"
         )
@@ -48,6 +49,11 @@ def main():
         artifact.variables.write("project_id", "pickle", project_id)
         artifact.variables.write("fleet_id", "pickle", fleet_id)
         artifact.variables.write("fleet_run_id", "pickle", fleet_run_id)
+    except Exception as e:
+        logger.error(
+            f"An error occurred while writing the response and variables to the artifacts directory: {e}"
+        )
+        sys.exit(EXIT_CODE_ARTIFACTS_ERROR)
 
 
 if __name__ == "__main__":
