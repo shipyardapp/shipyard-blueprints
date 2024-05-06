@@ -39,6 +39,9 @@ def main():
         logger.debug(
             "Response is being stored in the artifacts directory for downstream use"
         )
+        log_url = response.get("log")
+        logger.info(f"Fleet run log URL: {log_url}")
+
         artifact = Artifact("shipyard-api")
         artifact.responses.write_json("trigger_fleet_response", response)
         org_id = response.get("data").get("org_id")
