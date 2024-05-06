@@ -1,12 +1,12 @@
 import requests
 import json
-from shipyard_bp_utils.files import create_folder_if_dne, combine_folder_and_file_name
 from shipyard_templates import ShipyardLogger, ExitCodeException
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from shipyard_api.errors import (
     EXIT_CODE_LIST_FLEET_RUNS_ERROR,
     EXIT_CODE_VOYAGE_EXPORT_ERROR,
+    EXIT_CODE_TRIGGER_FLEET_ERROR,
     InvalidFileType,
     MissingProjectID,
     UnauthorizedAccess,
@@ -141,3 +141,31 @@ class ShipyardClient:
             raise ExitCodeException(
                 f"Error exporting voyages to file: {e}", EXIT_CODE_VOYAGE_EXPORT_ERROR
             )
+
+    def trigger_fleet(self, fleet_id: str) -> Dict[str, Any]:
+        """
+        Triggers a fleet run.
+
+        Args:
+            fleet_id (str): The ID of the fleet to trigger.
+
+        Returns:
+            dict: The response from the API.
+
+        Raises:
+            ExitCodeException: If an exit code exception occurs.
+        """
+        url = f"{self.base_url}/projects/{self.project_id}/fleets/{fleet_id}/fleetruns"
+        try:
+            response = requests.post(url, headers=self.headers)
+            logger.debug(f"Status code for fleet runs {response.status_code}")
+            response.raise_for_status()
+        except ExitCodeException:
+            raise
+        except Exception as e:
+            raise ExitCodeException(
+                f"Error trigger fleet {fleet_id} to run: {e}",
+                exit_code=EXIT_CODE_LIST_FLEET_RUNS_ERROR,
+            )
+        else:
+            return response.json()
