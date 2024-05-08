@@ -16,7 +16,7 @@ EXIT_CODE_COLUMN_UPDATE_ERROR = 221
 logger = ShipyardLogger.get_logger()
 
 
-def connect(logger: logging.Logger, smartsheet: smartsheet.Smartsheet):
+def connect(smartsheet: smartsheet.Smartsheet):
     try:
         conn = smartsheet.Users.get_current_user()
     except Exception as e:
@@ -416,7 +416,7 @@ def main():
         smart = smartsheet.Smartsheet(args.access_token)
         sheet_name = args.sheet_name if args.sheet_name != "" else None
         sheet_id = args.sheet_id if args.sheet_id != "" else None
-        if connect(logger, smart) == 1:
+        if connect(smart) == 1:
             sys.exit(ss.EXIT_CODE_INVALID_TOKEN)
 
         # check to see if the sheet id provided is valid, fail if not
