@@ -6,30 +6,17 @@ import logging
 import pandas as pd
 import numpy as np
 import requests
-from shipyard_templates import ExitCodeException, Spreadsheets as ss
+from shipyard_templates import ExitCodeException, Spreadsheets as ss, ShipyardLogger
 from typing import Dict, Any, List, Optional
 
 # custom exit code
 EXIT_CODE_INVALID_SHEET_ID = 220
 EXIT_CODE_COLUMN_UPDATE_ERROR = 221
 
-
-def get_logger():
-    logger = logging.getLogger("Shipyard")
-    logger.setLevel(logging.DEBUG)
-    # Add handler for stderr
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-    # add specific format
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s -%(lineno)d: %(message)s"
-    )
-    console.setFormatter(formatter)
-    logger.addHandler(console)
-    return logger
+logger = ShipyardLogger.get_logger()
 
 
-def connect(logger: logging.Logger, smartsheet: smartsheet.Smartsheet):
+def connect(smartsheet: smartsheet.Smartsheet):
     try:
         conn = smartsheet.Users.get_current_user()
     except Exception as e:
@@ -228,7 +215,6 @@ def read_data(file_path: str, file_type: str = "csv"):
 
 def upload_append(
     smart: smartsheet.Smartsheet,
-    logger: logging.Logger,
     file_path: str,
     sheet_id: Optional[str],
     file_type: str = "csv",
@@ -323,7 +309,6 @@ def delete_sheet_contents(
 
 def upload_create(
     smart: smartsheet.Smartsheet,
-    logger: logging.Logger,
     file_path: str,
     name: Optional[str],
     file_type: str,
@@ -421,7 +406,6 @@ def upload_replace(
 
 def main():
     args = get_args()
-    logger = get_logger()
     try:
         if args.folder_name != "":
             file_path = os.path.join(args.folder_name, args.file_name)
@@ -432,7 +416,7 @@ def main():
         smart = smartsheet.Smartsheet(args.access_token)
         sheet_name = args.sheet_name if args.sheet_name != "" else None
         sheet_id = args.sheet_id if args.sheet_id != "" else None
-        if connect(logger, smart) == 1:
+        if connect(smart) == 1:
             sys.exit(ss.EXIT_CODE_INVALID_TOKEN)
 
         # check to see if the sheet id provided is valid, fail if not
@@ -452,7 +436,6 @@ def main():
         elif args.insert_method == "append":
             response = upload_append(
                 smart,
-                logger=logger,
                 file_path=file_path,
                 sheet_id=sheet_id,
                 file_type=args.file_type,

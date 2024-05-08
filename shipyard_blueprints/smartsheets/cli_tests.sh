@@ -2,6 +2,7 @@
 # use the enviornment variables from the .env file
 set -o allexport 
 source .env set +o allexport
+
 if [ "$1" = 'up1' ]; then
     echo "Starting upload of smartsheet with replace (creating a new sheet)"
     python3 ./shipyard_smartsheets/cli/upload.py --access-token $SMARTSHEET_ACCESS_TOKEN --source-file-name sample.csv --sheet-name testload --insert-method replace
@@ -53,6 +54,16 @@ fi
 if [ "$1" = 'down_bad_id' ]; then 
     python3 ./shipyard_smartsheets/cli/download.py --access-token $SMARTSHEET_ACCESS_TOKEN --sheet-id 'mybadid' --destination-file-name download.csv
 fi
+
+if [ "$1" = 'dl1' ]; then 
+    # python3 ./shipyard_smartsheets/cli/download.py \
+    #     --access-token $SMARTSHEET_ACCESS_TOKEN \
+    #     --sheet-id '$FAILING' \
+    #     --destination-file-name "mytest.csv"
+    python3 ./shipyard_smartsheets/cli/download.py --access-token $SMARTSHEET_ACCESS_TOKEN --sheet-id $FAILING --destination-file-name mytest.csv
+
+fi
+
 
 if [ "$1" = 'xl_create' ]; then
     python3 ./shipyard_smartsheets/cli/upload.py --access-token $SMARTSHEET_ACCESS_TOKEN --insert-method create --source-file-name small.xlsx --sheet-name "Excel Create" --file-type xlsx

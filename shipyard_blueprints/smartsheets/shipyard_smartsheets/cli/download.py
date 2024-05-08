@@ -5,11 +5,16 @@ import sys
 import logging
 import requests
 import pandas as pd
-from shipyard_templates import ExitCodeException, Spreadsheets as ss
+from shipyard_bp_utils import files
+from shipyard_templates import ExitCodeException, Spreadsheets as ss, ShipyardLogger
 from typing import Dict, List, Any
+from shipyard_bp_utils import files
+
 
 # custom exit code
 EXIT_CODE_INVALID_SHEET_ID = 220
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -40,21 +45,6 @@ def connect(logger: logging.Logger, token: str):
     logger.error("Error in connecting to Smartsheet")
     logger.error(response.text)
     return 1
-
-
-def get_logger():
-    logger = logging.getLogger("Shipyard")
-    logger.setLevel(logging.DEBUG)
-    # Add handler for stderr
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-    # add specific format
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s -%(lineno)d: %(message)s"
-    )
-    console.setFormatter(formatter)
-    logger.addHandler(console)
-    return logger
 
 
 def is_valid_sheet(smart: smartsheet.Smartsheet, sheet_id: str) -> bool:
@@ -88,7 +78,7 @@ def flatten_json(json_data: Dict[Any, Any]) -> Dict[str, List[Any]]:
             cells = row["cells"]
             for cell in cells:
                 col_id = cell["columnId"]
-                value = cell["value"]
+                value = cell.get("value", None)
                 col_name = lookup.get(col_id)
                 # update the return dictionary
                 ret_dict.get(col_name).append(value)
@@ -104,7 +94,6 @@ def flatten_json(json_data: Dict[Any, Any]) -> Dict[str, List[Any]]:
 
 def main():
     args = get_args()
-    logger = get_logger()
     try:
         token = args.access_token
         sheet_id = args.sheet_id
@@ -112,10 +101,9 @@ def main():
         if connect(logger, token) == 1:
             sys.exit(ss.EXIT_CODE_INVALID_TOKEN)
 
-        if args.folder_name != "":
-            file_path = os.path.join(args.folder_name, args.file_name)
-        else:
-            file_path = args.file_name
+        if args.folder_name:
+            files.create_folder_if_dne(args.folder_name)
+        file_path = files.combine_folder_and_file_name(args.folder_name, args.file_name)
 
         url = f"https://api.smartsheet.com/2.0/sheets/{sheet_id}"
         headers = {"Authorization": f"Bearer {token}", "Accpet": "text/csv"}
