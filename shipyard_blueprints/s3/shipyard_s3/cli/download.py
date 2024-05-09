@@ -106,14 +106,6 @@ def main():
                     f"Successfully downloaded s3://{bucket_name}/{key_name} to {dest_path}"
                 )
         else:
-            # if src_folder:
-            #     src_path = shipyard.files.combine_folder_and_file_name(
-            #         folder_name=src_folder, file_name=src_file
-            #     )
-            # else:
-            #     src_path = src_file
-
-            print(f"Src path is {src_path}")
             dest_path = shipyard.files.determine_destination_full_path(
                 destination_folder_name=target_dir,
                 destination_file_name=args.destination_file_name,
