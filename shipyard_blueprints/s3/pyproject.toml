@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-s3"
-version = "0.2.0a0"
+version = "0.2.0"
 description = "A local client for connecting and working with AWS S3"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
