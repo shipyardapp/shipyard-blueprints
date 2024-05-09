@@ -51,15 +51,15 @@ def main():
         args = get_args()
         bucket_name = args.bucket_name
         src_file = args.source_file_name
-        src_folder = (
-            shipyard.files.clean_folder_name(args.source_folder_name)
-            if args.source_folder_name
-            else None
-        )
+        src_folder = args.source_folder_name
+
+        src_path = shipyard.files.combine_folder_and_file_name(src_folder, src_file)
+
         match_type = args.source_file_name_match_type
         target_dir = shipyard.files.clean_folder_name(args.destination_folder_name)
 
-        shipyard.files.create_folder_if_dne(target_dir)
+        if args.destination_folder_name:
+            shipyard.files.create_folder_if_dne(target_dir)
 
         client = S3Client(
             aws_access_key=args.aws_access_key_id,
@@ -106,13 +106,6 @@ def main():
                     f"Successfully downloaded s3://{bucket_name}/{key_name} to {dest_path}"
                 )
         else:
-            if src_folder:
-                src_path = shipyard.files.combine_folder_and_file_name(
-                    folder_name=src_folder, file_name=src_file
-                )
-            else:
-                src_path = src_file
-
             dest_path = shipyard.files.determine_destination_full_path(
                 destination_folder_name=target_dir,
                 destination_file_name=args.destination_file_name,
