@@ -5,7 +5,7 @@ import sys
 
 import pytz
 import shipyard_utils as shipyard
-from shipyard_templates import ExitCodeException, ShipyardLogger
+from shipyard_templates import ExitCodeException, ShipyardLogger, Etl
 
 from shipyard_fivetran import FivetranClient
 
@@ -91,8 +91,11 @@ def main():
             poke_interval=poke_interval * 60,
         )
     except ExitCodeException as e:
-        logger.error(e)
+        f"An error occurred when attempting to trigger sync: {e}"
         sys.exit(e.exit_code)
+    except Exception as e:
+        logger.error(f"An error occurred when attempting to trigger sync: {e}")
+        sys.exit(Etl.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":
