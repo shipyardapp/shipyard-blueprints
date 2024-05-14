@@ -10,6 +10,7 @@ EXIT_CODE_TRIGGER_FLEET_ERROR = 107
 EXIT_CODE_ARTIFACTS_ERROR = 108
 EXIT_CODE_FLEET_FINAL_STATE_ERROR = 109
 EXIT_CODE_FLEET_UPSERT_ERROR = 110
+EXIT_CODE_FLEET_RUN_DETAILS_ERROR = 111
 EXIT_CODE_UNKNOWN_ERROR = 249
 
 
@@ -27,6 +28,8 @@ class InvalidFileType(ExitCodeException):
 
 class UnauthorizedAccess(ExitCodeException):
     def __init__(self):
-        self.message = ("Unauthorized access, ensure that your API key has the correct access for the fleet and "
-                        "project provided")
+        self.message = (
+            "Unauthorized access, ensure that your API key has the correct access for the fleet and "
+            "project provided"
+        )
         self.exit_code = EXIT_CODE_UNAUTHORIZED_ACCESS
