@@ -1,7 +1,9 @@
 import time
 
 from requests import request, auth
-from shipyard_templates import Etl, ExitCodeException
+from shipyard_templates import Etl, ExitCodeException, ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 class FivetranClient(Etl):
@@ -27,7 +29,7 @@ class FivetranClient(Etl):
         self.api_key = access_token
         self.auth = auth.HTTPBasicAuth(self.api_key, self.api_secret)
         super().__init__(self.api_key, api_secret=self.api_secret)
-        self.logger.info("FivetranClient initialized")
+        logger.debug("FivetranClient initialized")
 
     def _request(
         self, endpoint: str, method: str = "GET", payload: dict = None
@@ -70,7 +72,7 @@ class FivetranClient(Etl):
             )
         if resp.ok:
             return resp.json()
-        self.logger.error(f"Error: {resp.status_code} - {resp.text}")
+        logger.error(f"Error: {resp.status_code} - {resp.text}")
         if resp.status_code == 401:
             raise ExitCodeException(
                 f'{resp.json().get("message")}', self.EXIT_CODE_INVALID_CREDENTIALS
@@ -106,13 +108,13 @@ class FivetranClient(Etl):
             ExitCodeException: If an error occurs while triggering sync.
         """
         if wait_for_completion:
-            self.logger.info(
+            logger.info(
                 "Getting connection details for last successful and failed syncs..."
             )
             prev_success, prev_failure = self._get_latest_success_and_failure(
                 connector_id
             )
-            self.logger.info(
+            logger.info(
                 f'The last success was {prev_success or "never"} and the last failure was {prev_failure or "never"}'
             )
         try:
@@ -124,17 +126,17 @@ class FivetranClient(Etl):
         except ExitCodeException as e:
             raise ExitCodeException(f"Error triggering sync: {e}", e.exit_code) from e
         else:
-            self.logger.info("Sync triggered successfully")
+            logger.info("Sync triggered successfully")
             if wait_for_completion:
                 new_success, new_failure = prev_success, prev_failure
                 while prev_success == new_success and prev_failure == new_failure:
-                    self.logger.info("Waiting for sync to complete...")
+                    logger.info("Waiting for sync to complete...")
                     time.sleep(poke_interval)
                     new_success, new_failure = self._get_latest_success_and_failure(
                         connector_id
                     )
-                self.logger.info("Sync completed")
-                self.logger.info("Checking for new failure")
+                logger.info("Sync completed")
+                logger.info("Checking for new failure")
                 if (
                     prev_failure
                     and new_failure != prev_failure
@@ -146,7 +148,7 @@ class FivetranClient(Etl):
                         self.EXIT_CODE_SYNC_REFRESH_ERROR,
                     )
                 else:
-                    self.logger.info("No new failure detected")
+                    logger.info("No new failure detected")
 
     def determine_sync_status(self, connector_id: str) -> str:
         """
@@ -249,7 +251,7 @@ class FivetranClient(Etl):
                     f"Error updating connector: {e}", e.exit_code
                 ) from e
             else:
-                self.logger.info("Connector updated successfully")
+                logger.info("Connector updated successfully")
         else:
             raise ExitCodeException(
                 "No updates to connector were provided", self.EXIT_CODE_BAD_REQUEST
@@ -265,8 +267,8 @@ class FivetranClient(Etl):
         try:
             self._request(endpoint="users", method="GET")
         except Exception as e:
-            self.logger.error(f"Error connecting to FiveTran: {e}")
+            logger.error(f"Error connecting to FiveTran: {e}")
             return 1
         else:
-            self.logger.info("Connection Validated")
+            logger.info("Connection Validated")
             return 0
