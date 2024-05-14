@@ -30,11 +30,11 @@ class ShipyardClient:
         self.project_id = project_id
 
     def _request(
-            self,
-            method: str,
-            url: str,
-            data: Optional[Dict[str, Any]] = None,
-            headers: Optional[Dict[str, Any]] = None,
+        self,
+        method: str,
+        url: str,
+        data: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, Any]] = None,
     ):
         """
         A helper method to make requests to the Shipyard API.
@@ -105,7 +105,7 @@ class ShipyardClient:
             return response.json()
 
     def export_fleet_runs(
-            self, fleet_id: str, target_path: str, file_type: str = "csv"
+        self, fleet_id: str, target_path: str, file_type: str = "csv"
     ):
         """
         Export fleet runs to a file.
@@ -303,6 +303,7 @@ class ShipyardClient:
             raise
         except Exception as e:
             raise ExitCodeException(
-                f"Error getting fleet run status. Confirm the is valid and try again. Message from server: {e}",
+                f"Error getting fleet run status. Confirm the fleet_id and run_id are valid and try again. "
+                f"Message from server: {e}",
                 exit_code=EXIT_CODE_FLEET_RUN_DETAILS_ERROR,
             ) from e
