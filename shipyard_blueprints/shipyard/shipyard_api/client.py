@@ -12,10 +12,10 @@ from shipyard_api.errors import (
     EXIT_CODE_VOYAGE_EXPORT_ERROR,
     EXIT_CODE_TRIGGER_FLEET_ERROR,
     EXIT_CODE_UNKNOWN_ERROR,
+    EXIT_CODE_FLEET_RUN_DETAILS_ERROR,
     InvalidFileType,
     MissingProjectID,
     UnauthorizedAccess,
-
 )
 
 logger = ShipyardLogger.get_logger()
@@ -29,8 +29,13 @@ class ShipyardClient:
         self.headers = {"X-Shipyard-API-Key": self.api_key}
         self.project_id = project_id
 
-    def _request(self, method: str, url: str, data: Optional[Dict[str, Any]] = None,
-                 headers: Optional[Dict[str, Any]] = None):
+    def _request(
+            self,
+            method: str,
+            url: str,
+            data: Optional[Dict[str, Any]] = None,
+            headers: Optional[Dict[str, Any]] = None,
+    ):
         """
         A helper method to make requests to the Shipyard API.
 
@@ -50,11 +55,7 @@ class ShipyardClient:
         if headers is None:
             headers = self.headers
 
-        request_args = {
-            "method": method,
-            "url": url,
-            "headers": headers
-        }
+        request_args = {"method": method, "url": url, "headers": headers}
         if data:
             request_args["data"] = data
         response = None
@@ -213,8 +214,8 @@ class ShipyardClient:
             "headers": {
                 "accept": "application/json",
                 "content-type": "application/json",
-                "X-Shipyard-API-Key": self.api_key
-            }
+                "X-Shipyard-API-Key": self.api_key,
+            },
         }
 
         if fleet_overrides:
@@ -247,15 +248,16 @@ class ShipyardClient:
             ExitCodeException: If an exit code exception occurs.
         """
         try:
-            response = self._request(method="PUT",
-                                     url=f"{self.base_url}/projects/{self.project_id}/fleets",
-                                     headers={
-                                         "accept": "application/json",
-                                         "content-type": "application/json",
-                                         "X-Shipyard-API-Key": self.api_key
-                                     },
-                                     data=yaml.dump(fleet_yaml)
-                                     )
+            response = self._request(
+                method="PUT",
+                url=f"{self.base_url}/projects/{self.project_id}/fleets",
+                headers={
+                    "accept": "application/json",
+                    "content-type": "application/json",
+                    "X-Shipyard-API-Key": self.api_key,
+                },
+                data=yaml.dump(fleet_yaml),
+            )
             logger.info("Successfully upserted fleet")
             return response
 
@@ -266,7 +268,6 @@ class ShipyardClient:
                 f"Error upserting fleet: {e}",
                 exit_code=EXIT_CODE_UNKNOWN_ERROR,
             ) from e
-
 
     def get_run_status(self, fleet_id: str, run_id: str):
         """
@@ -282,17 +283,26 @@ class ShipyardClient:
         Raises:
             ExitCodeException: If an exit code exception occurs.
         """
+        try:
+            response = self._request(
+                "GET",
+                f"{self.base_url}/projects/{self.project_id}/fleets/{fleet_id}/fleetruns",
+                headers={
+                    "accept": "application/json",
+                    "content-type": "application/json",
+                    "X-Shipyard-API-Key": self.api_key,
+                },
+            )
 
-        response = self._request("GET", f"{self.base_url}/projects/{self.project_id}/fleets/{fleet_id}/fleetruns",
-                                 headers={
-                                     "accept": "application/json",
-                                     "content-type": "application/json",
-                                     "X-Shipyard-API-Key": self.api_key
-                                 }
-                                 )
+            log_data = response.content.decode("utf-8")
 
-        log_data = response.content.decode('utf-8')
-
-        df = pandas.read_csv(io.StringIO(log_data))
-        fleet_run = df[df['Fleet Log ID'] == run_id]
-        return fleet_run["Status"].values[0]
+            df = pandas.read_csv(io.StringIO(log_data))
+            fleet_run = df[df["Fleet Log ID"] == run_id]
+            return fleet_run["Status"].values[0]
+        except ExitCodeException:
+            raise
+        except Exception as e:
+            raise ExitCodeException(
+                f"Error getting fleet run status. Confirm the is valid and try again. Message from server: {e}",
+                exit_code=EXIT_CODE_FLEET_RUN_DETAILS_ERROR,
+            ) from e
