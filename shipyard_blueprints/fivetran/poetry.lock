@@ -114,14 +114,14 @@ files = [
 
 [[package]]
 name = "idna"
-version = "3.6"
+version = "3.7"
 description = "Internationalized Domain Names in Applications (IDNA)"
 category = "main"
 optional = false
 python-versions = ">=3.5"
 files = [
-    {file = "idna-3.6-py3-none-any.whl", hash = "sha256:c05567e9c24a6b9faaa835c4821bad0590fbb9d5779e7caa6e1cc4978e7eb24f"},
-    {file = "idna-3.6.tar.gz", hash = "sha256:9ecdbbd083b06798ae1e86adcbfe8ab1479cf864e4ee30fe4e46a003d12491ca"},
+    {file = "idna-3.7-py3-none-any.whl", hash = "sha256:82fee1fc78add43492d3a1898bfa6d8a904cc97d8427f683ed8e798d07761aa0"},
+    {file = "idna-3.7.tar.gz", hash = "sha256:028ff3aadf0609c1fd278d8ea3089299412a7a8b9bd005dd08b9f8285bcb5cfc"},
 ]
 
 [[package]]
@@ -175,14 +175,14 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "shipyard-templates"
-version = "0.1.6"
+version = "0.8.2"
 description = "Super classes for blueprint development"
 category = "main"
 optional = false
-python-versions = ">=3.9,<4.0"
+python-versions = ">=3.9"
 files = [
-    {file = "shipyard_templates-0.1.6-py3-none-any.whl", hash = "sha256:9447945a9debc427ee17cd8f1e5056caad1f3c17becb50fe1d4f687bba6e0f31"},
-    {file = "shipyard_templates-0.1.6.tar.gz", hash = "sha256:b488a895f00be99c6a778ea8259db3060e89c04781cfd1933dd2bc5f9177562b"},
+    {file = "shipyard_templates-0.8.2-py3-none-any.whl", hash = "sha256:3e10a14a2dcb2eeba3073f6529afa45232acd31844b4e0af312c1e1a2910df53"},
+    {file = "shipyard_templates-0.8.2.tar.gz", hash = "sha256:7c63dd150b6de56a45b483be32686b48d6114c537ce13eb20a482ffb7caff935"},
 ]
 
 [[package]]
@@ -233,4 +233,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "7f70a0805aec439f8178a79626a9bbae282245d17517e35d652471ca1806e8c7"
+content-hash = "2835a0a42664c8376da62deb70d75eace09da9d492688c2ea76759c9cc4f9cb1"

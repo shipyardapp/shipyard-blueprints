@@ -3,7 +3,9 @@ import sys
 import json
 
 from shipyard_fivetran import FivetranClient
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -61,7 +63,7 @@ def main():
             **args_dict,
         )
     except ExitCodeException as e:
-        fivetran_client.logger.error(e)
+        logger.error(e)
         sys.exit(e.exit_code)
 
 
