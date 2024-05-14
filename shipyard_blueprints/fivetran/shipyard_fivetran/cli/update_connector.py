@@ -3,7 +3,9 @@ import sys
 import json
 
 from shipyard_fivetran import FivetranClient
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, ShipyardLogger, Etl
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -61,8 +63,11 @@ def main():
             **args_dict,
         )
     except ExitCodeException as e:
-        fivetran_client.logger.error(e)
+        logger.error(f"An error occurred when attempting to update the connector: {e}")
         sys.exit(e.exit_code)
+    except Exception as e:
+        logger.error(f"An error occurred when attempting to update the connector: {e}")
+        sys.exit(Etl.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":

@@ -1,13 +1,15 @@
 import argparse
-import sys
-import os
-import shipyard_utils as shipyard
 import datetime
-import pytz
+import os
+import sys
 
+import pytz
+import shipyard_utils as shipyard
+from shipyard_templates import ExitCodeException, ShipyardLogger, Etl
 
 from shipyard_fivetran import FivetranClient
-from shipyard_templates import ExitCodeException
+
+logger = ShipyardLogger.get_logger()
 
 
 def create_pickle(connector_id):
@@ -64,23 +66,23 @@ def main():
         access_token=args.api_key, api_secret=args.api_secret
     )
     if (
-        not wait_for_completion
-        and int(os.environ.get("SHIPYARD_FLEET_DOWNSTREAM_COUNT")) > 0
+            not wait_for_completion
+            and int(os.environ.get("SHIPYARD_FLEET_DOWNSTREAM_COUNT")) > 0
     ):
         # This function is to support the legacy check status functionality
         create_pickle(args.connector_id)
     poke_interval = int(poke_interval) if poke_interval else 0
     if wait_for_completion:
         if 0 < poke_interval <= 60:
-            fivetran_client.logger.info(
+            logger.info(
                 f"Setting poke interval to {poke_interval} minute(s)"
             )
             poke_interval = poke_interval
         else:
-            fivetran_client.logger.error(
+            logger.error(
                 "Poke interval must be between 1 and 60 minutes"
             )
-            sys.exit(fivetran_client.EXIT_CODE_INVALID_POKE_INTERVAL)
+            sys.exit(fivetran_client.EXIT_CODE_SYNC_INVALID_POKE_INTERVAL)
     try:
         fivetran_client.trigger_sync(
             args.connector_id,
@@ -89,8 +91,11 @@ def main():
             poke_interval=poke_interval * 60,
         )
     except ExitCodeException as e:
-        fivetran_client.logger.error(e)
+        f"An error occurred when attempting to trigger sync: {e}"
         sys.exit(e.exit_code)
+    except Exception as e:
+        logger.error(f"An error occurred when attempting to trigger sync: {e}")
+        sys.exit(Etl.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":
