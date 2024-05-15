@@ -15,7 +15,7 @@ def main():
             port=os.getenv("SFTP_PORT"),
             user=os.getenv("SFTP_USERNAME"),
             pwd=os.getenv("SFTP_PASSWORD"),
-            key=None,
+            key=os.getenv("SFTP_RSA_KEY_FILE"),
         ).connect()
     )
 
