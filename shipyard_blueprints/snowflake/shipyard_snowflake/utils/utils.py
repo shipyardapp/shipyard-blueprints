@@ -1,20 +1,19 @@
-import re
-import psutil
 import os
-import pandas as pd
-from datetime import datetime
-from dask import dataframe as dd
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.asymmetric import dsa
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.serialization.ssh import serialize_ssh_public_key
-from typing import Dict, List, Optional, Tuple, Union
+import re
 from copy import deepcopy
-from random import random, randrange
-from itertools import islice
 from io import StringIO
+from itertools import islice
 from math import exp, log, floor, ceil
+from random import random, randrange
+from typing import Dict, List, Optional, Union
+
+import pandas as pd
+import psutil
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from dask import dataframe as dd
+
+from shipyard_snowflake.utils.exceptions import RSAKeyDecodeError
 
 
 def _get_file_size(file: str) -> int:
@@ -53,25 +52,27 @@ def _file_fits_in_memory(file: str) -> bool:
 
 def _decode_rsa(rsa_key: str):
     try:
-        with open(rsa_key, "rb") as key:
-            p_key = serialization.load_pem_private_key(
-                key.read(),
-                password=os.environ["SNOWFLAKE_PRIVATE_KEY_PASSPHRASE"].encode(),
-                backend=default_backend(),
-            )
-        pkb = p_key.private_bytes(
+        if os.path.isfile(rsa_key):
+            with open(rsa_key, "rb") as key_file:
+                key_data = key_file.read()
+        else:
+            key_data = rsa_key.encode()
+        p_key = serialization.load_pem_private_key(
+            key_data,
+            password=os.environ["SNOWFLAKE_PRIVATE_KEY_PASSPHRASE"].encode(),
+            backend=default_backend(),
+        )
+        return p_key.private_bytes(
             encoding=serialization.Encoding.DER,
             format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.NoEncryption(),
         )
-        return pkb
-
     except Exception as e:
-        return None
+        raise RSAKeyDecodeError(f"ERROR TYPE: {e.__class__.__name__}") from e
 
 
 def map_snowflake_to_pandas(
-    snowflake_data_types: Optional[Union[List[List], Dict[str, str]]]
+        snowflake_data_types: Optional[Union[List[List], Dict[str, str]]]
 ) -> Union[Dict, None]:
     # TODO: modify this to accept a list of lists (old way) and a JSON representation of datatypes (new way)
     """Helper function to map a snowflake data type to the associated pandas data type
@@ -160,7 +161,7 @@ def get_pandas_dates(pandas_datatypes: dict) -> tuple:
 
 
 def read_file(
-    file: str, snowflake_dtypes: Union[List, None] = None, file_type: str = "csv"
+        file: str, snowflake_dtypes: Union[List, None] = None, file_type: str = "csv"
 ) -> pd.DataFrame:
     """Helper function to read in a file to a pandas dataframe. This will be build out in the future to allow for more file types like parquet, arrow, tsv, etc.
     Args:
