@@ -9,13 +9,14 @@ logger = ShipyardLogger().get_logger()
 
 
 def main():
+    logger.setLevel("DEBUG")
     sys.exit(
         SftpClient(
             host=os.getenv("SFTP_HOST"),
             port=os.getenv("SFTP_PORT"),
             user=os.getenv("SFTP_USERNAME"),
             pwd=os.getenv("SFTP_PASSWORD"),
-            key=None,
+            key=os.getenv("SFTP_RSA_KEY_FILE"),
         ).connect()
     )
 
