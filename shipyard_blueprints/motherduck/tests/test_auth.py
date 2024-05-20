@@ -1,7 +1,7 @@
-import pytest
 import subprocess
-from dotenv import load_dotenv, find_dotenv
 
+import pytest
+from dotenv import load_dotenv, find_dotenv
 
 if env_exists := find_dotenv():
     load_dotenv()
@@ -21,5 +21,12 @@ def test_authtest_good_connection(authtest):
 @pytest.mark.skipif(not env_exists, reason="No .env file found")
 def test_authtest_bad_connection(authtest, monkeypatch):
     monkeypatch.setenv("MOTHERDUCK_TOKEN", "bad_token")
+    result = subprocess.run(authtest, capture_output=True)
+    assert (result.returncode == 1)
+
+
+@pytest.mark.skipif(not env_exists, reason="No .env file found")
+def test_authtest_missing_token(authtest, monkeypatch):
+    monkeypatch.delenv("MOTHERDUCK_TOKEN")
     result = subprocess.run(authtest, capture_output=True)
     assert result.returncode == 1

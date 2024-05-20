@@ -1,7 +1,23 @@
 import os
 import unittest
 from shipyard_jira import JiraClient
+from dotenv import load_dotenv, find_dotenv
+import pytest
 
+CREDENTIALS = [
+    "JIRA_ACCESS_TOKEN",
+    "JIRA_DOMAIN",
+    "JIRA_EMAIL",
+]
+
+@pytest.fixture(scope="module", autouse=True)
+def get_env():
+    load_dotenv(find_dotenv())
+    if any(
+            key not in os.environ
+            for key in CREDENTIALS
+    ):
+        pytest.skip("Missing one or more required environment variables")
 
 class JiraClientConnectTestCase(unittest.TestCase):
     def setUp(self):

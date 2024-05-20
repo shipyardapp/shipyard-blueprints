@@ -11,7 +11,7 @@ class ModeClient(DataVisualization):
         self.api_secret = api_secret
         self.account = account
         self.mode_api_base = f"https://app.mode.com/api/{self.account}"
-        super().__init__(api_token=api_token, api_secret=api_secret, account=account)
+        # super().__init__(api_token=api_token, api_secret=api_secret, account=account)
 
     def connect(self):
         try:

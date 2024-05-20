@@ -2,12 +2,11 @@ import os
 
 import pytest
 from dotenv import load_dotenv, find_dotenv
-from shipyard_mode.cli.authtest import main
+from shipyard_fivetran.cli.authtest import main
 
 CREDENTIALS = [
-    "MODE_TOKEN_ID",
-    "MODE_TOKEN_PASSWORD",
-    "MODE_WORKSPACE_NAME"
+    "FIVETRAN_API_KEY",
+    "FIVETRAN_API_SECRET"
 ]
 
 INVALID_INPUT = ["INVALID", 123, ""]
@@ -31,7 +30,7 @@ def test_valid_credentials():
 
 @pytest.mark.parametrize("invalid_input", INVALID_INPUT)
 def test_invalid_api_key(invalid_input, monkeypatch):
-    monkeypatch.setenv("MODE_TOKEN_ID", invalid_input)
+    monkeypatch.setenv("FIVETRAN_API_KEY", invalid_input)
     with pytest.raises(SystemExit) as exit_code:
         main()
 
@@ -39,20 +38,11 @@ def test_invalid_api_key(invalid_input, monkeypatch):
 
 
 @pytest.mark.parametrize("invalid_input", INVALID_INPUT)
-def test_invalid_account_id(invalid_input, monkeypatch):
-    monkeypatch.setenv("MODE_TOKEN_PASSWORD", invalid_input)
+def test_invalid_secret(invalid_input, monkeypatch):
+    monkeypatch.setenv("FIVETRAN_API_SECRET", invalid_input)
     with pytest.raises(SystemExit) as exit_code:
         main()
     assert exit_code.value.code == 1
-
-
-@pytest.mark.parametrize("invalid_input", INVALID_INPUT)
-def test_invalid_account_id(invalid_input, monkeypatch):
-    monkeypatch.setenv("MODE_WORKSPACE_NAME", invalid_input)
-    with pytest.raises(SystemExit) as exit_code:
-        main()
-    assert exit_code.value.code == 1
-
 
 
 @pytest.mark.parametrize("missing_env", CREDENTIALS)

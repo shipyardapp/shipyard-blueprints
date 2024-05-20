@@ -16,6 +16,10 @@ shipyard-utils = "0.1.4"
 #shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
 # shipyard-templates = {path = "../../shipyard-templates", develop = true}
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.1"
+python-dotenv = "^1.0.1"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

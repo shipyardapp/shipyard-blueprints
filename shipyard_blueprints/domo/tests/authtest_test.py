@@ -2,12 +2,14 @@ import os
 
 import pytest
 from dotenv import load_dotenv, find_dotenv
-from shipyard_mode.cli.authtest import main
+from shipyard_domo.cli.authtest import main
 
 CREDENTIALS = [
-    "MODE_TOKEN_ID",
-    "MODE_TOKEN_PASSWORD",
-    "MODE_WORKSPACE_NAME"
+    "DOMO_CLIENT_ID",
+    "DOMO_SECRET_KEY",
+    "DOMO_ACCESS_TOKEN",
+    "DOMO_INSTANCE",
+
 ]
 
 INVALID_INPUT = ["INVALID", 123, ""]
@@ -30,8 +32,8 @@ def test_valid_credentials():
 
 
 @pytest.mark.parametrize("invalid_input", INVALID_INPUT)
-def test_invalid_api_key(invalid_input, monkeypatch):
-    monkeypatch.setenv("MODE_TOKEN_ID", invalid_input)
+def test_invalid_client(invalid_input, monkeypatch):
+    monkeypatch.setenv("DOMO_CLIENT_ID", invalid_input)
     with pytest.raises(SystemExit) as exit_code:
         main()
 
@@ -39,20 +41,22 @@ def test_invalid_api_key(invalid_input, monkeypatch):
 
 
 @pytest.mark.parametrize("invalid_input", INVALID_INPUT)
-def test_invalid_account_id(invalid_input, monkeypatch):
-    monkeypatch.setenv("MODE_TOKEN_PASSWORD", invalid_input)
+def test_invalid_secret(invalid_input, monkeypatch):
+    monkeypatch.setenv("DOMO_SECRET_KEY", invalid_input)
     with pytest.raises(SystemExit) as exit_code:
         main()
     assert exit_code.value.code == 1
-
-
 @pytest.mark.parametrize("invalid_input", INVALID_INPUT)
-def test_invalid_account_id(invalid_input, monkeypatch):
-    monkeypatch.setenv("MODE_WORKSPACE_NAME", invalid_input)
+def test_invalid_access_token(invalid_input, monkeypatch):
+    monkeypatch.setenv("DOMO_ACCESS_TOKEN", invalid_input)
+    with pytest.raises(SystemExit) as exit_code:
+        main()
+    assert exit_code.value.code == 1@pytest.mark.parametrize("invalid_input", INVALID_INPUT)
+def test_invalid_instance(invalid_input, monkeypatch):
+    monkeypatch.setenv("DOMO_INSTANCE", invalid_input)
     with pytest.raises(SystemExit) as exit_code:
         main()
     assert exit_code.value.code == 1
-
 
 
 @pytest.mark.parametrize("missing_env", CREDENTIALS)
