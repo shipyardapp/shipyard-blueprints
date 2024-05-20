@@ -29,7 +29,8 @@ def test_valid_un_pw_credentials(monkeypatch):
     assert exit_code.value.code == 0
 
 
-def test_valid_pk_credentials():
+def test_valid_pk_credentials(monkeypatch):
+    monkeypatch.delenv("SFTP_PASSWORD")
     with pytest.raises(SystemExit) as exit_code:
         main()
     assert exit_code.value.code == 0
@@ -42,7 +43,15 @@ def test_invalid_password(invalid_password, monkeypatch):
     with pytest.raises(SystemExit) as exit_code:
         main()
 
-    assert exit_code.value.code == 1
+    assert (exit_code.value.code == 1)
+
+@pytest.mark.parametrize("invalid_password", ["bad_password", ""])
+def test_valid_key_with_invalid_password(invalid_password, monkeypatch):
+    monkeypatch.setenv("SFTP_PASSWORD", invalid_password)
+    with pytest.raises(SystemExit) as exit_code:
+        main()
+
+    assert exit_code.value.code == 0
 
 
 @pytest.mark.parametrize("invalid_username", ["bad_username", ""])

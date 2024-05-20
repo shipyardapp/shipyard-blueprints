@@ -9,7 +9,7 @@ logger = ShipyardLogger().get_logger()
 
 
 def main():
-    logger.setLevel("DEBUG")
+    logger.setLevel("AUTHTEST")
     sys.exit(
         SftpClient(
             host=os.getenv("SFTP_HOST"),
