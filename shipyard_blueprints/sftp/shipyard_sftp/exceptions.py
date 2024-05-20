@@ -7,8 +7,9 @@ EXIT_CODE_DELETE_ERROR = 100
 class InvalidCredentialsError(ExitCodeException):
     def __init__(self, raised_from: Exception = None, *args, **kwargs):
         message = (
-            "INVALID CREDENTIALS: Check your credentials and try again. If you continue to experience "
-            "issues please contact your SFTP Admin."
+            "INVALID CREDENTIALS"
+            # "INVALID CREDENTIALS: Check your credentials and try again. If you continue to experience "
+            # "issues please contact your SFTP Admin."
         )
         if raised_from:
             message += f"Message from server...\n{raised_from.__class__.__name__}: {raised_from}"
