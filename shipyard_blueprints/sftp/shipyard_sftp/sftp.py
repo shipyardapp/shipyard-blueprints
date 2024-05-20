@@ -7,6 +7,7 @@ from typing import Optional
 import paramiko
 from shipyard_templates import CloudStorage, ExitCodeException
 from shipyard_templates.shipyard_logger import ShipyardLogger
+import shipyard_sftp.utils as utils
 
 from shipyard_sftp.exceptions import (
     UnknownException,
@@ -267,7 +268,7 @@ class SftpClient(CloudStorage):
 
                 if self.key.startswith("-----BEGIN"):
                     logger.debug("Using key as string")
-                    key = paramiko.RSAKey.from_private_key(io.StringIO(self.key))
+                    key = paramiko.RSAKey.from_private_key(io.StringIO(utils.format_newlines(self.key)))
                 else:
                     logger.debug("Using key as file")
                     key = paramiko.RSAKey.from_private_key_file(self.key)
