@@ -14,6 +14,8 @@ def get_env():
                 "SNOWFLAKE_USERNAME",
                 "SNOWFLAKE_PASSWORD",
                 "SNOWFLAKE_ACCOUNT",
+                "SNOWFLAKE_PRIVATE_KEY",
+                "SNOWFLAKE_PRIVATE_KEY_PASSPHRASE",
             ]
     ):
         pytest.skip("Missing one or more required environment variables")
@@ -26,6 +28,12 @@ def auth_cmd():
 
 def test_auth_success(auth_cmd, monkeypatch):
     monkeypatch.delenv("SNOWFLAKE_PRIVATE_KEY")
+    result = subprocess.run(auth_cmd)
+    assert result.returncode == 0
+
+
+def test_auth_success_with_key(auth_cmd, monkeypatch):
+    monkeypatch.delenv("SNOWFLAKE_PASSWORD")
     result = subprocess.run(auth_cmd)
     assert result.returncode == 0
 

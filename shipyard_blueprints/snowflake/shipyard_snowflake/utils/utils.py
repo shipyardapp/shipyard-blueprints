@@ -52,11 +52,11 @@ def _file_fits_in_memory(file: str) -> bool:
 
 def _decode_rsa(rsa_key: str):
     try:
-        if os.path.isfile(rsa_key):
+        if rsa_key.startswith("-----BEGIN"):
+            key_data = format_newlines(rsa_key).encode()
+        else:
             with open(rsa_key, "rb") as key_file:
                 key_data = key_file.read()
-        else:
-            key_data = rsa_key.encode()
         p_key = serialization.load_pem_private_key(
             key_data,
             password=os.environ["SNOWFLAKE_PRIVATE_KEY_PASSPHRASE"].encode(),
@@ -293,3 +293,13 @@ def map_pandas_to_snowflake(data_type_dict: Dict[str, str]) -> Dict[str, str]:
         )
 
     return snowflake_columns
+
+def format_newlines(rsa_key: str) -> str:
+    """
+    Format newlines in the RSA key
+    Args:
+        rsa_key (str): The RSA key
+    Returns:
+        str: The formatted RSA key
+    """
+    return rsa_key.replace("\\n", "\n")
