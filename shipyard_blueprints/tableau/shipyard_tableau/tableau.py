@@ -11,7 +11,7 @@ class TableauClient(DataVisualization):
         self.username = username
         self.password = password
         self.server_url = server_url
-        self.site = site
+        self.site = "" if str(site).lower() == "default" else site
 
     def connect(self, sign_in_method="", **kwargs):
         if not sign_in_method:
@@ -21,8 +21,10 @@ class TableauClient(DataVisualization):
                 logger.authtest("Successfully connected with username_password")
                 return 0
             except Exception as username_password_error:
-                logger.debug(f"Failed to connect with UN & PW. Message from Tableau Server {username_password_error} \n"
-                             f"Attempting with token...")
+                logger.debug(
+                    f"Failed to connect with UN & PW. Message from Tableau Server {username_password_error} \n"
+                    f"Attempting with token..."
+                )
                 try:
                     self.connect_access_token()
                     logger.authtest("Successfully connected with Access Token")
@@ -57,9 +59,7 @@ class TableauClient(DataVisualization):
 
     def connect_username_password(self):
         logger.debug("Attempting to Tableau with username and password")
-        tableau_auth = tsc.TableauAuth(
-            self.username, self.password, site_id=self.site
-        )
+        tableau_auth = tsc.TableauAuth(self.username, self.password, site_id=self.site)
         server = tsc.Server(self.server_url, use_server_version=True)
         server.auth.sign_in(tableau_auth)
         logger.debug("Successfully connected to Tableau with username and password")
