@@ -1,17 +1,14 @@
-import snowflake.connector
-import pandas as pd
 import os
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
+
+import pandas as pd
+import snowflake.connector
 from shipyard_templates import Database, ExitCodeException, ShipyardLogger
-from snowflake.connector import pandas_tools as pt
+
 from shipyard_snowflake.utils import utils
 from shipyard_snowflake.utils.exceptions import (
-    SnowflakeToPandasError,
-    PandasToSnowflakeError,
-    SchemaInferenceError,
     PutError,
     CopyIntoError,
-    QueryExecutionError,
     DownloadError,
     CreateTableError,
 )
@@ -31,15 +28,15 @@ class SnowflakeClient(Database):
     EXIT_CODE_NON_EMPTY_TABLE = 108
 
     def __init__(
-        self,
-        username,
-        password,
-        database=None,
-        account=None,
-        warehouse=None,
-        schema=None,
-        rsa_key=None,
-        role=None,
+            self,
+            username,
+            password,
+            database=None,
+            account=None,
+            warehouse=None,
+            schema=None,
+            rsa_key=None,
+            role=None,
     ) -> None:
         self.username = username
         self.password = password
@@ -69,8 +66,8 @@ class SnowflakeClient(Database):
                 logger.warning(
                     "Private Key was provided in addition to Password. Using the Private Key to login"
                 )
-            private_key = utils._decode_rsa(self.rsa_key)
             try:
+                private_key = utils._decode_rsa(self.rsa_key)
                 if not self.application:
                     con = snowflake.connector.connect(
                         user=self.username,
@@ -97,7 +94,8 @@ class SnowflakeClient(Database):
                 return con
             except Exception as e:
                 raise ExitCodeException(
-                    message=f"Could not authenticate to Snowflake for user {self.username} with credentials in {self.rsa_key}",
+                    message=f"Could not authenticate to Snowflake for user {self.username} with credentials provided. "
+                            f"Error: {e}",
                     exit_code=self.EXIT_CODE_INVALID_CREDENTIALS,
                 )
         else:
@@ -134,10 +132,10 @@ class SnowflakeClient(Database):
                 )
 
     def upload(
-        self,
-        file_path: str,
-        table_name: str,
-        insert_method: str = "replace",
+            self,
+            file_path: str,
+            table_name: str,
+            insert_method: str = "replace",
     ):
         """Uploads a pandas dataframe to a snowflake table
 
@@ -217,9 +215,9 @@ class SnowflakeClient(Database):
             return results
 
     def put(
-        self,
-        file_path: str,
-        table_name: str,
+            self,
+            file_path: str,
+            table_name: str,
     ):
         """Executes a PUT command to load a file to internal staging. This is the fastest way to load a large file and should be followed by a copy into command
 
@@ -256,9 +254,9 @@ class SnowflakeClient(Database):
             )
 
     def _create_table_sql(
-        self,
-        table_name: str,
-        columns: Union[List[List[str]], Dict[str, str]],
+            self,
+            table_name: str,
+            columns: Union[List[List[str]], Dict[str, str]],
     ) -> str:
         """Returns the SQL for to create or replace a table in Snowflake
         Args:
