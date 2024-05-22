@@ -109,3 +109,5 @@ def main():
     if written_file_size == 0:
         logger.warning("File downloaded contained no data.")
         sys.exit(5)
+if __name__ == "__main__":
+    main()
