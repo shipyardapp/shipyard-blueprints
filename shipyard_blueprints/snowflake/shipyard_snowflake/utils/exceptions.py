@@ -1,4 +1,4 @@
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, Database
 
 
 # These are custom exceptions specific to shipyard-snowflake
@@ -56,3 +56,9 @@ class CreateTableError(ExitCodeException):
         super().__init__(message, exit_code)
         self.message = message
         self.exit_code = exit_code
+
+
+class RSAKeyDecodeError(ExitCodeException):
+    def __init__(self, message: str):
+        message = f"Error decoding RSA key: {message}"
+        super().__init__(message, Database.EXIT_CODE_INVALID_CREDENTIALS)

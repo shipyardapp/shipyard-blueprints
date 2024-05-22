@@ -1,3 +1,4 @@
+import io
 import os
 import re
 import stat
@@ -6,6 +7,7 @@ from typing import Optional
 import paramiko
 from shipyard_templates import CloudStorage, ExitCodeException
 from shipyard_templates.shipyard_logger import ShipyardLogger
+import shipyard_sftp.utils as utils
 
 from shipyard_sftp.exceptions import (
     UnknownException,
@@ -260,9 +262,16 @@ class SftpClient(CloudStorage):
                 logger.debug(
                     f"Connecting to {self.host} using key-based authentication"
                 )
+
                 ssh = paramiko.SSHClient()
                 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                key = paramiko.RSAKey.from_private_key_file(self.key)
+
+                if self.key.startswith("-----BEGIN"):
+                    logger.debug("Using key as string")
+                    key = paramiko.RSAKey.from_private_key(io.StringIO(utils.format_newlines(self.key)))
+                else:
+                    logger.debug("Using key as file")
+                    key = paramiko.RSAKey.from_private_key_file(self.key)
                 ssh.connect(
                     hostname=self.host, port=self.port, username=self.user, pkey=key
                 )

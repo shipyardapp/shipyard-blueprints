@@ -52,3 +52,15 @@ def tear_down(key_path: str, sftp):
         os.remove(key_path)
     with contextlib.suppress(Exception):
         sftp.close()
+
+
+def format_newlines(rsa_key: str) -> str:
+    """
+    Format newlines in the RSA key
+
+    Args:
+        rsa_key (str): The RSA key
+    Returns:
+        str: The formatted RSA key
+    """
+    return rsa_key.replace("\\n", "\n")
