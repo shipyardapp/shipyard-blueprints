@@ -66,22 +66,18 @@ def main():
         access_token=args.api_key, api_secret=args.api_secret
     )
     if (
-            not wait_for_completion
-            and int(os.environ.get("SHIPYARD_FLEET_DOWNSTREAM_COUNT")) > 0
+        not wait_for_completion
+        and int(os.environ.get("SHIPYARD_FLEET_DOWNSTREAM_COUNT")) > 0
     ):
         # This function is to support the legacy check status functionality
         create_pickle(args.connector_id)
     poke_interval = int(poke_interval) if poke_interval else 0
     if wait_for_completion:
         if 0 < poke_interval <= 60:
-            logger.info(
-                f"Setting poke interval to {poke_interval} minute(s)"
-            )
+            logger.info(f"Setting poke interval to {poke_interval} minute(s)")
             poke_interval = poke_interval
         else:
-            logger.error(
-                "Poke interval must be between 1 and 60 minutes"
-            )
+            logger.error("Poke interval must be between 1 and 60 minutes")
             sys.exit(fivetran_client.EXIT_CODE_SYNC_INVALID_POKE_INTERVAL)
     try:
         fivetran_client.trigger_sync(
