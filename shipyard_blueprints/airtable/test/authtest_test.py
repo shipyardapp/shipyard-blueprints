@@ -1,45 +1,40 @@
 import os
-import subprocess
 
 import pytest
-from dotenv import load_dotenv,find_dotenv
+from dotenv import load_dotenv, find_dotenv
+
+from shipyard_airtable.cli.authtest import main
+
+CREDENTIALS = ["AIRTABLE_API_KEY"]
+
+INVALID_INPUT = ["INVALID", 123, ""]
 
 
-def run_cli_command():
-    return subprocess.run(
-        ['python3', "shipyard_airtable/cli/authtest.py"],
-        capture_output=True,
-        text=True,
-    )
-
-
-# Function to load environment variables from .env file
-@pytest.fixture(autouse=True)
-def setup_env(monkeypatch):
-    if not load_dotenv(find_dotenv()):
-        pytest.skip("No .env file found")
-
-    credentials = ("AIRTABLE_API_KEY",)
-
-    if not all(os.getenv(credential) for credential in credentials):
-        pytest.skip("Missing required credentials in .env file")
-
-    for key in credentials:
-        monkeypatch.setenv(key, os.getenv(key))
+@pytest.fixture(scope="module", autouse=True)
+def get_env():
+    load_dotenv(find_dotenv())
+    if any(key not in os.environ for key in CREDENTIALS):
+        pytest.skip("Missing one or more required environment variables")
 
 
 def test_valid_credentials():
-    result = run_cli_command()
-    assert result.returncode == 0, "CLI should pass with valid credentials"
+    with pytest.raises(SystemExit) as exit_code:
+        main()
+    assert exit_code.value.code == 0
 
 
-def test_invalid_credential(monkeypatch):
-    monkeypatch.setenv("AIRTABLE_API_KEY", "invalid_token")
-    result = run_cli_command()
-    assert result.returncode != 0, f"CLI should fail with invalid credentials, got {result.returncode}"
+@pytest.mark.parametrize("credential", CREDENTIALS)
+@pytest.mark.parametrize("invalid_input", INVALID_INPUT)
+def test_invalid_credentials(credential, invalid_input, monkeypatch):
+    monkeypatch.setenv(credential, invalid_input)
+    with pytest.raises(SystemExit) as exit_code:
+        main()
+    assert exit_code.value.code == 1
 
 
-def test_missing_credentials(monkeypatch):
-    monkeypatch.delenv("AIRTABLE_API_KEY")
-    result = run_cli_command()
-    assert result.returncode != 0, f"CLI should fail with missing credentials, got {result.returncode}"
+@pytest.mark.parametrize("missing_env", CREDENTIALS)
+def test_missing_env(missing_env, monkeypatch):
+    monkeypatch.delenv(missing_env, raising=False)
+    with pytest.raises(SystemExit) as exit_code:
+        main()
+    assert exit_code.value.code == 1
