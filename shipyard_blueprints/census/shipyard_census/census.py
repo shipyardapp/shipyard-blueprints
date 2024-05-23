@@ -1,5 +1,7 @@
-from shipyard_templates import Etl, ExitCodeException
 from requests import request
+from shipyard_templates import Etl, ExitCodeException, ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 class CensusClient(Etl):
@@ -30,17 +32,17 @@ class CensusClient(Etl):
         """
         base_url = f"https://bearer:{self.access_token}@app.getcensus.com/api/v1/"
         url = base_url + endpoint
-        # self.logger.debug(f"Attempting to make request to {endpoint}")
+        # logger.debug(f"Attempting to make request to {endpoint}")
 
         try:
             response = request(method, url, headers=self.api_headers)
         except Exception as error:
-            self.logger.exception(f"Request to {url} failed")
+            logger.exception(f"Request to {url} failed")
             raise ExitCodeException(error, self.EXIT_CODE_UNKNOWN_ERROR) from error
 
         if response.ok:
             return response.json()
-        # self.logger.debug(f"Request failed with status code {response.status_code}")
+        # logger.debug(f"Request failed with status code {response.status_code}")
         if response.status_code == 401:
             raise ExitCodeException(response.text, self.EXIT_CODE_INVALID_CREDENTIALS)
         elif response.status_code == 404:
@@ -66,7 +68,7 @@ class CensusClient(Etl):
         try:
             response = self._request(f"sync_runs/{sync_run_id}")
         except ExitCodeException as error:
-            self.logger.exception(f"Check Sync Run {sync_run_id} failed")
+            logger.exception(f"Check Sync Run {sync_run_id} failed")
             raise ExitCodeException(error.message, error.exit_code) from error
         else:
             return response.get("data")
@@ -85,7 +87,7 @@ class CensusClient(Etl):
         sync_id = sync_run_data["sync_id"]
         sync_run_id = sync_run_data["id"]
         if status == "completed":
-            self.logger.info(
+            logger.info(
                 f"Sync run {sync_run_id} for {sync_id} completed successfully, Completed at: {sync_run_data['completed_at']}"
             )
         elif status == "failed":
@@ -97,8 +99,8 @@ class CensusClient(Etl):
             )
 
         elif status == "working":
-            self.logger.info(f"Sync run {sync_run_id} for {sync_id} still running.")
-            self.logger.info(
+            logger.info(f"Sync run {sync_run_id} for {sync_id} still running.")
+            logger.info(
                 f"Current records processed: {sync_run_data['records_processed']}"
             )
 
@@ -121,18 +123,18 @@ class CensusClient(Etl):
             response = self._request(f"/syncs/{sync_id}/trigger", method="POST")
 
         except ExitCodeException as error:
-            self.logger.error(f"Sync trigger request failed due to: {error}")
+            logger.error(f"Sync trigger request failed due to: {error}")
             raise ExitCodeException(error.message, error.exit_code) from error
         else:
             response_status = response.get("status")
             if response_status == "success":
-                self.logger.info("Successfully triggered sync")
+                logger.info("Successfully triggered sync")
             elif response_status == "error":
-                self.logger.error(
+                logger.error(
                     f"Encountered an error - Census says: {response['message']}"
                 )
             else:
-                self.logger.error(
+                logger.error(
                     f"An unknown error has occurred - API response: {response}"
                 )
             return response
@@ -147,13 +149,13 @@ class CensusClient(Etl):
         Raises:
             ExitCodeException: If the request fails or returns an error status code.
         """
-        self.logger.info("Verifying Access Token by getting Census Syncs")
+        logger.info("Verifying Access Token by getting Census Syncs")
 
         try:
             self._request("syncs")
         except ExitCodeException as error:
-            self.logger.error(f"Verification failed due to {error}")
+            logger.authtest(f"Verification failed due to {error}")
             return 1
         else:
-            self.logger.info("Successfully received a response from Census")
+            logger.authtest("Successfully received a response from Census")
             return 0
