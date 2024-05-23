@@ -1,6 +1,11 @@
 import argparse
 import sys
+
+from shipyard_templates import ShipyardLogger,ProjectManagement
+
 from shipyard_trello import TrelloClient
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -40,7 +45,7 @@ def main():
     try:
         trello.update_ticket(**update_card_args)
     except Exception as error:
-        trello.logger.error(error)
+        logger.error(error)
         sys.exit(1)
 
 

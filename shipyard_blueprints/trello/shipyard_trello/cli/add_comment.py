@@ -1,6 +1,11 @@
 import argparse
 import sys
+
+from shipyard_templates import ShipyardLogger,ProjectManagement
+
 from shipyard_trello import TrelloClient
+
+logger = ShipyardLogger.get_logger()
 
 
 def get_args():
@@ -22,12 +27,12 @@ def main():
     try:
         trello.add_comment(card_id=args.card_id, comment=args.comment)
     except Exception as error:
-        trello.logger.error(error)
+        logger.error(error)
         if error in (
-            "Request failed with status code 401: invalid key",
-            "Request failed with status code 401: invalid token",
+                "Request failed with status code 401: invalid key",
+                "Request failed with status code 401: invalid token",
         ):
-            sys.exit(trello.EXIT_CODE_INVALID_CREDENTIALS)
+            sys.exit(ProjectManagement.EXIT_CODE_INVALID_CREDENTIALS)
         else:
             sys.exit(1)
 

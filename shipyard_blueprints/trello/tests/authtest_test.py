@@ -1,30 +1,41 @@
 import os
-import unittest
-from shipyard_trello import TrelloClient
+import pytest
+from dotenv import load_dotenv, find_dotenv
+from shipyard_trello.cli.authtest import main
+
+CREDENTIALS = ["TRELLO_ACCESS_TOKEN","TRELLO_API_KEY"]
+
+INVALID_INPUT = ["INVALID", 123, ""]
 
 
-class TrelloClientConnectTestCase(unittest.TestCase):
-    def setUp(self):
-        self.access_token = os.getenv("TRELLO_ACCESS_TOKEN")
-        self.api_key = os.getenv("TRELLO_API_KEY")
-        self.client = TrelloClient(access_token=self.access_token, api_key=self.api_key)
+@pytest.fixture(scope="module", autouse=True)
+def get_env():
+    load_dotenv(find_dotenv())
+    if any(
+            key not in os.environ
+            for key in CREDENTIALS
+    ):
+        pytest.skip("Missing one or more required environment variables")
 
-    def test_connect_with_valid_credentials(self):
-        assert self.client.connect() == 0
 
-    def test_connect_with_invalid_access_token(self):
-        self.client.auth = {"key": self.api_key, "token": "invalid_token"}
-        assert self.client.connect() == 1
-        self.client.auth = {"key": self.api_key, "token": ""}
-        assert self.client.connect() == 1
+def test_valid_credentials():
+    with pytest.raises(SystemExit) as exit_code:
+        main()
+    assert exit_code.value.code == 0
 
-    def test_connect_with_invalid_api_key(self):
-        self.client.auth = {"key": "invalid_key", "token": self.access_token}
-        assert self.client.connect() == 1
-        self.client.auth = {"key": "", "token": self.access_token}
-        assert self.client.connect() == 1
 
-    def test_connect_with_swapped_credentials(self):
-        self.client.auth = {"key": self.access_token, "token": self.api_key}
+@pytest.mark.parametrize("credential", CREDENTIALS)
+@pytest.mark.parametrize("invalid_input", INVALID_INPUT)
+def test_invalid_credentials(credential, invalid_input, monkeypatch):
+    monkeypatch.setenv(credential, invalid_input)
+    with pytest.raises(SystemExit) as exit_code:
+        main()
+    assert exit_code.value.code == 1
 
-        assert self.client.connect() == 1
+
+@pytest.mark.parametrize("missing_env", CREDENTIALS)
+def test_missing_env(missing_env, monkeypatch):
+    monkeypatch.delenv(missing_env, raising=False)
+    with pytest.raises(SystemExit) as exit_code:
+        main()
+    assert exit_code.value.code == 1

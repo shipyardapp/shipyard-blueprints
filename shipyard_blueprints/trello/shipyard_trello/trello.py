@@ -1,9 +1,11 @@
 import json
+from logging import INFO, DEBUG
 from typing import Optional
 
-from shipyard_templates import ProjectManagement
-from logging import INFO, DEBUG
 from requests import request
+from shipyard_templates import ProjectManagement, ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 
 class TicketNotFound(Exception):
@@ -12,12 +14,12 @@ class TicketNotFound(Exception):
 
 class TrelloClient(ProjectManagement):
     def __init__(
-        self, access_token: str, api_key: str, verbose=False, **kwargs
+            self, access_token: str, api_key: str, verbose=False, **kwargs
     ) -> None:
         super().__init__(access_token, **kwargs)
-        self.logger.setLevel(DEBUG if verbose else INFO)
+        logger.setLevel(DEBUG if verbose else INFO)
 
-        self.logger.info("Establishing Trello Client...")
+        logger.info("Establishing Trello Client...")
         self.base_url = "https://api.trello.com/1/"
         self.auth = {"key": api_key, "token": access_token}
 
@@ -32,7 +34,7 @@ class TrelloClient(ProjectManagement):
         """
         if payload is None:
             payload = {}
-        self.logger.debug(
+        logger.debug(
             f"Requesting {method} {endpoint} with an additional payload of {payload}"
         )
         payload |= self.auth
@@ -44,16 +46,16 @@ class TrelloClient(ProjectManagement):
             headers={"Content-Type": "application/json", "Accept": "application/json"},
         )
 
-        self.logger.debug(
+        logger.debug(
             f"Response: {response.status_code}: {response.content.decode()}"
         )
 
         if not response.ok:
             response_content = response.content.decode()
             if (
-                endpoint.startswith("cards/")
-                and response.status_code == 400
-                and response_content == "invalid id"
+                    endpoint.startswith("cards/")
+                    and response.status_code == 400
+                    and response_content == "invalid id"
             ):
                 raise TicketNotFound(f"Ticket not found: {response_content}")
             raise Exception(
@@ -63,15 +65,14 @@ class TrelloClient(ProjectManagement):
             return response_details
 
     def connect(self):
-        self.logger.info("Confirming connection to Trello...")
-
+        logger.info("Confirming connection to Trello...")
         try:
             self._request("members/me")
         except Exception as e:
-            self.logger.error(f"Connection failed: {e}")
+            logger.error(f"Connection failed: {e}")
             return 1
         else:
-            self.logger.info("Connection successful!")
+            logger.info("Connection successful!")
             return 0
 
     def get_ticket(self, card_id: str) -> dict:
@@ -81,24 +82,24 @@ class TrelloClient(ProjectManagement):
         :param card_id: The ID of the Trello card
         :return: The details of the Trello card
         """
-        self.logger.info(f"Attempting to retrieve card {card_id}...")
+        logger.info(f"Attempting to retrieve card {card_id}...")
         try:
             response = self._request(endpoint=f"cards/{card_id}", method="GET")
         except TicketNotFound as e:
-            self.logger.error(f"Card {card_id} not found!")
+            logger.error(f"Card {card_id} not found!")
             raise TicketNotFound from e
         else:
-            self.logger.info(f"Card {card_id} retrieved successfully!")
+            logger.info(f"Card {card_id} retrieved successfully!")
             return response
 
     def create_ticket(
-        self,
-        board_id: str,
-        list_name: str,
-        card_name: str = None,
-        description: str = None,
-        due_date: str = None,
-        **kwargs,
+            self,
+            board_id: str,
+            list_name: str,
+            card_name: str = None,
+            description: str = None,
+            due_date: str = None,
+            **kwargs,
     ) -> dict:
         """
         Creates a Trello card on a specific board and list.
@@ -112,7 +113,7 @@ class TrelloClient(ProjectManagement):
         :return: The details of the Trello card
         """
 
-        self.logger.info(
+        logger.info(
             f"Attempting to create card {card_name} on board {board_id}..."
         )
         try:
@@ -129,21 +130,21 @@ class TrelloClient(ProjectManagement):
                 },
             )
         except Exception as e:
-            self.logger.error(f"Failed to create card {card_name} on board {board_id}!")
+            logger.error(f"Failed to create card {card_name} on board {board_id}!")
             raise e
         else:
-            self.logger.info(f"Card {card_name} created successfully!")
+            logger.info(f"Card {card_name} created successfully!")
             return response
 
     def update_ticket(
-        self,
-        card_id: str,
-        board_id: str = None,
-        list_name: str = None,
-        card_name: str = None,
-        description: str = None,
-        due_date: str = None,
-        **kwargs,
+            self,
+            card_id: str,
+            board_id: str = None,
+            list_name: str = None,
+            card_name: str = None,
+            description: str = None,
+            due_date: str = None,
+            **kwargs,
     ) -> dict:
         """
         Updates a Trello card on a specific board and list.
@@ -157,7 +158,7 @@ class TrelloClient(ProjectManagement):
         :param kwargs: Additional arguments to pass to the Trello API
         :return: The details of the Trello card
         """
-        self.logger.info(f"Attempting to update card {card_id}...")
+        logger.info(f"Attempting to update card {card_id}...")
 
         if list_name and board_id:
             list_id = self.get_list_by_name(list_name, board_id)["id"]
@@ -181,10 +182,10 @@ class TrelloClient(ProjectManagement):
                 endpoint=f"cards/{card_id}", method="PUT", payload=data
             )
         except Exception as e:
-            self.logger.error(f"Failed to update card {card_id}!")
+            logger.error(f"Failed to update card {card_id}!")
             raise e
         else:
-            self.logger.info(f"Card {card_id} updated successfully!")
+            logger.info(f"Card {card_id} updated successfully!")
             return response
 
     def add_comment(self, card_id: str, comment: str) -> dict:
@@ -195,7 +196,7 @@ class TrelloClient(ProjectManagement):
         :param comment: The comment to add to the Trello card
         :return: The details of the Trello card
         """
-        self.logger.info(f"Attempting to add comment to card {card_id}...")
+        logger.info(f"Attempting to add comment to card {card_id}...")
         try:
             response = self._request(
                 endpoint=f"cards/{card_id}/actions/comments",
@@ -203,13 +204,13 @@ class TrelloClient(ProjectManagement):
                 payload={"text": comment},
             )
         except TicketNotFound as e:
-            self.logger.error(f"Card {card_id} not found!")
+            logger.error(f"Card {card_id} not found!")
             raise TicketNotFound from e
         except Exception as e:
-            self.logger.error(f"Failed to add comment to card {card_id}!")
+            logger.error(f"Failed to add comment to card {card_id}!")
             raise e
         else:
-            self.logger.info(f"Comment added to card {card_id} successfully!")
+            logger.info(f"Comment added to card {card_id} successfully!")
             return response
 
     def get_lists(self, board_id: str) -> dict:
@@ -219,14 +220,14 @@ class TrelloClient(ProjectManagement):
         :param board_id: The ID of the Trello board
         :return: The details of the Trello board
         """
-        self.logger.info(f"Attempting to retrieve lists from board {board_id}...")
+        logger.info(f"Attempting to retrieve lists from board {board_id}...")
         try:
             response = self._request(endpoint=f"boards/{board_id}/lists", method="GET")
         except Exception as e:
-            self.logger.error(f"Failed to retrieve lists from board {board_id}!")
+            logger.error(f"Failed to retrieve lists from board {board_id}!")
             raise e
         else:
-            self.logger.info("Lists retrieved successfully!")
+            logger.info("Lists retrieved successfully!")
             return response
 
     def get_list_by_name(self, list_name: str, board_id: str) -> Optional[dict]:
@@ -237,22 +238,22 @@ class TrelloClient(ProjectManagement):
         :param board_id: The ID of the Trello board
         :return: The details of the Trello list
         """
-        self.logger.info(
+        logger.info(
             f"Attempting to retrieve list {list_name} from board {board_id}..."
         )
         try:
             board_lists = self.get_lists(board_id)
         except Exception as e:
-            self.logger.error(
+            logger.error(
                 f"Failed to retrieve list {list_name} from board {board_id}!"
             )
             raise e
         else:
             for board_list in board_lists:
                 if board_list["name"] == list_name:
-                    self.logger.info(f"List {list_name} retrieved successfully!")
+                    logger.info(f"List {list_name} retrieved successfully!")
                     return board_list
-            self.logger.error(
+            logger.error(
                 f"List {list_name} not found! Please check spelling and try again."
             )
             raise Exception(
