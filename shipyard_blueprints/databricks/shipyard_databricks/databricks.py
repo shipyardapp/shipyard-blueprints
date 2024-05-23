@@ -9,7 +9,6 @@ class DatabricksClient(CloudStorage):
         self.instance_url = instance_url
         self.base_url = f"https://{self.instance_url}/api/2.0"
         self.headers = {"Authorization": f"Bearer {self.access_token}"}
-        super().__init__(access_token=access_token, instance_url=instance_url)
 
     def connect(self):
         client = WorkspaceClient(host=self.base_url, token=self.access_token)
