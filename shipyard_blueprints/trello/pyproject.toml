@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-trello"
-version = "0.1.1"
+version = "0.1.2a0"
 description = "A local client for connecting a working with Trello."
 authors = ["JR <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"
@@ -9,11 +9,12 @@ packages = [{ include = "shipyard_trello" }]
 [tool.poetry.dependencies]
 python = "^3.9"
 requests = "^2.31.0"
-shipyard-templates = "0.1.4"
+shipyard-templates = "^0.8.2"
 
-#[tool.poetry.group.dev.dependencies]
-#shipyard-templates = { path = "../../shipyard-templates", develop = true }
-#shipyard-bp-utils = { path = "../shipyard-bp-utils", develop = true }
+
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.1"
 
 [build-system]
 requires = ["poetry-core"]
