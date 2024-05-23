@@ -14,6 +14,9 @@ shipyard-bp-utils = "^1.2.1"
 shipyard-templates = "^0.8.2"
 
 
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.1"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

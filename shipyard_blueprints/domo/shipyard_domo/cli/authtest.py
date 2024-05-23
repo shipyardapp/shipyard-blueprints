@@ -9,7 +9,7 @@ logger = ShipyardLogger.get_logger()
 
 def main():
     try:
-        client = DomoClient(
+        DomoClient(
             client_id=os.getenv("DOMO_CLIENT_ID"),
             secret_key=os.getenv("DOMO_SECRET_KEY"),
             access_token=os.getenv("DOMO_ACCESS_TOKEN"),
@@ -19,7 +19,7 @@ def main():
         logger.error(ec.message)
         sys.exit(1)
     else:
-        logger.info("Sucessfully connected")
+        logger.info("Successfully connected")
         sys.exit(0)
 
 

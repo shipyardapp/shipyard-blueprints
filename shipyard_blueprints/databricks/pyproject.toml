@@ -8,14 +8,16 @@ readme = "README.md"
 packages = [{include = "shipyard_databricks"}]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.10"
+python = "^3.9"
 databricks-cli = "^0.17.6"
 databricks-sdk = "^0.2.1"
-shipyard-templates = "0.5.0a0"
+#shipyard-templates = "0.5.0a0"
 shipyard-utils = "^0.1.4"
+shipyard-templates = "^0.8.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
+python-dotenv = "^1.0.1"
 
 [build-system]
 requires = ["poetry-core"]
