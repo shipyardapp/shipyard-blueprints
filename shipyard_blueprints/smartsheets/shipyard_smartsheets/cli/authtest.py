@@ -1,25 +1,13 @@
 import os
-import requests
-import logging
 import sys
 
+import requests
+from shipyard_templates import ShipyardLogger
 
-def get_logger():
-    logger = logging.getLogger("Shipyard")
-    logger.setLevel(logging.DEBUG)
-    # Add handler for stderr
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-    # add specific format
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s -%(lineno)d: %(message)s"
-    )
-    console.setFormatter(formatter)
-    logger.addHandler(console)
-    return logger
+logger = ShipyardLogger.get_logger()
 
 
-def connect(logger: logging.Logger, token: str):
+def connect(token: str):
     url = "https://api.smartsheet.com/2.0/users/me"
     headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
     response = requests.get(url, headers=headers)
@@ -32,8 +20,7 @@ def connect(logger: logging.Logger, token: str):
 
 
 def main():
-    logger = get_logger()
-    sys.exit(connect(logger, token=os.getenv("SMARTSHEET_ACCESS_TOKEN")))
+    sys.exit(connect(token=os.getenv("SMARTSHEET_ACCESS_TOKEN")))
 
 
 if __name__ == "__main__":
