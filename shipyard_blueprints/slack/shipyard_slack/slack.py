@@ -1,9 +1,12 @@
-from typing import Any, Optional, Dict
-from slack_sdk import WebClient
-from slack_sdk.web import SlackResponse
-from slack_sdk.errors import SlackApiError
-from shipyard_slack.slack_utils import _create_blocks
+from typing import Optional, Dict
+
 from shipyard_templates import Messaging, ShipyardLogger, ExitCodeException
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
+from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
+from slack_sdk.web import SlackResponse
+
+from shipyard_slack.slack_utils import _create_blocks
 
 logger = ShipyardLogger().get_logger()
 
@@ -28,6 +31,9 @@ class SlackClient(Messaging):
         """
         self.slack_token = slack_token
         self.web_client = WebClient(token=self.slack_token, timeout=self.TIMEOUT)
+
+        rate_limit_handler = RateLimitErrorRetryHandler(max_retry_count=1)
+        self.web_client.retry_handlers.append(rate_limit_handler)
 
     def _handle_slack_error(self, slack_error: SlackApiError) -> None:
         """
@@ -84,7 +90,7 @@ class SlackClient(Messaging):
             return 0
 
     def send_message(
-        self, message: str, channel_name: str, download_link: str = ""
+            self, message: str, channel_name: str, download_link: str = ""
     ) -> SlackResponse:
         """
         Sends a message to a specified Slack channel.
@@ -220,7 +226,7 @@ class SlackClient(Messaging):
             self._handle_slack_error(e)
 
     def update_message(
-        self, message: str, channel_id: str, timestamp: str, download_link: str = ""
+            self, message: str, channel_id: str, timestamp: str, download_link: str = ""
     ) -> SlackResponse:
         """
         Updates a previously sent Slack message.
@@ -252,7 +258,7 @@ class SlackClient(Messaging):
             self._handle_slack_error(e)
 
     def upload_file(
-        self, filename: str, channels: str, thread_ts: Optional[str] = None
+            self, filename: str, channels: str, thread_ts: Optional[str] = None
     ) -> SlackResponse:
         """
         Uploads a file to a Slack channel, optionally in a thread.
@@ -267,11 +273,11 @@ class SlackClient(Messaging):
         """
         logger.debug(f"Attempting to upload file {filename} to Slack...")
         try:
+            message_args = {"file": filename, "channels": channels}
             if thread_ts:
-                return self.web_client.files_upload(
-                    file=filename, channels=channels, thread_ts=thread_ts
-                )
-            else:
-                return self.web_client.files_upload(file=filename, channels=channels)
+                message_args[thread_ts] = thread_ts
+            logger.debug(f"Uploading file to channel(s) {channels}")
+            return self.web_client.files_upload_v2(**message_args)
+
         except SlackApiError as e:
             self._handle_slack_error(e)
