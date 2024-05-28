@@ -15,7 +15,6 @@ slack-sdk = "^3.26.2"
 python-dotenv = "^1.0.1"
 shipyard-bp-utils = "^1.0.2"
 shipyard-templates = "^0.6.2"
-requests = "^2.32.2"
 
 [tool.poetry.group.dev.dependencies]
 python-dotenv = "^1.0.1"
