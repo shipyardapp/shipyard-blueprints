@@ -82,20 +82,25 @@ def login(
 
 
 def get_workbook_id(
-    workbook_name: str, auth_token: str, site_id: str, server_url: str, user_id: str
+    workbook_name: str,
+    auth_token: str,
+    site_id: str,
+    server_url: str,
+    project_name: str,
 ):
     try:
-        workbooks_url = (
-            f"{server_url}/api/3.22/sites/{site_id}/users/{user_id}/workbooks"
-        )
+        # workbooks_url = (
+        #     f"{server_url}/api/3.22/sites/{site_id}/users/{user_id}/workbooks"
+        # )
+        workbooks_url = f"{server_url}/api/3.22/sites/{site_id}/workbooks"
         headers = {"X-Tableau-Auth": auth_token, "Accept": "application/json"}
-        print(f"Workbooks URL: {workbooks_url}")
-        print(f"Headers: {headers}")
         response = requests.get(workbooks_url, headers=headers)
-        print(response.text)
         response.raise_for_status()
         workbook_data = response.json()["workbooks"]["workbook"]
-        for workbook in workbook_data:
+        projects = list(
+            filter(lambda x: x["project"]["name"] == project_name, workbook_data)
+        )
+        for workbook in projects:
             if workbook["name"] == workbook_name:
                 return workbook["id"]
     except Exception as e:
@@ -103,7 +108,20 @@ def get_workbook_id(
 
 
 def refresh_workbook(workbook_id: str, auth_token: str, site_id: str, server_url: str):
-    pass
+    try:
+        workbook_url = (
+            f"{server_url}/api/3.22/sites/{site_id}/workbooks/{workbook_id}/refresh"
+        )
+        headers = {
+            "X-Tableau-Auth": auth_token,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        }
+        response = requests.post(workbook_url, headers=headers, json={})
+        print(response.text)
+        response.raise_for_status()
+    except Exception as e:
+        print(f"Error refreshing workbook: {e}")
 
 
 def get_datasource_id(
@@ -137,7 +155,6 @@ def refresh_datasource(
         datasource_url = (
             f"{server_url}/api/3.22/sites/{site_id}/datasources/{datasource_id}/refresh"
         )
-        print(datasource_url)
         headers = {
             "X-Tableau-Auth": auth_token,
             "Accept": "application/json",
@@ -164,21 +181,34 @@ def main():
     auth_token, site_id, user_id = login(
         server_url, username, client_id, secret_id, secret_value, site_path
     )
-    # workbook_id = get_workbook_id(workbook_name= workbook_name, auth_token = auth_token, site_id = site_id, server_url = server_url, user_id = user_id)
-    print("Fetching datasource ID")
-    datasource_id = get_datasource_id(
-        datasource_name=datasource_name,
+    workbook_id = get_workbook_id(
+        workbook_name=workbook_name,
+        auth_token=auth_token,
+        site_id=site_id,
+        server_url=server_url,
         project_name=project_name,
+    )
+    print(f"Workboko ID: {workbook_id}")
+    refresh_workbook(
+        workbook_id=workbook_id,
         auth_token=auth_token,
         site_id=site_id,
         server_url=server_url,
     )
-    refresh_datasource(
-        datasource_id=datasource_id,
-        auth_token=auth_token,
-        site_id=site_id,
-        server_url=server_url,
-    )
+    # print("Fetching datasource ID")
+    # datasource_id = get_datasource_id(
+    #     datasource_name=datasource_name,
+    #     project_name=project_name,
+    #     auth_token=auth_token,
+    #     site_id=site_id,
+    #     server_url=server_url,
+    # )
+    # refresh_datasource(
+    #     datasource_id=datasource_id,
+    #     auth_token=auth_token,
+    #     site_id=site_id,
+    #     server_url=server_url,
+    # )
 
     # username = 'bpuser@shipyardapp.com'
     # client_id = '64e02eb1-e5e9-4b53-afbc-4d5df8b0c3d5'
