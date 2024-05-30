@@ -52,7 +52,9 @@ def get_args():
 
 def execute_request(method, url, headers=None, message=None, params=None):
     try:
-        request = requests.request(method, url, headers=headers, data=message, params=params)
+        request = requests.request(
+            method, url, headers=headers, data=message, params=params
+        )
     except requests.exceptions.HTTPError as eh:
         logger.error("URL returned an HTTP Error.\n", eh)
         sys.exit(1)
@@ -94,7 +96,9 @@ def main():
     print_response = shipyard_utils.args.convert_to_boolean(args.print_response)
     artifact = Artifact("httprequest")
 
-    destination_folder_name = shipyard_utils.files.clean_folder_name(args.destination_folder_name)
+    destination_folder_name = shipyard_utils.files.clean_folder_name(
+        args.destination_folder_name
+    )
     if destination_folder_name:
         shipyard_utils.files.create_folder_if_dne(destination_folder_name)
 
@@ -105,7 +109,9 @@ def main():
     request = execute_request(method, url, headers, message)
     write_response_to_file(request, destination_name)
 
-    logger.info(f"Successfully sent request {url} and stored response to {destination_name}.")
+    logger.info(
+        f"Successfully sent request {url} and stored response to {destination_name}."
+    )
 
     artifact_filename = f"{method.lower()}_{url_hash}"
     artifact.responses.write_json(f"{artifact_filename}", request.text)

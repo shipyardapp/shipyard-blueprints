@@ -9,12 +9,25 @@ def run_script(args):
 
 
 # Test cases for different HTTP methods
-@pytest.mark.parametrize("method, url, message, content_type", [
-    ("GET", "https://httpbin.org/get", None, None),
-    ("POST", "https://httpbin.org/post", '{"name": "John", "age": 30}', "application/json"),
-    ("PUT", "https://httpbin.org/put", '{"name": "Jane", "age": 25}', "application/json"),
-    ("PATCH", "https://httpbin.org/patch", '{"name": "Alice"}', "application/json"),
-])
+@pytest.mark.parametrize(
+    "method, url, message, content_type",
+    [
+        ("GET", "https://httpbin.org/get", None, None),
+        (
+            "POST",
+            "https://httpbin.org/post",
+            '{"name": "John", "age": 30}',
+            "application/json",
+        ),
+        (
+            "PUT",
+            "https://httpbin.org/put",
+            '{"name": "Jane", "age": 25}',
+            "application/json",
+        ),
+        ("PATCH", "https://httpbin.org/patch", '{"name": "Alice"}', "application/json"),
+    ],
+)
 def test_http_methods(method, url, message, content_type):
     args = ["--method", method, "--url", url, "--print-response", "TRUE"]
     if message:
@@ -24,5 +37,6 @@ def test_http_methods(method, url, message, content_type):
 
     result = run_script(args)
 
-    assert result.returncode == 0, f"Script exited with {result.returncode}, stderr: {result.stderr}"
-
+    assert (
+        result.returncode == 0
+    ), f"Script exited with {result.returncode}, stderr: {result.stderr}"

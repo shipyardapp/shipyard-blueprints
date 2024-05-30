@@ -91,11 +91,14 @@ def main():
         authentication_headers = json.loads(args.authentication_headers)
     destination_file_name = args.destination_file_name or extract_filename_from_url(url)
     destination_folder_name = shipyard.clean_folder_name(args.destination_folder_name)
-    destination_name = shipyard.combine_folder_and_file_name(destination_folder_name, destination_file_name)
+    destination_name = shipyard.combine_folder_and_file_name(
+        destination_folder_name, destination_file_name
+    )
     headers = {}
     params = {}
 
-    shipyard.create_folder_if_dne(destination_folder_name)
+    if destination_folder_name:
+        shipyard.create_folder_if_dne(destination_folder_name)
     if custom_headers:
         for key, value in custom_headers.items():
             headers = add_to_headers(headers, key, value)
@@ -105,7 +108,9 @@ def main():
 
     download_file(url, destination_name, headers, params)
     written_file_size = os.path.getsize(destination_name)
-    logger.info(f"The downloaded file contained {written_file_size / 1000000}MB of data.")
+    logger.info(
+        f"The downloaded file contained {written_file_size / 1000000}MB of data."
+    )
     if written_file_size == 0:
         logger.warning("File downloaded contained no data.")
         sys.exit(5)
