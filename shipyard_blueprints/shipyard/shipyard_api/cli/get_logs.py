@@ -23,13 +23,12 @@ def get_args():
 def main():
     try:
         args = get_args()
-
         folder_name = args.folder_name
         if folder_name:
             utils.files.create_folder_if_dne(folder_name)
         target_path = utils.files.combine_folder_and_file_name(folder_name, args.file_name)
 
-        shipyard = ShipyardClient(org_id=args.org_id, api_key=args.api_key).export_voyages(target_path)
+        shipyard = ShipyardClient(org_id=args.org_id, api_key=args.api_key)
         shipyard.export_voyages(target_path, num_of_days=args.days)
 
         logger.info(f"Successfully exported fleet runs to {target_path}")

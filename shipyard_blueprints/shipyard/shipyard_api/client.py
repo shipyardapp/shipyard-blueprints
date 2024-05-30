@@ -25,8 +25,7 @@ class ShipyardClient:
     def __init__(self, org_id: str, api_key: str, project_id: Optional[str] = None):
         self.org_id = org_id
         self.api_key = api_key
-        # self.base_url = f"https://api.app.shipyardapp.com/orgs/{org_id}"
-        self.base_url = f"https://api.staging.shipyardapp.io/orgs/{org_id}"
+        self.base_url = f"https://api.app.shipyardapp.com/orgs/{org_id}"
         self.headers = {"X-Shipyard-API-Key": self.api_key}
         self.project_id = project_id
 
