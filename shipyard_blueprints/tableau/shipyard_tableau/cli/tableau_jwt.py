@@ -167,92 +167,55 @@ def refresh_datasource(
 
 
 def main():
-    args = get_args()
-    username = args.username
-    client_id = args.client_id
-    secret_id = args.client_secret
-    secret_value = args.secret_value
-    site_path = args.site_id
-    server_url = args.server_url
-    workbook_name = args.workbook_name
-    datasource_name = args.datasource_name
-    project_name = args.project_name
+    try:
+        args = get_args()
+        username = args.username
+        client_id = args.client_id
+        secret_id = args.client_secret
+        secret_value = args.secret_value
+        site_path = args.site_id
+        server_url = args.server_url
+        workbook_name = args.workbook_name
+        datasource_name = args.datasource_name
+        project_name = args.project_name
 
-    auth_token, site_id, user_id = login(
-        server_url, username, client_id, secret_id, secret_value, site_path
-    )
-    workbook_id = get_workbook_id(
-        workbook_name=workbook_name,
-        auth_token=auth_token,
-        site_id=site_id,
-        server_url=server_url,
-        project_name=project_name,
-    )
-    print(f"Workboko ID: {workbook_id}")
-    refresh_workbook(
-        workbook_id=workbook_id,
-        auth_token=auth_token,
-        site_id=site_id,
-        server_url=server_url,
-    )
-    # print("Fetching datasource ID")
-    # datasource_id = get_datasource_id(
-    #     datasource_name=datasource_name,
-    #     project_name=project_name,
-    #     auth_token=auth_token,
-    #     site_id=site_id,
-    #     server_url=server_url,
-    # )
-    # refresh_datasource(
-    #     datasource_id=datasource_id,
-    #     auth_token=auth_token,
-    #     site_id=site_id,
-    #     server_url=server_url,
-    # )
-
-    # username = 'bpuser@shipyardapp.com'
-    # client_id = '64e02eb1-e5e9-4b53-afbc-4d5df8b0c3d5'
-    # secret_id = 'bf5ab835-ba84-4b08-a2e2-6c1f8e91fb07'
-    # secret_value = '+x6tDYTP1n4Tr0ENfBaJsMj7519BYRcqKOoHxzq5bts='
-
-    # token = jwt.encode(
-    #         {
-    #             'iss': client_id,
-    #             "exp":  datetime.datetime.utcnow() + datetime.timedelta(minutes = 5),
-    #             "jti": str(uuid.uuid4()),
-    #             "aud": "tableau",
-    #             "sub": username,
-    #             # "scp": ["tableau:views:read", "tableau:workbooks:read", "tableau:datasources:read"],
-    #             },
-    #             secret_value,
-    #             algorithm = 'HS256',
-    #             headers = {
-    #                 'kid': secret_id,
-    #                 'iss': client_id,
-    #                 }
-    #     )
-    #
-    # # site_path = 'shipyarddevelopmentdev664002'
-    # payload = f"""
-    #         <tsRequest>
-    #             <credentials jwt="{token}">
-    #                 <site contentUrl="{site_path}" />
-    #             </credentials>
-    #         </tsRequest>
-    #         """
-    # headers = {
-    #   'Content-Type': 'application/xml'
-    # }
-    #
-    # response = requests.request("POST", url, headers=headers, data=payload)
-    # if response.ok:
-    #     print("Successfully logged in")
-    #     auth_token = response.json()['credentials']['token']
-    #     site_id = response.json()['credentials']['site']['id']
-    #     user_id = response.json()['credentials']['user']['id']
-    # else:
-    #     print(response.status_code)
-    #     print(response.text)
+        auth_token, site_id, user_id = login(
+            server_url, username, client_id, secret_id, secret_value, site_path
+        )
+        if workbook_name:
+            workbook_id = get_workbook_id(
+                workbook_name=workbook_name,
+                auth_token=auth_token,
+                site_id=site_id,
+                server_url=server_url,
+                project_name=project_name,
+            )
+            refresh_workbook(
+                workbook_id=workbook_id,
+                auth_token=auth_token,
+                site_id=site_id,
+                server_url=server_url,
+            )
+        elif datasource_name:
+            datasource_id = get_datasource_id(
+                datasource_name=datasource_name,
+                project_name=project_name,
+                auth_token=auth_token,
+                site_id=site_id,
+                server_url=server_url,
+            )
+            refresh_datasource(
+                datasource_id=datasource_id,
+                auth_token=auth_token,
+                site_id=site_id,
+                server_url=server_url,
+            )
+        else:
+            print("Workbook or Datasource name is required")
+            sys.exit(1)
+    except Exception as e:
+        print(f"Error trying to refresh resource: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
