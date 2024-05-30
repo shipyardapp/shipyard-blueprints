@@ -30,11 +30,11 @@ class ShipyardClient:
         self.project_id = project_id
 
     def _request(
-            self,
-            method: str,
-            url: str,
-            data: Optional[Dict[str, Any]] = None,
-            headers: Optional[Dict[str, Any]] = None,
+        self,
+        method: str,
+        url: str,
+        data: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, Any]] = None,
     ):
         """
         A helper method to make requests to the Shipyard API.
@@ -105,7 +105,7 @@ class ShipyardClient:
             return response.json()
 
     def export_fleet_runs(
-            self, fleet_id: str, target_path: str, file_type: str = "csv"
+        self, fleet_id: str, target_path: str, file_type: str = "csv"
     ):
         """
         Export fleet runs to a file.

@@ -16,7 +16,7 @@ def get_args():
     parser.add_argument("--api-key", dest="api_key", required=True)
     parser.add_argument("--file-name", dest="file_name", required=True)
     parser.add_argument("--folder-name", dest="folder_name", required=False, default="")
-    parser.add_argument("--days", dest="days", required=False, )
+    parser.add_argument("--days", dest="days", required=False)
     return parser.parse_args()
 
 
@@ -26,7 +26,9 @@ def main():
         folder_name = args.folder_name
         if folder_name:
             utils.files.create_folder_if_dne(folder_name)
-        target_path = utils.files.combine_folder_and_file_name(folder_name, args.file_name)
+        target_path = utils.files.combine_folder_and_file_name(
+            folder_name, args.file_name
+        )
 
         shipyard = ShipyardClient(org_id=args.org_id, api_key=args.api_key)
         shipyard.export_voyages(target_path, num_of_days=args.days)
