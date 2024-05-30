@@ -89,9 +89,6 @@ def get_workbook_id(
     project_name: str,
 ):
     try:
-        # workbooks_url = (
-        #     f"{server_url}/api/3.22/sites/{site_id}/users/{user_id}/workbooks"
-        # )
         workbooks_url = f"{server_url}/api/3.22/sites/{site_id}/workbooks"
         headers = {"X-Tableau-Auth": auth_token, "Accept": "application/json"}
         response = requests.get(workbooks_url, headers=headers)
