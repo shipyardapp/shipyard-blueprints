@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-slack"
-version = "0.1.4"
+version = "0.1.5"
 description = "A local client for connecting and working with Slack"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"

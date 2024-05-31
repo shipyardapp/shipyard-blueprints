@@ -97,8 +97,9 @@ def send_slack_message_with_file(
     logger.debug(f"Attempting to send message with file to {channel}...")
     if not include_in_thread:
         logger.debug("Sending message without file in thread...")
-        slack_client.send_message(message, channel)
-        return slack_client.upload_file(file, channel)
+        response = slack_client.send_message(message, channel)
+
+        return slack_client.upload_file(file, response["channel"])
 
     logger.debug("Sending message with file in thread...")
     message_with_file_status = message + "\n\n _(File is currently uploading...)_"
