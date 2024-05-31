@@ -140,9 +140,12 @@ class ShipyardClient:
         except Exception as e:
             logger.error(f"Error exporting fleet runs: {e}")
 
-    def get_voyages(self):
+    def get_voyages(self, num_of_days: int = None):
         """
         Retrieves the voyages from the shipyard API.
+
+        Args:
+            num_of_days (int): The number of days to retrieve the voyages for.
 
         Returns:
             str: The response text from the API.
@@ -152,6 +155,9 @@ class ShipyardClient:
             UnauthorizedAccess: If the API returns a 401 status code.
         """
         url = f"{self.base_url}/voyages"
+        if num_of_days:
+            url += f"?days={num_of_days}"
+
         try:
             response = requests.get(url, headers=self.headers)
             logger.debug(f"Status code for fleet runs {response.status_code}")
@@ -168,19 +174,20 @@ class ShipyardClient:
         else:
             return response.text
 
-    def export_voyages(self, target_path: str):
+    def export_voyages(self, target_path: str, num_of_days: int = None):
         """
         Export voyages data to a file.
 
         Args:
             target_path (str): The path of the file to export the voyages data to.
+            num_of_days (int): The number of days to retrieve the voyages for.
 
         Raises:
             ExitCodeException: If an error occurs during the export process.
 
         """
         try:
-            data = self.get_voyages()
+            data = self.get_voyages(num_of_days)
             with open(target_path, "w") as f:
                 f.write(data)
                 logger.debug("Successfully exported voyages")
