@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-tableau"
-version = "0.2.4a0"
+version = "0.3.0a0"
 
 description = "A local client for connecting and working with Tableau"
 authors = ["wrp801 <wespoulsen@gmail.com>"]

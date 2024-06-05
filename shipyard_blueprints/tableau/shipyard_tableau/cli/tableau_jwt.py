@@ -4,7 +4,6 @@ import requests
 import jwt
 import datetime
 import uuid
-import xml.etree.ElementTree as ET
 
 
 def get_args():
