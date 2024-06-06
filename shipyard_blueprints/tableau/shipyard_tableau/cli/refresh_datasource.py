@@ -11,6 +11,7 @@ from shipyard_tableau.errors import (
     EXIT_CODE_FINAL_STATUS_CANCELLED,
 )
 
+
 logger = ShipyardLogger.get_logger()
 
 
@@ -44,8 +45,7 @@ def get_args():
         choices={"username_password", "access_token", "jwt"},
         required=False,
     )
-    parser.add_argument("--workbook-name", dest="workbook_name", required=True)
-    # parser.add_argument("--datasource-name", dest="datasource_name", required=False)
+    parser.add_argument("--datasource-name", dest="datasource_name", required=True)
     parser.add_argument("--project-name", dest="project_name", required=True)
     parser.add_argument(
         "--check-status", dest="check_status", default="TRUE", required=False
@@ -57,7 +57,7 @@ def main():
     try:
         args = get_args()
         sign_in_method = args.sign_in_method
-        workbook_name = args.workbook_name
+        datasource_name = args.datasource_name
         project_name = args.project_name
         check_status = convert_to_boolean(args.check_status)
         client = TableauClient(server_url=args.server_url, site=args.site_id)
@@ -74,15 +74,11 @@ def main():
 
         client.connect(sign_in_method=sign_in_method)
 
-        workbook_id = client.get_workbook_id(
-            workbook_name=workbook_name, project_name=project_name
-        )
-        data = client.refresh_workbook(workbook_id)
+        datasource_id = client.get_datasource_id(datasource_name, project_name)
+        data = client.refresh_datasource(datasource_id)
         job_id = data["job"]["id"]
         if job_id:
-            logger.info(
-                f"Successfully submitted job to refresh workbook. Job ID: {job_id} "
-            )
+            logger.info("Successfully refreshed datasource")
         job_status = client.get_job_status(job_id)
         final_status = client.determine_job_status(job_status, job_id)
         if check_status:
@@ -94,7 +90,7 @@ def main():
                 time.sleep(60)
                 job_status = client.get_job_status(job_id)
                 final_status = client.determine_job_status(job_status, job_id)
-            sys.exit(final_status)
+        sys.exit(final_status)
 
     except ExitCodeException as ec:
         logger.error(ec.message)

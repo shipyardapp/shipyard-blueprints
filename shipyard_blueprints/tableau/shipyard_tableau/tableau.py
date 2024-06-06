@@ -3,11 +3,20 @@ import requests
 import jwt
 import uuid
 import datetime
-from shipyard_templates import DataVisualization, ShipyardLogger, ExitCodeException
-from typing import Optional
+from shipyard_templates import (
+    DataVisualization,
+    ShipyardLogger,
+    ExitCodeException,
+    datavisualization,
+)
+from typing import Optional, Dict, Any
 from .errors import (
+    EXIT_CODE_JOB_STATUS_ERROR,
     EXIT_CODE_TABLEAU_WORKBOOK_REFRESH_ERROR,
     EXIT_CODE_TABLEAU_DATASOURCE_REFRESH_ERROR,
+    EXIT_CODE_STATUS_INCOMPLETE,
+    EXIT_CODE_FINAL_STATUS_ERRORED,
+    EXIT_CODE_FINAL_STATUS_CANCELLED,
     InvalidWorkbookRequest,
     TableauJWTAuthError,
     TableauPATAuthError,
@@ -46,22 +55,26 @@ class TableauClient(DataVisualization):
         self.auth_token = None
         self.site_id = None
         self.user_id = None
+        self.auth_type = None
 
     def add_user_and_pwd(self, username: str, password: str):
         self.username = username
         self.password = password
+        self.auth_type = "username_password"
 
     def add_personal_access_token(
         self, personal_access_token_name: str, personal_access_token_secret: str
     ):
         self.personal_access_token_name = personal_access_token_name
         self.personal_access_token_secret = personal_access_token_secret
+        self.auth_type = "access_token"
 
     def add_jwt(self, username: str, client_id: str, secret_id: str, secret_value: str):
         self.username = username
         self.client_id = client_id
         self.secret_id = secret_id
         self.secret_value = secret_value
+        self.auth_type = "jwt"
 
     def connect(self, sign_in_method: str):
         if sign_in_method not in ["username_password", "access_token", "jwt"]:
@@ -175,9 +188,9 @@ class TableauClient(DataVisualization):
         logger.debug("Attempting to connect to Tableau via JWT...")
         if (
             not self.client_id
-            and not self.secret_id
-            and not self.secret_value
-            and not self.username
+            or not self.secret_id
+            or not self.secret_value
+            or not self.username
         ):
             raise ValueError(
                 "Client ID, secret ID, secret value, and username are required to connect to Tableau through this method"
@@ -199,7 +212,13 @@ class TableauClient(DataVisualization):
                     "tableau:tasks:*",
                     "tableau:users:*",
                     "tableau:projects*",
-                    "tableau:content:read",
+                    "tableau:metrics:*",
+                    "tableau:groups:*",
+                    # "tableau:content:read",
+                    "tableau:sites:*",
+                    "tableau:permissions:*",
+                    "tableau:jobs:*",
+                    "tableau:job:*",
                 ],
             },
             self.secret_value,
@@ -218,6 +237,7 @@ class TableauClient(DataVisualization):
                 """
         headers = {"Content-Type": "application/xml", "Accept": "application/json"}
         response = requests.post(url, headers=headers, data=payload)
+        print(response.text)
         if response.ok:
             logger.info("Successfully logged in via JWT")
             auth_token = response.json()["credentials"]["token"]
@@ -325,6 +345,8 @@ class TableauClient(DataVisualization):
             raise InvalidDatasourceRequest(
                 e, exit_code=EXIT_CODE_TABLEAU_DATASOURCE_REFRESH_ERROR
             )
+        else:
+            return response.json()
 
     def get_view_id(
         self, view_name: str, workbook_name: str, project_name: str
@@ -341,7 +363,7 @@ class TableauClient(DataVisualization):
         """
         try:
             workbook_id = self.get_workbook_id(workbook_name, project_name)
-            workbook_url = f"{self.server_url}/api/3.22/sites{self.site_id}/workbooks/{workbook_id}"
+            workbook_url = f"{self.server_url}/api/3.22/sites/{self.site_id}/workbooks/{workbook_id}"
             headers = {
                 "X-Tableau-Auth": self.auth_token,
                 "Accept": "application/json",
@@ -393,3 +415,67 @@ class TableauClient(DataVisualization):
             return response.content
         else:
             raise (InvalidViewRequest(response.text))
+
+    def get_job_status(self, job_id: str):
+        """Returns the information about a job from Tableau
+
+        Args:
+            job_id: The ID of the job to fetch
+
+        Raises:
+            ExitCodeException:
+
+        Returns: The JSON of the job information
+
+        """
+        job_url = f"{self.server_url}/api/3.22/sites/{self.site_id}/jobs/{job_id}"
+        headers = {
+            "X-Tableau-Auth": self.auth_token,
+            "Accept": "application/json",
+        }
+        response = requests.get(job_url, headers=headers)
+        print(f"Job ID : {job_id}")
+        print(response.text)
+        if response.ok:
+            return response.json()
+        else:
+            raise ExitCodeException(
+                f"Error fetching job status from Tableau API: {response.text}",
+                exit_code=EXIT_CODE_JOB_STATUS_ERROR,
+            )
+
+    def determine_job_status(self, job_info: Dict[Any, Any], job_id: str):
+        """Job status response handler.
+
+        Args:
+            job_info: The information about the job. This is obtained from the `get_job_status` method
+            job_id: The ID of the job
+
+        Returns: The exit code based on the status of the job
+
+        """
+        finish_code = job_info.get("job").get("finishCode")
+
+        if not finish_code:
+            if job_info.get("job").get("createdAt") is None:
+                logger.info(f"Tableau reports that the job  has not yet started.")
+            else:
+                logger.info(
+                    f"Tableau reports that the job {job_id} is not yet complete."
+                )
+            return EXIT_CODE_STATUS_INCOMPLETE
+        elif int(finish_code) == 0:
+            logger.info(f"Tableau reports that job {job_id} was successful.")
+            return 0
+        elif int(finish_code) == 1:
+            notes = job_info.get("job").get("extractRefreshJob").get("notes")
+            logger.error(
+                f"Tableau reports that job {job_id} errored. Message from Tableau Server: {notes}"
+            )
+            return EXIT_CODE_FINAL_STATUS_ERRORED
+        elif int(finish_code) == 2:
+            logger.info(f"Tableau reports that job {job_id} was cancelled.")
+            return EXIT_CODE_FINAL_STATUS_CANCELLED
+        else:
+            logger.info(f"Something went wrong when fetching status for job {job_id}")
+            return DataVisualization.EXIT_CODE_UNKNOWN_ERROR
