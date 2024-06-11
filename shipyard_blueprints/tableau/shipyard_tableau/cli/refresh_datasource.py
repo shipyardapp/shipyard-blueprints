@@ -6,7 +6,6 @@ from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_bp_utils.args import convert_to_boolean
 from shipyard_templates import DataVisualization
 from shipyard_tableau.errors import (
-    EXIT_CODE_STATUS_INCOMPLETE,
     EXIT_CODE_FINAL_STATUS_ERRORED,
     EXIT_CODE_FINAL_STATUS_CANCELLED,
 )

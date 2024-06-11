@@ -182,6 +182,8 @@ def test_refresh_workbook_jwt(refresh_workbook):
             os.getenv("CLIENT_SECRET"),
             "--secret-value",
             os.getenv("SECRET_VALUE"),
+            "--username",
+            os.getenv("TABLEAU_USERNAME"),
         ]
     )
 
@@ -209,6 +211,8 @@ def test_refresh_datasource_jwt(refresh_datasource):
             os.getenv("CLIENT_SECRET"),
             "--secret-value",
             os.getenv("SECRET_VALUE"),
+            "--username",
+            os.getenv("TABLEAU_USERNAME"),
         ]
     )
     result = subprocess.run(cmd, capture_output=True)
@@ -239,6 +243,8 @@ def test_download_view_jwt(download_cmd):
             os.getenv("CLIENT_SECRET"),
             "--secret-value",
             os.getenv("SECRET_VALUE"),
+            "--username",
+            os.getenv("TABLEAU_USERNAME"),
         ]
     )
 

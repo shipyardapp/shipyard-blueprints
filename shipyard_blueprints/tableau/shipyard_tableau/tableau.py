@@ -1,4 +1,3 @@
-import tableauserverclient as tsc
 import requests
 import jwt
 import uuid
@@ -7,7 +6,6 @@ from shipyard_templates import (
     DataVisualization,
     ShipyardLogger,
     ExitCodeException,
-    datavisualization,
 )
 from typing import Optional, Dict, Any
 from .errors import (
@@ -27,29 +25,24 @@ from .errors import (
 
 logger = ShipyardLogger.get_logger()
 
+API_VERSION = 3.22
+
 
 class TableauClient(DataVisualization):
     def __init__(
         self,
         server_url: str,
         site: str = "",
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        personal_access_token_name: Optional[str] = None,
-        personal_access_token_secret: Optional[str] = None,
-        client_id: Optional[str] = None,
-        secret_id: Optional[str] = None,
-        secret_value: Optional[str] = None,
     ):
         self.server_url: str = server_url
-        self.username = username
-        self.password = password
-        self.personal_access_token_name = personal_access_token_name
-        self.personal_access_token_secret = personal_access_token_secret
         self.site = "" if str(site).lower() == "default" else site
-        self.client_id = client_id
-        self.secret_id = secret_id
-        self.secret_value = secret_value
+        self.username = None
+        self.password = None
+        self.personal_access_token_name = None
+        self.personal_access_token_secret = None
+        self.client_id = None
+        self.secret_id = None
+        self.secret_value = None
         # sign in variables below
         # NOTE: These are set after a successful sign in through the API
         self.auth_token = None
@@ -118,7 +111,7 @@ class TableauClient(DataVisualization):
               </credentials>
             </tsRequest>
         """
-        url = f"{self.server_url}/api/3.22/auth/signin"
+        url = f"{self.server_url}/api/{API_VERSION}/auth/signin"
         headers = {"Content-Type": "application/xml", "Accept": "application/json"}
         response = requests.post(url, headers=headers, data=payload)
         if response.ok:
@@ -161,7 +154,7 @@ class TableauClient(DataVisualization):
             </tsRequest>
         """
         headers = {"Content-Type": "application/xml", "Accept": "application/json"}
-        url = f"{self.server_url}/api/3.22/auth/signin"
+        url = f"{self.server_url}/api/{API_VERSION}/auth/signin"
         response = requests.post(url, headers=headers, data=payload)
         if response.ok:
             logger.info("Successfully logged in with personal access token")
@@ -171,7 +164,6 @@ class TableauClient(DataVisualization):
             self.auth_token = auth_token
             self.user_id = user_id
             self.site_id = site_id
-            # return auth_token, site_id, user_id
         else:
             logger.error(
                 f"Error logging into Tableau with the provided personal access token: {response.text}"
@@ -196,7 +188,7 @@ class TableauClient(DataVisualization):
                 "Client ID, secret ID, secret value, and username are required to connect to Tableau through this method"
             )
 
-        url = f"{self.server_url}/api/3.22/auth/signin"
+        url = f"{self.server_url}/api/{API_VERSION}/auth/signin"
         token = jwt.encode(
             {
                 "iss": self.client_id,
@@ -257,7 +249,9 @@ class TableauClient(DataVisualization):
         project_name: str,
     ):
         try:
-            workbooks_url = f"{self.server_url}/api/3.22/sites/{self.site_id}/workbooks"
+            workbooks_url = (
+                f"{self.server_url}/api/{API_VERSION}/sites/{self.site_id}/workbooks"
+            )
             headers = {"X-Tableau-Auth": self.auth_token, "Accept": "application/json"}
             response = requests.get(workbooks_url, headers=headers)
             response.raise_for_status()
@@ -284,7 +278,7 @@ class TableauClient(DataVisualization):
 
         """
         try:
-            workbook_url = f"{self.server_url}/api/3.22/sites/{self.site_id}/workbooks/{workbook_id}/refresh"
+            workbook_url = f"{self.server_url}/api/{API_VERSION}/sites/{self.site_id}/workbooks/{workbook_id}/refresh"
             headers = {
                 "X-Tableau-Auth": self.auth_token,
                 "Accept": "application/json",
@@ -306,7 +300,7 @@ class TableauClient(DataVisualization):
     ):
         try:
             datasource_url = (
-                f"{self.server_url}/api/3.22/sites/{self.site_id}/datasources"
+                f"{self.server_url}/api/{API_VERSION}/sites/{self.site_id}/datasources"
             )
             headers = {"X-Tableau-Auth": self.auth_token, "Accept": "application/json"}
             response = requests.get(datasource_url, headers=headers)
@@ -333,7 +327,7 @@ class TableauClient(DataVisualization):
             InvalidDatasourceRequest:
         """
         try:
-            datasource_url = f"{self.server_url}/api/3.22/sites/{self.site_id}/datasources/{datasource_id}/refresh"
+            datasource_url = f"{self.server_url}/api/{API_VERSION}/sites/{self.site_id}/datasources/{datasource_id}/refresh"
             headers = {
                 "X-Tableau-Auth": self.auth_token,
                 "Accept": "application/json",
@@ -363,7 +357,7 @@ class TableauClient(DataVisualization):
         """
         try:
             workbook_id = self.get_workbook_id(workbook_name, project_name)
-            workbook_url = f"{self.server_url}/api/3.22/sites/{self.site_id}/workbooks/{workbook_id}"
+            workbook_url = f"{self.server_url}/api/{API_VERSION}/sites/{self.site_id}/workbooks/{workbook_id}"
             headers = {
                 "X-Tableau-Auth": self.auth_token,
                 "Accept": "application/json",
@@ -379,7 +373,6 @@ class TableauClient(DataVisualization):
                 logger.error(
                     f"Error fetching workbook data of associated view: {workbook_response.text}"
                 )
-                # TODO: raise custom exception
         except ExitCodeException:
             raise
         except Exception as e:
@@ -402,7 +395,9 @@ class TableauClient(DataVisualization):
             raise ValueError(
                 f"Invalid file format: {file_format}. Options are pdf, png, csv"
             )
-        view_url = f"{self.server_url}/api/3.22/sites/{self.site_id}/views/{view_id}"
+        view_url = (
+            f"{self.server_url}/api/{API_VERSION}/sites/{self.site_id}/views/{view_id}"
+        )
         if file_format == "pdf":
             view_url = f"{view_url}/pdf"
         elif file_format == "png":
@@ -428,7 +423,9 @@ class TableauClient(DataVisualization):
         Returns: The JSON of the job information
 
         """
-        job_url = f"{self.server_url}/api/3.22/sites/{self.site_id}/jobs/{job_id}"
+        job_url = (
+            f"{self.server_url}/api/{API_VERSION}/sites/{self.site_id}/jobs/{job_id}"
+        )
         headers = {
             "X-Tableau-Auth": self.auth_token,
             "Accept": "application/json",

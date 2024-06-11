@@ -6,11 +6,6 @@ from shipyard_tableau import TableauClient
 from shipyard_tableau.errors import EXIT_CODE_TABLEAU_VIEW_DOWNLOAD_ERROR
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_templates import DataVisualization
-from shipyard_tableau.errors import (
-    EXIT_CODE_STATUS_INCOMPLETE,
-    EXIT_CODE_FINAL_STATUS_ERRORED,
-    EXIT_CODE_FINAL_STATUS_CANCELLED,
-)
 
 logger = ShipyardLogger.get_logger()
 
