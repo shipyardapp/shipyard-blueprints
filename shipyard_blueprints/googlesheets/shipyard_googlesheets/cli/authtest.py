@@ -9,11 +9,11 @@ logger = ShipyardLogger.get_logger()
 
 
 def main():
-    client = GoogleSheetsClient(
-        service_account=os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    )
     try:
-        client.connect()
+        credentials = os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
+        credentials = credentials.replace("\n", "\\n")
+
+        GoogleSheetsClient(service_account=credentials).connect()
         logger.authtest("Successfully connected to google sheets")
         sys.exit(0)
     except Exception as e:
