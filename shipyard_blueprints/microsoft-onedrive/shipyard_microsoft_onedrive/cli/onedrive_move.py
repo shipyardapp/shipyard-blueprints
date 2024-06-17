@@ -55,10 +55,10 @@ def main():
         dest_dir = args.dest_dir
         user_email = args.user_email
 
-        src_path = shipyard.files.combine_folder_and_file_name(src_dir, src_file)
+        # src_path = shipyard.files.combine_folder_and_file_name(src_dir, src_file)
         if not dest_file:
             dest_file = src_file
-        dest_path = shipyard.files.combine_folder_and_file_name(dest_dir, dest_file)
+        # dest_path = shipyard.files.combine_folder_and_file_name(dest_dir, dest_file)
 
         onedrive = None
         if client_id and client_secret and tenant:

@@ -5,7 +5,7 @@ from dotenv import load_dotenv, find_dotenv
 
 
 if dotenv_exists := find_dotenv():
-    load_dotenv(dotenv_exists)
+    load_dotenv(find_dotenv())
 
 
 @pytest.fixture(scope="module")

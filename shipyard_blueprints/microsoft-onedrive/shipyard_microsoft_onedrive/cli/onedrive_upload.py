@@ -39,6 +39,13 @@ def get_args():
         default="",
         help="Directory in OneDrive to upload the file to",
     )
+    parser.add_argument(
+        "--match-type",
+        required=False,
+        default="exact_match",
+        choices=["exact_match", "regex_match"],
+        help="Type of matching to use when finding the file in the directory",
+    )
     return parser.parse_args()
 
 
@@ -75,8 +82,29 @@ def main():
             if not folder_id:
                 onedrive.create_folder(target_dir, drive_id)
 
-        onedrive.upload(src_path, drive_id, target_path)
+        if args.match_type == "exact_match":
+            onedrive.upload(src_path, drive_id, target_path)
+        elif args.match_type == "regex_match":
+            file_names = shipyard.files.find_all_local_file_names(src_dir)
+            file_matches = shipyard.files.find_all_file_matches(file_names, src_file)
+            if n_matches := len(file_matches) == 0:
+                raise FileNotFoundError(f"No files found matching {src_file}")
+            logger.info(f"{n_matches} files found. Preparing to upload...")
+            for i, file in enumerate(file_matches):
+                file_ext = os.path.splitext(file)[1]
+                dest_path = shipyard.files.determine_destination_full_path(
+                    destination_folder_name=target_dir,
+                    destination_file_name=target_file,
+                    source_full_path=file,
+                    file_number=i if target_file else None,
+                )
+                dest_path = f"{dest_path}.{file_ext}"
 
+                onedrive.upload(file, drive_id, dest_path)
+
+    except FileNotFoundError as e:
+        logger.error(e)
+        sys.exit(CloudStorage.EXIT_CODE_FILE_NOT_FOUND)
     except ExitCodeException as e:
         logger.error(e)
         sys.exit(e.exit_code)

@@ -41,6 +41,13 @@ def get_args():
         default="",
         help="Directory in OneDrive to upload the file to",
     )
+    parser.add_argument(
+        "--match-type",
+        required=False,
+        default="exact_match",
+        choices=["exact_match", "regex_match"],
+        help="Type of match to use when downloading the files",
+    )
     return parser.parse_args()
 
 
@@ -72,7 +79,10 @@ def main():
 
         user_id = onedrive.get_user_id(user_email)
         drive_id = onedrive.get_drive_id(user_id)
-        onedrive.download(target_path, src_path, drive_id)
+        if args.match_type == "exact_match":
+            onedrive.download(target_path, src_path, drive_id)
+        elif args.match_type == "regex_match":
+            pass
 
     except ExitCodeException as ec:
         logger.error(ec)

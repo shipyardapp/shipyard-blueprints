@@ -140,6 +140,13 @@ class OneDriveClient(CloudStorage):
             with open(file_path, "wb") as file:
                 file.write(response.content)
             logger.info(f"File downloaded successfully to {file_path}")
+        else:
+            logger.debug(
+                f"Failed to download {file_path} from OneDrive. Ensure that the file and folder (if provide exist)"
+            )
+            raise BadRequestError(
+                f"Failed to download file from OneDrive: {response.text}"
+            )
 
     def move(
         self,
@@ -149,23 +156,26 @@ class OneDriveClient(CloudStorage):
         target_dir: str,
         drive_id: Optional[str],
     ):
-        folder_id = self.get_folder_id(target_dir, drive_id)
         item_id = self.get_file_id(src_name, drive_id)
-        if not folder_id:
-            logger.info(f"Creating folder '{target_dir}' in OneDrive")
-            folder_id = self.create_folder(target_dir, drive_id)
+        if src_dir:
+            folder_id = self.get_folder_id(target_dir, drive_id)
+            if not folder_id:
+                logger.info(f"Creating folder '{target_dir}' in OneDrive")
+                folder_id = self.create_folder(target_dir, drive_id)
+                logger.debug(f"Folder ID: {folder_id}")
+            data = {"parentReference": {"id": folder_id}, "name": target_name}
+        else:
+            data = {"name": target_name}
+
         if self.auth_type == "basic":
             url = f"{self.base_url}/drives/{drive_id}/items/{item_id}"
         else:
             url = f"https://graph.microsoft.com/v1.0/me/drive/items/{item_id}"
-
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json",
         }
-        logger.debug(f"Folder ID: {folder_id}")
         logger.debug(f"Item ID: {item_id}")
-        data = {"parentReference": {"id": folder_id}, "name": target_name}
         response = requests.patch(url, headers=headers, json=data)
         if response.ok:
             logger.info(f"Successfully moved {src_name} to {target_name} in OneDrive")

@@ -1,1 +1,1 @@
-from .onedrive.drive_client import OneDriveClient
+from .drive_client import OneDriveClient
