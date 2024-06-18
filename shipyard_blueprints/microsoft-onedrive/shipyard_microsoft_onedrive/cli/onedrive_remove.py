@@ -34,6 +34,13 @@ def get_args():
         default="",
         help="Directory in OneDrive to upload the file to",
     )
+    parser.add_argument(
+        "--match-type",
+        required=False,
+        default="exact_match",
+        choices=["exact_match", "regex_match"],
+        help="Type of match to use when downloading the files",
+    )
     return parser.parse_args()
 
 
@@ -45,11 +52,9 @@ def main():
         client_secret = args.client_secret
         tenant = args.tenant
         user_email = args.user_email
-        target_file = args.onedrive_file_name
-        target_dir = args.onedrive_directory
-        target_path = shipyard.files.combine_folder_and_file_name(
-            target_dir, target_file
-        )
+        src_file = args.onedrive_file_name
+        src_dir = args.onedrive_directory
+        target_path = shipyard.files.combine_folder_and_file_name(src_dir, src_file)
 
         onedrive = None
         if client_id and client_secret and tenant:
@@ -60,7 +65,22 @@ def main():
 
         user_id = onedrive.get_user_id(user_email)
         drive_id = onedrive.get_drive_id(user_id)
-        onedrive.remove(target_path, drive_id)
+        if args.match_type == "exact_match":
+            onedrive.remove(target_path, drive_id)
+        elif args.match_type == "regex_match":
+            matches = onedrive.get_file_matches(src_dir, src_file, drive_id)
+            if (n_matches := len(matches)) == 0:
+                logger.error(f"No files found matching '{src_file}'")
+                sys.exit(CloudStorage.EXIT_CODE_FILE_NOT_FOUND)
+            logger.info(f"{n_matches} files found, preparing to download...")
+            file_names = [file["name"] for file in matches]
+            for file in file_names:
+                if src_dir:
+                    target = shipyard.files.combine_folder_and_file_name(src_dir, file)
+                else:
+                    target = file
+                onedrive.remove(target, drive_id)
+            logger.info("Successfully remmoved all files")
 
     except ExitCodeException as ec:
         logger.error(ec)

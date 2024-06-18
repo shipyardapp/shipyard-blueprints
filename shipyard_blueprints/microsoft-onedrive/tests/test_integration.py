@@ -9,7 +9,6 @@ load_dotenv(find_dotenv())
 UPLOAD_1 = "pytest_upload.csv"
 
 
-# NOTE: NEED to move remove the onedrive directory and just have the clis in the cli dir within that
 @pytest.fixture
 def up():
     return [
@@ -144,4 +143,138 @@ def test_upload_regex_to_folder(up):
 
 
 def test_download_regex_to_folder(down):
-    pass
+    cmd = deepcopy(down)
+    cmd.extend(
+        [
+            "--onedrive-file-name",
+            "mult",
+            "--onedrive-directory",
+            "pytest_regex_upload",
+            "--match-type",
+            "regex_match",
+            "--directory",
+            "regex_download",
+            "--file-name",
+            "reg_down",
+        ]
+    )
+
+    process = subprocess.run(cmd, capture_output=True)
+    assert process.returncode == 0
+
+
+def test_regex_download_exists():
+    assert os.path.exists("regex_download/reg_down_1.csv")
+    assert os.path.exists("regex_download/reg_down_2.csv")
+    assert os.path.exists("regex_download/reg_down_3.csv")
+    subprocess.run(["rm", "-rf", "regex_download"])
+
+
+def test_move_regex(move):
+    cmd = deepcopy(move)
+    cmd.extend(
+        [
+            "--src-file",
+            "mult",
+            "--dest-file",
+            "new_file",
+            "--src-dir",
+            "pytest_regex_upload",
+            "--dest-dir",
+            "pytest_regex_upload",
+            "--match-type",
+            "regex_match",
+        ]
+    )
+    process = subprocess.run(cmd, capture_output=True)
+    assert process.returncode == 0
+
+
+def test_delete_regex(remove):
+    cmd = deepcopy(remove)
+    cmd.extend(
+        [
+            "--onedrive-file-name",
+            "new_file",
+            "--onedrive-directory",
+            "pytest_regex_upload",
+            "--match-type",
+            "regex_match",
+        ]
+    )
+    process = subprocess.run(cmd, capture_output=True)
+    assert process.returncode == 0
+
+
+def test_upload_single_file_from_folder(up):
+    cmd = deepcopy(up)
+    cmd.extend(
+        [
+            "--file-name",
+            "mult_1.csv",
+            "--directory",
+            "mult",
+            "--onedrive-file-name",
+            "pytest_upload.csv",
+            "--onedrive-directory",
+            "pytest_folder_upload",
+        ]
+    )
+    process = subprocess.run(cmd, capture_output=True)
+    assert process.returncode == 0
+
+
+def test_download_single_file_from_folder(down):
+    cmd = deepcopy(down)
+    cmd.extend(
+        [
+            "--onedrive-file-name",
+            "pytest_upload.csv",
+            "--onedrive-directory",
+            "pytest_folder_upload",
+            "--directory",
+            "pytest_folder_download",
+            "--file-name",
+            "pytest_down.csv",
+        ]
+    )
+
+    process = subprocess.run(cmd, capture_output=True)
+    assert process.returncode == 0
+
+
+def test_single_file_down_exists():
+    assert os.path.exists("pytest_folder_download/pytest_down.csv")
+    subprocess.run(["rm", "-rf", "pytest_folder_download"])
+
+
+def test_move_single_file_from_folder_to_root(move):
+    cmd = deepcopy(move)
+    cmd.extend(
+        [
+            "--src-file",
+            "pytest_upload.csv",
+            "--src-dir",
+            "pytest_folder_upload",
+            "--dest-file",
+            "pytest_moved_from_folder.csv",
+            "--dest-dir",
+            "next_folder_move",
+        ]
+    )
+    process = subprocess.run(cmd, capture_output=True)
+    assert process.returncode == 0
+
+
+def test_delete_single_file_from_folder(remove):
+    cmd = deepcopy(remove)
+    cmd.extend(
+        [
+            "--onedrive-file-name",
+            "pytest_moved_from_folder.csv",
+            "--onedrive-directory",
+            "next_folder_move",
+        ]
+    )
+    process = subprocess.run(cmd, capture_output=True)
+    assert process.returncode == 0

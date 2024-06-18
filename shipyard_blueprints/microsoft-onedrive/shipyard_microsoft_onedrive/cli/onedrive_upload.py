@@ -87,10 +87,10 @@ def main():
         elif args.match_type == "regex_match":
             file_names = shipyard.files.find_all_local_file_names(src_dir)
             file_matches = shipyard.files.find_all_file_matches(file_names, src_file)
-            if n_matches := len(file_matches) == 0:
+            if (n_matches := len(file_matches)) == 0:
                 raise FileNotFoundError(f"No files found matching {src_file}")
             logger.info(f"{n_matches} files found. Preparing to upload...")
-            for i, file in enumerate(file_matches):
+            for i, file in enumerate(file_matches, start=1):
                 file_ext = os.path.splitext(file)[1]
                 dest_path = shipyard.files.determine_destination_full_path(
                     destination_folder_name=target_dir,
@@ -98,7 +98,7 @@ def main():
                     source_full_path=file,
                     file_number=i if target_file else None,
                 )
-                dest_path = f"{dest_path}.{file_ext}"
+                dest_path += file_ext
 
                 onedrive.upload(file, drive_id, dest_path)
 

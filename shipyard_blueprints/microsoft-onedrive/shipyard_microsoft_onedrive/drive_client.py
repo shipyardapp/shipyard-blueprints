@@ -1,8 +1,9 @@
 import requests
+import re
 from shipyard_templates import CloudStorage, ShipyardLogger, ExitCodeException
 from shipyard_templates.errors import InvalidCredentialError, BadRequestError
 from msal import ConfidentialClientApplication
-from typing import Optional
+from typing import Optional, List
 
 logger = ShipyardLogger.get_logger()
 
@@ -148,40 +149,90 @@ class OneDriveClient(CloudStorage):
                 f"Failed to download file from OneDrive: {response.text}"
             )
 
+    # def move(
+    #     self,
+    #     src_name: str,
+    #     src_dir: str,
+    #     target_name: str,
+    #     target_dir: str,
+    #     drive_id: Optional[str],
+    # ):
+    #     item_id = self.get_file_id(src_name, drive_id)
+    #     if src_dir:
+    #         folder_id = self.get_folder_id(target_dir, drive_id)
+    #         if not folder_id and target_dir != '':
+    #             logger.info(f"Creating folder '{target_dir}' in OneDrive")
+    #             folder_id = self.create_folder(target_dir, drive_id)
+    #             logger.debug(f"Folder ID: {folder_id}")
+    #         data = {"parentReference": {"id": folder_id}, "name": target_name}
+    #     else:
+    #         data = {"name": target_name}
+    #
+    #     if self.auth_type == "basic":
+    #         url = f"{self.base_url}/drives/{drive_id}/items/{item_id}"
+    #     else:
+    #         url = f"https://graph.microsoft.com/v1.0/me/drive/items/{item_id}"
+    #     headers = {
+    #         "Authorization": f"Bearer {self.access_token}",
+    #         "Content-Type": "application/json",
+    #     }
+    #     logger.debug(f"Item ID: {item_id}")
+    #     response = requests.patch(url, headers=headers, json=data)
+    #     if response.ok:
+    #         logger.info(f"Successfully moved {src_name} to {target_name} in OneDrive")
+    #     else:
+    #         raise BadRequestError(
+    #             f"Failed to move {src_name} to {target_name} in OneDrive: {response.text}"
+    #         )
+
     def move(
         self,
         src_name: str,
-        src_dir: str,
-        target_name: str,
-        target_dir: str,
+        src_dir: Optional[str],
+        target_name: Optional[str],
+        target_dir: Optional[str],
         drive_id: Optional[str],
     ):
-        item_id = self.get_file_id(src_name, drive_id)
-        if src_dir:
+        item_id = self.get_file_id(src_name, drive_id, src_dir)
+
+        data = {}
+        if target_dir and src_dir != target_dir:
             folder_id = self.get_folder_id(target_dir, drive_id)
-            if not folder_id:
+            if not folder_id and target_dir != "":
                 logger.info(f"Creating folder '{target_dir}' in OneDrive")
                 folder_id = self.create_folder(target_dir, drive_id)
                 logger.debug(f"Folder ID: {folder_id}")
-            data = {"parentReference": {"id": folder_id}, "name": target_name}
-        else:
-            data = {"name": target_name}
+            data["parentReference"] = {"id": folder_id}
+
+        if target_name and src_name != target_name:
+            data["name"] = target_name
+
+        if not data:
+            logger.info(
+                "No operation to perform (same source and target locations and names)."
+            )
+            return
 
         if self.auth_type == "basic":
             url = f"{self.base_url}/drives/{drive_id}/items/{item_id}"
         else:
             url = f"https://graph.microsoft.com/v1.0/me/drive/items/{item_id}"
+
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json",
         }
+
         logger.debug(f"Item ID: {item_id}")
         response = requests.patch(url, headers=headers, json=data)
+
         if response.ok:
-            logger.info(f"Successfully moved {src_name} to {target_name} in OneDrive")
+            logger.info(
+                f"Successfully moved/renamed {src_name} to {target_name or src_name} in OneDrive"
+            )
         else:
             raise BadRequestError(
-                f"Failed to move {src_name} to {target_name} in OneDrive: {response.text}"
+                f"Failed to move/rename {src_name} to {target_name or src_name} in OneDrive: {response.text}"
             )
 
     def remove(
@@ -250,7 +301,9 @@ class OneDriveClient(CloudStorage):
         else:
             raise BadRequestError(f"Failed to get folder ID: {response.text}")
 
-    def get_file_id(self, file_name: str, drive_id: Optional[str]) -> Optional[str]:
+    def get_file_id(
+        self, file_name: str, drive_id: Optional[str], folder_name: Optional[str] = ""
+    ) -> Optional[str]:
         """Returns the file ID of a file in OneDrive
 
         Args:
@@ -264,9 +317,15 @@ class OneDriveClient(CloudStorage):
 
         """
         if self.auth_type == "basic":
-            url = f"{self.base_url}/drives/{drive_id}/root/children"
+            if folder_name:
+                url = f"{self.base_url}/drives/{drive_id}/root:/{folder_name}:/children"
+            else:
+                url = f"{self.base_url}/drives/{drive_id}/root/children"
         else:
-            url = f"{self.base_url}/me/drive/root/children"
+            if folder_name:
+                url = f"{self.base_url}/me/drive/root:/{folder_name}:/children"
+            else:
+                url = f"{self.base_url}/me/drive/root/children"
 
         headers = {
             "Authorization": f"Bearer {self.access_token}",
@@ -283,7 +342,19 @@ class OneDriveClient(CloudStorage):
         else:
             raise BadRequestError(f"Failed to get file ID: {response.text}")
 
-    def create_folder(self, folder_name: str, drive_id: Optional[str]):
+    def create_folder(self, folder_name: str, drive_id: Optional[str]) -> str:
+        """Creates a folder in OneDrive
+
+        Args:
+            folder_name: The name of the folder to create
+            drive_id: The ID of the drive to create the folder in (only necessary if using basic authentication)
+
+        Raises:
+            BadRequestError:
+
+        Returns: The ID of the created folder
+
+        """
         if self.auth_type == "basic":
             url = f"{self.base_url}/drives/{drive_id}/root/children"
         else:
@@ -310,3 +381,47 @@ class OneDriveClient(CloudStorage):
             raise BadRequestError(
                 f"Failed to create folder '{folder_name}' in OneDrive: {response.text}"
             )
+
+    def get_file_matches(
+        self, folder: str, pattern: str, drive_id: Optional[str]
+    ) -> List[str]:
+        """Returns a list of files that match the given pattern
+
+        Args:
+            pattern: The pattern to match on
+            drive_id: The ID of the drive to search in (only necessary if using basic authentication)
+
+        Returns: A list of files that match the pattern. If no matches are found then an empty list will be returned
+
+        """
+        if self.auth_type == "basic":
+            # url = f"{self.base_url}/drives/{drive_id}/root/search(q='')"
+            url = f"{self.base_url}/drives/{drive_id}/root:/{folder}:/children"
+        else:
+            url = "https://graph.microsoft.com/v1.0/me/drive/root/search(q='')"
+
+        headers = {"Authorization": f"Bearer {self.access_token}"}
+
+        matching_files = []
+        response = requests.get(url, headers=headers)
+        if response.ok:
+            logger.debug("Successfully fetched files from OneDrive")
+            files = response.json().get("value", [])
+            regex = re.compile(pattern)
+            for file in files:
+                if "name" in file and regex.search(file["name"]):
+                    matching_files.append(file)
+
+        else:
+            logger.warning(
+                f"Failed to fetch file matches from OneDrive: {response.text}"
+            )
+        return matching_files
+
+    def download_from_graph_url(self, download_url: str, file_name: str):
+        response = requests.get(download_url)
+        if response.ok:
+            with open(file_name, "wb") as file:
+                file.write(response.content)
+        else:
+            raise BadRequestError(f"Failed to download file: {response.text}")

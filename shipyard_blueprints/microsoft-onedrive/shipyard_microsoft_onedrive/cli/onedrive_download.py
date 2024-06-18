@@ -70,6 +70,9 @@ def main():
             target_dir, target_file
         )
 
+        if target_dir:
+            shipyard.files.create_folder_if_dne(target_dir)
+
         onedrive = None
         if client_id and client_secret and tenant:
             onedrive = OneDriveClient(auth_type="basic")
@@ -81,8 +84,38 @@ def main():
         drive_id = onedrive.get_drive_id(user_id)
         if args.match_type == "exact_match":
             onedrive.download(target_path, src_path, drive_id)
+            logger.info(f"Successfully downloaded file to {target_path}")
         elif args.match_type == "regex_match":
-            pass
+            matches = onedrive.get_file_matches(src_dir, src_file, drive_id)
+            if (n_matches := len(matches)) == 0:
+                logger.error(f"No files found matching '{src_file}'")
+                sys.exit(CloudStorage.EXIT_CODE_FILE_NOT_FOUND)
+
+            logger.info(f"{n_matches} files found, preparing to download...")
+            # download_urls = list(map(lambda x: {'name', x['name'], 'url':x['@microsoft.graph.downloadUrl']}, matches))
+            download_urls = list(
+                map(
+                    lambda x: {
+                        "name": x["name"],
+                        "url": x["@microsoft.graph.downloadUrl"],
+                    },
+                    matches,
+                )
+            )
+            logger.debug(f"Download URLs: {download_urls}")
+            for index, file in enumerate(download_urls, start=1):
+                name = file["name"]
+                download_url = file["url"]
+                file_ext = os.path.splitext(name)[1]
+                dest_path = shipyard.files.determine_destination_full_path(
+                    destination_folder_name=target_dir,
+                    destination_file_name=target_file,
+                    source_full_path=file,
+                    file_number=index if target_file else None,
+                )
+                dest_path += file_ext
+                onedrive.download_from_graph_url(download_url, dest_path)
+            logger.info("Successfully downloaded all files")
 
     except ExitCodeException as ec:
         logger.error(ec)

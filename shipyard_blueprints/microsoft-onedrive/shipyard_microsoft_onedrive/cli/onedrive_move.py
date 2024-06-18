@@ -39,6 +39,13 @@ def get_args():
     parser.add_argument(
         "--user-email", required=True, help="Email of the user to load the drive into"
     )
+    parser.add_argument(
+        "--match-type",
+        required=False,
+        default="exact_match",
+        choices=["exact_match", "regex_match"],
+        help="Type of match to use when moving the files",
+    )
     return parser.parse_args()
 
 
@@ -69,13 +76,36 @@ def main():
 
         user_id = onedrive.get_user_id(user_email)
         drive_id = onedrive.get_drive_id(user_id)
-        onedrive.move(
-            src_name=src_file,
-            src_dir=src_dir,
-            target_name=dest_file,
-            target_dir=dest_dir,
-            drive_id=drive_id,
-        )
+        if args.match_type == "exact_match":
+            onedrive.move(
+                src_name=src_file,
+                src_dir=src_dir,
+                target_name=dest_file,
+                target_dir=dest_dir,
+                drive_id=drive_id,
+            )
+        elif args.match_type == "regex_match":
+            matches = onedrive.get_file_matches(src_dir, src_file, drive_id)
+            if (n_matches := len(matches)) == 0:
+                logger.error(f"No files found matching '{src_file}'")
+                sys.exit(CloudStorage.EXIT_CODE_FILE_NOT_FOUND)
+            logger.info(f"{n_matches} files found, preparing to download...")
+            file_names = [file["name"] for file in matches]
+            for index, file in enumerate(file_names, start=1):
+                src_path = shipyard.files.combine_folder_and_file_name(src_dir, file)
+                file_name = shipyard.files.determine_destination_file_name(
+                    source_full_path=src_path,
+                    destination_file_name=dest_file,
+                    file_number=index if args.dest_file else None,
+                )
+                onedrive.move(
+                    src_name=file,
+                    src_dir=src_dir,
+                    target_name=file_name,
+                    target_dir=dest_dir,
+                    drive_id=drive_id,
+                )
+            logger.info("Successfully moved all files")
 
     except ExitCodeException as e:
         logger.error(e)
