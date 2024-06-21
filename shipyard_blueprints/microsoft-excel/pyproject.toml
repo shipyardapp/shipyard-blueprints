@@ -7,7 +7,18 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
+pandas = "^2.0"
+requests = "2.31"
+msal = "^1.28.1"
 
+
+[tool.poetry.group.dev.dependencies]
+shipyard-microsoft-onedrive = {path = "../microsoft-onedrive", develop = true}
+pytest = "^8.2.2"
+black = "^24.4.2"
+python-dotenv = "^1.0.1"
+shipyard-templates = {path = "../../shipyard-templates", develop = true}
+openpyxl = "^3.1.4"
 
 [build-system]
 requires = ["poetry-core"]

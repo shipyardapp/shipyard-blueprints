@@ -27,19 +27,19 @@ def get_args():
     )
     parser.add_argument("--directory", default="", required=False)
     parser.add_argument(
-        "--user-email", required=True, help="Email of the user to upload the file to"
+        "--user-email",
+        required=True,
+        dest="user_email",
     )
     parser.add_argument(
         "--onedrive-file-name",
         required=True,
         default="",
-        help="Name of the file in OneDrive to download",
     )
     parser.add_argument(
         "--onedrive-directory",
         required=False,
         default="",
-        help="Directory in OneDrive to upload the file to",
     )
     parser.add_argument(
         "--match-type",
