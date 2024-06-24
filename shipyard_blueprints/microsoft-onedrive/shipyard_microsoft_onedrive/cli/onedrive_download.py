@@ -93,7 +93,6 @@ def main():
                 sys.exit(CloudStorage.EXIT_CODE_FILE_NOT_FOUND)
 
             logger.info(f"{n_matches} files found, preparing to download...")
-            # download_urls = list(map(lambda x: {'name', x['name'], 'url':x['@microsoft.graph.downloadUrl']}, matches))
             download_urls = list(
                 map(
                     lambda x: {

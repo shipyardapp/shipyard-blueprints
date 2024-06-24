@@ -13,9 +13,8 @@ def main():
             client_id = os.getenv("MS_ONEDRIVE_CLIENT_ID")
             client_secret = os.getenv("MS_ONEDRIVE_CLIENT_SECRET_VALUE")
             tenant = os.getenv("MS_ONEDRIVE_TENANT")
-            client = OneDriveClient(auth_type)
-            client.connect(client_id, client_secret, tenant, None)
-            print(f"Access token is {client.access_token}")
+            client = OneDriveClient(client_id, client_secret, tenant)
+            client.connect()
             logger.authtest(
                 "Successfully authenticated with OneDrive using basic authentication"
             )

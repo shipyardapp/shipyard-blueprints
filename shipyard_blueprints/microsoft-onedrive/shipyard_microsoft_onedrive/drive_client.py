@@ -1,7 +1,11 @@
 import requests
 import re
 from shipyard_templates import CloudStorage, ShipyardLogger, ExitCodeException
-from shipyard_templates.errors import InvalidCredentialError, BadRequestError
+from shipyard_templates.errors import (
+    InvalidCredentialError,
+    BadRequestError,
+    handle_errors,
+)
 from msal import ConfidentialClientApplication
 from typing import Optional, List
 
@@ -11,7 +15,11 @@ logger = ShipyardLogger.get_logger()
 # NOTE: Access token obtained by Oauth is currently not supported and will need to be added in the future
 class OneDriveClient(CloudStorage):
     def __init__(
-        self, client_id: str, client_secret: str, tenant: str, user_email: str
+        self,
+        client_id: str,
+        client_secret: str,
+        tenant: str,
+        user_email: Optional[str] = None,
     ) -> None:
         self.base_url = "https://graph.microsoft.com/v1.0"
         self.client_id = client_id
@@ -51,6 +59,10 @@ class OneDriveClient(CloudStorage):
         Returns: The ID of the user
 
         """
+        if not self.user_email:
+            raise ValueError(
+                "User email was not provided when initializing the client. Please provide the user email"
+            )
         url = f"{self.base_url}/users/{self.user_email}"
         headers = {
             "Authorization": f"Bearer {self.access_token}",
@@ -62,7 +74,8 @@ class OneDriveClient(CloudStorage):
             user_id = user_info["id"]
             return user_id
         else:
-            raise BadRequestError(f"Failed to get user ID: {response.text}")
+            logger.error(f"Failed to get user ID")
+            handle_errors(response.text, response.status_code)
 
     def get_drive_id(self, user_id: str) -> str:
         """Get the drive ID of the user with the given ID
@@ -71,7 +84,7 @@ class OneDriveClient(CloudStorage):
             user_id: The ID of the user to the associated drive ID for
 
         Raises:
-            BadRequestError:
+            ExitCodeException:
 
         Returns: The Drive ID of the user
 
@@ -87,7 +100,7 @@ class OneDriveClient(CloudStorage):
             drive_id = drive_info["id"]
             return drive_id
         else:
-            raise BadRequestError(f"Failed to get drive ID: {response.text}")
+            handle_errors(response.text, response.status_code)
 
     def upload(self, file_path: str, drive_id: str, drive_path: Optional[str]):
         """Uploads a file to OneDrive
@@ -141,8 +154,9 @@ class OneDriveClient(CloudStorage):
             logger.debug(
                 f"Failed to download {file_path} from OneDrive. Ensure that the file and folder (if provide exist)"
             )
-            raise BadRequestError(
-                f"Failed to download file from OneDrive: {response.text}"
+            raise ExitCodeException(
+                f"Failed to download file from OneDrive: {response.text}",
+                self.EXIT_CODE_DOWNLOAD_ERROR,
             )
 
     def move(
@@ -188,8 +202,9 @@ class OneDriveClient(CloudStorage):
                 f"Successfully moved/renamed {src_name} to {target_name or src_name} in OneDrive"
             )
         else:
-            raise BadRequestError(
-                f"Failed to move/rename {src_name} to {target_name or src_name} in OneDrive: {response.text}"
+            raise ExitCodeException(
+                f"Failed to move/rename {src_name} to {target_name or src_name} in OneDrive: {response.text}",
+                self.EXIT_CODE_UNKNOWN_ERROR,
             )
 
     def remove(
@@ -213,8 +228,9 @@ class OneDriveClient(CloudStorage):
         if response.ok:
             logger.info(f"Successfully removed {drive_path} from OneDrive")
         else:
-            raise BadRequestError(
-                f"Failed to remove {drive_path} from OneDrive: {response.text}"
+            raise ExitCodeException(
+                f"Failed to remove {drive_path} from OneDrive: {response.text}",
+                self.EXIT_CODE_UNKNOWN_ERROR,
             )
 
     def get_folder_id(self, folder_name: str, drive_id: Optional[str]) -> Optional[str]:
@@ -246,7 +262,8 @@ class OneDriveClient(CloudStorage):
                 )
                 return
         else:
-            raise BadRequestError(f"Failed to get folder ID: {response.text}")
+            logger.error("Failed to get folder ID")
+            handle_errors(response.text, response.status_code)
 
     def get_file_id(
         self, file_name: str, drive_id: Optional[str], folder_name: Optional[str] = ""
@@ -280,7 +297,8 @@ class OneDriveClient(CloudStorage):
                 logger.error(f"Did not find a file in OneDrive matching '{file_name}'")
                 return
         else:
-            raise BadRequestError(f"Failed to get file ID: {response.text}")
+            logger.error(f"Failed to get file ID")
+            handle_errors(response.text, response.status_code)
 
     def create_folder(self, folder_name: str, drive_id: Optional[str]) -> str:
         """Creates a folder in OneDrive
@@ -315,9 +333,8 @@ class OneDriveClient(CloudStorage):
             return response.json()["id"]
 
         else:
-            raise BadRequestError(
-                f"Failed to create folder '{folder_name}' in OneDrive: {response.text}"
-            )
+            logger.error(f"Failed to create folder '{folder_name}' in OneDrive")
+            handle_errors(response.text, response.status_code)
 
     def get_file_matches(
         self, folder: str, pattern: str, drive_id: Optional[str]
@@ -366,4 +383,4 @@ class OneDriveClient(CloudStorage):
             with open(file_name, "wb") as file:
                 file.write(response.content)
         else:
-            raise BadRequestError(f"Failed to download file: {response.text}")
+            handle_errors(response.text, response.status_code)

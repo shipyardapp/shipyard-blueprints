@@ -80,7 +80,7 @@ def main():
                 else:
                     target = file
                 onedrive.remove(target, drive_id)
-            logger.info("Successfully remmoved all files")
+            logger.info("Successfully removed all files")
 
     except ExitCodeException as ec:
         logger.error(ec)
