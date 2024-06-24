@@ -68,14 +68,15 @@ def main():
             target_dir, target_file
         )
 
-        onedrive = None
-        if client_id and client_secret and tenant:
-            onedrive = OneDriveClient(auth_type="basic")
-            onedrive.connect(client_id, client_secret, tenant)
-        else:
-            onedrive = OneDriveClient(auth_type="oauth", access_token=access_token)
+        onedrive = OneDriveClient(
+            client_id=client_id,
+            client_secret=client_secret,
+            tenant=tenant,
+            user_email=user_email,
+        )
+        onedrive.connect()
 
-        user_id = onedrive.get_user_id(user_email)
+        user_id = onedrive.get_user_id()
         drive_id = onedrive.get_drive_id(user_id)
         if target_dir:
             folder_id = onedrive.get_folder_id(target_dir, drive_id)

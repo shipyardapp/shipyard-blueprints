@@ -73,14 +73,15 @@ def main():
         if target_dir:
             shipyard.files.create_folder_if_dne(target_dir)
 
-        onedrive = None
-        if client_id and client_secret and tenant:
-            onedrive = OneDriveClient(auth_type="basic")
-            onedrive.connect(client_id, client_secret, tenant)
-        else:
-            onedrive = OneDriveClient(auth_type="oauth", access_token=access_token)
+        onedrive = OneDriveClient(
+            client_id=client_id,
+            client_secret=client_secret,
+            tenant=tenant,
+            user_email=user_email,
+        )
+        onedrive.connect()
 
-        user_id = onedrive.get_user_id(user_email)
+        user_id = onedrive.get_user_id()
         drive_id = onedrive.get_drive_id(user_id)
         if args.match_type == "exact_match":
             onedrive.download(target_path, src_path, drive_id)
