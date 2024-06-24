@@ -8,6 +8,7 @@ from typing import Optional, List
 logger = ShipyardLogger.get_logger()
 
 
+# NOTE: Access token obtained by Oauth is currently not supported and will need to be added in the future
 class OneDriveClient(CloudStorage):
     def __init__(self, auth_type: str, access_token: Optional[str] = None) -> None:
         if auth_type not in ["basic", "access_token"]:

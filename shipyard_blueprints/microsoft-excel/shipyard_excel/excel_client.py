@@ -14,19 +14,19 @@ class ExcelClient(OneDriveClient):
 
     def get_sheet_id(
         self, sheet_name: str, file_id: str, drive_id: Optional[str] = None
-    ):
+    ) -> str:
         """
 
         Args:
-            sheet_name:
-            file_id:
-            drive_id:
+            sheet_name: The name of the sheet to get the ID of
+            file_id: The ID of the file
+            drive_id: The ID of the drive (only necessary if using basic auth)
 
         Raises:
             ExitCodeException:
             ExitCodeException:
 
-        Returns:
+        Returns: The ID of the sheet
 
         """
         if self.auth_type == "basic":
