@@ -4,6 +4,7 @@ import os
 import sys
 import shipyard_bp_utils as shipyard
 from shipyard_microsoft_onedrive import OneDriveClient
+from shipyard_excel import ExcelClient
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
 
 logger = ShipyardLogger.get_logger()
@@ -75,19 +76,15 @@ def main():
             target_dir, target_file
         )
 
-        onedrive = None
-        if client_id and client_secret and tenant:
-            onedrive = OneDriveClient(auth_type="basic")
-            onedrive.connect(client_id, client_secret, tenant)
-        else:
-            onedrive = OneDriveClient(auth_type="oauth", access_token=access_token)
+        excel = ExcelClient(client_id, client_secret, tenant, user_email)
+        excel.connect()
 
-        user_id = onedrive.get_user_id(user_email)
-        drive_id = onedrive.get_drive_id(user_id)
+        user_id = excel.get_user_id()
+        drive_id = excel.get_drive_id(user_id)
         if target_dir:
-            folder_id = onedrive.get_folder_id(target_dir, drive_id)
+            folder_id = excel.get_folder_id(target_dir, drive_id)
             if not folder_id:
-                onedrive.create_folder(target_dir, drive_id)
+                excel.create_folder(target_dir, drive_id)
 
         if not is_valid_file(src_file):
             raise ValueError(
@@ -101,7 +98,7 @@ def main():
             target_path = target_path.replace(".csv", ".xlsx")
             logger.debug(f"New file path: {src_path}")
 
-        onedrive.upload(src_path, drive_id, target_path)
+        excel.upload(src_path, drive_id, target_path)
 
     except ValueError as ve:
         logger.error(ve)

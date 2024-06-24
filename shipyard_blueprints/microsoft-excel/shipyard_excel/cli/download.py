@@ -73,14 +73,10 @@ def main():
         if target_dir:
             shipyard.files.create_folder_if_dne(target_dir)
 
-        excel = None
-        if client_id and client_secret and tenant:
-            excel = ExcelClient(auth_type="basic")
-            excel.connect(client_id, client_secret, tenant)
-        else:
-            excel = ExcelClient(auth_type="oauth", access_token=access_token)
+        excel = ExcelClient(client_id, client_secret, tenant, user_email)
+        excel.connect()
 
-        user_id = excel.get_user_id(user_email)
+        user_id = excel.get_user_id()
         drive_id = excel.get_drive_id(user_id)
         file_id = excel.get_file_id(src_file, drive_id, src_dir)
 

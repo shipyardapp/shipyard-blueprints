@@ -1,16 +1,18 @@
 import requests
 import pandas as pd
-from msal import ConfidentialClientApplication
 from shipyard_microsoft_onedrive import OneDriveClient
 from shipyard_templates import ExitCodeException, ShipyardLogger, Spreadsheets
-from typing import Optional, List
+from typing import Optional
 
 logger = ShipyardLogger.get_logger()
 
 
+# NOTE: OAUTH suport has been removed for the time being. The only form of auth allowed at this point is the client credentials flow
 class ExcelClient(OneDriveClient):
-    def __init__(self, auth_type: str, access_token: Optional[str] = None):
-        super().__init__(auth_type, access_token)
+    def __init__(
+        self, client_id: str, client_secret: str, tenant_id: str, user_email: str
+    ):
+        super().__init__(client_id, client_secret, tenant_id, user_email)
 
     def get_sheet_id(
         self, sheet_name: str, file_id: str, drive_id: Optional[str] = None
@@ -29,12 +31,7 @@ class ExcelClient(OneDriveClient):
         Returns: The ID of the sheet
 
         """
-        if self.auth_type == "basic":
-            url = (
-                f"{self.base_url}/drives/{drive_id}/items/{file_id}/workbook/worksheets"
-            )
-        elif self.auth_type == "oauth":
-            url = f"self.base_url/me/drive/items/{file_id}/workbook/worksheets"
+        url = f"{self.base_url}/drives/{drive_id}/items/{file_id}/workbook/worksheets"
 
         headers = {"Authorization": f"Bearer {self.access_token}"}
 
@@ -69,11 +66,7 @@ class ExcelClient(OneDriveClient):
         Returns: The data from the sheet in the form of JSON
 
         """
-        if self.auth_type == "basic":
-            url = f"{self.base_url}/drives/{drive_id}/items/{file_id}/workbook/worksheets/{sheet}/usedRange"
-        else:
-            url = f"{self.base_url}/me/drive/items/{file_id}/workbook/worksheets/{sheet}/usedRange"
-
+        url = f"{self.base_url}/drives/{drive_id}/items/{file_id}/workbook/worksheets/{sheet}/usedRange"
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Accept": "application/json",
