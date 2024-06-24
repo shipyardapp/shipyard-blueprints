@@ -8,17 +8,15 @@ logger = ShipyardLogger.get_logger()
 
 def main():
     try:
-        auth_type = os.getenv("MS_ONEDRIVE_AUTH_TYPE")
-        if auth_type == "basic":
-            client_id = os.getenv("MS_ONEDRIVE_CLIENT_ID")
-            client_secret = os.getenv("MS_ONEDRIVE_CLIENT_SECRET_VALUE")
-            tenant = os.getenv("MS_ONEDRIVE_TENANT")
-            client = OneDriveClient(client_id, client_secret, tenant)
-            client.connect()
-            logger.authtest(
-                "Successfully authenticated with OneDrive using basic authentication"
-            )
-            sys.exit(0)
+        client_id = os.getenv("MS_ONEDRIVE_CLIENT_ID")
+        client_secret = os.getenv("MS_ONEDRIVE_CLIENT_SECRET_VALUE")
+        tenant = os.getenv("MS_ONEDRIVE_TENANT")
+        client = OneDriveClient(client_id, client_secret, tenant)
+        client.connect()
+        logger.authtest(
+            "Successfully authenticated with OneDrive using basic authentication"
+        )
+        sys.exit(0)
     except Exception as e:
         logger.error(
             f"Failed to authenticate with OneDrive using basic authentication: {str(e)}"
