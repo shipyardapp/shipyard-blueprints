@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 from shipyard_microsoft_onedrive import OneDriveClient
 from shipyard_templates import ExitCodeException, ShipyardLogger, Spreadsheets
+from shipyard_templates import handle_errors
 from typing import Optional
 
 logger = ShipyardLogger.get_logger()
@@ -47,10 +48,8 @@ class ExcelClient(OneDriveClient):
                 Spreadsheets.EXIT_CODE_BAD_REQUEST,
             )
         else:
-            raise ExitCodeException(
-                f"Error getting sheet id: {response.text}",
-                Spreadsheets.EXIT_CODE_BAD_REQUEST,
-            )
+            logger.error("Error in getting the Sheet Id")
+            handle_errors(response.text, response.status_code)
 
     def get_sheet_data(self, file_id: str, sheet: str, drive_id: Optional[str] = None):
         """Get the data from a sheet in an Excel file
@@ -77,10 +76,8 @@ class ExcelClient(OneDriveClient):
         if response.ok:
             return response.json()
         else:
-            raise ExitCodeException(
-                f"Error getting sheet data: {response.text}",
-                Spreadsheets.EXIT_CODE_BAD_REQUEST,
-            )
+            logger.error("Error getting sheet data")
+            handle_errors(response.text, response.status_code)
 
     def get_sheet_data_as_df(
         self, file_id: str, sheet: str, drive_id: Optional[str] = None
