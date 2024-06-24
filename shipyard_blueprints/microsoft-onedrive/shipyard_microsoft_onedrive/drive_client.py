@@ -21,12 +21,6 @@ class OneDriveClient(CloudStorage):
             self.client_id = None
             self.client_secret = None
             self.tenant = None
-        else:
-            # fill out the attribute variables for the oauth flow
-            self.headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json",
-            }
 
         super().__init__()
 
@@ -54,30 +48,50 @@ class OneDriveClient(CloudStorage):
                 "Failed to connect to OneDrive using basic authentication"
             )
 
-    def get_user_id(self, user_email: str):
-        # endpoint = f'https://graph.microsoft.com/v1.0/users/{user_email}'
+    def get_user_id(self, user_email: str) -> str:
+        """Get the user ID of the user with the given email
+
+        Args:
+            user_email: The email of the user to get the ID of
+
+        Raises:
+            BadRequestError:
+
+        Returns:
+
+        """
         url = f"{self.base_url}/users/{user_email}"
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json",
         }
         response = requests.get(url, headers=headers)
-        if response.status_code == 200:
+        if response.ok:
             user_info = response.json()
             user_id = user_info["id"]
             return user_id
         else:
             raise BadRequestError(f"Failed to get user ID: {response.text}")
 
-    def get_drive_id(self, user_id: str):
-        # endpoint = f'https://graph.microsoft.com/v1.0/users/{user_id}/drive'
+    def get_drive_id(self, user_id: str) -> str:
+        """Get the drive ID of the user with the given ID
+
+        Args:
+            user_id: The ID of the user to the associated drive ID for
+
+        Raises:
+            BadRequestError:
+
+        Returns: The Drive ID of the user
+
+        """
         url = f"{self.base_url}/users/{user_id}/drive"
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json",
         }
         response = requests.get(url, headers=headers)
-        if response.status_code == 200:
+        if response.ok:
             drive_info = response.json()
             drive_id = drive_info["id"]
             return drive_id
@@ -93,10 +107,9 @@ class OneDriveClient(CloudStorage):
         Raises:
             ExitCodeException:
         """
-        # url = f'https://graph.microsoft.com/v1.0/drives/{drive_id}/root:/{drive_path}:/content'
         if self.auth_type == "basic":
             url = f"{self.base_url}/drives/{drive_id}/root:/{drive_path}:/content"
-        else:
+        elif self.auth_type == "access_token":
             url = f"{self.base_url}/me/drive/root:/{drive_path}:/content"
 
         with open(file_path, "rb") as file:
@@ -126,7 +139,7 @@ class OneDriveClient(CloudStorage):
         """
         if self.auth_type == "basic":
             url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/root:/{drive_path}:/content"
-        else:
+        elif self.auth_type == "access_token":
             url = (
                 f"https://graph.microsoft.com/v1.0/me/drive/root:/{drive_path}:/content"
             )
@@ -148,42 +161,6 @@ class OneDriveClient(CloudStorage):
             raise BadRequestError(
                 f"Failed to download file from OneDrive: {response.text}"
             )
-
-    # def move(
-    #     self,
-    #     src_name: str,
-    #     src_dir: str,
-    #     target_name: str,
-    #     target_dir: str,
-    #     drive_id: Optional[str],
-    # ):
-    #     item_id = self.get_file_id(src_name, drive_id)
-    #     if src_dir:
-    #         folder_id = self.get_folder_id(target_dir, drive_id)
-    #         if not folder_id and target_dir != '':
-    #             logger.info(f"Creating folder '{target_dir}' in OneDrive")
-    #             folder_id = self.create_folder(target_dir, drive_id)
-    #             logger.debug(f"Folder ID: {folder_id}")
-    #         data = {"parentReference": {"id": folder_id}, "name": target_name}
-    #     else:
-    #         data = {"name": target_name}
-    #
-    #     if self.auth_type == "basic":
-    #         url = f"{self.base_url}/drives/{drive_id}/items/{item_id}"
-    #     else:
-    #         url = f"https://graph.microsoft.com/v1.0/me/drive/items/{item_id}"
-    #     headers = {
-    #         "Authorization": f"Bearer {self.access_token}",
-    #         "Content-Type": "application/json",
-    #     }
-    #     logger.debug(f"Item ID: {item_id}")
-    #     response = requests.patch(url, headers=headers, json=data)
-    #     if response.ok:
-    #         logger.info(f"Successfully moved {src_name} to {target_name} in OneDrive")
-    #     else:
-    #         raise BadRequestError(
-    #             f"Failed to move {src_name} to {target_name} in OneDrive: {response.text}"
-    #         )
 
     def move(
         self,
@@ -215,7 +192,7 @@ class OneDriveClient(CloudStorage):
 
         if self.auth_type == "basic":
             url = f"{self.base_url}/drives/{drive_id}/items/{item_id}"
-        else:
+        elif self.auth_type == "access_token":
             url = f"https://graph.microsoft.com/v1.0/me/drive/items/{item_id}"
 
         headers = {
@@ -250,7 +227,7 @@ class OneDriveClient(CloudStorage):
             url = (
                 f"https://graph.microsoft.com/v1.0/drives/{drive_id}/root:/{drive_path}"
             )
-        else:
+        elif self.auth_type == "access_token":
             url = f"https://graph.microsoft.com/v1.0/me/drive/root:/{drive_path}"
 
         headers = {
@@ -281,7 +258,7 @@ class OneDriveClient(CloudStorage):
         """
         if self.auth_type == "basic":
             url = f"{self.base_url}/drives/{drive_id}/root/children"
-        else:
+        elif self.auth_type == "access_token":
             url = f"{self.base_url}/me/drive/root/children"
 
         headers = {
@@ -321,7 +298,7 @@ class OneDriveClient(CloudStorage):
                 url = f"{self.base_url}/drives/{drive_id}/root:/{folder_name}:/children"
             else:
                 url = f"{self.base_url}/drives/{drive_id}/root/children"
-        else:
+        elif self.auth_type == "access_token":
             if folder_name:
                 url = f"{self.base_url}/me/drive/root:/{folder_name}:/children"
             else:
@@ -357,7 +334,7 @@ class OneDriveClient(CloudStorage):
         """
         if self.auth_type == "basic":
             url = f"{self.base_url}/drives/{drive_id}/root/children"
-        else:
+        elif self.auth_type == "access_token":
             url = f"{self.base_url}/me/drive/root/children"
 
         headers = {
@@ -395,9 +372,8 @@ class OneDriveClient(CloudStorage):
 
         """
         if self.auth_type == "basic":
-            # url = f"{self.base_url}/drives/{drive_id}/root/search(q='')"
             url = f"{self.base_url}/drives/{drive_id}/root:/{folder}:/children"
-        else:
+        elif self.auth_type == "access_token":
             url = "https://graph.microsoft.com/v1.0/me/drive/root/search(q='')"
 
         headers = {"Authorization": f"Bearer {self.access_token}"}
@@ -419,6 +395,15 @@ class OneDriveClient(CloudStorage):
         return matching_files
 
     def download_from_graph_url(self, download_url: str, file_name: str):
+        """Download a file from a given URL
+
+        Args:
+            download_url: The download URL from the Graph API
+            file_name: The name of the file to write to
+
+        Raises:
+            BadRequestError:
+        """
         response = requests.get(download_url)
         if response.ok:
             with open(file_name, "wb") as file:
