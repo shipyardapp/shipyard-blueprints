@@ -41,7 +41,7 @@ def download():
     ]
 
 
-def test_upload(upload):
+def test_upload_csv(upload):
     cmd = deepcopy(upload)
     cmd.extend(
         [
@@ -51,3 +51,53 @@ def test_upload(upload):
     )
     process = subprocess.run(cmd, capture_output=True)
     assert process.returncode == 0
+
+
+def test_upload_xl_rename(upload):
+    cmd = deepcopy(upload)
+    cmd.extend(
+        [
+            "--file-name",
+            "xl.xlsx",
+            "--onedrive-file-name",
+            "pytest_xl.xlsx",
+        ]
+    )
+    process = subprocess.run(cmd, capture_output=True)
+    assert process.returncode == 0
+
+
+def test_download_xl_rename(download):
+    cmd = deepcopy(download)
+    cmd.extend(
+        [
+            "--file-name",
+            "pytest_xl_dl.xlsx",
+            "--onedrive-file-name",
+            "pytest_xl.xlsx",
+        ]
+    )
+    process = subprocess.run(cmd, capture_output=True)
+    assert process.returncode == 0
+
+
+def test_download_xl_to_new_dir(download):
+    cmd = deepcopy(download)
+    cmd.extend(
+        [
+            "--onedrive-file-name",
+            "pytest_xl.xlsx",
+            "--directory",
+            "pytest_dir",
+        ]
+    )
+    process = subprocess.run(cmd, capture_output=True)
+    assert process.returncode == 0
+
+
+def test_download_exists():
+    assert os.path.exists("pytest_dir/pytest_xl.xlsx")
+    assert os.path.exists("pytest_xl_dl.xlsx")
+
+    os.remove("pytest_xl_dl.xlsx")
+    subprocess.run(["rm", "-rf", "pytest_dir"])

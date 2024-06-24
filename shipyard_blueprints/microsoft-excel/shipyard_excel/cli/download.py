@@ -45,7 +45,7 @@ def get_args():
         help="Directory in OneDrive to upload the file to",
     )
     parser.add_argument(
-        "--sheet-name", required=False, default="Sheet 1", dest="sheet_name"
+        "--sheet-name", required=False, default="Sheet1", dest="sheet_name"
     )
     return parser.parse_args()
 
