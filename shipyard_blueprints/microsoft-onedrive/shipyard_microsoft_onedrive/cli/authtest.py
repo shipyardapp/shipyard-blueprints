@@ -8,9 +8,9 @@ logger = ShipyardLogger.get_logger()
 
 def main():
     try:
-        client_id = os.getenv("MS_ONEDRIVE_CLIENT_ID")
-        client_secret = os.getenv("MS_ONEDRIVE_CLIENT_SECRET_VALUE")
-        tenant = os.getenv("MS_ONEDRIVE_TENANT")
+        client_id = os.getenv("ONEDRIVE_CLIENT_ID")
+        client_secret = os.getenv("ONEDRIVE_CLIENT_SECRET")
+        tenant = os.getenv("ONEDRIVE_TENANT")
         client = OneDriveClient(client_id, client_secret, tenant)
         client.connect()
         logger.authtest(
