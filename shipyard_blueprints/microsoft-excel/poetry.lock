@@ -717,13 +717,13 @@ shipyard-templates = ">0.6.2,<1.0.0"
 
 [[package]]
 name = "shipyard-microsoft-onedrive"
-version = "0.1.0a2"
-description = ""
+version = "0.1.1"
+description = "A local client for working with files in Microsoft OneDrive"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "shipyard_microsoft_onedrive-0.1.0a2-py3-none-any.whl", hash = "sha256:162c9d537b9be1366be174d3ba4f9cd2aaf6c7e2dfd1114169ea49538d6289ee"},
-    {file = "shipyard_microsoft_onedrive-0.1.0a2.tar.gz", hash = "sha256:6b17d9e5a73adc8b656ede1408cd1c6aabc40be8d5ed315f43c7e02b20b0f214"},
+    {file = "shipyard_microsoft_onedrive-0.1.1-py3-none-any.whl", hash = "sha256:ef4bf2d77d545763b8c4846211203441683c4af8f248e3fe4829f3eb7cf9a5d6"},
+    {file = "shipyard_microsoft_onedrive-0.1.1.tar.gz", hash = "sha256:dbf3eccea136fcb391539332cd96b8d75032b1eba2fb37866109153b2ef6b362"},
 ]
 
 [package.dependencies]
@@ -732,17 +732,17 @@ office365-rest-python-client = ">=2.5.10,<3.0.0"
 pandas = ">=2.0,<3.0"
 requests = "2.31"
 shipyard-bp-utils = ">=1.2.1,<2.0.0"
-shipyard-templates = "0.9.0a1"
+shipyard-templates = "0.9.0"
 
 [[package]]
 name = "shipyard-templates"
-version = "0.9.0a1"
+version = "0.9.0"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "shipyard_templates-0.9.0a1-py3-none-any.whl", hash = "sha256:712b59d14f05bc15d6b14206874e69cb5bfa9a9035ac9d3daa646f662cb0042c"},
-    {file = "shipyard_templates-0.9.0a1.tar.gz", hash = "sha256:d514f815770d649b5c25e35028b42706cbbd23ab84af22f7053844c765051b5e"},
+    {file = "shipyard_templates-0.9.0-py3-none-any.whl", hash = "sha256:4e9a31d961abe5d89498c1177ac95f18f1c94e3f820600f9398486887a6476b5"},
+    {file = "shipyard_templates-0.9.0.tar.gz", hash = "sha256:b26324a7003127bedd70f8ebc87775d91e6b595f5d9c3589833f27e278c760f9"},
 ]
 
 [[package]]
@@ -809,4 +809,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "2048499b7ca0d347ad878571ef8080f3dd8f65eac5e0a33df23033fe5f3fa40e"
+content-hash = "3531840523483758b2e4b9c04773a738fb11b9f11f4a86e5da3260086fa0dec2"
