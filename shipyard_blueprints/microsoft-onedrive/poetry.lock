@@ -696,12 +696,10 @@ version = "0.9.0a1"
 description = "Super classes for blueprint development"
 optional = false
 python-versions = ">=3.9"
-files = []
-develop = true
-
-[package.source]
-type = "directory"
-url = "../../shipyard-templates"
+files = [
+    {file = "shipyard_templates-0.9.0a1-py3-none-any.whl", hash = "sha256:712b59d14f05bc15d6b14206874e69cb5bfa9a9035ac9d3daa646f662cb0042c"},
+    {file = "shipyard_templates-0.9.0a1.tar.gz", hash = "sha256:d514f815770d649b5c25e35028b42706cbbd23ab84af22f7053844c765051b5e"},
+]
 
 [[package]]
 name = "six"
@@ -767,4 +765,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "e295aa9b1338425372eca9a580d7b713124df24d433dca804a6085f37c5ff7dc"
+content-hash = "ac949b60adc0ee021e117fc2d2329a062dbe4799f125416243b1d1dd5dd59a44"
