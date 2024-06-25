@@ -11,7 +11,11 @@ logger = ShipyardLogger.get_logger()
 # NOTE: OAUTH suport has been removed for the time being. The only form of auth allowed at this point is the client credentials flow
 class ExcelClient(OneDriveClient):
     def __init__(
-        self, client_id: str, client_secret: str, tenant_id: str, user_email: str
+        self,
+        client_id: str,
+        client_secret: str,
+        tenant_id: str,
+        user_email: Optional[str] = None,
     ):
         super().__init__(client_id, client_secret, tenant_id, user_email)
 
