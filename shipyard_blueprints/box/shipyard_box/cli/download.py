@@ -43,24 +43,12 @@ def get_args():
     return parser.parse_args()
 
 
-def set_environment_variables(args):
-    """
-    Set Box Service Account Credentials as environment variables if they're provided via keyword
-    arguments rather than seeded as environment variables. This will override
-    system defaults.
-    """
-    if args.service_account:
-        os.environ["BOX_APPLICATION_CREDENTIALS"] = args.service_account
-    return
-
-
 def extract_file_name_from_source_full_path(source_full_path):
     """
     Use the file name provided in the source_file_name variable. Should be run only
     if a destination_file_name is not provided.
     """
-    destination_file_name = os.path.basename(source_full_path)
-    return destination_file_name
+    return os.path.basename(source_full_path)
 
 
 def enumerate_destination_file_name(destination_file_name, file_number=1):
@@ -78,7 +66,7 @@ def enumerate_destination_file_name(destination_file_name, file_number=1):
 
 
 def determine_destination_file_name(
-    *, source_full_path, destination_file_name, file_number=None
+        *, source_full_path, destination_file_name, file_number=None
 ):
     """
     Determine if the destination_file_name was provided, or should be extracted from the source_file_name,
@@ -122,7 +110,7 @@ def combine_folder_and_file_name(folder_name, file_name):
 
 
 def determine_destination_name(
-    destination_folder_name, destination_file_name, source_full_path, file_number=None
+        destination_folder_name, destination_file_name, source_full_path, file_number=None
 ):
     """
     Determine the final destination name of the file being downloaded.
@@ -132,13 +120,12 @@ def determine_destination_name(
         source_full_path=source_full_path,
         file_number=file_number,
     )
-    destination_name = combine_folder_and_file_name(
+    return combine_folder_and_file_name(
         destination_folder_name, destination_file_name
     )
-    return destination_name
 
 
-def find_box_file_names(client, source_folder_name, source_file_name):
+def find_box_file_names(client, source_folder_name):
     """
     Fetched all the files in the bucket which are returned in a list of
     tuples of file_name to file_id
@@ -207,41 +194,53 @@ def get_client(service_account):
         client.user().get()
         return client
     except BoxOAuthException as e:
-        print(
-            f"Error accessing Box account with pervice account "
-            f"developer_token={developer_token}; client_id={client_id}; "
-            f"client_secret={client_secret}"
+        print("Error accessing Box account with service account ")
+        raise e
+
+
+def get_folder(client, folder_name):
+    """
+    Returns the folder id for the Box client if it exists.
+    """
+    try:
+        print(f"Attempting to find folder {folder_name}")
+        folders = client.search().query(query=folder_name, type="folder")
+        base_folder = os.path.basename(os.path.normpath(folder_name))
+
+        return next(
+            (folder for folder in folders if folder.name == base_folder),
+            None,
         )
-        raise (e)
+    except (BoxOAuthException, BoxAPIException) as e:
+        raise e
 
 
-def get_file_id(client, source_folder_name, source_file_name):
+def get_file_id(client, source_file_name, source_folder_name=None):
     """
     Returns the file id for the Box client if it exists.
     """
     try:
-        search_folder = None
         if not source_folder_name:
-            search_folder = client.folder("0")
+            folder_id = "0"
         else:
-            folders = client.search().query(query=source_folder_name, type="folder")
-            for folder in folders:
-                search_folder = folder
-
-        files = client.search().query(
-            query=source_file_name, type="file", ancestor_folders=[search_folder]
-        )
+            folder = get_folder(client, source_folder_name)
+            folder_id = folder.id
+            print(f"Found folder {source_folder_name} with ID {folder_id}")
+        if not folder_id:
+            raise FileNotFoundError(f"Folder {source_folder_name} not found")
+        files = client.folder(folder_id).get_items()
         for _file in files:
-            return (_file.name, _file.id)
+            if _file.name == source_file_name:
+                print(f"Found file {source_file_name} with ID {_file.id}")
+                return _file.name, _file.id
+
+        raise FileNotFoundError(f"File {source_file_name} not found in folder {source_folder_name}")
     except (BoxOAuthException, BoxAPIException) as e:
-        print(f"The specified folder {destination_folder_name} does not exist")
-        raise (e)
+        raise e
 
 
 def main():
     args = get_args()
-    set_environment_variables(args)
-    service_account = os.environ.get("BOX_APPLICATION_CREDENTIALS")
     source_file_name = args.source_file_name
     source_folder_name = clean_folder_name(args.source_folder_name)
     source_full_path = combine_folder_and_file_name(
@@ -253,13 +252,12 @@ def main():
     if not os.path.exists(destination_folder_name) and (destination_folder_name != ""):
         os.makedirs(destination_folder_name)
 
-    client = get_client(service_account=service_account)
+    client = get_client(service_account=args.service_account)
 
     if source_file_name_match_type == "regex_match":
         file_objs = find_box_file_names(
             client=client,
             source_folder_name=source_folder_name,
-            source_file_name=source_file_name,
         )
         matching_file_names = find_matching_files(
             file_objs, re.compile(source_file_name)
@@ -275,23 +273,38 @@ def main():
                 file_number=index + 1,
             )
 
-            print(f"Downloading file {index+1} of {len(matching_file_names)}")
+            print(f"Downloading file {index + 1} of {len(matching_file_names)}")
             download_box_file(
                 file_name=file_name,
                 file_id=file_id,
                 client=client,
                 destination_file_name=destination_name,
             )
-    else:
+    else: # exact_match
+        file_name, file_id = None, None
         try:
-            file_name, file_id = get_file_id(
-                client=client,
-                source_folder_name=source_folder_name,
-                source_file_name=source_file_name,
-            )
+            if source_file_name.isnumeric():  # A more reliable way to find the file is by ID rather than name
+                try:
+                    print("The source file name is numeric. Attempting to download by file ID.")
+                    file = client.file(source_file_name).get()
+                    file_name = file.name
+                    file_id = source_file_name
+
+                except Exception:
+                    print("The source file name is not a valid file ID. Attempting to download by file name.")
+                else:
+                    source_full_path = combine_folder_and_file_name(
+                        folder_name=source_folder_name, file_name=file_name
+                    )
+            if not file_name or not file_id:
+                file_name, file_id = get_file_id(
+                    client=client,
+                    source_folder_name=source_folder_name,
+                    source_file_name=source_file_name,
+                )
         except TypeError as e:
-            print(f"The specified file {source_file_name} could not be found.")
-            raise (e)
+            print(f"The specified file {source_file_name} could not be found. Message from Box Server: {e}")
+            sys.exit(1)
 
         destination_name = determine_destination_name(
             destination_folder_name=destination_folder_name,
@@ -300,7 +313,7 @@ def main():
         )
 
         download_box_file(
-            file_name=source_file_name,
+            file_name=file_name,
             file_id=file_id,
             client=client,
             destination_file_name=destination_name,
