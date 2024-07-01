@@ -70,7 +70,6 @@ def refresh_workbook(server, workbook_id, workbook_name):
         logger.info(f"Workbook {workbook_name} was successfully triggered.")
         return refreshed_workbook
     except Exception as e:
-
         if "Resource Conflict" in e.args[0]:
             error_msg = (
                 "A refresh or extract operation for the workbook is already underway."
