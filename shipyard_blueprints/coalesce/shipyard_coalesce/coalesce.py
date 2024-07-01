@@ -89,7 +89,7 @@ class CoalesceClient(Etl):
         except Exception as e:
             logger.error(f"Error message: {response.json()['error']['errorString']}")
             logger.error(f"Error details: {response.json()['error']['errorDetail']}")
-            raise errs.TriggerJobError(e)
+            raise errs.TriggerJobError(e) from e
         else:
             return response.json()
 
