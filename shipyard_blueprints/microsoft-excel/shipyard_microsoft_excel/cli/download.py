@@ -6,7 +6,7 @@ import requests
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
 from shipyard_microsoft_onedrive import OneDriveClient
 
-from shipyard_excel import ExcelClient
+from shipyard_microsoft_excel import ExcelClient
 
 logger = ShipyardLogger.get_logger()
 

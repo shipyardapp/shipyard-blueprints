@@ -13,7 +13,7 @@ load_dotenv(find_dotenv())
 def upload():
     return [
         "python3",
-        "./shipyard_excel/cli/upload.py",
+        "./shipyard_microsoft_excel/cli/upload.py",
         "--client-id",
         os.getenv("MS_ONEDRIVE_CLIENT_ID"),
         "--client-secret",
@@ -29,7 +29,7 @@ def upload():
 def download():
     return [
         "python3",
-        "./shipyard_excel/cli/download.py",
+        "./shipyard_microsoft_excel/cli/download.py",
         "--client-id",
         os.getenv("MS_ONEDRIVE_CLIENT_ID"),
         "--client-secret",

@@ -9,7 +9,7 @@ if dotenv_exists := find_dotenv():
 
 @pytest.fixture(scope="module")
 def auth():
-    return ["python3", "shipyard_excel/cli/authtest.py"]
+    return ["python3", "shipyard_microsoft_excel/cli/authtest.py"]
 
 
 def test_authtest(auth):

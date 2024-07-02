@@ -4,7 +4,7 @@ import os
 import sys
 import shipyard_bp_utils as shipyard
 from shipyard_microsoft_onedrive import OneDriveClient
-from shipyard_excel import ExcelClient
+from shipyard_microsoft_excel import ExcelClient
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
 
 logger = ShipyardLogger.get_logger()
