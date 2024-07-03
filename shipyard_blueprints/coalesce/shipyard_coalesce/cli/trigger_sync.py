@@ -35,6 +35,9 @@ def get_args():
     parser.add_argument("--wait-for-completion", dest="wait_for_completion")
     parser.add_argument("--poke-interval", dest="poke_interval", default=1)
     parser.add_argument("--parameters", dest="parameters", required=False, default="")
+    parser.add_argument(
+        "--region", dest="region", default="gcp-us-central-1", required=False
+    )
 
     return parser.parse_args()
 
@@ -43,6 +46,7 @@ def main():
     try:
         args = get_args()
         access_token = args.access_token
+        region = args.region
         wait = shipyard.args.convert_to_boolean(args.wait_for_completion)
         sync_args = {
             "environment_id": args.environment_id,
@@ -66,7 +70,7 @@ def main():
             if args.parameters == ""
             else literal_eval(args.parameters),
         }
-        client = CoalesceClient(access_token)
+        client = CoalesceClient(access_token, region)
         response_json = client.trigger_sync(**sync_args)
         if wait and (0 < int(args.poke_interval) <= 60):
             run_id = response_json["runCounter"]

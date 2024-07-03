@@ -9,15 +9,36 @@ logger = ShipyardLogger.get_logger()
 
 
 class CoalesceClient(Etl):
-    def __init__(self, access_token: str):
+    def __init__(self, access_token: str, region: str = "gcp-us-central-1"):
         self.access_token = access_token
-        self.base_url = "https://app.coalescesoftware.io/scheduler"
+        self.region = region
+        self.base_url = self._form_url(region)
+        # self.schedule_url = "https://app.coalescesoftware.io/scheduler"
+        self.schedule_url = f"{self.base_url}/scheduler"
         self.headers = {
             "accept": "application/json",
             "Authorization": f"Bearer {self.access_token}",
         }
 
         super().__init__(access_token)
+
+    def _form_url(self, region: str):
+        if region == "gcp-us-central-1":
+            return "https://app.coalescesoftware.io"
+        elif region == "gcp-eu-west-3":
+            return "https://app.eu.coalescesoftware.io"
+        elif region == "gcp-austrailia-southeast-1":
+            return "https://app.austrailia-southeast1.gcp.coalescesoftware.io"
+        elif region == "aws-us-east-1":
+            return "https://app.us-east-1.aws.coalescesoftware.io"
+        elif region == "aws-us-west-2":
+            return "https://app.us-west-2.aws.coalescesoftware.io"
+        elif region == "az-us-west-2":
+            return "https://app.westus2.azure.coalescesoftware.io"
+        elif region == "az-us-east-2":
+            return "https://app.eastus2.azure.coalescesoftware.io"
+        else:
+            raise errs.InvalidRegion(region)
 
     def trigger_sync(
         self,
@@ -53,7 +74,7 @@ class CoalesceClient(Etl):
             headers = deepcopy(self.headers)
             headers["content-type"] = "application/json"
 
-            url = f"{self.base_url}/startRun"
+            url = f"{self.schedule_url}/startRun"
             # populate the inner payload for the userCredentials object
             credentials = {
                 "snowflakeUsername": snowflake_username,
@@ -103,7 +124,7 @@ class CoalesceClient(Etl):
             requests.Response: The HTTP response from the API
         """
         try:
-            url = f"{self.base_url}/runStatus?runCounter={run_counter}"
+            url = f"{self.schedule_url}/runStatus?runCounter={run_counter}"
             response = requests.get(url=url, headers=self.headers)
             response.raise_for_status()
         except Exception as e:
@@ -149,7 +170,8 @@ class CoalesceClient(Etl):
         Connects to the Coalesce API and returns the response
         """
         try:
-            url = "https://app.coalescesoftware.io/api/v1/runs?limit=1&orderBy=id&orderByDirection=desc&detail=false"
+            # url = "https://app.coalescesoftware.io/api/v1/runs?limit=1&orderBy=id&orderByDirection=desc&detail=false"
+            url = f"{self.base_url}/api/v1/runs?limit=1&orderBy=id&orderByDirection=desc&detail=false"
             response = requests.get(url=url, headers=self.headers)
             response.raise_for_status()
         except Exception:
