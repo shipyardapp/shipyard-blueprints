@@ -1,7 +1,7 @@
 import os
 import sys
 from shipyard_templates import ShipyardLogger
-from shipyard_excel import ExcelClient
+from shipyard_microsoft_excel import ExcelClient
 
 logger = ShipyardLogger.get_logger()
 
