@@ -13,7 +13,6 @@ class CoalesceClient(Etl):
         self.access_token = access_token
         self.region = region
         self.base_url = self._form_url(region)
-        # self.schedule_url = "https://app.coalescesoftware.io/scheduler"
         self.schedule_url = f"{self.base_url}/scheduler"
         self.headers = {
             "accept": "application/json",
@@ -170,7 +169,6 @@ class CoalesceClient(Etl):
         Connects to the Coalesce API and returns the response
         """
         try:
-            # url = "https://app.coalescesoftware.io/api/v1/runs?limit=1&orderBy=id&orderByDirection=desc&detail=false"
             url = f"{self.base_url}/api/v1/runs?limit=1&orderBy=id&orderByDirection=desc&detail=false"
             response = requests.get(url=url, headers=self.headers)
             response.raise_for_status()
