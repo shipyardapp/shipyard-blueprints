@@ -5,8 +5,9 @@ from shipyard_coalesce import CoalesceClient
 
 def main():
     client = CoalesceClient(
-        os.getenv("COALESCE_ACCESS_TOKEN", os.getenv("COALESCE_REGION"))
+        os.environ.get("COALESCE_ACCESS_TOKEN"), os.environ.get("COALESCE_REGION")
     )
+
     sys.exit(client.connect())
 
 

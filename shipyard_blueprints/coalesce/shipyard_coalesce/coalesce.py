@@ -9,9 +9,9 @@ logger = ShipyardLogger.get_logger()
 
 
 class CoalesceClient(Etl):
-    def __init__(self, access_token: str, region: str = "gcp-us-central-1"):
+    def __init__(self, access_token: str, region: Optional[str] = None):
         self.access_token = access_token
-        self.region = region
+        self.region = region if region else "gcp-us-central-1"
         self.base_url = self._form_url(region)
         self.schedule_url = f"{self.base_url}/scheduler"
         self.headers = {
