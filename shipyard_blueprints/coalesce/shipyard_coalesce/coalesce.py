@@ -23,18 +23,25 @@ class CoalesceClient(Etl):
 
     def _form_url(self, region: str):
         if region == "gcp-us-central-1":
+            logger.debug("Using US Primary region (gcp-us-central-1)")
             return "https://app.coalescesoftware.io"
         elif region == "gcp-eu-west-3":
+            logger.debug("Using EU Primary region (gcp-eu-west-3)")
             return "https://app.eu.coalescesoftware.io"
-        elif region == "gcp-austrailia-southeast-1":
-            return "https://app.austrailia-southeast1.gcp.coalescesoftware.io"
+        elif region == "gcp-australia-southeast-1":
+            logger.debug("Using AU Primary region (gcp-australia-southeast-1)")
+            return "https://app.australia-southeast1.gcp.coalescesoftware.io"
         elif region == "aws-us-east-1":
+            logger.debug("Using US AWS East region (aws-us-east-1)")
             return "https://app.us-east-1.aws.coalescesoftware.io"
         elif region == "aws-us-west-2":
+            logger.debug("Using US AWS West region (aws-us-west-2)")
             return "https://app.us-west-2.aws.coalescesoftware.io"
         elif region == "az-us-west-2":
+            logger.debug("Using US West 2 Azure region (az-us-west-2)")
             return "https://app.westus2.azure.coalescesoftware.io"
         elif region == "az-us-east-2":
+            logger.debug("Using US East 2 Azure region (az-us-east-2)")
             return "https://app.eastus2.azure.coalescesoftware.io"
         else:
             raise errs.InvalidRegion(region)
@@ -107,6 +114,7 @@ class CoalesceClient(Etl):
 
             logger.info("Successfully triggered job")
         except Exception as e:
+            print(f"Exception reads: {e}")
             logger.error(f"Error message: {response.json()['error']['errorString']}")
             logger.error(f"Error details: {response.json()['error']['errorDetail']}")
             raise errs.TriggerJobError(e) from e
@@ -173,6 +181,10 @@ class CoalesceClient(Etl):
             response = requests.get(url=url, headers=self.headers)
             response.raise_for_status()
         except Exception:
+            logger.authtest(
+                "Failed to connect to Coalesce. Ensure that the region and access token are correct"
+            )
             return 1
         else:
+            logger.authtest("Successfully connected to coalesce")
             return 0

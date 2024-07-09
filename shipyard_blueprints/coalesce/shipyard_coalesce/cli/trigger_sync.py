@@ -71,6 +71,12 @@ def main():
             else literal_eval(args.parameters),
         }
         client = CoalesceClient(access_token, region)
+        conn = client.connect()
+        if conn:
+            logger.error(
+                "Failed to connect to Coalesce, ensure that the access token and region are correct"
+            )
+            sys.exit(Etl.EXIT_CODE_INVALID_CREDENTIALS)
         response_json = client.trigger_sync(**sync_args)
         if wait and (0 < int(args.poke_interval) <= 60):
             run_id = response_json["runCounter"]
