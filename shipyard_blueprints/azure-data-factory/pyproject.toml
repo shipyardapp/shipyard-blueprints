@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "shipyard-azure-data-factory"
+version = "0.1.0a1"
+description = "This Python wrapper class, AzureDataFactoryClient, is designed to facilitate interaction with Azure Data Factory using the Azure SDK"
+authors = ["johnathan-rodriguez <johnathan.rodriguez@shipyardapp.com>"]
+readme = "README.md"
+packages = [{ include = "shipyard_azure_data_factory" }]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+shipyard-templates = "^0.9.0"
+azure-mgmt-datafactory = "^8.0.0"
+azure-identity = "^1.17.1"
+azure-mgmt-resource = "^23.1.1"
+
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.1"
+pytest = "^8.2.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
