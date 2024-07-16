@@ -18,7 +18,7 @@ def get_args():
     parser.add_argument("--data-factory-name", required=True, help="Data factory name")
     parser.add_argument("--pipeline-name", required=True, help="Pipeline name")
     parser.add_argument("--wait-for-completion", default=True, help="Wait for pipeline run completion")
-    parser.add_argument("--wait-time", default=30, help="Wait time in seconds")
+    parser.add_argument("--wait-time", default=1, help="Wait time in seconds")
     return parser.parse_args()
 
 
