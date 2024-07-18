@@ -18,7 +18,7 @@ def get_args():
     parser.add_argument("--data-factory-name", required=True, help="Data factory name")
     parser.add_argument("--pipeline-name", required=True, help="Pipeline name")
     parser.add_argument("--wait-for-completion", default=True, help="Wait for pipeline run completion")
-    parser.add_argument("--wait-time", default=1, help="Wait time in seconds")
+    parser.add_argument("--wait-time", default=1, help="Wait time in minutes")
     return parser.parse_args()
 
 
@@ -34,6 +34,7 @@ def main():
     except Exception as e:
         logger.error(f"Error triggering pipeline run: {e}")
         sys.exit(Etl.EXIT_CODE_UNKNOWN_ERROR)
+
 
 if __name__ == "__main__":
     main()
