@@ -42,9 +42,6 @@ def get_args():
         default="",
         help="Name of the directory to move the file into",
     )
-    # parser.add_argument(
-    #     "--user-email", required=True, help="Email of the user to load the drive into"
-    # )
     parser.add_argument(
         "--match-type",
         required=False,
@@ -66,7 +63,6 @@ def main():
         src_dir = args.src_dir
         dest_file = args.dest_file
         dest_dir = args.dest_dir
-        # user_email = args.user_email
         site_name = args.site_name
 
         if not dest_file:
@@ -80,8 +76,6 @@ def main():
         )
         sharepoint.connect()
 
-        # user_id = sharepoint.get_user_id()
-        # drive_id = sharepoint.get_drive_id(user_id)
         if args.match_type == "exact_match":
             sharepoint.move(
                 src_name=src_file,

@@ -28,9 +28,6 @@ def get_args():
         dest="site_name",
         help="Site name to upload the file to",
     )
-    # parser.add_argument(
-    #     "--user-email", required=True, help="Email of the user to upload the file to"
-    # )
     parser.add_argument(
         "--sharepoint-file-name", required=True, help="Name of the file in SharePoint"
     )
@@ -57,7 +54,6 @@ def main():
         client_id = args.client_id
         client_secret = args.client_secret
         tenant = args.tenant
-        # user_email = args.user_email
         src_file = args.sharepoint_file_name
         src_dir = args.sharepoint_directory
         target_path = shipyard.files.combine_folder_and_file_name(src_dir, src_file)
@@ -70,8 +66,7 @@ def main():
             site_name=site_name,
         )
         sharepoint.connect()
-        # user_id = sharepoint.get_user_id()
-        # drive_id = sharepoint.get_drive_id(user_id)
+
         if args.match_type == "exact_match":
             sharepoint.remove(target_path)
         elif args.match_type == "regex_match":

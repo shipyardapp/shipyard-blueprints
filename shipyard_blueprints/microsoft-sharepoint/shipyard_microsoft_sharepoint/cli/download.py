@@ -32,11 +32,6 @@ def get_args():
         "--file-name", required=False, help="The name of the file once it is downloaded"
     )
     parser.add_argument("--directory", default="", required=False)
-    # parser.add_argument(
-    #     "--user-email",
-    #     required=True,
-    #     dest="user_email",
-    # )
     parser.add_argument(
         "--sharepoint-file-name",
         required=True,
@@ -64,7 +59,6 @@ def main():
         client_id = args.client_id
         client_secret = args.client_secret
         tenant = args.tenant
-        # user_email = args.user_email
         site_name = args.site_name
 
         src_file = args.sharepoint_file_name
