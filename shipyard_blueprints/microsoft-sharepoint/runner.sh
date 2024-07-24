@@ -60,6 +60,30 @@ if [ "$1" = 'up2' ]; then
 fi
 
 
+if [ "$1" = 'up3' ]; then 
+    python3 ./shipyard_microsoft_sharepoint/cli/upload.py \
+        --client-id $SHAREPOINT_CLIENT_ID \
+        --client-secret $SHAREPOINT_CLIENT_SECRET_VALUE \
+        --tenant $SHAREPOINT_TENANT_ID \
+        --site-name $SHAREPOINT_SITE_ID \
+        --sharepoint-directory "Pytest" \
+        --file-name "test.csv"
+
+fi
+
+
+if [ "$1" = 'mv2' ]; then 
+    python3 ./shipyard_microsoft_sharepoint/cli/move.py \
+        --client-id $SHAREPOINT_CLIENT_ID \
+        --client-secret $SHAREPOINT_CLIENT_SECRET_VALUE \
+        --tenant $SHAREPOINT_TENANT_ID \
+        --site-name $SHAREPOINT_SITE_ID \
+        --src-file "pytest_upload.csv" \
+        --src-dir "pytest_folder_upload" \
+        --dest-dir "next_folder_move" \
+        --dest-file "pytest_moved_from_folder.csv"
+fi
+
 
 
 

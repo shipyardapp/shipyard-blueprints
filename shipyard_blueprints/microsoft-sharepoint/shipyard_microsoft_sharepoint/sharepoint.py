@@ -22,14 +22,12 @@ class SharePointClient(CloudStorage):
         client_id: str,
         client_secret: str,
         tenant: str,
-        site_name: str,
-        user_email: Optional[str] = None,
+        site_name: Optional[str] = None,
     ) -> None:
         self.base_url = "https://graph.microsoft.com/v1.0"
         self.client_id = client_id
         self.client_secret = client_secret
         self.tenant = tenant
-        self.user_email = user_email
         self.site_name = site_name
         self.access_token = None  # will be set during the connect
 
@@ -58,57 +56,6 @@ class SharePointClient(CloudStorage):
                 "Failed to connect to SharePoint using basic authentication"
             )
 
-    def get_user_id(self) -> str:
-        """Get the user ID of the user with the given email
-        Raises:
-            BadRequestError:
-
-        Returns: The ID of the user
-
-        """
-        if not self.user_email:
-            raise ValueError(
-                "User email was not provided when initializing the client. Please provide the user email"
-            )
-        url = f"{self.base_url}/users/{self.user_email}"
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json",
-        }
-        response = requests.get(url, headers=headers)
-        if response.ok:
-            user_info = response.json()
-            user_id = user_info["id"]
-            return user_id
-        else:
-            logger.error(f"Failed to get user ID")
-            handle_errors(response.text, response.status_code)
-
-    def get_drive_id(self, user_id: str) -> str:
-        """Get the drive ID of the user with the given ID
-
-        Args:
-            user_id: The ID of the user to the associated drive ID for
-
-        Raises:
-            ExitCodeException:
-
-        Returns: The Drive ID of the user
-
-        """
-        url = f"{self.base_url}/users/{user_id}/drive"
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json",
-        }
-        response = requests.get(url, headers=headers)
-        if response.ok:
-            drive_info = response.json()
-            drive_id = drive_info["id"]
-            return drive_id
-        else:
-            handle_errors(response.text, response.status_code)
-
     def upload(self, file_path: str, drive_path: Optional[str]):
         """Uploads a file to SharePoint
         Args:
@@ -124,7 +71,6 @@ class SharePointClient(CloudStorage):
             raise SharepointSiteNotFoundError(self.site_name)
 
         url = f"{self.base_url}/sites/{site_id}/drive/root:/{drive_path}:/content"
-        logger.debug(f"URL for upload: {url}")
 
         with open(file_path, "rb") as file:
             file_content = file.read()
@@ -187,7 +133,9 @@ class SharePointClient(CloudStorage):
         target_name: Optional[str],
         target_dir: Optional[str],
     ):
+        logger.debug(f"Src name is {src_name} and src dir is {src_dir}")
         item_id = self.get_file_id(src_name, src_dir)
+        logger.debug(f"Item ID: {item_id}")
 
         data = {}
         if target_dir and src_dir != target_dir:
@@ -218,7 +166,6 @@ class SharePointClient(CloudStorage):
             "Content-Type": "application/json",
         }
 
-        logger.debug(f"Item ID: {item_id}")
         response = requests.patch(url, headers=headers, json=data)
 
         if response.ok:
@@ -275,7 +222,10 @@ class SharePointClient(CloudStorage):
         Returns: The ID of the folder or None
 
         """
-        url = f"{self.base_url}/sites/{self.site_name}/drive/root:/children"
+        site_id = self.get_site_id()
+        if not site_id:
+            raise SharepointSiteNotFoundError(self.site_name)
+        url = f"{self.base_url}/sites/{site_id}/drive/root/children"
         headers = {
             "Authorization": f"Bearer {self.access_token}",
         }
