@@ -297,7 +297,6 @@ class SharePointClient(CloudStorage):
         if not site_id:
             raise SharepointSiteNotFoundError(self.site_name)
 
-        # url = f"{self.base_url}/sites/{site_id}/drives/{drive_id}/root/children"
         url = f"{self.base_url}/sites/{site_id}/drive/root/children"
 
         headers = {
