@@ -30,8 +30,26 @@ class SharePointClient(CloudStorage):
         self.tenant = tenant
         self.site_name = site_name
         self.access_token = None  # will be set during the connect
+        self._site_id = None
 
         super().__init__()
+
+    @property
+    def site_id(self):
+        try:
+            if not self._site_id:
+                conn_result = self.connect()
+                if conn_result == 0:
+                    self._site_id = self.get_site_id()
+                else:
+                    raise InvalidCredentialError(
+                        "Failed to connect to SharePoint using basic authentication. Ensure that the client ID, secret value, and tenant provided are correct"
+                    )
+            return self._site_id
+        except ExitCodeException as ec:
+            raise
+        except Exception as e:
+            raise SharepointSiteNotFoundError(self.site_name) from e
 
     def connect(
         self,
@@ -46,31 +64,25 @@ class SharePointClient(CloudStorage):
         )
         if "access_token" in result:
             self.access_token = result["access_token"]
-            logger.info(
+            logger.authtest(
                 "Successfully connected to SharePoint using basic authentication"
             )
-
+            return 0
         else:
-            logger.error("Failed to connect to SharePoint using basic authentication")
-            raise InvalidCredentialError(
-                "Failed to connect to SharePoint using basic authentication"
+            logger.authtest(
+                "Failed to connect to SharePoint using basic authentication. Ensure that the client ID, secret value, and tenant provided are correct"
             )
+            return 1
 
     def upload(self, file_path: str, drive_path: Optional[str]):
         """Uploads a file to SharePoint
         Args:
             file_path: The path of the local file to upload
-            drive_id: The ID of the drive to upload the file to, this is only necessary if using basic authentic
             drive_path: The drive path to upload the file to
         Raises:
             ExitCodeException:
         """
-
-        site_id = self.get_site_id()
-        if not site_id:
-            raise SharepointSiteNotFoundError(self.site_name)
-
-        url = f"{self.base_url}/sites/{site_id}/drive/root:/{drive_path}:/content"
+        url = f"{self.base_url}/sites/{self.site_id}/drive/root:/{drive_path}:/content"
 
         with open(file_path, "rb") as file:
             file_content = file.read()
@@ -95,13 +107,8 @@ class SharePointClient(CloudStorage):
         Args:
             file_path: The path to write to
             drive_path: The path of the file to download in SharePoint
-            drive_id: The ID of the drive to download from (only necessary if using basic authentication)
         """
-        site_id = self.get_site_id()
-        if not site_id:
-            raise SharepointSiteNotFoundError(self.site_name)
-
-        url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/root:/{drive_path}:/content"
+        url = f"https://graph.microsoft.com/v1.0/sites/{self.site_id}/drive/root:/{drive_path}:/content"
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/octet-stream",
@@ -155,11 +162,7 @@ class SharePointClient(CloudStorage):
             )
             return
 
-        site_id = self.get_site_id()
-        if not site_id:
-            raise SharepointSiteNotFoundError(self.site_name)
-
-        url = f"{self.base_url}/sites/{site_id}/drive/items/{item_id}"
+        url = f"{self.base_url}/sites/{self.site_id}/drive/items/{item_id}"
 
         headers = {
             "Authorization": f"Bearer {self.access_token}",
@@ -188,13 +191,7 @@ class SharePointClient(CloudStorage):
             drive_path: The path of the file to remove in SharePoint
             drive_id: The ID of the drive to remove (only necessary if using basic authentication)
         """
-        site_id = self.get_site_id()
-        if not site_id:
-            raise SharepointSiteNotFoundError(self.site_name)
-
-        url = (
-            f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/root:/{drive_path}"
-        )
+        url = f"https://graph.microsoft.com/v1.0/sites/{self.site_id}/drive/root:/{drive_path}"
         headers = {
             "Authorization": f"Bearer {self.access_token}",
         }
@@ -222,10 +219,7 @@ class SharePointClient(CloudStorage):
         Returns: The ID of the folder or None
 
         """
-        site_id = self.get_site_id()
-        if not site_id:
-            raise SharepointSiteNotFoundError(self.site_name)
-        url = f"{self.base_url}/sites/{site_id}/drive/root/children"
+        url = f"{self.base_url}/sites/{self.site_id}/drive/root/children"
         headers = {
             "Authorization": f"Bearer {self.access_token}",
         }
@@ -254,14 +248,11 @@ class SharePointClient(CloudStorage):
         Returns: The ID of the file or None
 
         """
-        site_id = self.get_site_id()
-        if not site_id:
-            raise SharepointSiteNotFoundError(self.site_name)
 
         if folder_name:
-            url = f"{self.base_url}/sites/{site_id}/drive/root:/{folder_name}:/children"
+            url = f"{self.base_url}/sites/{self.site_id}/drive/root:/{folder_name}:/children"
         else:
-            url = f"{self.base_url}/sites/{site_id}/drive/root/children"
+            url = f"{self.base_url}/sites/{self.site_id}/drive/root/children"
         headers = {
             "Authorization": f"Bearer {self.access_token}",
         }
@@ -293,11 +284,8 @@ class SharePointClient(CloudStorage):
         Returns: The ID of the created folder
 
         """
-        site_id = self.get_site_id()
-        if not site_id:
-            raise SharepointSiteNotFoundError(self.site_name)
 
-        url = f"{self.base_url}/sites/{site_id}/drive/root/children"
+        url = f"{self.base_url}/sites/{self.site_id}/drive/root/children"
 
         headers = {
             "Authorization": f"Bearer {self.access_token}",
@@ -330,11 +318,7 @@ class SharePointClient(CloudStorage):
         Returns: A list of files that match the pattern. If no matches are found then an empty list will be returned
 
         """
-        site_id = self.get_site_id()
-        if not site_id:
-            raise SharepointSiteNotFoundError(self.site_name)
-
-        url = f"{self.base_url}/sites/{site_id}/drive/root:/{folder}:/children"
+        url = f"{self.base_url}/sites/{self.site_id}/drive/root:/{folder}:/children"
 
         headers = {"Authorization": f"Bearer {self.access_token}"}
 
@@ -372,15 +356,23 @@ class SharePointClient(CloudStorage):
             handle_errors(response.text, response.status_code)
 
     def get_site_id(self) -> Optional[str]:
-        url = f"{self.base_url}/sites?search={self.site_name}"
-        headers = {"Authorization": f"Bearer {self.access_token}"}
-        response = requests.get(url, headers=headers)
-        resp_json = response.json()
-        if len(resp_json["value"]) > 1:
-            logger.error(
-                f"Multiple sites found with the name {self.site_name}. Please provide a unique site name"
-            )
-            return None
+        """Returns the site ID of the SharePoint site
 
-        site_id = resp_json["value"][0]["id"]
-        return site_id
+        Returns: The site ID if found
+
+        """
+        try:
+            url = f"{self.base_url}/sites?search={self.site_name}"
+            headers = {"Authorization": f"Bearer {self.access_token}"}
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            resp_json = response.json()
+            if len(resp_json["value"]) > 1:
+                logger.error(
+                    f"Multiple sites found with the name {self.site_name}. Please provide a unique site name"
+                )
+                raise SharepointSiteNotFoundError(self.site_name)
+            site_id = resp_json["value"][0]["id"]
+            return site_id
+        except Exception as e:
+            raise SharepointSiteNotFoundError(self.site_name) from e
