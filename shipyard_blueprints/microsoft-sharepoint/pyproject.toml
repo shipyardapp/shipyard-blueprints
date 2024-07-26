@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-microsoft-sharepoint"
-version = "0.1.0a0"
+version = "0.1.0a1"
 description = "A local client for working with Microsoft SharePoint"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 readme = "README.md"

@@ -66,7 +66,7 @@ def main():
         target_file = args.sharepoint_file_name
         target_dir = args.sharepoint_directory
 
-        target_file = target_file if target_file else src_file
+        target_file = target_file or src_file
         target_path = shipyard.files.combine_folder_and_file_name(
             target_dir, target_file
         )
