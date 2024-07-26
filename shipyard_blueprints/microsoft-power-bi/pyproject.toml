@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-microsoft-power-bi"
-version = "0.1.2a1"
+version = "0.1.2"
 description = ""
 authors = ["johnathan-rodriguez <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"

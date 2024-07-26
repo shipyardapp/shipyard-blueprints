@@ -42,8 +42,6 @@ class MicrosoftPowerBiClient(DataVisualization):
         self.client_secret = client_secret
         self.tenant_id = tenant_id
 
-        logger.info("MicrosoftPowerBiClient Initialized")
-
     def _request(self, endpoint: str, method: str = "GET", **kwargs):
         """
         A helper function to make a request to the Power BI API.
