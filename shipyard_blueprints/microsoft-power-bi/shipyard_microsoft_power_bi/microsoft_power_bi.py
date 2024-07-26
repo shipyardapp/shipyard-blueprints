@@ -1,8 +1,11 @@
 import json
 
 from requests import request
-from shipyard_templates import DataVisualization, ExitCodeException
+from shipyard_templates import DataVisualization, ExitCodeException, ShipyardLogger
+
 from shipyard_microsoft_power_bi import microsoft_power_bi_utils as bi_utils
+
+logger = ShipyardLogger.get_logger()
 
 
 class MicrosoftPowerBiClient(DataVisualization):
@@ -39,8 +42,6 @@ class MicrosoftPowerBiClient(DataVisualization):
         self.client_secret = client_secret
         self.tenant_id = tenant_id
 
-        self.logger.info("MicrosoftPowerBiClient Initialized")
-
     def _request(self, endpoint: str, method: str = "GET", **kwargs):
         """
         A helper function to make a request to the Power BI API.
@@ -53,7 +54,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         if self.access_token is None:
             self.access_token = bi_utils.generate_access_token(self)
 
-        self.logger.debug(f"Attempting to {method} {endpoint}")
+        logger.debug(f"Attempting to {method} {endpoint}")
 
         response = request(
             method=method,
@@ -65,8 +66,8 @@ class MicrosoftPowerBiClient(DataVisualization):
             },
             **kwargs,
         )
-        self.logger.debug(f"Response Code: {response.status_code}")
-        self.logger.debug(response.text)
+        logger.debug(f"Response Code: {response.status_code}")
+        logger.debug(response.text)
 
         if response.ok:
             if response.status_code == 200:
@@ -76,7 +77,7 @@ class MicrosoftPowerBiClient(DataVisualization):
                     return response.text
 
             if response.status_code == 202:
-                self.logger.debug("No Content")
+                logger.debug("No Content")
                 return response
         else:
             bi_utils.handle_error_response(self, response)
@@ -90,18 +91,18 @@ class MicrosoftPowerBiClient(DataVisualization):
         try:
             bi_utils.generate_access_token(self)
         except ExitCodeException as e:
-            self.logger.error(e)
+            logger.authtest(e)
             return 1
         else:
             return 0
 
     def refresh(
-        self,
-        object_type: str,
-        group_id: str,
-        object_id: str,
-        wait_for_completion: bool,
-        wait_time: int = 60,
+            self,
+            object_type: str,
+            group_id: str,
+            object_id: str,
+            wait_for_completion: bool,
+            wait_time: int = 60,
     ):
         """
         Triggers a refresh job for the specified object with the option to wait that job to complete.
@@ -110,7 +111,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         @param group_id: The ID of the group/workspace that the object belongs to.
         @param object_id: Either the ID of the dataset or dataflow to refresh.
         @param wait_for_completion: If True, waits for the refresh job to complete.
-        @param wait_time: Used if wait_for_completion is True. The number of seconds to wait for the refresh job to complete.
+        @param wait_time: Used if wait_for_completion is True.The number of seconds to wait for the refresh job to complete.
         @return: None
         """
         if object_type == "dataset":
@@ -124,11 +125,11 @@ class MicrosoftPowerBiClient(DataVisualization):
             )
 
     def refresh_dataset(
-        self,
-        group_id: str,
-        dataset_id: str,
-        wait_for_completion: bool,
-        wait_time: int = 60,
+            self,
+            group_id: str,
+            dataset_id: str,
+            wait_for_completion: bool,
+            wait_time: int = 60,
     ):
         """
         Triggers a refresh job for the specified dataset with the option to wait that job to complete.
@@ -139,12 +140,12 @@ class MicrosoftPowerBiClient(DataVisualization):
         @param wait_time: if wait_for_completion is True, the number of seconds to wait for the refresh job to complete.
         @return: response from the request or None if wait_for_completion is True.
         """
-        self.logger.info("Triggering dataset refresh...")
+        logger.info("Triggering dataset refresh...")
         response = self._request(
             f"{self.BASE_URL}/groups/{group_id}/datasets/{dataset_id}/refreshes",
             method="POST",
         )
-        self.logger.info("Dataset refresh triggered")
+        logger.info("Dataset refresh triggered")
         if wait_for_completion:
             request_id = response.headers.get("RequestId")
             bi_utils.wait_for_dataset_refresh_completion(
@@ -154,11 +155,11 @@ class MicrosoftPowerBiClient(DataVisualization):
             return response
 
     def refresh_dataflow(
-        self,
-        group_id: str,
-        dataflow_id: str,
-        wait_for_completion: bool,
-        wait_time: int = 60,
+            self,
+            group_id: str,
+            dataflow_id: str,
+            wait_for_completion: bool,
+            wait_time: int = 60,
     ):
         """
         Triggers a refresh job for the specified dataflow with the option to wait that job to complete.
@@ -172,7 +173,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         """
 
         data = {"refreshRequest": "ShipyardRefresh"}
-        self.logger.info("Triggering dataflow refresh...")
+        logger.info("Triggering dataflow refresh...")
         response = self._request(
             f"{self.BASE_URL}/groups/{group_id}/dataflows/{dataflow_id}/refreshes",
             method="POST",
@@ -183,7 +184,7 @@ class MicrosoftPowerBiClient(DataVisualization):
                 self, group_id, dataflow_id, wait_time=wait_time
             )
         else:
-            self.logger.info("Dataflow refresh triggered")
+            logger.info("Dataflow refresh triggered")
             return response
 
     def get_dataflow_transactions(self, group_id: str, dataflow_id: str):
@@ -201,11 +202,11 @@ class MicrosoftPowerBiClient(DataVisualization):
         )
 
     def check_recent_dataset_refresh_by_request_id(
-        self,
-        group_id: str,
-        dataset_id: str,
-        request_id: str,
-        number_of_refreshes: int = 10,
+            self,
+            group_id: str,
+            dataset_id: str,
+            request_id: str,
+            number_of_refreshes: int = 10,
     ):
         """
         Gets the status of the most recent refreshes for the specified dataset and checks if the specified request ID is
@@ -226,7 +227,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         for job in jobs:
             if job.get("requestId") == request_id:
                 current_status = job.get("status")
-                self.logger.debug(f"Current status: {current_status}")
+                logger.debug(f"Current status: {current_status}")
                 return job
         raise ExitCodeException(
             f"Request ID {request_id} not found within the last {number_of_refreshes} refreshes",
@@ -234,7 +235,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         )
 
     def check_dataset_refresh_by_refresh_id(
-        self, group_id: str, dataset_id: str, refresh_id: str
+            self, group_id: str, dataset_id: str, refresh_id: str
     ):
         """
         Gets the status of the specified refresh.
