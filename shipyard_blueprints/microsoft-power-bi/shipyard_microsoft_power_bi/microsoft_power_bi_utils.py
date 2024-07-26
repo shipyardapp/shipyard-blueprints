@@ -1,8 +1,11 @@
-import msal
 import time
-
 from json import JSONDecodeError
+
+import msal
 from shipyard_templates.exit_code_exception import ExitCodeException
+from shipyard_templates.shipyard_logger import ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
 
 FAILED_JOB_STATUSES = {"Failed", "PartialComplete"}
 ONGOING_JOB_STATUSES = {"Queued", "InProgress", "Unknown"}
@@ -38,7 +41,7 @@ def validate_refresh_object_type(bi_instance, object_type):
 
 
 def generate_access_token(bi_instance):
-    bi_instance.logger.info("Generating access token")
+    logger.info("Generating access token")
     try:
         token_data = generate_access_token_from_client(bi_instance)
     except ValueError as e:
@@ -53,7 +56,7 @@ def generate_access_token(bi_instance):
         ) from e
     else:
         if token := token_data.get("access_token"):
-            bi_instance.logger.info("Access token generated successfully")
+            logger.info("Access token generated successfully")
             return token
         if "error" in token_data:
             error_type = token_data.get("error")
@@ -71,13 +74,12 @@ def generate_access_token(bi_instance):
 
 def handle_error_response(bi_instance, response):
     try:
-        bi_instance.logger.debug(response.text)
-        print(response.text)
+        logger.debug(response.text)
         response_details = response.json()
         error_info = response_details.get("error", {})
 
     except JSONDecodeError:
-        bi_instance.logger.warning("Response was not JSON...handling as text")
+        logger.warning("Response was not JSON...handling as text")
         error_info = {"message": response.text} if response.text else {}
 
     if error_info.get("code") == "DailyDataflowRefreshLimitExceeded":
@@ -126,9 +128,9 @@ def handle_error_response(bi_instance, response):
 
 
 def wait_for_dataset_refresh_completion(
-    bi_instance, group_id, dataset_id, request_id, wait_time=60
+        bi_instance, group_id, dataset_id, request_id, wait_time=60
 ):
-    bi_instance.logger.info("Waiting for refresh to complete")
+    logger.info("Waiting for refresh to complete")
     job_status = "Unknown"
 
     while job_status in ONGOING_JOB_STATUSES:
@@ -137,8 +139,8 @@ def wait_for_dataset_refresh_completion(
         ).get("status")
 
         if job_status in COMPLETE_JOB_STATUSES:
-            bi_instance.logger.info(f"Job completed with status {job_status}")
-            bi_instance.logger.info("Refresh completed")
+            logger.info(f"Job completed with status {job_status}")
+            logger.info("Refresh completed")
             return
 
         if job_status in FAILED_JOB_STATUSES:
@@ -148,7 +150,7 @@ def wait_for_dataset_refresh_completion(
             )
 
         elif job_status in ONGOING_JOB_STATUSES:
-            bi_instance.logger.info(
+            logger.info(
                 f"Job currently in {job_status}. Waiting {wait_time} seconds before checking again."
             )
             time.sleep(wait_time)
@@ -160,9 +162,9 @@ def wait_for_dataset_refresh_completion(
 
 
 def wait_for_dataflow_refresh_completion(
-    bi_instance, group_id, dataflow_id, wait_time=60
+        bi_instance, group_id, dataflow_id, wait_time=60
 ):
-    bi_instance.logger.info("Waiting for refresh to complete")
+    logger.info("Waiting for refresh to complete")
     job_status = "Unknown"
 
     while job_status in ONGOING_JOB_STATUSES:
@@ -182,8 +184,8 @@ def wait_for_dataflow_refresh_completion(
         )  # Get the latest transaction status
 
         if job_status in COMPLETE_JOB_STATUSES:
-            bi_instance.logger.info(f"Job completed with status {job_status}")
-            bi_instance.logger.info("Refresh completed")
+            logger.info(f"Job completed with status {job_status}")
+            logger.info("Refresh completed")
             return
 
         if job_status in FAILED_JOB_STATUSES:
@@ -193,7 +195,7 @@ def wait_for_dataflow_refresh_completion(
             )
 
         elif job_status in ONGOING_JOB_STATUSES:
-            bi_instance.logger.info(
+            logger.info(
                 f"Job currently in {job_status}. Waiting {wait_time} seconds before checking again."
             )
             time.sleep(wait_time)
