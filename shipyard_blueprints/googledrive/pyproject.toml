@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-googledrive"
-version = "0.1.4"
+version = "0.1.5a0"
 description = "A local client for connecting and working with Google Drive"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 license = "Apache 2.0"
@@ -18,9 +18,9 @@ shipyard-bp-utils = "^0.1.1"
 pytest = "^7.4.0"
 python-dotenv = "^1.0.0"
 #shipyard-templates = {path = "../../shipyard-templates"}
-black = "^23.11.0"
 pre-commit = "^3.5.0"
 #shipyard-bp-utils = {path = "../shipyard-bp-utils"}
+black = {version = "^24.3.0", optional = true}
 
 [build-system]
 requires = ["poetry-core"]
