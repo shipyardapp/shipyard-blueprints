@@ -96,10 +96,8 @@ class SharePointClient(CloudStorage):
                 f"Successfully uploaded {file_path} to {drive_path} in SharePoint"
             )
         else:
-            raise ExitCodeException(
-                f"Failed to upload {file_path} to {drive_path} in SharePoint: {response.text}",
-                self.EXIT_CODE_UPLOAD_ERROR,
-            )
+            logger.error(f"Failed to upload {file_path} to {drive_path} in SharePoint")
+            handle_errors(response.text, response.status_code)
 
     def download(self, file_path: str, drive_path: str):
         """Downloads a file from SharePoint
@@ -120,18 +118,15 @@ class SharePointClient(CloudStorage):
             f"Response: {response.text} and status code is {response.status_code}"
         )
 
-        if response.status_code == 200:
+        if response.ok:
             with open(file_path, "wb") as file:
                 file.write(response.content)
             logger.info(f"File downloaded successfully to {file_path}")
         else:
-            logger.debug(
+            logger.error(
                 f"Failed to download {file_path} from SharePoint. Ensure that the file and folder (if provide exist)"
             )
-            raise ExitCodeException(
-                f"Failed to download file from SharePoint: {response.text}",
-                self.EXIT_CODE_DOWNLOAD_ERROR,
-            )
+            handle_errors(response.text, response.status_code)
 
     def move(
         self,
@@ -176,10 +171,10 @@ class SharePointClient(CloudStorage):
                 f"Successfully moved/renamed {src_name} to {target_name or src_name} in SharePoint"
             )
         else:
-            raise ExitCodeException(
-                f"Failed to move/rename {src_name} to {target_name or src_name} in SharePoint: {response.text}",
-                self.EXIT_CODE_UNKNOWN_ERROR,
+            logger.error(
+                f"Failed to move/rename {src_name} to {target_name or src_name} in SharePoint"
             )
+            handle_errors(response.text, response.status_code)
 
     def remove(
         self,
@@ -201,17 +196,14 @@ class SharePointClient(CloudStorage):
         if response.ok:
             logger.info(f"Successfully removed {drive_path} from SharePoint")
         else:
-            raise ExitCodeException(
-                f"Failed to remove {drive_path} from SharePoint: {response.text}",
-                self.EXIT_CODE_UNKNOWN_ERROR,
-            )
+            logger.error(f"Failed to remove {drive_path} from SharePoint")
+            handle_errors(response.text, response.status_code)
 
     def get_folder_id(self, folder_name: str) -> Optional[str]:
         """Returns the folder ID of a folder in SharePoint
 
         Args:
             folder_name: The name of the folder to fetch the ID of
-            drive_id: The ID of the drive to search in (only necessary if using basic authentication)
 
         Raises:
             BadRequestError:
@@ -240,7 +232,7 @@ class SharePointClient(CloudStorage):
 
         Args:
             file_name: The name of the file to fetch the ID of
-            drive_id: The ID of the drive to search in (only necessary if using basic authentication)
+            folder_name: The optional name of the folder to search within. If omitted, the root directory will be used
 
         Raises:
             BadRequestError:
@@ -268,7 +260,7 @@ class SharePointClient(CloudStorage):
                 )
                 return
         else:
-            logger.error(f"Failed to get file ID")
+            logger.error("Failed to get file ID")
             handle_errors(response.text, response.status_code)
 
     def create_folder(self, folder_name: str) -> str:
@@ -313,7 +305,7 @@ class SharePointClient(CloudStorage):
 
         Args:
             pattern: The pattern to match on
-            drive_id: The ID of the drive to search in (only necessary if using basic authentication)
+            folder: The name of the folder to search within
 
         Returns: A list of files that match the pattern. If no matches are found then an empty list will be returned
 
@@ -336,6 +328,7 @@ class SharePointClient(CloudStorage):
             logger.warning(
                 f"Failed to fetch file matches from SharePoint: {response.text}"
             )
+            handle_errors(response.text, response.status_code)
         return matching_files
 
     def download_from_graph_url(self, download_url: str, file_name: str):
@@ -353,6 +346,7 @@ class SharePointClient(CloudStorage):
             with open(file_name, "wb") as file:
                 file.write(response.content)
         else:
+            logger.error(f"Failed to download file from {download_url} via url")
             handle_errors(response.text, response.status_code)
 
     def get_site_id(self) -> Optional[str]:

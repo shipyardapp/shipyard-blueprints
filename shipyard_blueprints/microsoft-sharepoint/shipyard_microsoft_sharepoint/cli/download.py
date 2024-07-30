@@ -55,7 +55,6 @@ def get_args():
 def main():
     try:
         args = get_args()
-        access_token = args.access_token
         client_id = args.client_id
         client_secret = args.client_secret
         tenant = args.tenant
@@ -80,7 +79,6 @@ def main():
             tenant=tenant,
             site_name=site_name,
         )
-        sharepoint.connect()
 
         if args.match_type == "exact_match":
             sharepoint.download(target_path, src_path)

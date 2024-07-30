@@ -3,18 +3,17 @@ import sys
 from shipyard_templates import ShipyardLogger
 from shipyard_microsoft_sharepoint import SharePointClient
 
-logger = ShipyardLogger.get_logger()
+logger = ShipyardLogger.get_logger().setLevel("AUTHTEST")
 
 
 def main():
-    client_id = os.getenv("SHAREPOINT_CLIENT_ID")
-    client_secret = os.getenv("SHAREPOINT_CLIENT_SECRET")
-    tenant = os.getenv("SHAREPOINT_TENANT")
-    client = SharePointClient(
-        client_id=client_id, client_secret=client_secret, tenant=tenant
+    sys.exit(
+        SharePointClient(
+            client_id=os.getenv("SHAREPOINT_CLIENT_ID"),
+            client_secret=os.getenv("SHAREPOINT_CLIENT_SECRET"),
+            tenant=os.getenv("SHAREPOINT_TENANT"),
+        ).connect()
     )
-    res = client.connect()
-    sys.exit(res)
 
 
 if __name__ == "__main__":
