@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-microsoft-onedrive"
-version = "0.1.1"
+version = "0.2.0a0"
 description = "A local client for working with files in Microsoft OneDrive"
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 readme = "README.md"

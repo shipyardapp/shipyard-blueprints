@@ -1,9 +1,8 @@
-import os
 import sys
 import argparse
 import shipyard_bp_utils as shipyard
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
-from shipyard_microsoft_onedrive import OneDriveClient
+from shipyard_microsoft_onedrive import OneDriveClient, utils
 
 logger = ShipyardLogger.get_logger()
 
@@ -52,10 +51,8 @@ def get_args():
 def main():
     try:
         args = get_args()
-        access_token = args.access_token
-        client_id = args.client_id
-        client_secret = args.client_secret
-        tenant = args.tenant
+        credentials = utils.get_credential_group(args)
+
         src_file = args.src_file
         src_dir = args.src_dir
         dest_file = args.dest_file
@@ -66,14 +63,11 @@ def main():
             dest_file = src_file
 
         onedrive = OneDriveClient(
-            client_id=client_id,
-            client_secret=client_secret,
-            tenant=tenant,
+            **credentials,
             user_email=user_email,
         )
-        onedrive.connect()
 
-        user_id = onedrive.get_user_id()
+        user_id = onedrive.get_user_id(args.user_email)
         drive_id = onedrive.get_drive_id(user_id)
         if args.match_type == "exact_match":
             onedrive.move(
