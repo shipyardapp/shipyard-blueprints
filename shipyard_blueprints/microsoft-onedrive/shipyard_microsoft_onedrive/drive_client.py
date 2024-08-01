@@ -1,6 +1,6 @@
 import re
 from json import JSONDecodeError
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 import msal
 from requests import request
