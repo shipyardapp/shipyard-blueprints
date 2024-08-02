@@ -1,26 +1,33 @@
-import requests
+from typing import Optional
+
 import pandas as pd
 from shipyard_microsoft_onedrive import OneDriveClient
 from shipyard_templates import ExitCodeException, ShipyardLogger, Spreadsheets
-from shipyard_templates import handle_errors
-from typing import Optional
 
 logger = ShipyardLogger.get_logger()
 
 
-# NOTE: OAUTH suport has been removed for the time being. The only form of auth allowed at this point is the client credentials flow
 class ExcelClient(OneDriveClient):
     def __init__(
-        self,
-        client_id: str,
-        client_secret: str,
-        tenant_id: str,
-        user_email: Optional[str] = None,
+            self,
+            access_token: Optional[str] = None,
+            username: Optional[str] = None,
+            password: Optional[str] = None,
+            client_id: Optional[str] = None,
+            client_secret: Optional[str] = None,
+            tenant: Optional[str] = None,
     ):
-        super().__init__(client_id, client_secret, tenant_id, user_email)
+        super().__init__(
+            access_token=access_token,
+            username=username,
+            password=password,
+            client_id=client_id,
+            client_secret=client_secret,
+            tenant=tenant,
+        )
 
     def get_sheet_id(
-        self, sheet_name: str, file_id: str, drive_id: Optional[str] = None
+            self, sheet_name: str, file_id: str, drive_id: Optional[str] = None
     ) -> str:
         """
 
@@ -36,24 +43,22 @@ class ExcelClient(OneDriveClient):
         Returns: The ID of the sheet
 
         """
-        url = f"{self.base_url}/drives/{drive_id}/items/{file_id}/workbook/worksheets"
 
-        headers = {"Authorization": f"Bearer {self.access_token}"}
-
-        response = requests.get(url, headers=headers)
-
-        if response.ok:
-            data = response.json()
-            for sheet in data["value"]:
-                if sheet["name"] == sheet_name:
-                    return sheet["id"]
+        data = self._request("GET", f"drives/{drive_id}/items/{file_id}/workbook/worksheets")
+        if sheet_id := next(
+                (
+                        sheet["id"]
+                        for sheet in data["value"]
+                        if sheet["name"] == sheet_name
+                ),
+                None,
+        ):
+            return sheet_id
+        else:
             raise ExitCodeException(
                 f"Sheet {sheet_name} not found in file {file_id}",
                 Spreadsheets.EXIT_CODE_BAD_REQUEST,
             )
-        else:
-            logger.error("Error in getting the Sheet Id")
-            handle_errors(response.text, response.status_code)
 
     def get_sheet_data(self, file_id: str, sheet: str, drive_id: Optional[str] = None):
         """Get the data from a sheet in an Excel file
@@ -69,27 +74,14 @@ class ExcelClient(OneDriveClient):
         Returns: The data from the sheet in the form of JSON
 
         """
-        url = f"{self.base_url}/drives/{drive_id}/items/{file_id}/workbook/worksheets/{sheet}/usedRange"
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-            "Accept": "application/json",
-        }
-
-        response = requests.get(url, headers=headers)
-
-        if response.ok:
-            return response.json()
-        else:
-            logger.error("Error getting sheet data")
-            handle_errors(response.text, response.status_code)
+        return self._request("GET",
+                             f"drives/{drive_id}/items/{file_id}/workbook/worksheets/{sheet}/usedRange")
 
     def get_sheet_data_as_df(
-        self, file_id: str, sheet: str, drive_id: Optional[str] = None
+            self, file_id: str, sheet: str, drive_id: Optional[str] = None
     ):
         try:
             data = self.get_sheet_data(file_id, sheet, drive_id)["values"]
-            df = pd.DataFrame(data[1:], columns=data[0])
-            return df
+            return pd.DataFrame(data[1:], columns=data[0])
         except ExitCodeException as ec:
-            logger.error(ec)
-            raise
+            raise ec

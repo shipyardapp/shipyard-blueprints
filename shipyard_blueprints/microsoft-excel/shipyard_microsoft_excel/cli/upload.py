@@ -1,11 +1,13 @@
-import pandas as pd
 import argparse
 import os
 import sys
+
+import pandas as pd
 import shipyard_bp_utils as shipyard
-from shipyard_microsoft_onedrive import OneDriveClient
-from shipyard_microsoft_excel import ExcelClient
+from shipyard_microsoft_onedrive import utils
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
+
+from shipyard_microsoft_excel import ExcelClient
 
 logger = ShipyardLogger.get_logger()
 
@@ -60,26 +62,22 @@ def convert_to_excel(file_path: str):
 def main():
     try:
         args = get_args()
-        access_token = args.access_token
-        client_id = args.client_id
-        client_secret = args.client_secret
-        tenant = args.tenant
+        credentials = utils.get_credential_group(args)
+
         src_file = args.file_name
         src_dir = args.directory
         src_path = shipyard.files.combine_folder_and_file_name(src_dir, src_file)
-        user_email = args.user_email
         target_file = args.onedrive_file_name
         target_dir = args.onedrive_directory
 
-        target_file = target_file if target_file else src_file
+        target_file = target_file or src_file
         target_path = shipyard.files.combine_folder_and_file_name(
             target_dir, target_file
         )
 
-        excel = ExcelClient(client_id, client_secret, tenant, user_email)
-        excel.connect()
+        excel = ExcelClient(**credentials)
 
-        user_id = excel.get_user_id()
+        user_id = excel.get_user_id(args.user_email)
         drive_id = excel.get_drive_id(user_id)
         if target_dir:
             folder_id = excel.get_folder_id(target_dir, drive_id)
@@ -93,7 +91,6 @@ def main():
 
         if is_csv(src_file):
             convert_to_excel(src_path)
-            src_file = src_file.replace(".csv", ".xlsx")
             src_path = src_path.replace(".csv", ".xlsx")
             target_path = target_path.replace(".csv", ".xlsx")
             logger.debug(f"New file path: {src_path}")

@@ -1,10 +1,9 @@
-import os
-import sys
 import argparse
+import sys
+
 import shipyard_bp_utils as shipyard
-import requests
+from shipyard_microsoft_onedrive import utils
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
-from shipyard_microsoft_onedrive import OneDriveClient
 
 from shipyard_microsoft_excel import ExcelClient
 
@@ -53,17 +52,12 @@ def get_args():
 def main():
     try:
         args = get_args()
-        access_token = args.access_token
-        client_id = args.client_id
-        client_secret = args.client_secret
-        tenant = args.tenant
-        user_email = args.user_email
+        credentials = utils.get_credential_group(args)
 
         src_file = args.onedrive_file_name
         src_dir = args.onedrive_directory
-        src_path = shipyard.files.combine_folder_and_file_name(src_dir, src_file)
 
-        target_file = args.file_name if args.file_name else src_file
+        target_file = args.file_name or src_file
         target_dir = args.directory
         target_path = shipyard.files.combine_folder_and_file_name(
             target_dir, target_file
@@ -73,10 +67,9 @@ def main():
         if target_dir:
             shipyard.files.create_folder_if_dne(target_dir)
 
-        excel = ExcelClient(client_id, client_secret, tenant, user_email)
-        excel.connect()
+        excel = ExcelClient(**credentials)
 
-        user_id = excel.get_user_id()
+        user_id = excel.get_user_id(args.user_email)
         drive_id = excel.get_drive_id(user_id)
         file_id = excel.get_file_id(src_file, drive_id, src_dir)
 
