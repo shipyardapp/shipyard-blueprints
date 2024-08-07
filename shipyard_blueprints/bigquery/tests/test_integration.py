@@ -23,8 +23,8 @@ def download():
     return [
         "python3",
         "./shipyard_bigquery/cli/download.py",
-        "--service-account",
-        os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+        # "--service-account",
+        # os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
     ]
 
 
@@ -33,8 +33,8 @@ def execute_query():
     return [
         "python3",
         "./shipyard_bigquery/cli/execute_query.py",
-        "--service-account",
-        os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+        # "--service-account",
+        # os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
     ]
 
 
@@ -70,6 +70,8 @@ def test_download_replaced_table(download):
             "select * from blueprint_testing.pytest_upload_test",
             "--destination-file-name",
             "pytest_download_test.csv",
+            "--service-account",
+            os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
         ]
     )
     process = subprocess.run(cmd, check=True)
@@ -89,6 +91,8 @@ def test_drop_table(execute_query):
         [
             "--query",
             "DROP TABLE blueprint_testing.pytest_upload_test",
+            "--service-account",
+            os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
         ]
     )
 
@@ -115,4 +119,37 @@ def test_oauth_upload(upload):
     )
     process = subprocess.run(cmd, check=True)
 
+    assert process.returncode == 0
+
+
+def test_oauth_download(download):
+    load_dotenv(".env.bigquery.oauth")
+    cmd = deepcopy(download)
+    cmd.extend(
+        [
+            "--query",
+            "select * from blueprint_testing.pytest_oauth_upload_test",
+            "--destination-file-name",
+            "pytest_oauth_download_test.csv",
+        ]
+    )
+    process = subprocess.run(cmd, check=True)
+    assert process.returncode == 0
+
+
+def test_oauth_file_exists():
+    assert os.path.exists("pytest_oauth_download_test.csv")
+    os.remove("pytest_oauth_download_test.csv")
+
+
+def test_drop_oauth_table(execute_query):
+    load_dotenv(".env.bigquery.oauth")
+    cmd = deepcopy(execute_query)
+    cmd.extend(
+        [
+            "--query",
+            "DROP TABLE blueprint_testing.pytest_oauth_upload_test",
+        ]
+    )
+    process = subprocess.run(cmd, check=True)
     assert process.returncode == 0
