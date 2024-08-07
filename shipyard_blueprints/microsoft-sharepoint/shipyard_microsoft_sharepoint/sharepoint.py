@@ -1,17 +1,17 @@
-import requests
 import re
+from json import JSONDecodeError
+from typing import Optional, List, Dict, Any
 
-from typing import Optional, List, Dict
-from msal import ConfidentialClientApplication
+import requests
+from msal import ConfidentialClientApplication, PublicClientApplication
+from requests import request
 from shipyard_templates import ShipyardLogger, CloudStorage, ExitCodeException
 from shipyard_templates.errors import (
     InvalidCredentialError,
-    BadRequestError,
     handle_errors,
 )
 
 from shipyard_microsoft_sharepoint.errs import SharepointSiteNotFoundError
-
 
 logger = ShipyardLogger.get_logger()
 
@@ -19,60 +19,140 @@ logger = ShipyardLogger.get_logger()
 class SharePointClient(CloudStorage):
     def __init__(
         self,
-        client_id: str,
-        client_secret: str,
-        tenant: str,
+        access_token: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        client_id: Optional[str] = None,
+        client_secret: Optional[str] = None,
+        tenant: Optional[str] = None,
         site_name: Optional[str] = None,
     ) -> None:
-        self.base_url = "https://graph.microsoft.com/v1.0"
+        self._access_token = access_token
+        self.username = username
+        self.password = password
         self.client_id = client_id
         self.client_secret = client_secret
         self.tenant = tenant
+        self.base_url = "https://graph.microsoft.com/v1.0"
+
         self.site_name = site_name
-        self.access_token = None  # will be set during the connect
         self._site_id = None
 
         super().__init__()
 
     @property
+    def access_token(self):
+        if not self._access_token:
+            if self.username and self.password:
+                try:
+                    self._generate_token_from_un_pw()
+                except Exception as e:
+                    logger.error(
+                        f"Failed to generate token using username/password: {e}"
+                    )
+            if self.client_id and self.client_secret:
+                try:
+                    self._generate_token_from_client()
+                except Exception as e:
+                    logger.error(
+                        f"Failed to generate token using client credentials: {e}"
+                    )
+
+        if not self._access_token:
+            raise InvalidCredentialError("Invalid credentials provided")
+        return self._access_token
+
+    @access_token.setter
+    def access_token(self, access_token):
+        self._access_token = access_token
+
+    def _set_access_token(self, result):
+        if "access_token" not in result:
+            raise InvalidCredentialError(
+                f"Failed to connect to OneDrive using basic authentication. Error: {result}"
+            )
+        self.access_token = result["access_token"]
+        logger.info("Successfully connected to SharePoint")
+
+    def _generate_token_from_client(self):
+        result = ConfidentialClientApplication(
+            client_id=self.client_id,
+            client_credential=self.client_secret,
+            authority=f"https://login.microsoftonline.com/{self.tenant}",
+        ).acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
+        self._set_access_token(result)
+
+    def _generate_token_from_un_pw(self):
+        result = PublicClientApplication(
+            client_id=self.client_id,
+            authority=f"https://login.microsoftonline.com/{self.tenant}",
+        ).acquire_token_by_username_password(
+            username=self.username,
+            password=self.password,
+            scopes=["https://graph.microsoft.com/.default"],
+        )
+        self._set_access_token(result)
+
+    def _request(
+        self,
+        method: str,
+        endpoint: str,
+        headers_override: Optional[Dict[str, str]] = None,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
+        """Make an HTTP request to the OneDrive API.
+
+        Args:
+            method (str): HTTP method (e.g., 'GET', 'POST').
+            endpoint (str): API endpoint.
+            headers_override (Optional[Dict[str, str]]): Optional headers to override default headers.
+            **kwargs: Additional arguments for the request.
+
+        Returns:
+            Dict[str, Any]: The JSON response.
+
+        Raises:
+            ExitCodeException: If the request fails.
+        """
+        headers = headers_override or {
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json",
+        }
+
+        response = request(
+            method, f"{self.base_url}/{endpoint}", headers=headers, **kwargs
+        )
+        if response.ok:
+            try:
+                return response.json()
+            except JSONDecodeError:
+                return {}
+        else:
+            logger.debug(
+                f"Failed to {method} {endpoint}. Response <{response.status_code}>: {response.text}"
+            )
+            handle_errors(response.text, response.status_code)
+
+    @property
     def site_id(self):
         try:
             if not self._site_id:
-                conn_result = self.connect()
-                if conn_result == 0:
-                    self._site_id = self.get_site_id()
-                else:
-                    raise InvalidCredentialError(
-                        "Failed to connect to SharePoint using basic authentication. Ensure that the client ID, secret value, and tenant provided are correct"
-                    )
+                self._site_id = self.get_site_id()
+
             return self._site_id
-        except ExitCodeException as ec:
+        except ExitCodeException:
             raise
         except Exception as e:
             raise SharepointSiteNotFoundError(self.site_name) from e
 
-    def connect(
-        self,
-    ):
-        app = ConfidentialClientApplication(
-            self.client_id,
-            authority=f"https://login.microsoftonline.com/{self.tenant}",
-            client_credential=self.client_secret,
-        )
-        result = app.acquire_token_for_client(
-            scopes=["https://graph.microsoft.com/.default"]
-        )
-        if "access_token" in result:
-            self.access_token = result["access_token"]
-            logger.authtest(
-                "Successfully connected to SharePoint using basic authentication"
-            )
-            return 0
-        else:
-            logger.authtest(
-                "Failed to connect to SharePoint using basic authentication. Ensure that the client ID, secret value, and tenant provided are correct"
-            )
+    def connect(self):
+        try:
+            self.access_token
+        except InvalidCredentialError as e:
+            logger.authtest(e)
             return 1
+        else:
+            return 0
 
     def upload(self, file_path: str, drive_path: Optional[str]):
         """Uploads a file to SharePoint
@@ -82,22 +162,21 @@ class SharePointClient(CloudStorage):
         Raises:
             ExitCodeException:
         """
-        url = f"{self.base_url}/sites/{self.site_id}/drive/root:/{drive_path}:/content"
 
         with open(file_path, "rb") as file:
             file_content = file.read()
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/octet-stream",
-        }
-        response = requests.put(url, headers=headers, data=file_content)
-        if response.ok:
-            logger.info(
-                f"Successfully uploaded {file_path} to {drive_path} in SharePoint"
-            )
-        else:
-            logger.error(f"Failed to upload {file_path} to {drive_path} in SharePoint")
-            handle_errors(response.text, response.status_code)
+
+        self._request(
+            "PUT",
+            f"sites/{self.site_id}/drive/root:/{drive_path}:/content",
+            headers_override={
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/octet-stream",
+            },
+            data=file_content,
+        )
+
+        logger.info("Successfully uploaded file to SharePoint")
 
     def download(self, file_path: str, drive_path: str):
         """Downloads a file from SharePoint
@@ -106,7 +185,7 @@ class SharePointClient(CloudStorage):
             file_path: The path to write to
             drive_path: The path of the file to download in SharePoint
         """
-        url = f"https://graph.microsoft.com/v1.0/sites/{self.site_id}/drive/root:/{drive_path}:/content"
+        url = f"{self.base_url}/sites/{self.site_id}/drive/root:/{drive_path}:/content"
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/octet-stream",
@@ -157,24 +236,10 @@ class SharePointClient(CloudStorage):
             )
             return
 
-        url = f"{self.base_url}/sites/{self.site_id}/drive/items/{item_id}"
-
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json",
-        }
-
-        response = requests.patch(url, headers=headers, json=data)
-
-        if response.ok:
-            logger.info(
-                f"Successfully moved/renamed {src_name} to {target_name or src_name} in SharePoint"
-            )
-        else:
-            logger.error(
-                f"Failed to move/rename {src_name} to {target_name or src_name} in SharePoint"
-            )
-            handle_errors(response.text, response.status_code)
+        self._request("PATCH", f"sites/{self.site_id}/drive/items/{item_id}", json=data)
+        logger.info(
+            f"Successfully moved/renamed {src_name} to {target_name or src_name} in SharePoint"
+        )
 
     def remove(
         self,
@@ -184,20 +249,10 @@ class SharePointClient(CloudStorage):
 
         Args:
             drive_path: The path of the file to remove in SharePoint
-            drive_id: The ID of the drive to remove (only necessary if using basic authentication)
         """
-        url = f"https://graph.microsoft.com/v1.0/sites/{self.site_id}/drive/root:/{drive_path}"
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-        }
 
-        response = requests.delete(url, headers=headers)
-
-        if response.ok:
-            logger.info(f"Successfully removed {drive_path} from SharePoint")
-        else:
-            logger.error(f"Failed to remove {drive_path} from SharePoint")
-            handle_errors(response.text, response.status_code)
+        self._request("DELETE", f"sites/{self.site_id}/drive/root:/{drive_path}")
+        logger.info(f"Successfully removed {drive_path} from SharePoint")
 
     def get_folder_id(self, folder_name: str) -> Optional[str]:
         """Returns the folder ID of a folder in SharePoint
@@ -211,19 +266,20 @@ class SharePointClient(CloudStorage):
         Returns: The ID of the folder or None
 
         """
-        url = f"{self.base_url}/sites/{self.site_id}/drive/root/children"
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-        }
-        response = requests.get(url, headers=headers)
-        if response.ok:
-            folders = response.json()
-            for folder in folders["value"]:
-                if folder["name"] == folder_name:
-                    return folder["id"]
-        else:
-            logger.info(f"Folder {folder_name} not found in SharePoint site")
-            return
+
+        folders = self._request("GET", f"sites/{self.site_id}/drive/root/children")
+
+        if folder_id := next(
+            (
+                folder["id"]
+                for folder in folders["value"]
+                if folder["name"] == folder_name
+            ),
+            None,
+        ):
+            return folder_id
+        logger.info(f"Folder {folder_name} not found in SharePoint site")
+        return
 
     def get_file_id(
         self, file_name: str, folder_name: Optional[str] = ""
@@ -240,35 +296,35 @@ class SharePointClient(CloudStorage):
         Returns: The ID of the file or None
 
         """
-
         if folder_name:
-            url = f"{self.base_url}/sites/{self.site_id}/drive/root:/{folder_name}:/children"
+            endpoint = f"sites/{self.site_id}/drive/root:/{folder_name}:/children"
         else:
-            url = f"{self.base_url}/sites/{self.site_id}/drive/root/children"
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-        }
-        response = requests.get(url, headers=headers)
-        if response.ok:
-            files = response.json()
-            for file in files.get("value", []):
-                if file["name"] == file_name and not file.get("folder"):
-                    return file["id"]
-            else:
-                logger.error(
-                    f"Did not find a file in SharePoint site matching '{file_name}'"
-                )
-                return
+            endpoint = f"sites/{self.site_id}/drive/root/children"
+
+        files = self._request("GET", endpoint)
+
+        file_id = next(
+            (
+                file["id"]
+                for file in files.get("value", [])
+                if file["name"] == file_name and not file.get("folder")
+            ),
+            None,
+        )
+
+        if file_id:
+            return file_id
         else:
-            logger.error("Failed to get file ID")
-            handle_errors(response.text, response.status_code)
+            logger.error(
+                f"Did not find a file in SharePoint site matching '{file_name}'"
+            )
+            return
 
     def create_folder(self, folder_name: str) -> str:
         """Creates a folder in SharePoint
 
         Args:
             folder_name: The name of the folder to create
-            drive_id: The ID of the drive to create the folder in (only necessary if using basic authentication)
 
         Raises:
             BadRequestError:
@@ -277,28 +333,18 @@ class SharePointClient(CloudStorage):
 
         """
 
-        url = f"{self.base_url}/sites/{self.site_id}/drive/root/children"
+        response = self._request(
+            "POST",
+            f"sites/{self.site_id}/drive/root/children",
+            json={
+                "name": folder_name,
+                "folder": {},
+                "@microsoft.graph.conflictBehavior": "rename",
+            },
+        )
 
-        headers = {
-            "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json",
-        }
-
-        data = {
-            "name": folder_name,
-            "folder": {},
-            "@microsoft.graph.conflictBehavior": "rename",
-        }
-
-        response = requests.post(url, headers=headers, json=data)
-
-        if response.ok:
-            logger.info(f"Successfully created folder '{folder_name}' in SharePoint")
-            return response.json()["id"]
-
-        else:
-            logger.error(f"Failed to create folder '{folder_name}' in SharePoint")
-            handle_errors(response.text, response.status_code)
+        logger.info(f"Successfully created folder '{folder_name}' in SharePoint")
+        return response["id"]
 
     def get_file_matches(self, folder: str, pattern: str) -> List[str]:
         """Returns a list of files that match the given pattern
@@ -310,25 +356,20 @@ class SharePointClient(CloudStorage):
         Returns: A list of files that match the pattern. If no matches are found then an empty list will be returned
 
         """
-        url = f"{self.base_url}/sites/{self.site_id}/drive/root:/{folder}:/children"
-
-        headers = {"Authorization": f"Bearer {self.access_token}"}
 
         matching_files = []
-        response = requests.get(url, headers=headers)
-        if response.ok:
-            logger.debug("Successfully fetched files from SharePoint")
-            files = response.json().get("value", [])
-            regex = re.compile(pattern)
-            for file in files:
-                if "name" in file and regex.search(file["name"]):
-                    matching_files.append(file)
 
-        else:
-            logger.warning(
-                f"Failed to fetch file matches from SharePoint: {response.text}"
-            )
-            handle_errors(response.text, response.status_code)
+        response = self._request(
+            "GET", f"sites/{self.site_id}/drive/root:/{folder}:/children"
+        )
+
+        logger.debug("Successfully fetched files from SharePoint")
+        files = response.get("value", [])
+        regex = re.compile(pattern)
+        matching_files.extend(
+            file for file in files if "name" in file and regex.search(file["name"])
+        )
+
         return matching_files
 
     def download_from_graph_url(self, download_url: str, file_name: str):
@@ -366,7 +407,6 @@ class SharePointClient(CloudStorage):
                     f"Multiple sites found with the name {self.site_name}. Please provide a unique site name"
                 )
                 raise SharepointSiteNotFoundError(self.site_name)
-            site_id = resp_json["value"][0]["id"]
-            return site_id
+            return resp_json["value"][0]["id"]
         except Exception as e:
             raise SharepointSiteNotFoundError(self.site_name) from e
