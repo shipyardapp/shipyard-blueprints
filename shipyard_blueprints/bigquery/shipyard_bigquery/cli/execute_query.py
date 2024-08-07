@@ -3,6 +3,7 @@ import sys
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_bigquery import BigQueryClient
 from shipyard_bigquery.utils.exceptions import QueryError, EXIT_CODE_QUERY_ERROR
+from shipyard_bigquery.utils.creds import get_credentials
 
 logger = ShipyardLogger.get_logger()
 
@@ -10,16 +11,17 @@ logger = ShipyardLogger.get_logger()
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--query", dest="query", required=True)
-    parser.add_argument("--service-account", dest="service_account", required=True)
+    parser.add_argument("--service-account", dest="service_account", required=False)
     return parser.parse_args()
 
 
 def main():
     try:
         args = get_args()
+        creds = get_credentials()
         query = args.query
         logger.debug(f"Query is {query}")
-        client = BigQueryClient(args.service_account)
+        client = BigQueryClient(**creds)
         client.connect()
         logger.info("Successfully connected to BigQuery")
         logger.debug(f"Service account email is {client.email}")
