@@ -54,12 +54,12 @@ def main():
 
         src_file = args.sharepoint_file_name
         src_dir = args.sharepoint_directory
-        target_path = shipyard.files.combine_folder_and_file_name(src_dir, src_file)
 
         credentials = utils.get_credential_group(args)
         sharepoint = SharePointClient(**credentials, site_name=args.site_name)
 
         if args.match_type == "exact_match":
+            target_path = shipyard.files.combine_folder_and_file_name(src_dir, src_file)
             sharepoint.remove(target_path)
         elif args.match_type == "regex_match":
             matches = sharepoint.get_file_matches(src_dir, src_file)

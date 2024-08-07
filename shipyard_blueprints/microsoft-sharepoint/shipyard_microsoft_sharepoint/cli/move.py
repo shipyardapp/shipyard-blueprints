@@ -66,10 +66,7 @@ def main():
             dest_file = src_file
         credentials = utils.get_credential_group(args)
 
-        sharepoint = SharePointClient(
-            **credentials,
-            site_name=args.site_name,
-        )
+        sharepoint = SharePointClient(**credentials, site_name=args.site_name)
 
         if args.match_type == "exact_match":
             sharepoint.move(
