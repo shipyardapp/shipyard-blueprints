@@ -38,7 +38,14 @@ class BigQueryClient(GoogleDatabase):
     @property
     def credentials(self):
         if self.access_token:
-            return credentials.Credentials(self.access_token)
+            return credentials.Credentials(
+                self.access_token,
+                scopes=[
+                    "https://www.googleapis.com/auth/bigquery",
+                    "https://www.googleapis.com/auth/bigquery.insertdata",
+                    "https://www.googleapis.com/auth/devstorage.read_write",
+                ],
+            )
         return service_account.Credentials.from_service_account_info(self.json_creds)
 
     @property

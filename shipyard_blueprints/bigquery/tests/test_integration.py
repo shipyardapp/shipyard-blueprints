@@ -13,8 +13,8 @@ def upload():
     return [
         "python3",
         "./shipyard_bigquery/cli/upload.py",
-        "--service-account",
-        os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+        # "--service-account",
+        # os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
     ]
 
 
@@ -51,6 +51,8 @@ def test_upload_replace(upload):
             "blueprint_testing",
             "--table",
             "pytest_upload_test",
+            "--service-account",
+            os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
         ]
     )
     process = subprocess.run(cmd, check=True)
@@ -91,4 +93,26 @@ def test_drop_table(execute_query):
     )
 
     process = subprocess.run(cmd, check=True)
+    assert process.returncode == 0
+
+
+# test oauth token
+def test_oauth_upload(upload):
+    load_dotenv(".env.bigquery.oauth")
+
+    cmd = deepcopy(upload)
+    cmd.extend(
+        [
+            "--upload-type",
+            "overwrite",
+            "--source-file-name",
+            "single.csv",
+            "--dataset",
+            "blueprint_testing",
+            "--table",
+            "pytest_oauth_upload_test",
+        ]
+    )
+    process = subprocess.run(cmd, check=True)
+
     assert process.returncode == 0

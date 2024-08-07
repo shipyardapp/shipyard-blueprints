@@ -18,7 +18,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", dest="dataset", required=True)
     parser.add_argument("--table", dest="table", required=True)
-    parser.add_argument("--service-account", dest="service_account", required=True)
+    parser.add_argument("--service-account", dest="service_account", required=False)
     parser.add_argument(
         "--upload-type",
         dest="upload_type",
