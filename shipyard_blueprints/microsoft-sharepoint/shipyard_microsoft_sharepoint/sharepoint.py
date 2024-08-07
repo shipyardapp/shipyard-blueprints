@@ -6,10 +6,7 @@ import requests
 from msal import ConfidentialClientApplication, PublicClientApplication
 from requests import request
 from shipyard_templates import ShipyardLogger, CloudStorage, ExitCodeException
-from shipyard_templates.errors import (
-    InvalidCredentialError,
-    handle_errors,
-)
+from shipyard_templates.errors import InvalidCredentialError, handle_errors
 
 from shipyard_microsoft_sharepoint.errs import SharepointSiteNotFoundError
 
@@ -397,16 +394,17 @@ class SharePointClient(CloudStorage):
 
         """
         try:
-            url = f"{self.base_url}/sites?search={self.site_name}"
-            headers = {"Authorization": f"Bearer {self.access_token}"}
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()
-            resp_json = response.json()
-            if len(resp_json["value"]) > 1:
-                logger.error(
-                    f"Multiple sites found with the name {self.site_name}. Please provide a unique site name"
+            response = self._request("GET", f"sites?search={self.site_name}")
+            if len(response["value"]) > 1:
+                raise SharepointSiteNotFoundError(
+                    f"Multiple sites matching the name '{self.site_name}' were found"
                 )
-                raise SharepointSiteNotFoundError(self.site_name)
-            return resp_json["value"][0]["id"]
-        except Exception as e:
-            raise SharepointSiteNotFoundError(self.site_name) from e
+            else:
+                return response["value"][0]["id"]
+
+        except ExitCodeException as e:
+            if e.exit_code == self.EXIT_CODE_UNKNOWN_ERROR:
+                raise SharepointSiteNotFoundError(
+                    f"Failed to find site with name '{self.site_name}. Error: {e}"
+                ) from e
+            raise e

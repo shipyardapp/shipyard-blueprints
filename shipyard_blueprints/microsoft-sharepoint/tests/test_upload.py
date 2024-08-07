@@ -151,3 +151,14 @@ def test_regex_match_file_does_not_exist(run_command, monkeypatch):
 
     result = run_command()
     assert result.returncode == 207
+
+
+def test_invalid_site_name(run_command, monkeypatch, csv_file):
+    monkeypatch.setenv("SHAREPOINT_FILE_MATCH_TYPE", "exact_match")
+    monkeypatch.setenv(
+        "SHAREPOINT_LOCAL_FILE_NAME", "electric-vehicle-population-data.csv"
+    )
+    monkeypatch.setenv("SHAREPOINT_SITE_NAME", "InvalidSiteName")
+
+    result = run_command()
+    assert result.returncode == 180
