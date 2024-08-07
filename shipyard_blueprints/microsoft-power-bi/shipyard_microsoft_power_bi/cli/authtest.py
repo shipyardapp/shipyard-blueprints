@@ -1,8 +1,9 @@
 import os
 import sys
 
-from shipyard_microsoft_power_bi import MicrosoftPowerBiClient
 from shipyard_templates.shipyard_logger import ShipyardLogger
+
+from shipyard_microsoft_power_bi import MicrosoftPowerBiClient
 
 logger = ShipyardLogger.get_logger()
 logger.setLevel("AUTHTEST")
