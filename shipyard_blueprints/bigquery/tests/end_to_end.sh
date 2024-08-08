@@ -156,3 +156,15 @@ if [ "$1" = 'up-bad1' ]; then
         --schema '[{"name": "string_col", "type": "string"}, {"name": "char_col", "type": "char"}, {"name": "int_col", "type": "INTEGER"}, {"name": "float_col", "type": "Float"}, {"name": "bool_col", "type": "Boolean"}, {"name": "date_col", "type": "Date"},{"name": "datetime_col", "type": "Datetime"}]'
 fi
 
+if [ "$1" = 'uppytest' ]; then 
+    echo "Checking pytest upload"
+    python3 ./shipyard_bigquery/cli/upload.py --service-account "$GOOGLE_APPLICATION_CREDENTIALS" \
+        --dataset $DATASET \
+        --table "pytest_upload_test" \
+        --upload-type "overwrite" \
+        --source-file-name $SINGLE_FILE 
+fi
+
+
+
+

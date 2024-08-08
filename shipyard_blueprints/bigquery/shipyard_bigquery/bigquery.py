@@ -4,7 +4,7 @@ from google.api_core.exceptions import BadRequest
 import pandas as pd
 from typing import Optional, Dict, Union, List
 from google.cloud import bigquery
-from google.oauth2 import service_account
+from google.oauth2 import service_account, credentials
 from shipyard_templates import GoogleDatabase, ShipyardLogger, ExitCodeException
 from shipyard_bigquery.utils.exceptions import (
     DownloadToGcsError,
@@ -20,26 +20,52 @@ logger = ShipyardLogger.get_logger()
 
 
 class BigQueryClient(GoogleDatabase):
-    def __init__(self, service_account: str) -> None:
+    def __init__(
+        self, service_account: Optional[str] = None, access_token: Optional[str] = None
+    ) -> None:
+        if not service_account and not access_token:
+            raise ValueError("Either service account or access token must be provided")
         self.service_account = service_account
-        super().__init__(service_account)
+        self.access_token = access_token
+        super().__init__(service_account, access_token=access_token)
 
     @property
     def json_creds(self):
-        return json.loads(self.service_account)
+        if self.service_account:
+            return json.loads(self.service_account)
+        return
 
     @property
     def credentials(self):
+        if self.access_token:
+            return credentials.Credentials(
+                self.access_token,
+                scopes=[
+                    "https://www.googleapis.com/auth/bigquery",
+                    "https://www.googleapis.com/auth/bigquery.insertdata",
+                    "https://www.googleapis.com/auth/devstorage.read_write",
+                ],
+            )
         return service_account.Credentials.from_service_account_info(self.json_creds)
 
     @property
     def email(self):
-        return self.credentials.service_account_email
+        if self.service_account:
+            return self.credentials.service_account_email
+        else:
+            return self.credentials.signer_email
 
     def connect(self):
-        conn = bigquery.Client(credentials=self.credentials)
-        self.conn = conn
-        return self
+        try:
+            conn = bigquery.Client(credentials=self.credentials)
+            self.conn = conn
+            return self
+        except Exception as e:
+            logger.authtest(f"Error in connecting to BigQuery: {e}")
+            raise ExitCodeException(
+                f"Error in connecting to BigQuery: {e}",
+                exit_code=self.EXIT_CODE_INVALID_CREDENTIALS,
+            )
 
     def execute_query(self, query: str) -> RowIterator:
         """Executes a query and returns the results

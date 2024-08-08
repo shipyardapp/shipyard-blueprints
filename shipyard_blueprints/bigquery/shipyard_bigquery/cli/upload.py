@@ -9,6 +9,7 @@ from shipyard_templates import ShipyardLogger, ExitCodeException
 
 from shipyard_bigquery import BigQueryClient
 from shipyard_bigquery.utils.exceptions import InvalidSchema, SchemaFormatError
+from shipyard_bigquery.utils.creds import get_credentials
 
 logger = ShipyardLogger.get_logger()
 
@@ -17,7 +18,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", dest="dataset", required=True)
     parser.add_argument("--table", dest="table", required=True)
-    parser.add_argument("--service-account", dest="service_account", required=True)
+    parser.add_argument("--service-account", dest="service_account", required=False)
     parser.add_argument(
         "--upload-type",
         dest="upload_type",
@@ -66,6 +67,8 @@ def main():
             None if args.skip_header_rows == "" else args.skip_header_rows
         )
 
+        creds = get_credentials()
+
         if skip_header_rows:
             skip_header_rows = int(args.skip_header_rows)
 
@@ -76,7 +79,7 @@ def main():
             )
             skip_header_rows = 1
 
-        client = BigQueryClient(args.service_account)
+        client = BigQueryClient(**creds)
         client.connect()
         logger.info("Successfully connected to BigQuery")
 

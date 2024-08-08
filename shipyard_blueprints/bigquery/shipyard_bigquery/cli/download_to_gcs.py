@@ -6,6 +6,7 @@ from shipyard_bigquery import BigQueryClient
 from shipyard_bigquery.utils.exceptions import DownloadToGcsError
 from shipyard_templates import ShipyardLogger, ExitCodeException
 import shipyard_bp_utils as shipyard
+from shipyard_bigquery.utils.creds import get_credentials
 
 logger = ShipyardLogger.get_logger()
 
@@ -13,7 +14,7 @@ logger = ShipyardLogger.get_logger()
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--query", dest="query", required=True)
-    parser.add_argument("--service-account", dest="service_account", required=True)
+    parser.add_argument("--service-account", dest="service_account", required=False)
     parser.add_argument("--bucket-name", dest="bucket_name", required=True)
     parser.add_argument(
         "--destination-file-name",
@@ -33,12 +34,13 @@ def get_args():
 def main():
     try:
         args = get_args()
+        creds = get_credentials()
         destination_file_name = args.destination_file_name
         target_folder = args.destination_folder_name or os.getcwd()
         target_path = shipyard.files.combine_folder_and_file_name(
             folder_name=target_folder, file_name=destination_file_name
         )
-        client = BigQueryClient(args.service_account)
+        client = BigQueryClient(**creds)
         client.connect()
         logger.info("Successfully connected to BigQuery")
         logger.debug(f"Service account email is {client.email}")
