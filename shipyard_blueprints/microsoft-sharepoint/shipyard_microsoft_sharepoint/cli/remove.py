@@ -1,9 +1,10 @@
-import os
-import sys
 import argparse
+import sys
+
 import shipyard_bp_utils as shipyard
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
-from shipyard_microsoft_sharepoint import SharePointClient
+
+from shipyard_microsoft_sharepoint import SharePointClient, utils
 
 logger = ShipyardLogger.get_logger()
 
@@ -50,22 +51,15 @@ def get_args():
 def main():
     try:
         args = get_args()
-        client_id = args.client_id
-        client_secret = args.client_secret
-        tenant = args.tenant
+
         src_file = args.sharepoint_file_name
         src_dir = args.sharepoint_directory
-        target_path = shipyard.files.combine_folder_and_file_name(src_dir, src_file)
-        site_name = args.site_name
 
-        sharepoint = SharePointClient(
-            client_id=client_id,
-            client_secret=client_secret,
-            tenant=tenant,
-            site_name=site_name,
-        )
+        credentials = utils.get_credential_group(args)
+        sharepoint = SharePointClient(**credentials, site_name=args.site_name)
 
         if args.match_type == "exact_match":
+            target_path = shipyard.files.combine_folder_and_file_name(src_dir, src_file)
             sharepoint.remove(target_path)
         elif args.match_type == "regex_match":
             matches = sharepoint.get_file_matches(src_dir, src_file)

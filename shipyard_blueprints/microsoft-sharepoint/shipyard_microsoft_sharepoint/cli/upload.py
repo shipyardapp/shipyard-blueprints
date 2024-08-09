@@ -1,9 +1,10 @@
-import os
-import sys
 import argparse
-import shipyard_bp_utils as shipyard
+import sys
+
+from shipyard_bp_utils import files as shipyard
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
-from shipyard_microsoft_sharepoint import SharePointClient
+
+from shipyard_microsoft_sharepoint import SharePointClient, utils
 
 logger = ShipyardLogger.get_logger()
 
@@ -55,54 +56,28 @@ def get_args():
 def main():
     try:
         args = get_args()
-        client_id = args.client_id
-        client_secret = args.client_secret
-        tenant = args.tenant
-        site_name = args.site_name
-        src_file = args.file_name
-        src_dir = args.directory
-        src_path = shipyard.files.combine_folder_and_file_name(src_dir, src_file)
-        target_file = args.sharepoint_file_name
+        credentials = utils.get_credential_group(args)
+        sharepoint = SharePointClient(**credentials, site_name=args.site_name)
+
         target_dir = args.sharepoint_directory
-
-        target_file = target_file or src_file
-        target_path = shipyard.files.combine_folder_and_file_name(
-            target_dir, target_file
-        )
-
-        sharepoint = SharePointClient(
-            client_id=client_id,
-            client_secret=client_secret,
-            tenant=tenant,
-            site_name=site_name,
-        )
-
         if target_dir:
             folder_id = sharepoint.get_folder_id(target_dir)
             if not folder_id:
                 logger.info(f"Creating folder {target_dir}...")
                 sharepoint.create_folder(target_dir)
 
-        if args.match_type == "exact_match":
-            sharepoint.upload(src_path, target_path)
-        elif args.match_type == "regex_match":
-            file_names = shipyard.files.find_all_local_file_names(src_dir)
-            file_matches = shipyard.files.find_all_file_matches(file_names, src_file)
-            logger.debug(f"File matches: {file_matches}")
-            if (n_matches := len(file_matches)) == 0:
-                raise FileNotFoundError(f"No files found matching {src_file}")
-            logger.info(f"{n_matches} files found. Preparing to upload...")
-            for i, file in enumerate(file_matches, start=1):
-                file_ext = os.path.splitext(file)[1]
-                dest_path = shipyard.files.determine_destination_full_path(
-                    destination_folder_name=target_dir,
-                    destination_file_name=target_file,
-                    source_full_path=file,
-                    file_number=i if target_file else None,
-                )
-                dest_path += file_ext
+        matching_files = shipyard.file_match(
+            search_term=args.file_name,
+            source_directory=args.directory,
+            destination_directory=args.sharepoint_directory,
+            match_type=args.match_type,
+            destination_filename=args.sharepoint_file_name or args.file_name,
+            files=shipyard.fetch_file_paths_from_directory(args.directory or "."),
+        )
+        logger.info(f"{len(matching_files)} file(s) found. Preparing to upload...")
 
-                sharepoint.upload(file, dest_path)
+        for file in matching_files:
+            sharepoint.upload(file["source_path"], file["destination_filename"])
 
     except FileNotFoundError as e:
         logger.error(e)
