@@ -46,7 +46,7 @@ def get_args():
         "--service-account",
         dest="gcp_application_credentials",
         default=None,
-        required=True,
+        required=False,
     )
     return parser.parse_args()
 
@@ -100,8 +100,8 @@ def main():
         )
         destination_file_name = args.destination_file_name
 
-        tmp_file = utils.set_environment_variables(args.gcp_application_credentials)
-        gclient = utils.get_gclient(args.gcp_application_credentials)
+        creds = utils.get_credentials()
+        gclient = utils.get_gclient(creds)
 
         source_bucket = utils.get_bucket(
             gclient=gclient, bucket_name=source_bucket_name

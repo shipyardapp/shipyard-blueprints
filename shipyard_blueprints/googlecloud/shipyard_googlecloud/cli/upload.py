@@ -41,7 +41,7 @@ def get_args():
         "--service-account",
         dest="gcp_application_credentials",
         default=None,
-        required=True,
+        required=False,
     )
     return parser.parse_args()
 
@@ -50,7 +50,7 @@ def main():
     tmp_file = None
     try:
         args = get_args()
-        tmp_file = utils.set_environment_variables(args.gcp_application_credentials)
+        # tmp_file = utils.set_environment_variables(args.gcp_application_credentials)
         bucket_name = args.bucket_name
         source_file_name = args.source_file_name
         source_full_path = shipyard.combine_folder_and_file_name(
@@ -62,7 +62,8 @@ def main():
             args.destination_folder_name
         )
 
-        gclient = utils.get_gclient(args.gcp_application_credentials)
+        credentials = utils.get_credentials()
+        gclient = utils.get_gclient(credentials)
         bucket = utils.get_bucket(gclient=gclient, bucket_name=bucket_name)
         if args.source_file_name_match_type == "exact_match":
             if not os.path.exists(source_full_path):
