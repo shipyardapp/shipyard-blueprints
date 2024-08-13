@@ -2,6 +2,7 @@ import argparse
 import os
 import re
 import sys
+import json
 
 from shipyard_bp_utils import files as shipyard
 from shipyard_templates import ShipyardLogger, CloudStorage, ExitCodeException
@@ -47,10 +48,8 @@ def get_args():
 
 
 def main():
-    tmp_file = None
     try:
         args = get_args()
-        # tmp_file = utils.set_environment_variables(args.gcp_application_credentials)
         bucket_name = args.bucket_name
         source_file_name = args.source_file_name
         source_full_path = shipyard.combine_folder_and_file_name(
@@ -62,8 +61,7 @@ def main():
             args.destination_folder_name
         )
 
-        credentials = utils.get_credentials()
-        gclient = utils.get_gclient(credentials)
+        gclient = utils.get_gclient()
         bucket = utils.get_bucket(gclient=gclient, bucket_name=bucket_name)
         if args.source_file_name_match_type == "exact_match":
             if not os.path.exists(source_full_path):
@@ -112,10 +110,6 @@ def main():
     except Exception as e:
         logger.error(f"An unknown error occurred\n{e}")
         sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
-    finally:
-        if tmp_file:
-            logger.info(f"Removing temporary credentials file {tmp_file}")
-            os.remove(tmp_file)
 
 
 if __name__ == "__main__":

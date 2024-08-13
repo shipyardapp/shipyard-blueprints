@@ -44,7 +44,6 @@ def delete_google_cloud_storage_file(blob):
 
 
 def main():
-    tmp_file = None
     try:
         args = get_args()
         bucket_name = args.bucket_name
@@ -54,8 +53,7 @@ def main():
         else:
             source_folder_name = shipyard.clean_folder_name(args.source_folder_name)
 
-        creds = utils.get_credentials()
-        gclient = utils.get_gclient(creds)
+        gclient = utils.get_gclient()
         bucket = utils.get_bucket(gclient=gclient, bucket_name=bucket_name)
 
         if args.source_file_name_match_type == "exact_match":
@@ -89,10 +87,6 @@ def main():
     except Exception as e:
         logger.error(e)
         sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
-    finally:
-        if tmp_file:
-            logger.info(f"Removing temporary credentials file {tmp_file}")
-            os.remove(tmp_file)
 
 
 if __name__ == "__main__":

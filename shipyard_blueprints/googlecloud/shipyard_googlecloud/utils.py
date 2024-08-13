@@ -66,17 +66,18 @@ def upload_file(bucket, source_full_path, destination_full_path):
         ) from e
 
 
-def get_gclient(credentials):
+def get_gclient():
     """
     Attempts to create the Google Cloud Storage Client with the associated
     environment variables
     """
     try:
-        return storage.Client(credentials=credentials)
+        return storage.Client(credentials=_get_credentials())
+    except ExitCodeException:
+        raise
     except Exception as e:
         raise ExitCodeException(
-            f"Error accessing Google Cloud Storage with service account "
-            f"{credentials} due to {e}",
+            f"Error accessing Google Cloud Storage with the provided credentials due to {e}",
             CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
         ) from e
 
@@ -106,7 +107,7 @@ def get_storage_blob(bucket, source_folder_name, source_file_name):
         ) from e
 
 
-def get_credentials():
+def _get_credentials():
     """Get the credentials for Google Cloud Storage, which are either an access token or a service account.
 
     Raises:
@@ -117,13 +118,22 @@ def get_credentials():
     """
     try:
         if access_token := os.environ.get("OAUTH_ACCESS_TOKEN"):
-            return credentials.Credentials(access_token)
+            logger.debug("Using access token for Google Cloud Storage")
+            return credentials.Credentials(
+                access_token,
+                scopes=[
+                    "https://www.googleapis.com/auth/devstorage.read_write",
+                    "https://www.googleapis.com/auth/cloud-platform",
+                    "https://www.googleapis.com/auth/devstorage.full_control",
+                ],
+            )
+
         elif creds := os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+            logger.debug("Using service account for Google Cloud Storage")
+            logger.debug(f"Creds: {creds}")
             try:
                 json_creds = json.loads(creds)
-                return service_account.Credentials.from_service_account_info(
-                    json.loads(json_creds)
-                )
+                return service_account.Credentials.from_service_account_info(json_creds)
             except Exception:
                 raise ExitCodeException(
                     "The provided credentials are not valid JSON",
