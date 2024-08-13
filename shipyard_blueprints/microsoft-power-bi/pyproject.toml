@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-microsoft-power-bi"
-version = "0.1.2"
+version = "0.2.0a0"
 description = ""
 authors = ["johnathan-rodriguez <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"
@@ -14,6 +14,7 @@ shipyard-templates = "^0.9.0"
 
 [tool.poetry.group.dev.dependencies]
 python-dotenv = "^1.0.0"
+pytest = "^8.3.2"
 
 [build-system]
 requires = ["poetry-core"]
