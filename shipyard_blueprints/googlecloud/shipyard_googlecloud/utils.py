@@ -118,14 +118,23 @@ def get_credentials():
     try:
         if access_token := os.environ.get("OAUTH_ACCESS_TOKEN"):
             return credentials.Credentials(access_token)
-        elif json_creds := os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
-            return service_account.Credentials.from_service_account_info(
-                json.loads(json_creds)
-            )
-
+        elif creds := os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+            try:
+                json_creds = json.loads(creds)
+                return service_account.Credentials.from_service_account_info(
+                    json.loads(json_creds)
+                )
+            except Exception:
+                raise ExitCodeException(
+                    "The provided credentials are not valid JSON",
+                    CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
+                )
         raise ValueError("Either service account or access token must be provided")
-    except:
+
+    except ExitCodeException:
+        raise
+    except Exception as e:
         raise ExitCodeException(
-            "Either service account or access token must be provided",
+            f"Error in connecting to Google Cloud Storage. {e}",
             CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
         )
