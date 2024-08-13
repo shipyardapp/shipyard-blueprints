@@ -24,7 +24,7 @@ def get_args():
     parser.add_argument(
         "--source-folder-name", dest="source_folder_name", default="", required=False
     )
-    parser.add_argument("--source-file-name", dest="source_file_name", required=True)
+    parser.add_argument("--source-file-name", dest="source_file_name", required=False)
     parser.add_argument(
         "--service-account",
         dest="gcp_application_credentials",
@@ -44,10 +44,8 @@ def delete_google_cloud_storage_file(blob):
 
 
 def main():
-    tmp_file = None
     try:
         args = get_args()
-        tmp_file = utils.set_environment_variables(args.gcp_application_credentials)
         bucket_name = args.bucket_name
         source_file_name = args.source_file_name
         if args.source_folder_name:
@@ -55,7 +53,7 @@ def main():
         else:
             source_folder_name = shipyard.clean_folder_name(args.source_folder_name)
 
-        gclient = utils.get_gclient(args.gcp_application_credentials)
+        gclient = utils.get_gclient()
         bucket = utils.get_bucket(gclient=gclient, bucket_name=bucket_name)
 
         if args.source_file_name_match_type == "exact_match":
@@ -89,10 +87,6 @@ def main():
     except Exception as e:
         logger.error(e)
         sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
-    finally:
-        if tmp_file:
-            logger.info(f"Removing temporary credentials file {tmp_file}")
-            os.remove(tmp_file)
 
 
 if __name__ == "__main__":

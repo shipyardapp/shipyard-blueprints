@@ -15,10 +15,8 @@ faker = faker.Faker()
 @pytest.fixture(autouse=True, scope="session")
 def setup():
     load_dotenv(find_dotenv(raise_error_if_not_found=True))
-    tmp_file = utils.set_environment_variables(
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-    )
-    storage_client = utils.get_gclient(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
+    creds = utils._get_credentials()
+    storage_client = utils.get_gclient(creds)
 
     bucket = storage_client.bucket("shipyard_demo_bucket")
 

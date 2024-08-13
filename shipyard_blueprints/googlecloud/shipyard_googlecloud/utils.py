@@ -5,6 +5,7 @@ import tempfile
 from google.cloud import storage
 from google.cloud.exceptions import *
 from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
+from google.oauth2 import credentials, service_account
 
 logger = ShipyardLogger().get_logger()
 CHUNK_SIZE = 128 * 1024 * 1024
@@ -65,17 +66,18 @@ def upload_file(bucket, source_full_path, destination_full_path):
         ) from e
 
 
-def get_gclient(credentials: str):
+def get_gclient():
     """
     Attempts to create the Google Cloud Storage Client with the associated
     environment variables
     """
     try:
-        return storage.Client()
+        return storage.Client(credentials=_get_credentials())
+    except ExitCodeException:
+        raise
     except Exception as e:
         raise ExitCodeException(
-            f"Error accessing Google Cloud Storage with service account "
-            f"{credentials} due to {e}",
+            f"Error accessing Google Cloud Storage with the provided credentials due to {e}",
             CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
         ) from e
 
@@ -103,3 +105,46 @@ def get_storage_blob(bucket, source_folder_name, source_file_name):
             f"File {source_path} does not exist due to {e}",
             CloudStorage.EXIT_CODE_FILE_NOT_FOUND,
         ) from e
+
+
+def _get_credentials():
+    """Get the credentials for Google Cloud Storage, which are either an access token or a service account.
+
+    Raises:
+        ValueError:
+
+    Returns: The credentials object for GCS
+
+    """
+    try:
+        if access_token := os.environ.get("OAUTH_ACCESS_TOKEN"):
+            logger.debug("Using access token for Google Cloud Storage")
+            return credentials.Credentials(
+                access_token,
+                scopes=[
+                    "https://www.googleapis.com/auth/devstorage.read_write",
+                    "https://www.googleapis.com/auth/cloud-platform",
+                    "https://www.googleapis.com/auth/devstorage.full_control",
+                ],
+            )
+
+        elif creds := os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+            logger.debug("Using service account for Google Cloud Storage")
+            logger.debug(f"Creds: {creds}")
+            try:
+                json_creds = json.loads(creds)
+                return service_account.Credentials.from_service_account_info(json_creds)
+            except Exception:
+                raise ExitCodeException(
+                    "The provided credentials are not valid JSON",
+                    CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
+                )
+        raise ValueError("Either service account or access token must be provided")
+
+    except ExitCodeException:
+        raise
+    except Exception as e:
+        raise ExitCodeException(
+            f"Error in connecting to Google Cloud Storage. {e}",
+            CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
+        )

@@ -46,7 +46,7 @@ def get_args():
         "--service-account",
         dest="gcp_application_credentials",
         default=None,
-        required=True,
+        required=False,
     )
     return parser.parse_args()
 
@@ -86,7 +86,6 @@ def move_google_cloud_storage_file(
 
 
 def main():
-    tmp_file = None
     try:
         args = get_args()
         source_bucket_name = args.source_bucket_name
@@ -100,8 +99,7 @@ def main():
         )
         destination_file_name = args.destination_file_name
 
-        tmp_file = utils.set_environment_variables(args.gcp_application_credentials)
-        gclient = utils.get_gclient(args.gcp_application_credentials)
+        gclient = utils.get_gclient()
 
         source_bucket = utils.get_bucket(
             gclient=gclient, bucket_name=source_bucket_name
@@ -166,10 +164,6 @@ def main():
     except Exception as e:
         logger.error(e)
         sys.exit(CloudStorage.EXIT_CODE_UNKNOWN_ERROR)
-    finally:
-        if tmp_file:
-            logger.info(f"Removing temporary credentials file {tmp_file}")
-            os.remove(tmp_file)
 
 
 if __name__ == "__main__":

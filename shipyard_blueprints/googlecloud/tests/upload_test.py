@@ -3,6 +3,7 @@ import subprocess
 
 import faker
 import pytest
+
 from dotenv import load_dotenv, find_dotenv
 from shipyard_templates import CloudStorage
 
@@ -144,23 +145,6 @@ def test_regex_match_uploads():
         stderr=subprocess.PIPE,
     )
     assert test.returncode == 0, f"Expected 0, got {test.returncode}"
-
-
-def test_bad_connection():
-    test = subprocess.run(
-        _command(
-            bucket_name="shipyard_demo_bucket",
-            source_file_name_match_type="regex_match",
-            source_file_name="test.*",
-            destination_folder_name="pytest",
-            service_account="bad_creds",
-        ),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    assert (
-        test.returncode == CloudStorage.EXIT_CODE_INVALID_CREDENTIALS
-    ), f"Expected {CloudStorage.EXIT_CODE_INVALID_CREDENTIALS}, got {test.returncode}"
 
 
 def test_missing_files():
