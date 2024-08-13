@@ -1,21 +1,20 @@
 import argparse
+import os
 import sys
-import logging
-import requests
+
+from shipyard_templates import ShipyardLogger, ExitCodeException, Messaging
+
+from shipyard_microsoft_teams import MicrosoftTeamsClient
+
+logger = ShipyardLogger.get_logger()
 
 
-def main():
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d %(message)s",
-        handlers=[logging.StreamHandler()],
-    )
-
+def get_args():
     parser = argparse.ArgumentParser(
         description="Send a message to Microsoft Teams using an incoming webhook"
     )
     parser.add_argument(
-        "--webhook-url", required=True, help="URL of the incoming webhook"
+        "--webhook-url", required=False, help="URL of the incoming webhook"
     )
     parser.add_argument(
         "--message-content", required=True, help="Content of the message to be sent"
@@ -23,21 +22,28 @@ def main():
     parser.add_argument(
         "--message-title", required=False, help="Title of the message to be sent"
     )
-    args = parser.parse_args()
 
-    response = requests.post(
-        args.webhook_url,
-        json={"title": args.message_title, "text": args.message_content},
+    parser.add_argument("--team-id", required=False, help="Team ID to post message to")
+    parser.add_argument(
+        "--channel-id", required=False, help="Channel ID to post message to"
     )
 
-    if response.ok:
-        logging.info("Message sent successfully")
-    else:
-        logging.error(
-            f"An error occurred when attempting to post message to Microsoft teams.\n"
-            f"{response.text}"
-        )
-        sys.exit(1)
+    return parser.parse_args()
+
+
+def main():
+    try:
+        args = get_args()
+
+        client = MicrosoftTeamsClient(webhook_url=args.webhook_url, access_token=os.getenv("OAUTH_ACCESS_TOKEN"))
+        client.post_message(message_content=args.message_content, message_title=args.message_title,
+                            team_id=args.team_id, channel_id=args.channel_id)
+    except ExitCodeException as e:
+        logger.error(e)
+        sys.exit(e.exit_code)
+    except Exception as e:
+        logger.error(f"An Unknown error occurred: {e}")
+        sys.exit(Messaging.EXIT_CODE_UNKNOWN_ERROR)
 
 
 if __name__ == "__main__":

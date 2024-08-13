@@ -3,7 +3,9 @@ import unittest
 from unittest.mock import patch
 
 from shipyard_microsoft_teams.cli.authtest import main
+from dotenv import load_dotenv,find_dotenv
 
+load_dotenv(find_dotenv())
 
 class MicrosoftTeamAuthtestTestCase(unittest.TestCase):
     @patch("sys.exit")
