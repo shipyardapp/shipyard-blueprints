@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-microsoft-teams"
-version = "0.1.0"
+version = "0.2.0a0"
 description = "CLI tool to send messages to Microsoft Teams"
 authors = ["JR <johnathan.rodriguez@shipyardapp.com>"]
 readme = "README.md"
@@ -9,7 +9,12 @@ packages = [{include = "shipyard_microsoft_teams"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 requests = "^2.31.0"
+shipyard-templates = "^0.9.0"
+msal = "^1.30.0"
 
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.1"
 
 [build-system]
 requires = ["poetry-core"]
