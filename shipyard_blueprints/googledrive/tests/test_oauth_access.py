@@ -2,14 +2,9 @@ import os
 import pytest
 import subprocess
 from copy import deepcopy
-from shipyard_googledrive import GoogleDriveClient
-from dotenv import load_dotenv, find_dotenv
+from dotenv import load_dotenv
 
-load_dotenv(find_dotenv())
-
-# CREDS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-if env_exists := os.path.exists(".env"):
-    load_dotenv()
+load_dotenv(".env.drive.oauth")
 
 
 @pytest.fixture
@@ -35,8 +30,6 @@ def test_upload_single_file(upload, creds):
     cmd = deepcopy(upload)
     cmd.extend(
         [
-            "--service-account",
-            creds["service_account"],
             "--source-file-name",
             "test.csv",
             "--drive",
@@ -51,14 +44,12 @@ def test_download_single_file(download, creds):
     cmd = deepcopy(download)
     cmd.extend(
         [
-            "--service-account",
-            creds["service_account"],
             "--source-file-name",
             "test.csv",
             "--drive",
             creds["drive"],
             "--destination-file-name",
-            "downloaded.csv",
+            "oauth_downloaded.csv",
         ]
     )
     process = subprocess.run(cmd, capture_output=True)
@@ -66,6 +57,6 @@ def test_download_single_file(download, creds):
 
 
 def test_download_file_exists():
-    assert os.path.exists("downloaded.csv")
+    assert os.path.exists("oauth_downloaded.csv")
     print("File exists, removing now")
-    os.remove("downloaded.csv")
+    os.remove("oauth_downloaded.csv")

@@ -9,9 +9,13 @@ from typing import Optional, Dict, List, Any, Union
 from googleapiclient.http import MediaIoBaseDownload
 from shipyard_googledrive import drive_utils
 
+from shipyard_templates import ShipyardLogger
+
+logger = ShipyardLogger.get_logger()
+
 
 class GoogleDriveClient(CloudStorage):
-    SCOPES = ["https://www.googleapis.com/auth/drive"]
+    SCOPES = ["https://www.googleaps.com/auth/drive"]
     EXIT_CODE_DRIVE_ACCESS_ERROR = 209
 
     def __init__(
@@ -25,14 +29,6 @@ class GoogleDriveClient(CloudStorage):
         self.drive_id = None
         self.folder_id = None
         self.folder_name = None
-        super().__init__(
-            service_account=self.service_account,
-            service=self.service,
-            shared_drive_name=self.shared_drive_name,
-            drive_id=self.drive_id,
-            folder_id=self.folder_id,
-            folder_name=self.folder_name,
-        )
 
     @property
     def email(self):
@@ -49,15 +45,12 @@ class GoogleDriveClient(CloudStorage):
         except Exception as e:
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.service_account
 
-    def _store_json_credentials(self):
-        with open("credentials.json", "w") as f:
-            json.dump(self.service_account, f)
-
     def connect(self):
-        tmp_path = self._set_env_vars()
-        credentials = service_account.Credentials.from_service_account_file(
-            tmp_path, scopes=self.SCOPES
-        )
+        # tmp_path = self._set_env_vars()
+        # credentials = service_account.Credentials.from_service_account_file(
+        #     tmp_path, scopes=self.SCOPES
+        # )
+        credentials = drive_utils.get_credentials()
         service = build("drive", "v3", credentials=credentials)
         return service
 
@@ -107,9 +100,6 @@ class GoogleDriveClient(CloudStorage):
                         drive_id=self.drive_id,
                     )
                     self.folder_id = folder_results
-                # else:
-                #     if not drive_utils.is_folder_shared(service_account_email=self.email,folder_id = self.folder_id, drive_service= self.service):
-                #         raise ExitCodeException(f'Error: The folder {self.folder_name} exists in Google Drive but has not been shared with the service account associated with {self.email}. Share the folder, then retry the upload', self.EXIT_CODE_FOLDER_ACCESS_ERROR)
 
             # use the base name of the file if not provided
             if not drive_file_name:
@@ -124,10 +114,6 @@ class GoogleDriveClient(CloudStorage):
                 #     drive_service=self.service,
                 # ):
                 file_metadata["parents"].append(self.folder_id)
-                # raise ExitCodeException(
-                #     f"Aborting upload. The folder with ID {self.folder_id} exists but has not been shared with the service account {self.email}. Please share that folder with the service account then retry uploading.",
-                #     exit_code=self.EXIT_CODE_FOLDER_ACCESS_ERROR,
-                # )
             elif self.drive_id:
                 self.folder_id = self.drive_id
                 file_metadata["parents"].append(self.folder_id)
@@ -138,7 +124,6 @@ class GoogleDriveClient(CloudStorage):
             # check to see if the file exists or not
             update = False
             if drive_utils.does_file_exist(
-                logger=self.logger,
                 parent_folder_id=self.folder_id,
                 file_name=drive_file_name,
                 service=self.service,
@@ -169,7 +154,7 @@ class GoogleDriveClient(CloudStorage):
                     )
                     .execute()
                 )
-                self.logger.info(f"Updated file {file_id}")
+                logger.info(f"Updated file {file_id}")
 
             else:
                 upload_file = (
@@ -182,7 +167,7 @@ class GoogleDriveClient(CloudStorage):
                     )
                     .execute()
                 )
-                self.logger.info(f"Newly created file is {upload_file.get('id')}")
+                logger.info(f"Newly created file is {upload_file.get('id')}")
         except FileNotFoundError as fe:
             raise ExitCodeException(
                 message=str(fe), exit_code=self.EXIT_CODE_FILE_NOT_FOUND

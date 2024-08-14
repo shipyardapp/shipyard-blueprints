@@ -3,14 +3,16 @@ import sys
 import argparse
 import re
 
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, ShipyardLogger
 from shipyard_googledrive import GoogleDriveClient, drive_utils
 from shipyard_bp_utils import files
+
+logger = ShipyardLogger().get_logger()
 
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--service-account", dest="service_account", required=True)
+    parser.add_argument("--service-account", dest="service_account", required=False)
     parser.add_argument("--drive", required=False, default="")
     parser.add_argument("--source-file-name", dest="source_file_name", required=True)
     parser.add_argument(
@@ -19,7 +21,7 @@ def get_args():
     parser.add_argument(
         "--source-file-name-match-type",
         dest="source_file_name_match_type",
-        required=True,
+        required=False,
         default="exact_match",
         choices={"exact_match", "regex_match"},
     )
@@ -64,9 +66,7 @@ def main():
             file_name_re=re.compile(args.source_file_name),
         )
         if len(file_matches) == 0:
-            client.logger.error(
-                f"No files found matching regex {args.source_file_name}"
-            )
+            logger.error(f"No files found matching regex {args.source_file_name}")
             sys.exit(client.EXIT_CODE_FILE_NOT_FOUND)
         for index, file in enumerate(file_matches, start=1):
             new_file_name = files.determine_destination_file_name(
@@ -80,7 +80,7 @@ def main():
                 drive=drive_name,
                 drive_file_name=new_file_name,
             )
-            client.logger.info(f"Processed {file}")
+            logger.info(f"Processed {file}")
 
     # for single file uploads
     else:  # handles the case for exact_match, any other option will receive an argument error
@@ -92,14 +92,14 @@ def main():
                 drive_file_name=drive_file_name,
             )
         except ExitCodeException as ec:
-            client.logger.error(ec.message)
+            logger.error(ec.message)
             sys.exit(ec.exit_code)
         except Exception as e:
-            client.logger.error("Error in uploading file to drive")
-            client.logger.exception(str(e))
+            logger.error("Error in uploading file to drive")
+            logger.exception(str(e))
             sys.exit(client.EXIT_CODE_UPLOAD_ERROR)
         else:
-            client.logger.info("Successfully loaded file(s) to Google Drive!")
+            logger.info("Successfully loaded file(s) to Google Drive!")
 
 
 if __name__ == "__main__":

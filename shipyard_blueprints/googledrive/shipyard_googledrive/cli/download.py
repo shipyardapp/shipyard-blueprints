@@ -2,9 +2,11 @@ import os
 import sys
 import argparse
 
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, ShipyardLogger
 from shipyard_googledrive import GoogleDriveClient, drive_utils
 from shipyard_bp_utils import files
+
+logger = ShipyardLogger().get_logger()
 
 
 def get_args():
@@ -13,7 +15,7 @@ def get_args():
         "--source-file-name-match-type",
         dest="source_file_name_match_type",
         choices={"exact_match", "regex_match"},
-        required=True,
+        required=False,
     )
     parser.add_argument(
         "--source-folder-name", dest="source_folder_name", default="", required=False
@@ -34,7 +36,7 @@ def get_args():
     parser.add_argument(
         "--service-account",
         dest="service_account",
-        required=True,
+        required=False,
     )
     parser.add_argument("--drive", dest="drive", default="", required=False)
     return parser.parse_args()
@@ -73,9 +75,7 @@ def main():
                 drive_id=drive_id,
             )
 
-            client.logger.info(
-                f"Found {len(drive_files)} files, preparing to download..."
-            )
+            logger.info(f"Found {len(drive_files)} files, preparing to download...")
             for index, file in enumerate(drive_files):
                 file_id = file["id"]
                 file_name = file["name"]
@@ -93,7 +93,7 @@ def main():
                     drive=drive_id,
                     drive_folder=folder_id,
                 )
-                client.logger.info(f"Processed {dest_name}")
+                logger.info(f"Processed {dest_name}")
         # for single file downloads
         else:  # handles the case for exact_match, any other option will receive an argument error
             file_id = drive_utils.get_file_id(
@@ -103,7 +103,7 @@ def main():
                 service=client.service,
             )
             if not file_id:
-                client.logger.error(
+                logger.error(
                     f"File {args.source_file_name} not found or is not accessible to {client.email}. Ensure that the file exists in Google Drive and is shared with the service account"
                 )
                 sys.exit(client.EXIT_CODE_FILE_ACCESS_ERROR)
@@ -118,16 +118,14 @@ def main():
             )
 
     except ExitCodeException as ec:
-        client.logger.error(ec.message, sys.exit(ec.exit_code))
+        logger.error(ec.message, sys.exit(ec.exit_code))
 
     except Exception as e:
-        client.logger.error(
-            f"Error in downloading the file from Google Drive due to {str(e)}"
-        )
+        logger.error(f"Error in downloading the file from Google Drive due to {str(e)}")
         sys.exit(client.EXIT_CODE_UNKNOWN_ERROR)
 
     else:
-        client.logger.info("Successfully downloaded file(s) from Google Drive")
+        logger.info("Successfully downloaded file(s) from Google Drive")
 
 
 if __name__ == "__main__":
