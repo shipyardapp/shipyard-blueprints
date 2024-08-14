@@ -87,9 +87,18 @@ class MicrosoftTeamsClient(Messaging):
                                     f"{response.text}", Messaging.EXIT_CODE_UNKNOWN_ERROR)
 
     def connect(self):
-        pass
+        try:
+            response = requests.post(self.webhook_url, json={})
+        except Exception as e:
+            logger.authtest(f"Could not connect to Microsoft Teams due to {e}")
+            return 1
+        else:
+            if response.text == "Invalid webhook URL":
+                logger.auth_test("Invalid webhook URL")
+                return 1
+            elif response.text == "Summary or Text is required.":
 
-    def list_teams(self):
-        logger.debug("Attempting to list teams")
-        response = self._request("me/joinedTeams")
-        logger.debug(f"Teams: {response}")
+                return 0
+            else:
+                logger.authtest(f"Unexpected error message: {response.text}")
+                return 1
