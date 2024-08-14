@@ -7,7 +7,6 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-# CREDS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if env_exists := os.path.exists(".env"):
     load_dotenv()
 
