@@ -1,16 +1,18 @@
 import os
-import logging
 import re
-import glob
-from typing import Optional, Union, List, Any, Set
-from pathlib import Path
+import json
+from typing import Optional, Union, List, Any
+from google.oauth2.credentials import Credentials
+from google.oauth2 import service_account
 
-from shipyard_templates import ExitCodeException
+from shipyard_templates import ExitCodeException, ShipyardLogger, CloudStorage
+
+logger = ShipyardLogger().get_logger()
+
+SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 
-def is_folder_shared(
-    logger: logging.Logger, service_account_email: str, folder_id: str, drive_service
-) -> bool:
+def is_folder_shared(service_account_email: str, folder_id: str, drive_service) -> bool:
     """Helper function to see if a provided folder is shared with the service account
 
     Args:
@@ -41,7 +43,6 @@ def is_folder_shared(
 
 
 def does_file_exist(
-    logger: logging.Logger,
     parent_folder_id: str,
     file_name: str,
     service,
@@ -439,3 +440,34 @@ def list_local_files(directory: Optional[str] = None) -> List[str]:
             files.append(file_path)
 
     return files
+
+
+def get_credentials():
+    try:
+        if access_token := os.getenv("OAUTH_ACCESS_TOKEN"):
+            logger.debug("Using access token for authentication")
+            return Credentials(token=access_token, scopes=SCOPES)
+        elif serv_account := os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+            logger.debug("Using service account for authentication")
+            try:
+                json_creds = json.loads(serv_account)
+                return service_account.Credentials.from_service_account_info(
+                    json_creds, scopes=SCOPES
+                )
+            except Exception as e:
+                raise ExitCodeException(
+                    f"Error in parsing json credentials: {e}",
+                    CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
+                )
+
+        else:
+            raise ValueError(
+                "Either an access token or service account credentials must be provided"
+            )
+    except ExitCodeException:
+        raise
+    except Exception as e:
+        raise ExitCodeException(
+            f"Error in getting credentials: {e}",
+            CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
+        )

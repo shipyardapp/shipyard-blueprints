@@ -37,14 +37,14 @@ def get_args():
         "--service-account",
         dest="gcp_application_credentials",
         default=None,
-        required=True,
+        required=False,
     )
     parser.add_argument("--drive", dest="drive", default=None, required=False)
     return parser.parse_args()
 
 
 def download_google_sheet_file(
-        service, spreadsheet_id, file_name, tab_name, cell_range, destination_file_name=None
+    service, spreadsheet_id, file_name, tab_name, cell_range, destination_file_name=None
 ):
     """
     Download th contents of a spreadsheet from Google Sheets to local storage in
@@ -54,7 +54,7 @@ def download_google_sheet_file(
     try:
         if tab_name:
             if utils.check_workbook_exists(
-                    service=service, spreadsheet_id=spreadsheet_id, tab_name=tab_name
+                service=service, spreadsheet_id=spreadsheet_id, tab_name=tab_name
             ):
                 cell_range = f"{tab_name}!{cell_range}"
             else:
@@ -84,22 +84,20 @@ def download_google_sheet_file(
 def main():
     try:
         args = get_args()
-        tmp_file = utils.set_environment_variables(args)
         file_name = shipyard.clean_folder_name(args.file_name)
         tab_name = args.tab_name
         cell_range = args.cell_range or "A1:ZZZ5000000"
         drive = args.drive
 
-        destination_folder_name = shipyard.clean_folder_name(args.destination_folder_name)
-        if not os.path.exists(destination_folder_name) and (destination_folder_name != ""):
+        destination_folder_name = shipyard.clean_folder_name(
+            args.destination_folder_name
+        )
+        if not os.path.exists(destination_folder_name) and (
+            destination_folder_name != ""
+        ):
             os.makedirs(destination_folder_name)
 
-        if tmp_file:
-            service, drive_service = utils.get_service(credentials=tmp_file)
-        else:
-            service, drive_service = utils.get_service(
-                credentials=args.gcp_application_credentials
-            )
+        service, drive_service = utils.get_service()
 
         spreadsheet_id = utils.get_spreadsheet_id_by_name(
             drive_service=drive_service, file_name=file_name, drive=drive
@@ -130,9 +128,6 @@ def main():
             cell_range=cell_range,
             destination_file_name=destination_name,
         )
-        if tmp_file:
-            logger.info(f"Removing temporary credentials file {tmp_file}")
-            os.remove(tmp_file)
     except FileNotFoundError as e:
         logger.error(e)
         sys.exit(Spreadsheets.EXIT_CODE_FILE_NOT_FOUND)

@@ -35,3 +35,9 @@ Upload_Test/
 
 .cache/ 
 .local/
+
+# ignore all .env files 
+.env.*
+# ignore google credentials
+client_secret.json
+token.json

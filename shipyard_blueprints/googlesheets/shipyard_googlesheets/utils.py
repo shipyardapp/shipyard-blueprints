@@ -4,8 +4,9 @@ import socket
 import tempfile
 
 from google.oauth2 import service_account
+from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from shipyard_templates import ShipyardLogger
+from shipyard_templates import ShipyardLogger, ExitCodeException, CloudStorage
 
 from shipyard_googlesheets import exceptions
 
@@ -31,7 +32,6 @@ def check_workbook_exists(service, spreadsheet_id, tab_name):
         logger.debug(f"exists: {exists}")
         return bool(exists)
     except Exception as e:
-
         logger.error(
             f"Failed to check workbook {tab_name} for spreadsheet " f"{spreadsheet_id}"
         )
@@ -111,16 +111,14 @@ def get_shared_drive_id(service, drive):
     return drive_id
 
 
-def get_service(credentials):
+def get_service():
     """
     Attempts to create the Google Drive Client with the associated
     environment variables
     """
     logger.debug("Creating Google Drive Client with service account")
     try:
-        creds = service_account.Credentials.from_service_account_file(
-            credentials, scopes=SCOPES
-        )
+        creds = _get_credentials()
         service = build("sheets", "v4", credentials=creds)
         drive_service = build("drive", "v3", credentials=creds)
         logger.debug("Google Drive Client created successfully")
@@ -157,3 +155,34 @@ def add_workbook(service, spreadsheet_id, tab_name):
         )
     except Exception as e:
         raise exceptions.WorkbookAddException(e) from e
+
+
+def _get_credentials():
+    try:
+        if access_token := os.getenv("OAUTH_ACCESS_TOKEN"):
+            logger.debug("Using access token for authentication")
+            return Credentials(token=access_token, scopes=SCOPES)
+        elif serv_account := os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+            logger.debug("Using service account for authentication")
+            try:
+                json_creds = json.loads(serv_account)
+                return service_account.Credentials.from_service_account_info(
+                    json_creds, scopes=SCOPES
+                )
+            except Exception as e:
+                raise ExitCodeException(
+                    f"Error in parsing json credentials: {e}",
+                    CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
+                )
+
+        else:
+            raise ValueError(
+                "Either an access token or service account credentials must be provided"
+            )
+    except ExitCodeException:
+        raise
+    except Exception as e:
+        raise ExitCodeException(
+            f"Error in getting credentials: {e}",
+            CloudStorage.EXIT_CODE_INVALID_CREDENTIALS,
+        )
