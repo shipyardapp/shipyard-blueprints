@@ -46,10 +46,6 @@ class GoogleDriveClient(CloudStorage):
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.service_account
 
     def connect(self):
-        # tmp_path = self._set_env_vars()
-        # credentials = service_account.Credentials.from_service_account_file(
-        #     tmp_path, scopes=self.SCOPES
-        # )
         credentials = drive_utils.get_credentials()
         service = build("drive", "v3", credentials=credentials)
         return service
