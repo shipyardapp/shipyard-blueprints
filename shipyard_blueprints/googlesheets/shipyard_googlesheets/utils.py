@@ -111,16 +111,14 @@ def get_shared_drive_id(service, drive):
     return drive_id
 
 
-def get_service(credentials):
+def get_service():
     """
     Attempts to create the Google Drive Client with the associated
     environment variables
     """
     logger.debug("Creating Google Drive Client with service account")
     try:
-        creds = service_account.Credentials.from_service_account_file(
-            credentials, scopes=SCOPES
-        )
+        creds = _get_credentials()
         service = build("sheets", "v4", credentials=creds)
         drive_service = build("drive", "v3", credentials=creds)
         logger.debug("Google Drive Client created successfully")
@@ -159,7 +157,7 @@ def add_workbook(service, spreadsheet_id, tab_name):
         raise exceptions.WorkbookAddException(e) from e
 
 
-def get_credentials():
+def _get_credentials():
     try:
         if access_token := os.getenv("OAUTH_ACCESS_TOKEN"):
             logger.debug("Using access token for authentication")

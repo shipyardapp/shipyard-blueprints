@@ -75,18 +75,12 @@ def clear_google_sheet(service, file_name, cell_range, spreadsheet_id, tab_name)
 def main():
     try:
         args = get_args()
-        tmp_file = utils.set_environment_variables(args)
         file_name = shipyard.clean_folder_name(args.file_name)
         tab_name = args.tab_name
         cell_range = args.cell_range or "A1:ZZZ5000000"
         drive = args.drive
 
-        if tmp_file:
-            service, drive_service = utils.get_service(credentials=tmp_file)
-        else:
-            service, drive_service = utils.get_service(
-                credentials=args.gcp_application_credentials
-            )
+        service, drive_service = utils.get_service()
 
         spreadsheet_id = utils.get_spreadsheet_id_by_name(
             drive_service=drive_service, file_name=file_name, drive=drive
@@ -105,10 +99,6 @@ def main():
             tab_name=tab_name,
             cell_range=cell_range,
         )
-
-        if tmp_file:
-            logger.info(f"Removing temporary credentials file {tmp_file}")
-            os.remove(tmp_file)
     except ExitCodeException as e:
         logger.error(e)
         sys.exit(e.exit_code)

@@ -108,7 +108,6 @@ def upload_google_sheets_file(
 def main():
     try:
         args = get_args()
-        tmp_file = utils.set_environment_variables(args)
         source_file_name = args.source_file_name
         source_folder_name = args.source_folder_name
         source_full_path = shipyard.combine_folder_and_file_name(
@@ -123,12 +122,7 @@ def main():
         if not os.path.isfile(source_full_path):
             raise FileNotFoundError(f"{source_full_path} does not exist")
 
-        if tmp_file:
-            service, drive_service = utils.get_service(credentials=tmp_file)
-        else:
-            service, drive_service = utils.get_service(
-                credentials=args.gcp_application_credentials
-            )
+        service, drive_service = utils.get_service()
 
         spreadsheet_id = utils.get_spreadsheet_id_by_name(
             drive_service=drive_service, file_name=file_name, drive=drive
@@ -148,9 +142,6 @@ def main():
             tab_name=tab_name,
             starting_cell=starting_cell,
         )
-        if tmp_file:
-            logger.info(f"Removing temporary credentials file {tmp_file}")
-            os.remove(tmp_file)
     except FileNotFoundError as e:
         logger.error(e)
         sys.exit(Spreadsheets.EXIT_CODE_FILE_NOT_FOUND)

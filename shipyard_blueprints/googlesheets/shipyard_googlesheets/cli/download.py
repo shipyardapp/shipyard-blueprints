@@ -84,7 +84,6 @@ def download_google_sheet_file(
 def main():
     try:
         args = get_args()
-        tmp_file = utils.set_environment_variables(args)
         file_name = shipyard.clean_folder_name(args.file_name)
         tab_name = args.tab_name
         cell_range = args.cell_range or "A1:ZZZ5000000"
@@ -98,12 +97,7 @@ def main():
         ):
             os.makedirs(destination_folder_name)
 
-        if tmp_file:
-            service, drive_service = utils.get_service(credentials=tmp_file)
-        else:
-            service, drive_service = utils.get_service(
-                credentials=args.gcp_application_credentials
-            )
+        service, drive_service = utils.get_service()
 
         spreadsheet_id = utils.get_spreadsheet_id_by_name(
             drive_service=drive_service, file_name=file_name, drive=drive
@@ -134,9 +128,6 @@ def main():
             cell_range=cell_range,
             destination_file_name=destination_name,
         )
-        if tmp_file:
-            logger.info(f"Removing temporary credentials file {tmp_file}")
-            os.remove(tmp_file)
     except FileNotFoundError as e:
         logger.error(e)
         sys.exit(Spreadsheets.EXIT_CODE_FILE_NOT_FOUND)
