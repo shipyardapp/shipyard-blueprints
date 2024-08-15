@@ -27,7 +27,7 @@ def get_args():
         "--service-account",
         dest="gcp_application_credentials",
         default=None,
-        required=True,
+        required=False,
     )
     parser.add_argument("--drive", dest="drive", default=None, required=False)
     return parser.parse_args()

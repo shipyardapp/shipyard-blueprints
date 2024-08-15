@@ -32,14 +32,14 @@ def get_args():
         "--service-account",
         dest="gcp_application_credentials",
         default=None,
-        required=True,
+        required=False,
     )
     parser.add_argument("--drive", dest="drive", default=None, required=False)
     return parser.parse_args()
 
 
 def upload_google_sheets_file(
-        service, file_name, source_full_path, starting_cell, spreadsheet_id, tab_name
+    service, file_name, source_full_path, starting_cell, spreadsheet_id, tab_name
 ):
     """
     Uploads a single file to Google Sheets.
@@ -68,7 +68,7 @@ def upload_google_sheets_file(
 
         data = []
         with open(
-                source_full_path, encoding="utf-8", newline=""
+            source_full_path, encoding="utf-8", newline=""
         ) as f:  # adding unicode encoding
             reader = csv.reader((line.replace("\0", "") for line in f), delimiter=",")
             data.extend(row for row in reader if set(row) != {""})
@@ -112,7 +112,8 @@ def main():
         source_file_name = args.source_file_name
         source_folder_name = args.source_folder_name
         source_full_path = shipyard.combine_folder_and_file_name(
-            folder_name=f"{os.getcwd()}/{source_folder_name}", file_name=source_file_name
+            folder_name=f"{os.getcwd()}/{source_folder_name}",
+            file_name=source_file_name,
         )
         file_name = shipyard.clean_folder_name(args.file_name)
         tab_name = args.tab_name
