@@ -3,7 +3,7 @@ import pytest
 from dotenv import load_dotenv, find_dotenv
 from shipyard_trello.cli.authtest import main
 
-CREDENTIALS = ["TRELLO_ACCESS_TOKEN","TRELLO_API_KEY"]
+CREDENTIALS = ["TRELLO_ACCESS_TOKEN", "TRELLO_API_KEY"]
 
 INVALID_INPUT = ["INVALID", 123, ""]
 
@@ -11,10 +11,7 @@ INVALID_INPUT = ["INVALID", 123, ""]
 @pytest.fixture(scope="module", autouse=True)
 def get_env():
     load_dotenv(find_dotenv())
-    if any(
-            key not in os.environ
-            for key in CREDENTIALS
-    ):
+    if any(key not in os.environ for key in CREDENTIALS):
         pytest.skip("Missing one or more required environment variables")
 
 

@@ -7,14 +7,14 @@ logger = ShipyardLogger.get_logger()
 
 class SnowparkClient(Database):
     def __init__(
-            self,
-            username,
-            pwd,
-            database=None,
-            account=None,
-            warehouse=None,
-            schema=None,
-            role=None,
+        self,
+        username,
+        pwd,
+        database=None,
+        account=None,
+        warehouse=None,
+        schema=None,
+        role=None,
     ):
         self.username = username
         self.pwd = pwd
@@ -56,7 +56,7 @@ class SnowparkClient(Database):
             return session
 
     def upload(
-            self, session: Session, df: pd.DataFrame, table_name: str, overwrite=True
+        self, session: Session, df: pd.DataFrame, table_name: str, overwrite=True
     ):
         """
         Uploads a pandas dataframe to a table in Snowflake using the Snowpark API

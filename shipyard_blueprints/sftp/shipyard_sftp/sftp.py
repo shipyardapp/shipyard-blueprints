@@ -26,9 +26,13 @@ class SftpClient(CloudStorage):
     EXIT_CODE_DELETE_ERROR = 100
 
     def __init__(
-            self, host: str, port: int, key: Optional[str] = None, user: Optional[str] = None,
-            pwd: Optional[str] = None,
-            transport: Optional[paramiko.Transport] = None
+        self,
+        host: str,
+        port: int,
+        key: Optional[str] = None,
+        user: Optional[str] = None,
+        pwd: Optional[str] = None,
+        transport: Optional[paramiko.Transport] = None,
     ) -> None:
         """
         Initializes an SFTP client with the given connection parameters.
@@ -148,11 +152,15 @@ class SftpClient(CloudStorage):
         except ExitCodeException:
             raise
         except OSError as e:
-            logger.error(f"Error occurred while moving {source} to {destination}. Be sure the destination filename is "
-                         f"correct or a file with the same name does not already exists.")
+            logger.error(
+                f"Error occurred while moving {source} to {destination}. Be sure the destination filename is "
+                f"correct or a file with the same name does not already exists."
+            )
             raise UnknownException(e) from e
         except Exception as e:
-            logger.error(f"Error occurred while moving {source} to {destination}. Due to {e}")
+            logger.error(
+                f"Error occurred while moving {source} to {destination}. Due to {e}"
+            )
             raise UnknownException(e) from e
 
     def remove(self, filename: str):
@@ -268,7 +276,9 @@ class SftpClient(CloudStorage):
 
                 if self.key.startswith("-----BEGIN"):
                     logger.debug("Using key as string")
-                    key = paramiko.RSAKey.from_private_key(io.StringIO(utils.format_newlines(self.key)))
+                    key = paramiko.RSAKey.from_private_key(
+                        io.StringIO(utils.format_newlines(self.key))
+                    )
                 else:
                     logger.debug("Using key as file")
                     key = paramiko.RSAKey.from_private_key_file(self.key)
@@ -293,10 +303,10 @@ class SftpClient(CloudStorage):
                 return paramiko.SFTPClient.from_transport(transport)
 
         except (
-                paramiko.SSHException,
-                paramiko.AuthenticationException,
-                ValueError,
-                FileNotFoundError,
+            paramiko.SSHException,
+            paramiko.AuthenticationException,
+            ValueError,
+            FileNotFoundError,
         ) as auth_error:
             raise InvalidCredentialsError(auth_error) from auth_error
         except Exception as err:

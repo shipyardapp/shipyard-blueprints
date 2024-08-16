@@ -28,15 +28,15 @@ class SnowflakeClient(Database):
     EXIT_CODE_NON_EMPTY_TABLE = 108
 
     def __init__(
-            self,
-            username,
-            password,
-            database=None,
-            account=None,
-            warehouse=None,
-            schema=None,
-            rsa_key=None,
-            role=None,
+        self,
+        username,
+        password,
+        database=None,
+        account=None,
+        warehouse=None,
+        schema=None,
+        rsa_key=None,
+        role=None,
     ) -> None:
         self.username = username
         self.password = password
@@ -95,7 +95,7 @@ class SnowflakeClient(Database):
             except Exception as e:
                 raise ExitCodeException(
                     message=f"Could not authenticate to Snowflake for user {self.username} with credentials provided. "
-                            f"Error: {e}",
+                    f"Error: {e}",
                     exit_code=self.EXIT_CODE_INVALID_CREDENTIALS,
                 )
         else:
@@ -132,10 +132,10 @@ class SnowflakeClient(Database):
                 )
 
     def upload(
-            self,
-            file_path: str,
-            table_name: str,
-            insert_method: str = "replace",
+        self,
+        file_path: str,
+        table_name: str,
+        insert_method: str = "replace",
     ):
         """Uploads a pandas dataframe to a snowflake table
 
@@ -215,9 +215,9 @@ class SnowflakeClient(Database):
             return results
 
     def put(
-            self,
-            file_path: str,
-            table_name: str,
+        self,
+        file_path: str,
+        table_name: str,
     ):
         """Executes a PUT command to load a file to internal staging. This is the fastest way to load a large file and should be followed by a copy into command
 
@@ -254,9 +254,9 @@ class SnowflakeClient(Database):
             )
 
     def _create_table_sql(
-            self,
-            table_name: str,
-            columns: Union[List[List[str]], Dict[str, str]],
+        self,
+        table_name: str,
+        columns: Union[List[List[str]], Dict[str, str]],
     ) -> str:
         """Returns the SQL for to create or replace a table in Snowflake
         Args:

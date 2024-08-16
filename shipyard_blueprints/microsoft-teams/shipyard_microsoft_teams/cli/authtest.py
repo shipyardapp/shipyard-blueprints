@@ -12,7 +12,9 @@ def main():
     logger.setLevel("AUTHTEST")
 
     sys.exit(
-        MicrosoftTeamsClient(webhook_url=os.getenv("MICROSOFT_TEAMS_WEBHOOK_URL")).connect()
+        MicrosoftTeamsClient(
+            webhook_url=os.getenv("MICROSOFT_TEAMS_WEBHOOK_URL")
+        ).connect()
     )
 
 

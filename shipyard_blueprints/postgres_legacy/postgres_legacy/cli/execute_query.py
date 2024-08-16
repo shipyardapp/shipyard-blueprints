@@ -47,9 +47,9 @@ def create_connection_string(args):
     if args.db_connection_url:
         os.environ["DB_CONNECTION_URL"] = args.db_connection_url
     elif args.host and args.database:
-        os.environ["DB_CONNECTION_URL"] = (
-            f"postgresql://{args.username}:{args.password}@{args.host}:{args.port}/{args.database}?{args.url_parameters}"
-        )
+        os.environ[
+            "DB_CONNECTION_URL"
+        ] = f"postgresql://{args.username}:{args.password}@{args.host}:{args.port}/{args.database}?{args.url_parameters}"
 
     db_string = os.environ.get("DB_CONNECTION_URL")
     return db_string

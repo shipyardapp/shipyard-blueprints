@@ -8,9 +8,7 @@ from shipyard_coalesce.cli.authtest import main
 @pytest.fixture(scope="module", autouse=True)
 def get_env():
     load_dotenv(find_dotenv())
-    if any(
-            key not in os.environ
-            for key in ["COALESCE_ACCESS_TOKEN"]):
+    if any(key not in os.environ for key in ["COALESCE_ACCESS_TOKEN"]):
         pytest.skip("Missing one or more required environment variables")
 
 

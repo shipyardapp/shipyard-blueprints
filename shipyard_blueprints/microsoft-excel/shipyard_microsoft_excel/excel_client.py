@@ -9,13 +9,13 @@ logger = ShipyardLogger.get_logger()
 
 class ExcelClient(OneDriveClient):
     def __init__(
-            self,
-            access_token: Optional[str] = None,
-            username: Optional[str] = None,
-            password: Optional[str] = None,
-            client_id: Optional[str] = None,
-            client_secret: Optional[str] = None,
-            tenant: Optional[str] = None,
+        self,
+        access_token: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        client_id: Optional[str] = None,
+        client_secret: Optional[str] = None,
+        tenant: Optional[str] = None,
     ):
         super().__init__(
             access_token=access_token,
@@ -27,7 +27,7 @@ class ExcelClient(OneDriveClient):
         )
 
     def get_sheet_id(
-            self, sheet_name: str, file_id: str, drive_id: Optional[str] = None
+        self, sheet_name: str, file_id: str, drive_id: Optional[str] = None
     ) -> str:
         """
 
@@ -44,14 +44,12 @@ class ExcelClient(OneDriveClient):
 
         """
 
-        data = self._request("GET", f"drives/{drive_id}/items/{file_id}/workbook/worksheets")
+        data = self._request(
+            "GET", f"drives/{drive_id}/items/{file_id}/workbook/worksheets"
+        )
         if sheet_id := next(
-                (
-                        sheet["id"]
-                        for sheet in data["value"]
-                        if sheet["name"] == sheet_name
-                ),
-                None,
+            (sheet["id"] for sheet in data["value"] if sheet["name"] == sheet_name),
+            None,
         ):
             return sheet_id
         else:
@@ -74,11 +72,13 @@ class ExcelClient(OneDriveClient):
         Returns: The data from the sheet in the form of JSON
 
         """
-        return self._request("GET",
-                             f"drives/{drive_id}/items/{file_id}/workbook/worksheets/{sheet}/usedRange")
+        return self._request(
+            "GET",
+            f"drives/{drive_id}/items/{file_id}/workbook/worksheets/{sheet}/usedRange",
+        )
 
     def get_sheet_data_as_df(
-            self, file_id: str, sheet: str, drive_id: Optional[str] = None
+        self, file_id: str, sheet: str, drive_id: Optional[str] = None
     ):
         try:
             data = self.get_sheet_data(file_id, sheet, drive_id)["values"]

@@ -9,10 +9,10 @@ from shipyard_bigquery.cli.authtest import main
 def get_env():
     load_dotenv(find_dotenv())
     if any(
-            key not in os.environ
-            for key in [
-                "GOOGLE_APPLICATION_CREDENTIALS",
-            ]
+        key not in os.environ
+        for key in [
+            "GOOGLE_APPLICATION_CREDENTIALS",
+        ]
     ):
         pytest.skip("Missing one or more required environment variables")
 

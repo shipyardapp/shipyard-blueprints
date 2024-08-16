@@ -22,7 +22,7 @@ def test_authtest_good_connection(authtest):
 def test_authtest_bad_connection(authtest, monkeypatch):
     monkeypatch.setenv("MOTHERDUCK_TOKEN", "bad_token")
     result = subprocess.run(authtest, capture_output=True)
-    assert (result.returncode == 1)
+    assert result.returncode == 1
 
 
 @pytest.mark.skipif(not env_exists, reason="No .env file found")

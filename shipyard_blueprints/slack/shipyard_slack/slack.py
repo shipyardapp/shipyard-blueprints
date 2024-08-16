@@ -90,7 +90,7 @@ class SlackClient(Messaging):
             return 0
 
     def send_message(
-            self, message: str, channel_name: str, download_link: str = ""
+        self, message: str, channel_name: str, download_link: str = ""
     ) -> SlackResponse:
         """
         Sends a message to a specified Slack channel.
@@ -226,7 +226,7 @@ class SlackClient(Messaging):
             self._handle_slack_error(e)
 
     def update_message(
-            self, message: str, channel_id: str, timestamp: str, download_link: str = ""
+        self, message: str, channel_id: str, timestamp: str, download_link: str = ""
     ) -> SlackResponse:
         """
         Updates a previously sent Slack message.
@@ -258,7 +258,7 @@ class SlackClient(Messaging):
             self._handle_slack_error(e)
 
     def upload_file(
-            self, filename: str, channels: str, thread_ts: Optional[str] = None
+        self, filename: str, channels: str, thread_ts: Optional[str] = None
     ) -> SlackResponse:
         """
         Uploads a file to a Slack channel, optionally in a thread.

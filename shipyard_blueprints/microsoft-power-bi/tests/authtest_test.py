@@ -3,7 +3,11 @@ import pytest
 from dotenv import load_dotenv, find_dotenv
 from shipyard_microsoft_power_bi.cli.authtest import main
 
-CREDENTIALS = ["MICROSOFT_POWER_BI_CLIENT_ID", "MICROSOFT_POWER_BI_CLIENT_SECRET", "MICROSOFT_POWER_BI_TENANT_ID"]
+CREDENTIALS = [
+    "MICROSOFT_POWER_BI_CLIENT_ID",
+    "MICROSOFT_POWER_BI_CLIENT_SECRET",
+    "MICROSOFT_POWER_BI_TENANT_ID",
+]
 
 INVALID_INPUT = ["INVALID", 123, ""]
 
@@ -11,10 +15,7 @@ INVALID_INPUT = ["INVALID", 123, ""]
 @pytest.fixture(scope="module", autouse=True)
 def get_env():
     load_dotenv(find_dotenv())
-    if any(
-            key not in os.environ
-            for key in CREDENTIALS
-    ):
+    if any(key not in os.environ for key in CREDENTIALS):
         pytest.skip("Missing one or more required environment variables")
 
 

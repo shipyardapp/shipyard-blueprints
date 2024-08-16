@@ -15,10 +15,7 @@ INVALID_INPUT = ["INVALID", 123, ""]
 @pytest.fixture(scope="module", autouse=True)
 def get_env():
     load_dotenv(find_dotenv())
-    if any(
-            key not in os.environ
-            for key in CREDENTIALS
-    ):
+    if any(key not in os.environ for key in CREDENTIALS):
         pytest.skip("Missing one or more required environment variables")
 
 
@@ -43,7 +40,6 @@ def test_invalid_secret_access_key(invalid_input, monkeypatch):
     with pytest.raises(SystemExit) as exit_code:
         main()
     assert exit_code.value.code == 1
-
 
 
 @pytest.mark.parametrize("missing_env", CREDENTIALS)

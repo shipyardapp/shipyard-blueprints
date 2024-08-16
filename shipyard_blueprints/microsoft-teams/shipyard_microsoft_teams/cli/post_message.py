@@ -35,9 +35,15 @@ def main():
     try:
         args = get_args()
 
-        client = MicrosoftTeamsClient(webhook_url=args.webhook_url, access_token=os.getenv("OAUTH_ACCESS_TOKEN"))
-        client.post_message(message_content=args.message_content, message_title=args.message_title,
-                            team_id=args.team_id, channel_id=args.channel_id)
+        client = MicrosoftTeamsClient(
+            webhook_url=args.webhook_url, access_token=os.getenv("OAUTH_ACCESS_TOKEN")
+        )
+        client.post_message(
+            message_content=args.message_content,
+            message_title=args.message_title,
+            team_id=args.team_id,
+            channel_id=args.channel_id,
+        )
     except ExitCodeException as e:
         logger.error(e)
         sys.exit(e.exit_code)

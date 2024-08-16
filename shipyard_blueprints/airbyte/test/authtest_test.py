@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 def run_cli_command():
     return subprocess.run(
-        ['python3', "shipyard_airbyte/cli/authtest.py"],
+        ["python3", "shipyard_airbyte/cli/authtest.py"],
         capture_output=True,
         text=True,
     )
@@ -36,10 +36,14 @@ def test_valid_credentials():
 def test_invalid_credential(monkeypatch):
     monkeypatch.setenv("AIRBYTE_API_TOKEN", "invalid_token")
     result = run_cli_command()
-    assert result.returncode != 0, f"CLI should fail with invalid credentials, got {result.returncode}"
+    assert (
+        result.returncode != 0
+    ), f"CLI should fail with invalid credentials, got {result.returncode}"
 
 
 def test_missing_credentials(monkeypatch):
     monkeypatch.delenv("AIRBYTE_API_TOKEN")
     result = run_cli_command()
-    assert result.returncode != 0, f"CLI should fail with missing credentials, got {result.returncode}"
+    assert (
+        result.returncode != 0
+    ), f"CLI should fail with missing credentials, got {result.returncode}"

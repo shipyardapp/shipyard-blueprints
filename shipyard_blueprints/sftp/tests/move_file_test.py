@@ -15,13 +15,13 @@ RUN_COMMAND = ["python3", "shipyard_sftp/cli/move_file.py"]
 def setup():
     load_dotenv(find_dotenv())
     if any(
-            key not in os.environ
-            for key in [
-                "SFTP_HOST",
-                "SFTP_PORT",
-                "SFTP_USERNAME",
-                "SFTP_PASSWORD",
-            ]
+        key not in os.environ
+        for key in [
+            "SFTP_HOST",
+            "SFTP_PORT",
+            "SFTP_USERNAME",
+            "SFTP_PASSWORD",
+        ]
     ):
         pytest.skip("Missing one or more required environment variables")
 
@@ -85,38 +85,46 @@ def test_valid_simple_move(create_test_file, setup):
     )
     _delete_test_file("pytest/moved_test_again.csv")
     assert (
-            test_run.returncode == 0
+        test_run.returncode == 0
     ), f"File move failed: {test_run.returncode} {test_run.stdout} {test_run.stderr}"
     test_run = subprocess.run(
         [
             *RUN_COMMAND,
             *connection_args,
-            "--source-folder-name", "pytest",
-            "--source-file-name", "moved_test.csv",
-            "--destination-folder-name", "pytest",
-            "--destination-file-name", "moved_test_again.csv",
+            "--source-folder-name",
+            "pytest",
+            "--source-file-name",
+            "moved_test.csv",
+            "--destination-folder-name",
+            "pytest",
+            "--destination-file-name",
+            "moved_test_again.csv",
         ],
         text=True,
         capture_output=True,
     )
     _delete_test_file("moved_test_again.csv")
     assert (
-            test_run.returncode == 0
+        test_run.returncode == 0
     ), f"File move failed: {test_run.returncode} {test_run.stdout} {test_run.stderr}"
     test_run = subprocess.run(
         [
             *RUN_COMMAND,
             *connection_args,
-            "--source-folder-name", "pytest",
-            "--source-file-name", "moved_test_again.csv",
-            "--destination-file-name", "moved_test_again.csv",
+            "--source-folder-name",
+            "pytest",
+            "--source-file-name",
+            "moved_test_again.csv",
+            "--destination-file-name",
+            "moved_test_again.csv",
         ],
         text=True,
         capture_output=True,
     )
     assert (
-            test_run.returncode == 0
+        test_run.returncode == 0
     ), f"File move failed: {test_run.returncode} {test_run.stdout} {test_run.stderr}"
+
 
 # A test for a specific case
 #     test_run = subprocess.run(

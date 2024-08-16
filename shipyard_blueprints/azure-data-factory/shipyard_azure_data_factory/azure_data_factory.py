@@ -8,7 +8,9 @@ logger = ShipyardLogger.get_logger()
 
 
 class AzureDataFactoryClient(Etl):
-    def __init__(self, client_id: str, client_secret: str, tenant_id: str, subscription_id: str):
+    def __init__(
+        self, client_id: str, client_secret: str, tenant_id: str, subscription_id: str
+    ):
         """
         Initializes the AzureDataFactory instance with provided Azure credentials.
 
@@ -32,10 +34,14 @@ class AzureDataFactoryClient(Etl):
         """
         if self._adf_client is None:
             try:
-                credentials = ClientSecretCredential(client_id=self.client_id,
-                                                     client_secret=self.client_secret,
-                                                     tenant_id=self.tenant_id)
-                self._adf_client = DataFactoryManagementClient(credentials, self.subscription_id)
+                credentials = ClientSecretCredential(
+                    client_id=self.client_id,
+                    client_secret=self.client_secret,
+                    tenant_id=self.tenant_id,
+                )
+                self._adf_client = DataFactoryManagementClient(
+                    credentials, self.subscription_id
+                )
                 logger.info("Successfully initialized DataFactoryManagementClient.")
             except Exception as e:
                 raise ExitCodeException(
@@ -59,8 +65,14 @@ class AzureDataFactoryClient(Etl):
             logger.authtest(f"Error connecting to Azure Data Factory: {e}")
             return 1
 
-    def trigger_sync(self, resource_group: str, data_factory_name: str, pipeline_name: str,
-                     wait_for_completion: bool = True, wait_time: int = 1):
+    def trigger_sync(
+        self,
+        resource_group: str,
+        data_factory_name: str,
+        pipeline_name: str,
+        wait_for_completion: bool = True,
+        wait_time: int = 1,
+    ):
         """
         Triggers a pipeline run in Azure Data Factory.
 
@@ -71,15 +83,27 @@ class AzureDataFactoryClient(Etl):
         :param wait_time: Time interval to wait before checking pipeline run status
         """
         try:
-            run_response = self.adf_client.pipelines.create_run(resource_group, data_factory_name, pipeline_name,
-                                                                parameters={})
+            run_response = self.adf_client.pipelines.create_run(
+                resource_group, data_factory_name, pipeline_name, parameters={}
+            )
             logger.info(f"Triggered pipeline run with ID: {run_response.run_id}")
             if wait_for_completion:
-                run_status = self.determine_sync_status(resource_group, data_factory_name, run_response.run_id)
-                while run_status not in {"Succeeded", "Failed", "Cancelled", "Canceling"}:
-                    logger.info(f"Waiting {wait_time} minute(s) before checking pipeline run status...")
+                run_status = self.determine_sync_status(
+                    resource_group, data_factory_name, run_response.run_id
+                )
+                while run_status not in {
+                    "Succeeded",
+                    "Failed",
+                    "Cancelled",
+                    "Canceling",
+                }:
+                    logger.info(
+                        f"Waiting {wait_time} minute(s) before checking pipeline run status..."
+                    )
                     time.sleep(wait_time * 60)
-                    run_status = self.determine_sync_status(resource_group, data_factory_name, run_response.run_id)
+                    run_status = self.determine_sync_status(
+                        resource_group, data_factory_name, run_response.run_id
+                    )
         except ExitCodeException as e:
             raise e
         except Exception as e:
@@ -93,7 +117,9 @@ class AzureDataFactoryClient(Etl):
         :param data_factory_name: Data factory name
         :param run_id: ID of the pipeline run to check status
         """
-        pipeline_run = self.adf_client.pipeline_runs.get(resource_group, data_factory_name, run_id)
+        pipeline_run = self.adf_client.pipeline_runs.get(
+            resource_group, data_factory_name, run_id
+        )
         logger.info(f"Pipeline run status: {pipeline_run.status}")
 
         return pipeline_run.status

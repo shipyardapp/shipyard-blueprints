@@ -260,7 +260,7 @@ class FtpClient(CloudStorage):
             return False
 
     def get_all_nested_items(
-            self, working_directory: str, dir_list: list = None
+        self, working_directory: str, dir_list: list = None
     ) -> list:
         """
         Recursive function to get all the nested files and directories on the FTP server.
