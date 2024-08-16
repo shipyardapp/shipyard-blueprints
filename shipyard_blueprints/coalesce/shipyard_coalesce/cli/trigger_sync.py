@@ -53,9 +53,9 @@ def main():
             "job_id": None if args.job_id == "" else args.job_id,
             "snowflake_username": args.snowflake_username,
             "snowflake_password": args.snowflake_password,
-            "snowflake_role": None
-            if args.snowflake_role == ""
-            else args.snowflake_role,
+            "snowflake_role": (
+                None if args.snowflake_role == "" else args.snowflake_role
+            ),
             "snowflake_warehouse": (
                 None if args.snowflake_role == "" else args.snowflake_warehouse
             ),
@@ -66,9 +66,9 @@ def main():
             "exclude_nodes_selector": (
                 None if args.exclude_nodes == "" else args.exclude_nodes
             ),
-            "parameters": None
-            if args.parameters == ""
-            else literal_eval(args.parameters),
+            "parameters": (
+                None if args.parameters == "" else literal_eval(args.parameters)
+            ),
         }
         client = CoalesceClient(access_token, region)
         conn = client.connect()
