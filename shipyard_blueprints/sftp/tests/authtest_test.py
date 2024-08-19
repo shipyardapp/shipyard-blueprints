@@ -10,14 +10,14 @@ from shipyard_sftp.cli.authtest import main
 def get_env():
     load_dotenv(find_dotenv())
     if any(
-            key not in os.environ
-            for key in [
-                "SFTP_HOST",
-                "SFTP_PORT",
-                "SFTP_USERNAME",
-                "SFTP_PASSWORD",
-                "SFTP_RSA_KEY_FILE"
-            ]
+        key not in os.environ
+        for key in [
+            "SFTP_HOST",
+            "SFTP_PORT",
+            "SFTP_USERNAME",
+            "SFTP_PASSWORD",
+            "SFTP_RSA_KEY_FILE",
+        ]
     ):
         pytest.skip("Missing one or more required environment variables")
 
@@ -43,7 +43,8 @@ def test_invalid_password(invalid_password, monkeypatch):
     with pytest.raises(SystemExit) as exit_code:
         main()
 
-    assert (exit_code.value.code == 1)
+    assert exit_code.value.code == 1
+
 
 @pytest.mark.parametrize("invalid_password", ["bad_password", ""])
 def test_valid_key_with_invalid_password(invalid_password, monkeypatch):

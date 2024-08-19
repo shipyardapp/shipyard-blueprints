@@ -100,8 +100,9 @@ def main():
 
         if args.users_to_notify:
             user_id_list = create_user_id_list(
-                slack_client=slack_client, users_to_notify=args.users_to_notify,
-                user_lookup_method=args.user_lookup_method
+                slack_client=slack_client,
+                users_to_notify=args.users_to_notify,
+                user_lookup_method=args.user_lookup_method,
             )
         else:
             user_id_list = []

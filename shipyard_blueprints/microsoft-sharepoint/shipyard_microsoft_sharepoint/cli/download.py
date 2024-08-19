@@ -65,7 +65,9 @@ def main():
 
         target_file = args.file_name or src_file
         target_dir = args.directory
-        target_path = shipyard.files.combine_folder_and_file_name(target_dir, target_file)
+        target_path = shipyard.files.combine_folder_and_file_name(
+            target_dir, target_file
+        )
 
         if target_dir:
             shipyard.files.create_folder_if_dne(target_dir)

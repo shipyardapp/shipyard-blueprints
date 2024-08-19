@@ -66,7 +66,7 @@ def enumerate_destination_file_name(destination_file_name, file_number=1):
 
 
 def determine_destination_file_name(
-        *, source_full_path, destination_file_name, file_number=None
+    *, source_full_path, destination_file_name, file_number=None
 ):
     """
     Determine if the destination_file_name was provided, or should be extracted from the source_file_name,
@@ -110,7 +110,7 @@ def combine_folder_and_file_name(folder_name, file_name):
 
 
 def determine_destination_name(
-        destination_folder_name, destination_file_name, source_full_path, file_number=None
+    destination_folder_name, destination_file_name, source_full_path, file_number=None
 ):
     """
     Determine the final destination name of the file being downloaded.
@@ -120,9 +120,7 @@ def determine_destination_name(
         source_full_path=source_full_path,
         file_number=file_number,
     )
-    return combine_folder_and_file_name(
-        destination_folder_name, destination_file_name
-    )
+    return combine_folder_and_file_name(destination_folder_name, destination_file_name)
 
 
 def find_box_file_names(client, source_folder_name):
@@ -234,7 +232,9 @@ def get_file_id(client, source_file_name, source_folder_name=None):
                 print(f"Found file {source_file_name} with ID {_file.id}")
                 return _file.name, _file.id
 
-        raise FileNotFoundError(f"File {source_file_name} not found in folder {source_folder_name}")
+        raise FileNotFoundError(
+            f"File {source_file_name} not found in folder {source_folder_name}"
+        )
     except (BoxOAuthException, BoxAPIException) as e:
         raise e
 
@@ -280,18 +280,24 @@ def main():
                 client=client,
                 destination_file_name=destination_name,
             )
-    else: # exact_match
+    else:  # exact_match
         file_name, file_id = None, None
         try:
-            if source_file_name.isnumeric():  # A more reliable way to find the file is by ID rather than name
+            if (
+                source_file_name.isnumeric()
+            ):  # A more reliable way to find the file is by ID rather than name
                 try:
-                    print("The source file name is numeric. Attempting to download by file ID.")
+                    print(
+                        "The source file name is numeric. Attempting to download by file ID."
+                    )
                     file = client.file(source_file_name).get()
                     file_name = file.name
                     file_id = source_file_name
 
                 except Exception:
-                    print("The source file name is not a valid file ID. Attempting to download by file name.")
+                    print(
+                        "The source file name is not a valid file ID. Attempting to download by file name."
+                    )
                 else:
                     source_full_path = combine_folder_and_file_name(
                         folder_name=source_folder_name, file_name=file_name
@@ -303,7 +309,9 @@ def main():
                     source_file_name=source_file_name,
                 )
         except TypeError as e:
-            print(f"The specified file {source_file_name} could not be found. Message from Box Server: {e}")
+            print(
+                f"The specified file {source_file_name} could not be found. Message from Box Server: {e}"
+            )
             sys.exit(1)
 
         destination_name = determine_destination_name(

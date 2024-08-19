@@ -129,5 +129,5 @@ def get_credential_group(args):
     #
     raise ExitCodeException(
         "Either access token or Client ID, Client Secret, and Tenant must be provided",
-        DataVisualization.EXIT_CODE_INVALID_CREDENTIALS
+        DataVisualization.EXIT_CODE_INVALID_CREDENTIALS,
     )

@@ -8,7 +8,6 @@ class MicrosoftTeamsClient(Messaging):
     BASE_URL = "https://graph.microsoft.com/v1.0"
 
     def __init__(self, access_token=None, webhook_url=None):
-
         self.webhook_url = webhook_url
         self._access_token = access_token
 
@@ -21,23 +20,33 @@ class MicrosoftTeamsClient(Messaging):
         else:
             raise ExitCodeException(
                 "Invalid credentials provided. Please provide all the required credentials to connect to the service",
-                Messaging.EXIT_CODE_INVALID_CREDENTIALS)
+                Messaging.EXIT_CODE_INVALID_CREDENTIALS,
+            )
 
     @access_token.setter
     def access_token(self, access_token):
         self._access_token = access_token
 
     def _request(self, endpoint, method="GET", header_override=None, **kwargs):
-        headers = header_override or {"Authorization": f"Bearer {self.access_token}",
-                                      "Content-Type": "application/json"}
-        response = requests.request(method, f"{self.BASE_URL}/{endpoint}", headers=headers, **kwargs)
+        headers = header_override or {
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json",
+        }
+        response = requests.request(
+            method, f"{self.BASE_URL}/{endpoint}", headers=headers, **kwargs
+        )
         if response.ok:
             return response.json()
         else:
-            raise ExitCodeException(f"An error occurred when attempting to make a request to Microsoft teams."
-                                    f"{response.text}", Messaging.EXIT_CODE_UNKNOWN_ERROR)
+            raise ExitCodeException(
+                f"An error occurred when attempting to make a request to Microsoft teams."
+                f"{response.text}",
+                Messaging.EXIT_CODE_UNKNOWN_ERROR,
+            )
 
-    def post_message(self, message_content, team_id=None, channel_id=None, message_title=None):
+    def post_message(
+        self, message_content, team_id=None, channel_id=None, message_title=None
+    ):
         """
         Posts a message to a channel in a team
         :param message_content: The content of the message
@@ -56,19 +65,25 @@ class MicrosoftTeamsClient(Messaging):
             if not self.access_token:
                 raise ExitCodeException(
                     "Access token or webhook url is required to post a message to a channel when not using a webhook",
-                    Messaging.EXIT_CODE_INVALID_INPUT)
+                    Messaging.EXIT_CODE_INVALID_INPUT,
+                )
             if not team_id or not channel_id:
                 raise ExitCodeException(
                     "Team ID and Channel ID are required to post a message to a channel when not using a webhook",
-                    Messaging.EXIT_CODE_INVALID_INPUT)
+                    Messaging.EXIT_CODE_INVALID_INPUT,
+                )
 
-            message_details = {"body": {"content": message_content, "contentType": "text"}}
+            message_details = {
+                "body": {"content": message_content, "contentType": "text"}
+            }
             if message_title:
                 message_details["subject"] = message_title
 
-            response = self._request(f"teams/{team_id}/channels/{channel_id}/messages",
-                                     method="POST",
-                                     json=message_details)
+            response = self._request(
+                f"teams/{team_id}/channels/{channel_id}/messages",
+                method="POST",
+                json=message_details,
+            )
             logger.debug(f"Response: {response}")
             logger.info("Message posted successfully")
 
@@ -83,8 +98,11 @@ class MicrosoftTeamsClient(Messaging):
         if response.ok:
             logger.info("Message sent successfully")
         else:
-            raise ExitCodeException("An error occurred when attempting to post message to Microsoft teams."
-                                    f"{response.text}", Messaging.EXIT_CODE_UNKNOWN_ERROR)
+            raise ExitCodeException(
+                "An error occurred when attempting to post message to Microsoft teams."
+                f"{response.text}",
+                Messaging.EXIT_CODE_UNKNOWN_ERROR,
+            )
 
     def connect(self):
         try:
@@ -97,7 +115,6 @@ class MicrosoftTeamsClient(Messaging):
                 logger.auth_test("Invalid webhook URL")
                 return 1
             elif response.text == "Summary or Text is required.":
-
                 return 0
             else:
                 logger.authtest(f"Unexpected error message: {response.text}")

@@ -62,7 +62,6 @@ class DbtClient(Etl):
         except requests.exceptions.ConnectionError as ec:
             raise UnknownError(ec)
         except requests.exceptions.Timeout as et:
-
             raise ExitCodeException(
                 f"Timed out while connecting to the URL.\n{et}", self.TIMEOUT
             ) from et

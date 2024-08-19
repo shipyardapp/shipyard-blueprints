@@ -26,7 +26,7 @@ def enumerate_destination_file_name(destination_file_name: str, file_number: int
 
 
 def determine_destination_file_name(
-        *, source_full_path: str, destination_file_name: str, file_number: int = None
+    *, source_full_path: str, destination_file_name: str, file_number: int = None
 ) -> str:
     """
     Determines the destination file name based on provided parameters.
@@ -100,10 +100,10 @@ def combine_folder_and_file_name(folder_name: str, file_name: str) -> str:
 
 
 def determine_destination_full_path(
-        destination_folder_name: str,
-        destination_file_name: str,
-        source_full_path: str,
-        file_number: int = None,
+    destination_folder_name: str,
+    destination_file_name: str,
+    source_full_path: str,
+    file_number: int = None,
 ) -> str:
     """
     Determines the full destination path of a file based on provided parameters.
@@ -431,12 +431,12 @@ def fetch_file_paths_from_directory(directory: str, base_directory: str = None) 
 
 
 def file_match(
-        search_term: str,
-        match_type: str,
-        files: list,
-        source_directory: str = "",
-        destination_directory: str = "",
-        destination_filename: str = "",
+    search_term: str,
+    match_type: str,
+    files: list,
+    source_directory: str = "",
+    destination_directory: str = "",
+    destination_filename: str = "",
 ) -> list[dict]:
     """
     Match a file based on a search term and match type.

@@ -72,7 +72,7 @@ def _decode_rsa(rsa_key: str):
 
 
 def map_snowflake_to_pandas(
-        snowflake_data_types: Optional[Union[List[List], Dict[str, str]]]
+    snowflake_data_types: Optional[Union[List[List], Dict[str, str]]]
 ) -> Union[Dict, None]:
     # TODO: modify this to accept a list of lists (old way) and a JSON representation of datatypes (new way)
     """Helper function to map a snowflake data type to the associated pandas data type
@@ -161,7 +161,7 @@ def get_pandas_dates(pandas_datatypes: dict) -> tuple:
 
 
 def read_file(
-        file: str, snowflake_dtypes: Union[List, None] = None, file_type: str = "csv"
+    file: str, snowflake_dtypes: Union[List, None] = None, file_type: str = "csv"
 ) -> pd.DataFrame:
     """Helper function to read in a file to a pandas dataframe. This will be build out in the future to allow for more file types like parquet, arrow, tsv, etc.
     Args:
@@ -293,6 +293,7 @@ def map_pandas_to_snowflake(data_type_dict: Dict[str, str]) -> Dict[str, str]:
         )
 
     return snowflake_columns
+
 
 def format_newlines(rsa_key: str) -> str:
     """

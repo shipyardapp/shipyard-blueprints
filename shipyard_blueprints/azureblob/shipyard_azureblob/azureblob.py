@@ -139,7 +139,6 @@ class AzureBlobClient(CloudStorage):
         except ExitCodeException:
             raise
         except ResourceExistsError:
-
             logger.info(
                 f'File "{destination_full_path}" already exists in the container. Overwriting...'
             )

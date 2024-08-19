@@ -14,7 +14,7 @@ class TicketNotFound(Exception):
 
 class TrelloClient(ProjectManagement):
     def __init__(
-            self, access_token: str, api_key: str, verbose=False, **kwargs
+        self, access_token: str, api_key: str, verbose=False, **kwargs
     ) -> None:
         super().__init__(access_token, **kwargs)
         logger.setLevel(DEBUG if verbose else INFO)
@@ -46,16 +46,14 @@ class TrelloClient(ProjectManagement):
             headers={"Content-Type": "application/json", "Accept": "application/json"},
         )
 
-        logger.debug(
-            f"Response: {response.status_code}: {response.content.decode()}"
-        )
+        logger.debug(f"Response: {response.status_code}: {response.content.decode()}")
 
         if not response.ok:
             response_content = response.content.decode()
             if (
-                    endpoint.startswith("cards/")
-                    and response.status_code == 400
-                    and response_content == "invalid id"
+                endpoint.startswith("cards/")
+                and response.status_code == 400
+                and response_content == "invalid id"
             ):
                 raise TicketNotFound(f"Ticket not found: {response_content}")
             raise Exception(
@@ -93,13 +91,13 @@ class TrelloClient(ProjectManagement):
             return response
 
     def create_ticket(
-            self,
-            board_id: str,
-            list_name: str,
-            card_name: str = None,
-            description: str = None,
-            due_date: str = None,
-            **kwargs,
+        self,
+        board_id: str,
+        list_name: str,
+        card_name: str = None,
+        description: str = None,
+        due_date: str = None,
+        **kwargs,
     ) -> dict:
         """
         Creates a Trello card on a specific board and list.
@@ -113,9 +111,7 @@ class TrelloClient(ProjectManagement):
         :return: The details of the Trello card
         """
 
-        logger.info(
-            f"Attempting to create card {card_name} on board {board_id}..."
-        )
+        logger.info(f"Attempting to create card {card_name} on board {board_id}...")
         try:
             list_id = self.get_list_by_name(list_name, board_id)["id"]
             response = self._request(
@@ -137,14 +133,14 @@ class TrelloClient(ProjectManagement):
             return response
 
     def update_ticket(
-            self,
-            card_id: str,
-            board_id: str = None,
-            list_name: str = None,
-            card_name: str = None,
-            description: str = None,
-            due_date: str = None,
-            **kwargs,
+        self,
+        card_id: str,
+        board_id: str = None,
+        list_name: str = None,
+        card_name: str = None,
+        description: str = None,
+        due_date: str = None,
+        **kwargs,
     ) -> dict:
         """
         Updates a Trello card on a specific board and list.
@@ -238,15 +234,11 @@ class TrelloClient(ProjectManagement):
         :param board_id: The ID of the Trello board
         :return: The details of the Trello list
         """
-        logger.info(
-            f"Attempting to retrieve list {list_name} from board {board_id}..."
-        )
+        logger.info(f"Attempting to retrieve list {list_name} from board {board_id}...")
         try:
             board_lists = self.get_lists(board_id)
         except Exception as e:
-            logger.error(
-                f"Failed to retrieve list {list_name} from board {board_id}!"
-            )
+            logger.error(f"Failed to retrieve list {list_name} from board {board_id}!")
             raise e
         else:
             for board_list in board_lists:

@@ -31,8 +31,16 @@ class MicrosoftPowerBiClient(DataVisualization):
     ONGOING_JOB_STATUSES = {"Queued", "InProgress", "Unknown"}
     COMPLETE_JOB_STATUSES = {"Completed", "Success"}
 
-    def __init__(self, client_id: str = None, client_secret: str = None, tenant_id: str = None, access_token=None,
-                 username=None, password=None, **kwargs):
+    def __init__(
+        self,
+        client_id: str = None,
+        client_secret: str = None,
+        tenant_id: str = None,
+        access_token=None,
+        username=None,
+        password=None,
+        **kwargs,
+    ):
         """
         Initializes the MicrosoftPowerBiClient with the provided credentials.
 
@@ -56,25 +64,30 @@ class MicrosoftPowerBiClient(DataVisualization):
             return self._access_token
         if self.username and self.password:
             try:
-                results = utils.generate_token_from_un_pw(client_id=self.client_id, tenant_id=self.tenant_id,
-                                                          username=self.username, password=self.password)
+                results = utils.generate_token_from_un_pw(
+                    client_id=self.client_id,
+                    tenant_id=self.tenant_id,
+                    username=self.username,
+                    password=self.password,
+                )
                 self._set_access_token(results)
             except Exception as e:
-                logger.error(
-                    f"Failed to generate token using username/password: {e}"
-                )
+                logger.error(f"Failed to generate token using username/password: {e}")
         if self.client_id and self.client_secret:
             try:
-                results = utils.generate_access_token_from_client(client_id=self.client_id, tenant_id=self.tenant_id,
-                                                                  client_secret=self.client_secret)
+                results = utils.generate_access_token_from_client(
+                    client_id=self.client_id,
+                    tenant_id=self.tenant_id,
+                    client_secret=self.client_secret,
+                )
                 self._set_access_token(results)
             except Exception as e:
-                logger.error(
-                    f"Failed to generate token using client credentials: {e}"
-                )
+                logger.error(f"Failed to generate token using client credentials: {e}")
 
         if not self._access_token:
-            raise ExitCodeException("Failed to generate access token", self.EXIT_CODE_INVALID_CREDENTIALS)
+            raise ExitCodeException(
+                "Failed to generate access token", self.EXIT_CODE_INVALID_CREDENTIALS
+            )
         return self._access_token
 
     @access_token.setter
@@ -85,7 +98,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         if "access_token" not in result:
             raise ExitCodeException(
                 f"Failed to connect to Power BI using basic authentication. Error: {result}",
-                self.EXIT_CODE_INVALID_CREDENTIALS
+                self.EXIT_CODE_INVALID_CREDENTIALS,
             )
         self.access_token = result["access_token"]
         logger.info("Successfully connected to Power BI")
@@ -128,7 +141,6 @@ class MicrosoftPowerBiClient(DataVisualization):
                 logger.debug("No Content")
                 return response
         else:
-
             self._handle_error_response(response)
 
     def _handle_error_response(self, response):
@@ -200,12 +212,12 @@ class MicrosoftPowerBiClient(DataVisualization):
             return 0
 
     def refresh(
-            self,
-            object_type: str,
-            group_id: str,
-            object_id: str,
-            wait_for_completion: bool,
-            wait_time: int = 60,
+        self,
+        object_type: str,
+        group_id: str,
+        object_id: str,
+        wait_for_completion: bool,
+        wait_time: int = 60,
     ):
         """
         Triggers a refresh job for the specified object with the option to wait that job to complete.
@@ -228,11 +240,11 @@ class MicrosoftPowerBiClient(DataVisualization):
             )
 
     def refresh_dataset(
-            self,
-            group_id: str,
-            dataset_id: str,
-            wait_for_completion: bool,
-            wait_time: int = 60,
+        self,
+        group_id: str,
+        dataset_id: str,
+        wait_for_completion: bool,
+        wait_time: int = 60,
     ):
         """
         Triggers a refresh job for the specified dataset with the option to wait that job to complete.
@@ -251,16 +263,18 @@ class MicrosoftPowerBiClient(DataVisualization):
         logger.info("Dataset refresh triggered")
         if wait_for_completion:
             request_id = response.headers.get("RequestId")
-            self.wait_for_dataset_refresh_completion(group_id, dataset_id, request_id, wait_time=wait_time)
+            self.wait_for_dataset_refresh_completion(
+                group_id, dataset_id, request_id, wait_time=wait_time
+            )
         else:
             return response
 
     def refresh_dataflow(
-            self,
-            group_id: str,
-            dataflow_id: str,
-            wait_for_completion: bool,
-            wait_time: int = 60,
+        self,
+        group_id: str,
+        dataflow_id: str,
+        wait_for_completion: bool,
+        wait_time: int = 60,
     ):
         """
         Triggers a refresh job for the specified dataflow with the option to wait that job to complete.
@@ -281,7 +295,9 @@ class MicrosoftPowerBiClient(DataVisualization):
             data=json.dumps(data),
         )
         if wait_for_completion:
-            self.wait_for_dataflow_refresh_completion(group_id, dataflow_id, wait_time=wait_time)
+            self.wait_for_dataflow_refresh_completion(
+                group_id, dataflow_id, wait_time=wait_time
+            )
         else:
             logger.info("Dataflow refresh triggered")
             return response
@@ -301,11 +317,11 @@ class MicrosoftPowerBiClient(DataVisualization):
         )
 
     def check_recent_dataset_refresh_by_request_id(
-            self,
-            group_id: str,
-            dataset_id: str,
-            request_id: str,
-            number_of_refreshes: int = 10,
+        self,
+        group_id: str,
+        dataset_id: str,
+        request_id: str,
+        number_of_refreshes: int = 10,
     ):
         """
         Gets the status of the most recent refreshes for the specified dataset and checks if the specified request ID is
@@ -334,7 +350,7 @@ class MicrosoftPowerBiClient(DataVisualization):
         )
 
     def check_dataset_refresh_by_refresh_id(
-            self, group_id: str, dataset_id: str, refresh_id: str
+        self, group_id: str, dataset_id: str, refresh_id: str
     ):
         """
         Gets the status of the specified refresh.
@@ -387,14 +403,15 @@ class MicrosoftPowerBiClient(DataVisualization):
             f"{self.BASE_URL}/groups/{group_id}/dataflows", method="GET"
         )
 
-    def wait_for_dataflow_refresh_completion(
-            self, group_id, dataflow_id, wait_time=60):
+    def wait_for_dataflow_refresh_completion(self, group_id, dataflow_id, wait_time=60):
         logger.info("Waiting for refresh to complete")
         job_status = "Unknown"
 
         while job_status in self.ONGOING_JOB_STATUSES:
             transactions = self.get_dataflow_transactions(group_id, dataflow_id)
-            sorted_transactions = sorted(transactions["value"], key=lambda x: x["startTime"], reverse=True)
+            sorted_transactions = sorted(
+                transactions["value"], key=lambda x: x["startTime"], reverse=True
+            )
 
             if len(sorted_transactions) == 0:
                 raise ExitCodeException(
@@ -402,7 +419,9 @@ class MicrosoftPowerBiClient(DataVisualization):
                     self.EXIT_CODE_INVALID_INPUT,
                 )
 
-            job_status = sorted_transactions[0].get("status")  # Get the latest transaction status
+            job_status = sorted_transactions[0].get(
+                "status"
+            )  # Get the latest transaction status
 
             if job_status in self.COMPLETE_JOB_STATUSES:
                 logger.info(f"Job completed with status {job_status}")
@@ -426,7 +445,9 @@ class MicrosoftPowerBiClient(DataVisualization):
                     self.EXIT_CODE_UNKNOWN_REFRESH_JOB_STATUS,
                 )
 
-    def wait_for_dataset_refresh_completion(self, group_id, dataset_id, request_id, wait_time=60):
+    def wait_for_dataset_refresh_completion(
+        self, group_id, dataset_id, request_id, wait_time=60
+    ):
         logger.info("Waiting for refresh to complete")
         job_status = "Unknown"
 

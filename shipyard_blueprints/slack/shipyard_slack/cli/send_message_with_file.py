@@ -134,8 +134,11 @@ def main():
         if args.destination_type == "dm":
             for user_id in user_id_list:
                 response = send_slack_message_with_file(
-                    slack_client=slack_client, message=message, file=upload, channel=user_id,
-                    include_in_thread=include_in_thread
+                    slack_client=slack_client,
+                    message=message,
+                    file=upload,
+                    channel=user_id,
+                    include_in_thread=include_in_thread,
                 )
                 responses.append(response.data)
 

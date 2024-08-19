@@ -60,7 +60,6 @@ class ShipyardClient:
             request_args["data"] = data
         response = None
         try:
-
             response = requests.request(**request_args)
             if response.ok:
                 logger.debug(f"Request successful: {response.status_code}")

@@ -85,6 +85,8 @@ def test_valid_simple_upload(setup):
     assert server_content == content
 
     os.remove("test.txt")
+
+
 def test_valid_simple_upload_with_leading_slash(setup):
     content = "test_valid_simple_upload_with_leading_slash"
     filename = "test.txt"
@@ -100,7 +102,7 @@ def test_valid_simple_upload_with_leading_slash(setup):
             "--source-file-name",
             os.path.basename(filename),
             "--source-folder-name",
-            f'{os.path.dirname(filename)}',
+            f"{os.path.dirname(filename)}",
             "--destination-folder-name",
             "/pytest",
         ],

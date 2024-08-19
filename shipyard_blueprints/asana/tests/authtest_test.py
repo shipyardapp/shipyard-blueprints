@@ -2,12 +2,12 @@ import os
 import subprocess
 
 import pytest
-from dotenv import load_dotenv,find_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 
 def run_cli_command():
     return subprocess.run(
-        ['python3', "shipyard_asana/cli/authtest.py"],
+        ["python3", "shipyard_asana/cli/authtest.py"],
         capture_output=True,
         text=True,
     )
@@ -36,10 +36,14 @@ def test_valid_credentials():
 def test_invalid_credential(monkeypatch):
     monkeypatch.setenv("ASANA_ACCESS_TOKEN", "invalid_token")
     result = run_cli_command()
-    assert result.returncode != 0, f"CLI should fail with invalid credentials, got {result.returncode}"
+    assert (
+        result.returncode != 0
+    ), f"CLI should fail with invalid credentials, got {result.returncode}"
 
 
 def test_missing_credentials(monkeypatch):
     monkeypatch.delenv("ASANA_ACCESS_TOKEN")
     result = run_cli_command()
-    assert result.returncode != 0, f"CLI should fail with missing credentials, got {result.returncode}"
+    assert (
+        result.returncode != 0
+    ), f"CLI should fail with missing credentials, got {result.returncode}"

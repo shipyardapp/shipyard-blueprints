@@ -9,7 +9,10 @@ load_dotenv(find_dotenv())
 
 @pytest.fixture(scope="module")
 def creds():
-    return {"token": os.getenv("HEX_API_TOKEN"), "project_id": os.getenv("HEX_PROJECT_ID")}
+    return {
+        "token": os.getenv("HEX_API_TOKEN"),
+        "project_id": os.getenv("HEX_PROJECT_ID"),
+    }
 
 
 def test_auth(creds):

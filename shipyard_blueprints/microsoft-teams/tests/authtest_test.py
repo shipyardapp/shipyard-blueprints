@@ -7,16 +7,18 @@ from shipyard_microsoft_teams.cli.authtest import main
 
 CREDENTIALS = ["MICROSOFT_TEAMS_WEBHOOK_URL"]
 
-INVALID_INPUT = ["INVALID", 123, "", "https://shipyardapp.webhook.office.com/webhookb2/invalid_webhook_url"]
+INVALID_INPUT = [
+    "INVALID",
+    123,
+    "",
+    "https://shipyardapp.webhook.office.com/webhookb2/invalid_webhook_url",
+]
 
 
 @pytest.fixture(scope="module", autouse=True)
 def get_env():
     load_dotenv(find_dotenv())
-    if any(
-            key not in os.environ
-            for key in CREDENTIALS
-    ):
+    if any(key not in os.environ for key in CREDENTIALS):
         pytest.skip("Missing one or more required environment variables")
 
 

@@ -79,7 +79,7 @@ def main():
 
                 logger.info(f"Downloading logs for {number_of_steps} steps")
                 for index, step in enumerate(
-                        run_details_response["data"]["run_steps"], start=1
+                    run_details_response["data"]["run_steps"], start=1
                 ):
                     step_id = step["id"]
                     logger.info(
@@ -90,7 +90,9 @@ def main():
                         with open(debug_log_name, "a") as debug_file:
                             debug_file.write(debug_log)
                     else:
-                        logger.warning(f"No debug logs for step {step_id}. Skipping ...")
+                        logger.warning(
+                            f"No debug logs for step {step_id}. Skipping ..."
+                        )
                     if log := step.get("logs"):
                         with open(output_log_name, "a") as log_file:
                             log_file.write(log)

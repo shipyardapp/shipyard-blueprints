@@ -80,7 +80,6 @@ def main():
         logger.error(f"An unexpected error occurred: {error}")
         sys.exit(1)
     else:
-
         logger.info(
             f"Successfully stored the contents of Base:{base_id} "
             f"Table:{table_name} View:{view_name} as {destination_full_path}"

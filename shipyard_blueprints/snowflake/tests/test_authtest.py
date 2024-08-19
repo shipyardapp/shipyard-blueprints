@@ -9,14 +9,14 @@ from dotenv import load_dotenv, find_dotenv
 def get_env():
     load_dotenv(find_dotenv())
     if any(
-            key not in os.environ
-            for key in [
-                "SNOWFLAKE_USERNAME",
-                "SNOWFLAKE_PASSWORD",
-                "SNOWFLAKE_ACCOUNT",
-                "SNOWFLAKE_PRIVATE_KEY",
-                "SNOWFLAKE_PRIVATE_KEY_PASSPHRASE",
-            ]
+        key not in os.environ
+        for key in [
+            "SNOWFLAKE_USERNAME",
+            "SNOWFLAKE_PASSWORD",
+            "SNOWFLAKE_ACCOUNT",
+            "SNOWFLAKE_PRIVATE_KEY",
+            "SNOWFLAKE_PRIVATE_KEY_PASSPHRASE",
+        ]
     ):
         pytest.skip("Missing one or more required environment variables")
 

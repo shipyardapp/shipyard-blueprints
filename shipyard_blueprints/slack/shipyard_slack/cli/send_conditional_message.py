@@ -93,7 +93,7 @@ def validate_args(args):
         )
 
     if args.file_upload == "yes" and (
-            not args.source_file_name_match_type or not args.source_file_name
+        not args.source_file_name_match_type or not args.source_file_name
     ):
         raise ExitCodeException(
             "--file-upload yes requires --source-file-name and --source-file-name-match-type",
@@ -141,8 +141,9 @@ def main():
             sys.exit(0)
         if args.users_to_notify:
             user_id_list = format_user_list(
-                slack_client=slack_client, users_to_notify=args.users_to_notify,
-                user_lookup_method=args.user_lookup_method
+                slack_client=slack_client,
+                users_to_notify=args.users_to_notify,
+                user_lookup_method=args.user_lookup_method,
             )
         else:
             user_id_list = []
@@ -151,8 +152,11 @@ def main():
             for user_id in user_id_list:
                 logger.info(f"Sending message with file to {user_id}...")
                 response = send_slack_message_with_file(
-                    slack_client=slack_client, message=message, file=upload, channel=user_id,
-                    include_in_thread=include_in_thread
+                    slack_client=slack_client,
+                    message=message,
+                    file=upload,
+                    channel=user_id,
+                    include_in_thread=include_in_thread,
                 )
                 responses.append(response.data)
         elif args.destination_type == "dm" and not file_upload:

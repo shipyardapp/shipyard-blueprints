@@ -12,12 +12,12 @@ default_artifact_folder = f'{os.environ.get("USER")}-artifacts'
 def command():
     load_dotenv()
     if any(
-            key not in os.environ
-            for key in [
-                "DBT_API_KEY",
-                "DBT_ACCOUNT_ID",
-                "DBT_JOB_ID",
-            ]
+        key not in os.environ
+        for key in [
+            "DBT_API_KEY",
+            "DBT_ACCOUNT_ID",
+            "DBT_JOB_ID",
+        ]
     ):
         pytest.skip("Missing one or more required environment variables")
 
@@ -27,13 +27,20 @@ def command():
         rather than at the time of definition.
         """
 
-        return ["python3",
-                "shipyard_dbt/cli/trigger_and_download.py",
-                "--api-key", os.getenv("DBT_API_KEY", ""),
-                "--account-id", os.getenv("DBT_ACCOUNT_ID", ""),
-                "--job-id", os.getenv("DBT_JOB_ID", ""),
-                "--download-artifacts", "TRUE",
-                "--download-logs", "TRUE"]
+        return [
+            "python3",
+            "shipyard_dbt/cli/trigger_and_download.py",
+            "--api-key",
+            os.getenv("DBT_API_KEY", ""),
+            "--account-id",
+            os.getenv("DBT_ACCOUNT_ID", ""),
+            "--job-id",
+            os.getenv("DBT_JOB_ID", ""),
+            "--download-artifacts",
+            "TRUE",
+            "--download-logs",
+            "TRUE",
+        ]
 
     yield refresh_command
 

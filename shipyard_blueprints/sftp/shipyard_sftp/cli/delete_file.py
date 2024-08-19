@@ -9,6 +9,7 @@ from shipyard_templates.shipyard_logger import ShipyardLogger
 from shipyard_sftp.sftp import SftpClient
 from shipyard_sftp.utils import setup_connection, tear_down
 from shipyard_sftp.exceptions import InvalidCredentialsError
+
 logger = ShipyardLogger().get_logger()
 
 
@@ -39,7 +40,6 @@ def main():
     sftp = None
 
     try:
-
         args = get_args()
         try:
             connection_args, key_path = setup_connection(args)
@@ -74,7 +74,9 @@ def main():
                 try:
                     sftp.remove(delete_file_path)
                 except Exception as e:
-                    logger.warning(f"Failed to delete {file_name} due to {e}... Skipping")
+                    logger.warning(
+                        f"Failed to delete {file_name} due to {e}... Skipping"
+                    )
         elif source_file_name_match_type == "exact_match":
             sftp.remove(source_full_path)
     except ExitCodeException as e:

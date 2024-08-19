@@ -9,7 +9,7 @@ CREDENTIALS = [
     "REDSHIFT_USERNAME",
     "REDSHIFT_PASSWORD",
     "REDSHIFT_PORT",
-    "REDSHIFT_DATABASE"
+    "REDSHIFT_DATABASE",
 ]
 
 INVALID_INPUT = ["INVALID", 123, ""]
@@ -18,10 +18,7 @@ INVALID_INPUT = ["INVALID", 123, ""]
 @pytest.fixture(scope="module", autouse=True)
 def get_env():
     load_dotenv(find_dotenv())
-    if any(
-            key not in os.environ
-            for key in CREDENTIALS
-    ):
+    if any(key not in os.environ for key in CREDENTIALS):
         pytest.skip("Missing one or more required environment variables")
 
 

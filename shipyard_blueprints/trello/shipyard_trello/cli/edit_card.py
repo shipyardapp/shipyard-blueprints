@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from shipyard_templates import ShipyardLogger,ProjectManagement
+from shipyard_templates import ShipyardLogger, ProjectManagement
 
 from shipyard_trello import TrelloClient
 

@@ -15,7 +15,7 @@ from shipyard_bp_utils import files
     ],
 )
 def test_determine_destination_file_name(
-        destination_file_name, file_number, expected_result
+    destination_file_name, file_number, expected_result
 ):
     source_full_path = "/parent/child/source.txt"
     result = files.determine_destination_file_name(

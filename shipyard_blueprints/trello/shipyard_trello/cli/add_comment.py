@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from shipyard_templates import ShipyardLogger,ProjectManagement
+from shipyard_templates import ShipyardLogger, ProjectManagement
 
 from shipyard_trello import TrelloClient
 
@@ -29,8 +29,8 @@ def main():
     except Exception as error:
         logger.error(error)
         if error in (
-                "Request failed with status code 401: invalid key",
-                "Request failed with status code 401: invalid token",
+            "Request failed with status code 401: invalid key",
+            "Request failed with status code 401: invalid token",
         ):
             sys.exit(ProjectManagement.EXIT_CODE_INVALID_CREDENTIALS)
         else:
