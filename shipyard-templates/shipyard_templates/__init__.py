@@ -9,6 +9,7 @@ from .spreadsheets import Spreadsheets
 from .projectmanagement import ProjectManagement, ExitCodeError
 from .exit_code_exception import ExitCodeException, standardize_errors
 from .crm import Crm
+from .digital_advertising import DigitalAdverstising
 from .errors import (
     InvalidCredentialError,
     BadRequestError,
