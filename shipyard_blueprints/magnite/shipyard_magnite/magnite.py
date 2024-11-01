@@ -1,6 +1,12 @@
 import json
 import requests
-from shipyard_templates import DigitalAdverstising
+from shipyard_templates import DigitalAdverstising, ShipyardLogger
+
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, List, Any
+
+logger = ShipyardLogger.get_logger()
 
 
 class MagniteClient(DigitalAdverstising):
@@ -8,6 +14,7 @@ class MagniteClient(DigitalAdverstising):
         self.username = username
         self.password = password
         self.base_url = "https://console.springserve.com/api/v0"
+        self.headers = {"Content-Type": "application/json"}
 
     def connect(self):
         """
@@ -20,11 +27,12 @@ class MagniteClient(DigitalAdverstising):
         response = requests.post(url, headers=headers, data=payload)
         if response.ok:
             self.token = response.json().get("token")
+            self.headers["Authorization"] = self.token
             return 0
         else:
             return 1
 
-    def update(self, **kwargs):
+    def update(self):
         pass
 
     def create(self, **kwargs):
@@ -33,5 +41,15 @@ class MagniteClient(DigitalAdverstising):
     def delete(self, **kwargs):
         pass
 
-    def read(self, **kwargs):
-        pass
+    def read(self, endpoint: str, id: str) -> Dict[Any, Any]:
+        """Returns the JSON from the springserve API for the given endpoint (assuming it is valid)
+
+        Args:
+            endpoint: The Springserve endpoint to query
+            id: The ID of the item to fetch
+
+        """
+        endpoint_url = f"{self.base_url}/{endpoint}/{id}"
+        response = requests.get(endpoint_url, headers=self.headers)
+        response.raise_for_status()
+        return response.json()
