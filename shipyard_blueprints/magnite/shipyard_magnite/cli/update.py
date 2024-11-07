@@ -3,12 +3,16 @@ import sys
 import os
 
 from shipyard_magnite import MagniteClient
+from shipyard_magnite.errs import (
+    EXIT_CODE_INVALID_ARGS,
+    EXIT_CODE_UPDATE_ERROR,
+    EXIT_CODE_FILE_NOT_FOUND,
+    UpdateError,
+)
 from shipyard_templates import ShipyardLogger
 from shipyard_templates import errors, ExitCodeException
 
 logger = ShipyardLogger.get_logger()
-
-EXIT_CODE_INVALID_ARGS = 200
 
 
 def get_args():
@@ -33,29 +37,43 @@ def get_args():
 def main():
     try:
         args = get_args()
-        if not args.id or args.file:
+        id = args.id
+        file = args.file
+        budget_value = args.budget_value
+        budget_period = args.budget_period
+        budget_pacing = args.budget_pacing
+        username = args.username
+        password = args.password
+        endpoint = args.endpoint
+        if not id or file:
             logger.error(
                 "Either a file or an ID must be provided. For single updates, provide an ID. For bulk updates, provide a file"
             )
             sys.exit(EXIT_CODE_INVALID_ARGS)
 
-        if args.id and not args.budget_value:
+        if id and not budget_value:
             logger.error("A budget value is necessary to update a single ID")
             sys.exit(EXIT_CODE_INVALID_ARGS)
 
-        client = MagniteClient(args.username, args.password)
+        client = MagniteClient(username, password)
         client.connect()
+        client.update(endpoint=endpoint, id=id, budget_value=budget_value, file=file)
 
-        if args.file:
-            pass
-        elif args.id:
-            client.update_single(
-                endpoint=args.endpoint, id=args.id, budget_value=args.budget_value
-            )
+        # if args.file:
+        #     pass
+        # elif args.id:
+        #     current_data = client.read(endpoint = endpoint, id = id)
+        #     client.update_single(
+        #         endpoint=args.endpoint, id=args.id, budget_value=args.budget_value, campaign_data=current_data
+        #     )
+        #
+        # else:
+        #     logger.error("Must provide a file or id")
+        #     sys.exit(EXIT_CODE_INVALID_ARGS)
 
-        else:
-            logger.error("Must provide a file or id")
-            sys.exit(EXIT_CODE_INVALID_ARGS)
+    except FileNotFoundError as fe:
+        logger.error(fe)
+        sys.exit(EXIT_CODE_FILE_NOT_FOUND)
 
     except ExitCodeException as ec:
         logger.error(ec.message)

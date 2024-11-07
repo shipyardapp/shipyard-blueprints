@@ -1,6 +1,8 @@
 import json
 import requests
+import pandas as pd
 from shipyard_templates import DigitalAdverstising, ShipyardLogger, ExitCodeException
+from shipyard_magnite.errs import EXIT_CODE_INVALID_ARGS, UpdateError
 
 from dataclasses import dataclass
 from enum import Enum
@@ -33,15 +35,43 @@ class MagniteClient(DigitalAdverstising):
             return 1
 
     def update(
-        self, id: Optional[str], file: Optional[str], budget_value: Optional[str]
+        self,
+        endpoint: str,
+        id: Optional[str],
+        file: Optional[str],
+        budget_value: Optional[str],
+        budget_period=budget_period,
+        budget_pacing=budget_pacing,
     ):
-        if id and file:
-            # TODO: replace the hardcoded error value
-            raise ExitCodeException("Both an ID and file cannot be provided", 200)
-        if id:
-            self.update_single(id, budget_value)
-        elif file:
-            self.update_multiple()
+        try:
+            if id and file:
+                raise ExitCodeException(
+                    "Both an ID and file cannot be provided", EXIT_CODE_INVALID_ARGS
+                )
+            if id:
+                data = self.read(endpoint, id)
+                self.update_single(
+                    endpoint=endpoint,
+                    id=id,
+                    campaign_data=data,
+                    budget_value=budget_value,
+                )
+            elif file:
+                df = pd.read_csv(file)
+                for i, row in df.iterrows():
+                    id = row["id"]
+                    data = self.read(endpoint, id)
+                    budget_value = row["budget_value"]
+                    self.update_single(
+                        endpoint=endpoint,
+                        id=id,
+                        campaign_data=data,
+                        budget_value=budget_value,
+                    )
+        except ExitCodeException:
+            raise
+        except Exception as e:
+            pass
 
     def create(self, **kwargs):
         pass
@@ -64,7 +94,12 @@ class MagniteClient(DigitalAdverstising):
         return response.json()
 
     def update_single(
-        self, endpoint: str, id: str, budget_value: Union[str, float, int], **kwargs
+        self,
+        endpoint: str,
+        id: str,
+        budget_value: Union[str, float, int],
+        campaign_data: Dict[str, Any],
+        **kwargs,
     ):
         """
 
@@ -79,7 +114,7 @@ class MagniteClient(DigitalAdverstising):
         """
         try:
             budget_payload = self._make_campaign_budget_payload(
-                id, budget_value, **kwargs
+                id, budget_value, campaign_data=campaign_data, **kwargs
             )
             self._form_url(endpoint)
 
@@ -98,7 +133,11 @@ class MagniteClient(DigitalAdverstising):
         pass
 
     def _make_campaign_budget_payload(
-        self, campaign_id: str, budget_value: Union[str, float, int], **kwargs
+        self,
+        campaign_id: str,
+        budget_value: Union[str, float, int],
+        campaign_data: Dict[str, Any],
+        **kwargs,
     ):
         """
 
@@ -110,20 +149,33 @@ class MagniteClient(DigitalAdverstising):
         Returns:
 
         """
-        return {
+        data = {
             "targeting_spend_profile": {
-                "id": 224960,
+                "id": campaign_data.get("targeting_spend_profile").get("id"),
                 "budgets": [
                     {
-                        "id": 945679,
+                        "id": campaign_data.get("targeting_spend_profile")
+                        .get("budgets")[0]
+                        .get("id"),
                         "budget_value": budget_value,
-                        # "budget_pacing": kwargs.get("budget_pacing", None),
-                        # "budget_period": kwargs.get("budget_period", None),
-                        # "budget_metric": kwargs.get("budget_metric", None),
                     }
                 ],
             }
         }
+        if budget_pacing := kwargs.get("budget_pacing", None):
+            data["targeting_spend_profile"]["budgets"][0][
+                "budget_pacing"
+            ] = budget_pacing
+        if budget_period := kwargs.get("budget_period", None):
+            data["targeting_spend_profile"]["budgets"][0][
+                "budget_period"
+            ] = budget_period
+        if budget_metric := kwargs.get("budget_metric", None):
+            data["targeting_spend_profile"]["budgets"][0][
+                "budget_period"
+            ] = budget_metric
+
+        return data
 
     def _form_url(self, endpoint: str):
         self.endpoint_url = f"{self.base_url}/{endpoint}"
