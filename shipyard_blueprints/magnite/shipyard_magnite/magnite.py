@@ -40,38 +40,57 @@ class MagniteClient(DigitalAdverstising):
         id: Optional[str],
         file: Optional[str],
         budget_value: Optional[str],
-        budget_period=budget_period,
-        budget_pacing=budget_pacing,
+        **kwargs,
     ):
+        """
+
+        Args:
+            endpoint: The endpoint to target - should be campaign or demand_tags for now
+            id: The optional ID of the associated item
+            file: The optional file for bulk uploads. If using a file, the following columns must be present: `campaign_id`, `budget_value`
+            budget_value: The new budget value to set
+            **kwargs: Additional fields to set such as `budget_metric`, `budget_period`, and `budget_pacing`
+
+        Raises:
+            ExitCodeException:
+        """
         try:
+            results = []
             if id and file:
                 raise ExitCodeException(
                     "Both an ID and file cannot be provided", EXIT_CODE_INVALID_ARGS
                 )
             if id:
                 data = self.read(endpoint, id)
-                self.update_single(
+                res = self.update_single(
                     endpoint=endpoint,
                     id=id,
                     campaign_data=data,
                     budget_value=budget_value,
+                    **kwargs,
                 )
+                results.append(res)
+
             elif file:
                 df = pd.read_csv(file)
                 for i, row in df.iterrows():
                     id = row["id"]
                     data = self.read(endpoint, id)
                     budget_value = row["budget_value"]
-                    self.update_single(
+                    res = self.update_single(
                         endpoint=endpoint,
                         id=id,
                         campaign_data=data,
                         budget_value=budget_value,
                     )
+                    results.append(res)
+            return results
         except ExitCodeException:
             raise
         except Exception as e:
-            pass
+            raise UpdateError(
+                f"An error occurred in attempting to update item {id}: {e}"
+            )
 
     def create(self, **kwargs):
         pass
@@ -100,37 +119,38 @@ class MagniteClient(DigitalAdverstising):
         budget_value: Union[str, float, int],
         campaign_data: Dict[str, Any],
         **kwargs,
-    ):
+    ) -> requests.Response:
         """
+        Helper function to update a single item
 
         Args:
-            endpoint:
-            id:
-            budget_value:
-            **kwargs:
+            endpoint: The endpoint to target - should be campaign or demand_tags for now
+            id: The optional ID of the associated item
+            file: The optional file for bulk uploads. If using a file, the following columns must be present: `campaign_id`, `budget_value`
+            budget_value: The new budget value to set
+            **kwargs: Additional fields to set such as `budget_metric`, `budget_period`, and `budget_pacing`
 
         Raises:
             ExitCodeException:
+        Returns: The HTTP response
+
         """
-        try:
-            budget_payload = self._make_campaign_budget_payload(
-                id, budget_value, campaign_data=campaign_data, **kwargs
-            )
-            self._form_url(endpoint)
+        budget_payload = self._make_campaign_budget_payload(
+            id, budget_value, campaign_data=campaign_data, **kwargs
+        )
+        self._form_url(endpoint)
 
-            url = f"{self.endpoint_url}/{id}"
+        url = f"{self.endpoint_url}/{id}"
 
-            resp = requests.put(url, headers=self.headers, json=budget_payload)
-            resp.raise_for_status()
+        resp = requests.put(url, headers=self.headers, json=budget_payload)
 
-            logger.info(f"Successfully updated budget for ID {id}")
-            logger.debug(f"Response code: {resp.status_code}")
-            logger.debug(f"Response data: {resp.text}")
-        except Exception as e:
-            raise ExitCodeException(f"Error in updating budget for {id}: {e}", 1)
+        logger.info(f"Successfully updated budget for ID {id}")
+        logger.debug(f"Response code: {resp.status_code}")
+        logger.debug(f"Response data: {resp.text}")
+        if not resp.ok:
+            logger.error(f"Error in updating ID {id}: {resp.text}")
 
-    def update_multiple(self):
-        pass
+        return resp
 
     def _make_campaign_budget_payload(
         self,
@@ -162,15 +182,15 @@ class MagniteClient(DigitalAdverstising):
                 ],
             }
         }
-        if budget_pacing := kwargs.get("budget_pacing", None):
+        if budget_pacing := kwargs.get("budget_pacing"):
             data["targeting_spend_profile"]["budgets"][0][
                 "budget_pacing"
             ] = budget_pacing
-        if budget_period := kwargs.get("budget_period", None):
+        if budget_period := kwargs.get("budget_period"):
             data["targeting_spend_profile"]["budgets"][0][
                 "budget_period"
             ] = budget_period
-        if budget_metric := kwargs.get("budget_metric", None):
+        if budget_metric := kwargs.get("budget_metric"):
             data["targeting_spend_profile"]["budgets"][0][
                 "budget_period"
             ] = budget_metric

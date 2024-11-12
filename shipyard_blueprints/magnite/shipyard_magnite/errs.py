@@ -6,7 +6,7 @@ EXIT_CODE_FILE_NOT_FOUND = 202
 
 
 class UpdateError(ExitCodeException):
-    def __init__(self, message, exit_code):
+    def __init__(self, message, exit_code=EXIT_CODE_UPDATE_ERROR):
         super().__init__(message, exit_code)
-        self.message = f"Error in updating item: {message}"
+        self.message = message
         self.exit_code = exit_code
