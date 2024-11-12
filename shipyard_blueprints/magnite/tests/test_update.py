@@ -26,4 +26,26 @@ def test_successful_update(client):
         budget_value=BUDGET_VALUE,
         file="",
     )
-    assert all(list(map(lambda x: x.ok, res)))
+    assert all(res)
+
+
+def test_unsuccessful_update_bad_endpoint(client):
+    client.connect()
+    res = client.update(
+        endpoint="bad_campaigns",
+        id=os.getenv("CAMPAIGN_ID"),
+        budget_value=BUDGET_VALUE,
+        file="",
+    )
+    assert not all(res)
+
+
+def test_unsuccessful_update_bad_campaign(client):
+    client.connect()
+    res = client.update(
+        endpoint="campaigns",
+        id="bad-id",
+        budget_value=BUDGET_VALUE,
+        file="",
+    )
+    assert not all(res)

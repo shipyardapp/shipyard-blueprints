@@ -59,22 +59,9 @@ def main():
         client.connect()
         client.update(endpoint=endpoint, id=id, budget_value=budget_value, file=file)
 
-        # if args.file:
-        #     pass
-        # elif args.id:
-        #     current_data = client.read(endpoint = endpoint, id = id)
-        #     client.update_single(
-        #         endpoint=args.endpoint, id=args.id, budget_value=args.budget_value, campaign_data=current_data
-        #     )
-        #
-        # else:
-        #     logger.error("Must provide a file or id")
-        #     sys.exit(EXIT_CODE_INVALID_ARGS)
-
     except FileNotFoundError as fe:
         logger.error(fe)
         sys.exit(EXIT_CODE_FILE_NOT_FOUND)
-
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)

@@ -2,7 +2,7 @@ import json
 import requests
 import pandas as pd
 from shipyard_templates import DigitalAdverstising, ShipyardLogger, ExitCodeException
-from shipyard_magnite.errs import EXIT_CODE_INVALID_ARGS, UpdateError
+from shipyard_magnite.errs import EXIT_CODE_INVALID_ARGS, ReadError, UpdateError
 
 from dataclasses import dataclass
 from enum import Enum
@@ -61,11 +61,9 @@ class MagniteClient(DigitalAdverstising):
                     "Both an ID and file cannot be provided", EXIT_CODE_INVALID_ARGS
                 )
             if id:
-                data = self.read(endpoint, id)
                 res = self.update_single(
                     endpoint=endpoint,
                     id=id,
-                    campaign_data=data,
                     budget_value=budget_value,
                     **kwargs,
                 )
@@ -75,18 +73,14 @@ class MagniteClient(DigitalAdverstising):
                 df = pd.read_csv(file)
                 for i, row in df.iterrows():
                     id = row["id"]
-                    data = self.read(endpoint, id)
                     budget_value = row["budget_value"]
                     res = self.update_single(
                         endpoint=endpoint,
                         id=id,
-                        campaign_data=data,
                         budget_value=budget_value,
                     )
                     results.append(res)
             return results
-        except ExitCodeException:
-            raise
         except Exception as e:
             raise UpdateError(
                 f"An error occurred in attempting to update item {id}: {e}"
@@ -106,20 +100,22 @@ class MagniteClient(DigitalAdverstising):
             id: The ID of the item to fetch
 
         """
-        self._form_url(endpoint)
-        endpoint_url = f"{self.endpoint_url}/{id}"
-        response = requests.get(endpoint_url, headers=self.headers)
-        response.raise_for_status()
-        return response.json()
+        try:
+            self._form_url(endpoint)
+            endpoint_url = f"{self.endpoint_url}/{id}"
+            response = requests.get(endpoint_url, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.HTTPError as e:
+            raise ReadError(f"Error in reading data from {endpoint_url}: {e}")
 
     def update_single(
         self,
         endpoint: str,
         id: str,
         budget_value: Union[str, float, int],
-        campaign_data: Dict[str, Any],
         **kwargs,
-    ) -> requests.Response:
+    ) -> bool:
         """
         Helper function to update a single item
 
@@ -130,27 +126,35 @@ class MagniteClient(DigitalAdverstising):
             budget_value: The new budget value to set
             **kwargs: Additional fields to set such as `budget_metric`, `budget_period`, and `budget_pacing`
 
-        Raises:
-            ExitCodeException:
-        Returns: The HTTP response
+        Returns: True if the response was successful and false otherwise
 
         """
-        budget_payload = self._make_campaign_budget_payload(
-            id, budget_value, campaign_data=campaign_data, **kwargs
-        )
-        self._form_url(endpoint)
+        try:
+            campaign_data = self.read(endpoint=endpoint, id=id)
+            budget_payload = self._make_campaign_budget_payload(
+                id, budget_value, campaign_data=campaign_data, **kwargs
+            )
+            self._form_url(endpoint)
 
-        url = f"{self.endpoint_url}/{id}"
+            url = f"{self.endpoint_url}/{id}"
 
-        resp = requests.put(url, headers=self.headers, json=budget_payload)
+            resp = requests.put(url, headers=self.headers, json=budget_payload)
 
-        logger.info(f"Successfully updated budget for ID {id}")
-        logger.debug(f"Response code: {resp.status_code}")
-        logger.debug(f"Response data: {resp.text}")
-        if not resp.ok:
-            logger.error(f"Error in updating ID {id}: {resp.text}")
+            logger.info(f"Successfully updated budget for ID {id}")
+            logger.debug(f"Response code: {resp.status_code}")
+            logger.debug(f"Response data: {resp.text}")
+            if not resp.ok:
+                logger.error(f"Error in updating ID {id}: {resp.text}")
+                return False
 
-        return resp
+            return True
+
+        except ReadError as re:
+            logger.error(f"Error in reading data for ID {id}: {re}")
+            return False
+        except Exception as e:
+            logger.error(f"Error in updating ID {id}: {e}")
+            return False
 
     def _make_campaign_budget_payload(
         self,
