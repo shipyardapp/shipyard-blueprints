@@ -10,7 +10,7 @@ from shipyard_magnite.errs import (
     UpdateError,
 )
 from shipyard_templates import ShipyardLogger
-from shipyard_templates import errors, ExitCodeException
+from shipyard_templates import ExitCodeException
 
 logger = ShipyardLogger.get_logger()
 
