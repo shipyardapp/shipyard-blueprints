@@ -3,6 +3,7 @@ import os
 
 from dotenv import load_dotenv, find_dotenv
 from shipyard_magnite import MagniteClient
+from shipyard_magnite.errs import ReadError
 from pytest import MonkeyPatch
 from copy import deepcopy
 from requests.exceptions import HTTPError
@@ -29,12 +30,12 @@ def test_read_invalid_campaign(client):
     campaign_id = "bad_campaign_id"
     client.connect()
 
-    with pytest.raises(HTTPError):
+    with pytest.raises(ReadError):
         client.read("campaigns", campaign_id)
 
 
 def test_read_invalid_endpoint(client):
     campaign_id = os.getenv("CAMPAIGN_ID")
     client.connect()
-    with pytest.raises(HTTPError):
+    with pytest.raises(ReadError):
         client.read("bad-endpoint", campaign_id)
