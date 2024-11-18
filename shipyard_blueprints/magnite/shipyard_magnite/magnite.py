@@ -2,7 +2,12 @@ import json
 import requests
 import pandas as pd
 from shipyard_templates import DigitalAdverstising, ShipyardLogger, ExitCodeException
-from shipyard_magnite.errs import EXIT_CODE_INVALID_ARGS, ReadError, UpdateError
+from shipyard_magnite.errs import (
+    EXIT_CODE_INVALID_ARGS,
+    InvalidColumns,
+    ReadError,
+    UpdateError,
+)
 
 from dataclasses import dataclass
 from enum import Enum
@@ -12,6 +17,9 @@ logger = ShipyardLogger.get_logger()
 
 
 class MagniteClient(DigitalAdverstising):
+    REQUIRED_FIELDS = ["id", "budget_value"]
+    OPTIONAL_FIELDS = ["budget_pacing", "budget_period"]  # can expand as needed
+
     def __init__(self, username: str, password: str) -> None:
         self.username = username
         self.password = password
@@ -71,9 +79,19 @@ class MagniteClient(DigitalAdverstising):
 
             elif file:
                 df = pd.read_csv(file)
+                # check the columns
+                columns = df.columns.tolist()
+                logger.debug(f"Columns are {columns}")
+                column_check = list(map(lambda x: x in columns, self.REQUIRED_FIELDS))
+                if not all(column_check):
+                    raise InvalidColumns(
+                        f"The columns in the provided file are incorrect. Please ensure that they match the following: \n ['id', 'budget_value', 'budget_pacing', 'budget_period']"
+                    )
+
+                logger.debug(df.head())
                 for i, row in df.iterrows():
-                    id = row["id"]
-                    budget_value = row["budget_value"]
+                    id = str(row["id"])
+                    budget_value = str(row["budget_value"])
                     res = self.update_single(
                         endpoint=endpoint,
                         id=id,
@@ -147,14 +165,14 @@ class MagniteClient(DigitalAdverstising):
                 logger.error(f"Error in updating ID {id}: {resp.text}")
                 return False
 
-            return True
-
         except ReadError as re:
             logger.error(f"Error in reading data for ID {id}: {re}")
             return False
         except Exception as e:
             logger.error(f"Error in updating ID {id}: {e}")
             return False
+        else:
+            return True
 
     def _make_campaign_budget_payload(
         self,

@@ -1,13 +1,11 @@
 import argparse
 import sys
-import os
 
 from shipyard_magnite import MagniteClient
 from shipyard_magnite.errs import (
     EXIT_CODE_INVALID_ARGS,
-    EXIT_CODE_UPDATE_ERROR,
+    EXIT_CODE_PARTIAL_FAILURE,
     EXIT_CODE_FILE_NOT_FOUND,
-    UpdateError,
 )
 from shipyard_templates import ShipyardLogger
 from shipyard_templates import ExitCodeException
@@ -45,7 +43,7 @@ def main():
         username = args.username
         password = args.password
         endpoint = args.endpoint
-        if not id or file:
+        if not (id or file):
             logger.error(
                 "Either a file or an ID must be provided. For single updates, provide an ID. For bulk updates, provide a file"
             )
@@ -57,7 +55,19 @@ def main():
 
         client = MagniteClient(username, password)
         client.connect()
-        client.update(endpoint=endpoint, id=id, budget_value=budget_value, file=file)
+        res = client.update(
+            endpoint=endpoint, id=id, budget_value=budget_value, file=file
+        )
+        if all(res):
+            logger.info("All updates were executed successfully")
+            sys.exit(0)
+        else:
+            n_entries = len(res)
+            failed = list(filter(lambda x: not x, res))
+            logger.error(
+                f"{len(failed)} out of {n_entries} failed to update successfully"
+            )
+            sys.exit(EXIT_CODE_PARTIAL_FAILURE)
 
     except FileNotFoundError as fe:
         logger.error(fe)
