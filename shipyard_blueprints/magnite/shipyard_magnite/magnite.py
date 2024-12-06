@@ -221,11 +221,14 @@ class MagniteClient(DigitalAdvertising):
                 update_method=update_method,
             )
             campaign_data["targeting_spend_profile"]["budgets"] = budget_payload
+            print("\n")
+            print(campaign_data)
+            print("\n")
             utils._request(
                 self,
                 "PUT",
                 endpoint=f"campaigns/{campaign_id}",
-                json=campaign_data,
+                json=json.dumps(campaign_data),
             )
 
         except ExitCodeException:
@@ -237,3 +240,4 @@ class MagniteClient(DigitalAdvertising):
             raise PartialInvalidBudgetPayload(
                 f"Partially invalid budget data for campaign {campaign_id}"
             )
+   

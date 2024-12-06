@@ -100,12 +100,12 @@ def _make_campaign_budget_payload(
     Returns:
         List[Dict] or None: Processed budget data based on the update method.
     """
-    valid_methods = ["UPSERT", "OVERWRITE", "INSERT"]
+    valid_methods = ["UPSERT", "REPLACE", "INSERT"]
     validated_budget_data, has_errors = validate_budget_data(budget_data)
     if update_method not in valid_methods:
         raise ValueError(f"Invalid update method. Valid methods are {valid_methods}")
 
-    if update_method == "OVERWRITE":
+    if update_method == "REPLACE":
         return validated_budget_data, has_errors
 
     campaign_budget_data = campaign_data.get("targeting_spend_profile", {}).get(
