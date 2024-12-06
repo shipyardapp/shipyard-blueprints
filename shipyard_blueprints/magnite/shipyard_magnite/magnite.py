@@ -1,57 +1,73 @@
 import json
 import requests
 import pandas as pd
-from shipyard_templates import DigitalAdverstising, ShipyardLogger, ExitCodeException
+from shipyard_templates import DigitalAdvertising, ShipyardLogger, ExitCodeException
+from shipyard_templates import InvalidCredentialError
 from shipyard_magnite.errs import (
-    EXIT_CODE_INVALID_ARGS,
+    InvalidArgs,
     InvalidColumns,
     ReadError,
     UpdateError,
+    PartialInvalidBudgetPayload,
 )
 
+from shipyard_magnite import utils
 from dataclasses import dataclass
-from enum import Enum
 from typing import Dict, List, Any, Optional, Union
 
 logger = ShipyardLogger.get_logger()
 
 
-class MagniteClient(DigitalAdverstising):
+class MagniteClient(DigitalAdvertising):
     REQUIRED_FIELDS = ["id", "budget_value"]
-    OPTIONAL_FIELDS = ["budget_pacing", "budget_period"]  # can expand as needed
+    API_BASE_URL = "https://console.springserve.com/api/v0"
 
     def __init__(self, username: str, password: str) -> None:
         self.username = username
         self.password = password
-        self.base_url = "https://console.springserve.com/api/v0"
-        self.headers = {"Content-Type": "application/json"}
+        self._token = None
+
+    @property
+    def token(self):
+        if not self._token:
+            url = f"{self.API_BASE_URL}/auth"
+            payload = json.dumps({"email": self.username, "password": self.password})
+            response = requests.post(
+                url, headers={"Content-Type": "application/json"}, data=payload
+            )
+            if response.ok:
+                self._token = response.json().get("token")
+            else:
+                raise InvalidCredentialError(
+                    f"Invalid credentials. Response from the server: {response.text}"
+                )
+        return self._token
+
+    @token.setter
+    def token(self, value):
+        self._token = value
+        self.headers["Authorization"] = value
 
     def connect(self):
         """
         Queries the API for an access token with the given username and password
         """
-        url = f"{self.base_url}/auth"
-
-        payload = json.dumps({"email": self.username, "password": self.password})
-        headers = {"Content-Type": "application/json"}
-        response = requests.post(url, headers=headers, data=payload)
-        if response.ok:
-            self.token = response.json().get("token")
-            self.headers["Authorization"] = self.token
-            return 0
-        else:
+        try:
+            self.token
+        except Exception:
             return 1
+        else:
+            return 0
 
     def update(
         self,
         endpoint: str,
-        id: Optional[str],
-        file: Optional[str],
-        budget_value: Optional[str],
+        id: Optional[str] = None,
+        file: Optional[str] = None,
+        budget_value: Optional[str] = None,
         **kwargs,
     ):
         """
-
         Args:
             endpoint: The endpoint to target - should be campaign or demand_tags for now
             id: The optional ID of the associated item
@@ -60,14 +76,13 @@ class MagniteClient(DigitalAdverstising):
             **kwargs: Additional fields to set such as `budget_metric`, `budget_period`, and `budget_pacing`
 
         Raises:
-            ExitCodeException:
+            InvalidArgs: If both an ID and file are provided
+            UpdateError: If an error occurs in updating the item
         """
         try:
             results = []
             if id and file:
-                raise ExitCodeException(
-                    "Both an ID and file cannot be provided", EXIT_CODE_INVALID_ARGS
-                )
+                raise InvalidArgs("Both an ID and file cannot be provided")
             if id:
                 res = self.update_single(
                     endpoint=endpoint,
@@ -79,13 +94,12 @@ class MagniteClient(DigitalAdverstising):
 
             elif file:
                 df = pd.read_csv(file)
-                # check the columns
                 columns = df.columns.tolist()
                 logger.debug(f"Columns are {columns}")
                 column_check = list(map(lambda x: x in columns, self.REQUIRED_FIELDS))
                 if not all(column_check):
                     raise InvalidColumns(
-                        f"The columns in the provided file are incorrect. Please ensure that they match the following: \n ['id', 'budget_value', 'budget_pacing', 'budget_period']"
+                        f"The columns in the provided file are incorrect. Please ensure that they match the following: \n {self.REQUIRED_FIELDS}"
                     )
 
                 logger.debug(df.head())
@@ -99,6 +113,8 @@ class MagniteClient(DigitalAdverstising):
                     )
                     results.append(res)
             return results
+        except FileNotFoundError:
+            raise UpdateError(f"The file '{file}' does not exist.")
         except Exception as e:
             raise UpdateError(
                 f"An error occurred in attempting to update item {id}: {e}"
@@ -119,13 +135,14 @@ class MagniteClient(DigitalAdverstising):
 
         """
         try:
-            self._form_url(endpoint)
-            endpoint_url = f"{self.endpoint_url}/{id}"
-            response = requests.get(endpoint_url, headers=self.headers)
-            response.raise_for_status()
-            return response.json()
+            endpoint += f"/{id}"
+            response = utils._request(self, "GET", endpoint=endpoint)
+            try:
+                return response.json()
+            except json.JSONDecodeError as e:
+                raise ReadError(f"Error decoding JSON response from {endpoint}: {e}")
         except requests.HTTPError as e:
-            raise ReadError(f"Error in reading data from {endpoint_url}: {e}")
+            raise ReadError(f"Error in reading data from {endpoint}: {e}")
 
     def update_single(
         self,
@@ -140,7 +157,6 @@ class MagniteClient(DigitalAdverstising):
         Args:
             endpoint: The endpoint to target - should be campaign or demand_tags for now
             id: The optional ID of the associated item
-            file: The optional file for bulk uploads. If using a file, the following columns must be present: `campaign_id`, `budget_value`
             budget_value: The new budget value to set
             **kwargs: Additional fields to set such as `budget_metric`, `budget_period`, and `budget_pacing`
 
@@ -149,21 +165,12 @@ class MagniteClient(DigitalAdverstising):
         """
         try:
             campaign_data = self.read(endpoint=endpoint, id=id)
-            budget_payload = self._make_campaign_budget_payload(
-                id, budget_value, campaign_data=campaign_data, **kwargs
+            budget_payload = utils._make_campaign_budget_payload(
+                budget_value, campaign_data=campaign_data, **kwargs
             )
-            self._form_url(endpoint)
-
-            url = f"{self.endpoint_url}/{id}"
-
-            resp = requests.put(url, headers=self.headers, json=budget_payload)
-
-            logger.info(f"Successfully updated budget for ID {id}")
-            logger.debug(f"Response code: {resp.status_code}")
-            logger.debug(f"Response data: {resp.text}")
-            if not resp.ok:
-                logger.error(f"Error in updating ID {id}: {resp.text}")
-                return False
+            utils._request(
+                self, "PUT", endpoint=f"{endpoint}/{id}", json=budget_payload
+            )
 
         except ReadError as re:
             logger.error(f"Error in reading data for ID {id}: {re}")
@@ -172,52 +179,61 @@ class MagniteClient(DigitalAdverstising):
             logger.error(f"Error in updating ID {id}: {e}")
             return False
         else:
+            logger.info(f"Successfully updated budget for ID {id}")
             return True
 
-    def _make_campaign_budget_payload(
-        self,
-        campaign_id: str,
-        budget_value: Union[str, float, int],
-        campaign_data: Dict[str, Any],
-        **kwargs,
-    ):
-        """
+    def get_campaign_by_id(self, id: str):
+        return self.read("campaigns", id)
 
-        Args:
-            campaign_id:
-            budget_value:
-            **kwargs:
+    def export_campaign_by_id(self, id: str, filename: str = None):
+        valid_file_types = ["json", "csv"]
+        filename = filename or f"campaign_{id}.json"
+        file_type = os.path.splitext(filename)[-1].lstrip(".")
+        if file_type not in valid_file_types:
+            raise ValueError(
+                f"Invalid file type. Please use one of the following: {valid_file_types}"
+            )
 
-        Returns:
+        campaign_data = self.get_campaign_by_id(id)
+        if file_type == "csv":
+            if isinstance(campaign_data, list):
+                df = pd.json_normalize(campaign_data)
+            else:
+                df = pd.json_normalize(
+                    [campaign_data]
+                )  # Wrap single dictionary in a list
 
-        """
-        data = {
-            "targeting_spend_profile": {
-                "id": campaign_data.get("targeting_spend_profile").get("id"),
-                "budgets": [
-                    {
-                        "id": campaign_data.get("targeting_spend_profile")
-                        .get("budgets")[0]
-                        .get("id"),
-                        "budget_value": budget_value,
-                    }
-                ],
-            }
-        }
-        if budget_pacing := kwargs.get("budget_pacing"):
-            data["targeting_spend_profile"]["budgets"][0][
-                "budget_pacing"
-            ] = budget_pacing
-        if budget_period := kwargs.get("budget_period"):
-            data["targeting_spend_profile"]["budgets"][0][
-                "budget_period"
-            ] = budget_period
-        if budget_metric := kwargs.get("budget_metric"):
-            data["targeting_spend_profile"]["budgets"][0][
-                "budget_period"
-            ] = budget_metric
+            # Export to CSV
+            df.to_csv(filename, index=False)
+            # df = pd.DataFrame(campaign_data)
+            # df.to_csv(filename)
+        elif file_type == "json":
+            with open(filename, "w") as f:
+                json.dump(campaign_data, f)
 
-        return data
+    def update_campaign_budgets(self, campaign_id, budget_data, update_method):
+        # TODO: Support budget_flight_dates
+        try:
+            campaign_data = self.get_campaign_by_id(campaign_id)
+            budget_payload, has_errors = utils._make_campaign_budget_payload(
+                campaign_data=campaign_data,
+                budget_data=budget_data,
+                update_method=update_method,
+            )
+            campaign_data["targeting_spend_profile"]["budgets"] = budget_payload
+            utils._request(
+                self,
+                "PUT",
+                endpoint=f"campaigns/{campaign_id}",
+                json=campaign_data,
+            )
 
-    def _form_url(self, endpoint: str):
-        self.endpoint_url = f"{self.base_url}/{endpoint}"
+        except ExitCodeException:
+            raise
+        except Exception as e:
+            logger.error(f"Error in updating campaign {campaign_id}: {e}")
+            raise
+        if has_errors:
+            raise PartialInvalidBudgetPayload(
+                f"Partially invalid budget data for campaign {campaign_id}"
+            )

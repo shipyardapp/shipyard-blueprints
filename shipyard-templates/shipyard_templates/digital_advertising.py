@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class DigitalAdverstising(ABC):
+class DigitalAdvertising(ABC):
     @abstractmethod
     def connect(self, **kwargs):
         pass
