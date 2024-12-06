@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-magnite"
-version = "0.1.0a0"
+version = "0.2.0a0"
 description = ""
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 readme = "README.md"
@@ -9,7 +9,7 @@ readme = "README.md"
 python = "^3.9"
 requests = "^2.32.3"
 pandas = "^2.0"
-shipyard-templates = "0.10.0a0"
+shipyard-templates = "0.10.0a2"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -1,14 +1,10 @@
 import argparse
 import sys
 
+from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_magnite import MagniteClient
-from shipyard_magnite.errs import (
-    EXIT_CODE_INVALID_ARGS,
-    EXIT_CODE_PARTIAL_FAILURE,
-    EXIT_CODE_FILE_NOT_FOUND,
-)
-from shipyard_templates import ShipyardLogger
-from shipyard_templates import ExitCodeException
+from shipyard_magnite.errs import InvalidArgs, PartialFailure
+
 
 logger = ShipyardLogger.get_logger()
 
@@ -29,55 +25,69 @@ def get_args():
     parser.add_argument(
         "--budget-pacing", dest="budget_pacing", required=False, default=""
     )
+    parser.add_argument(
+        "--budget-metric", dest="budget_metric", required=False, default=""
+    )
+
     return parser.parse_args()
 
 
 def main():
     try:
         args = get_args()
-        id = args.id
-        file = args.file
-        budget_value = args.budget_value
-        budget_period = args.budget_period
-        budget_pacing = args.budget_pacing
-        username = args.username
-        password = args.password
-        endpoint = args.endpoint
-        if not (id or file):
-            logger.error(
-                "Either a file or an ID must be provided. For single updates, provide an ID. For bulk updates, provide a file"
-            )
-            sys.exit(EXIT_CODE_INVALID_ARGS)
-
-        if id and not budget_value:
-            logger.error("A budget value is necessary to update a single ID")
-            sys.exit(EXIT_CODE_INVALID_ARGS)
-
-        client = MagniteClient(username, password)
-        client.connect()
-        res = client.update(
-            endpoint=endpoint, id=id, budget_value=budget_value, file=file
-        )
-        if all(res):
+        upload_args = validate_args(args)
+        client = MagniteClient(args.username, args.password)
+        results = client.update(**upload_args)
+        if all(results):
             logger.info("All updates were executed successfully")
-            sys.exit(0)
         else:
-            n_entries = len(res)
-            failed = list(filter(lambda x: not x, res))
-            logger.error(
+            n_entries = len(results)
+            failed = list(filter(lambda x: not x, results))
+            raise PartialFailure(
                 f"{len(failed)} out of {n_entries} failed to update successfully"
             )
-            sys.exit(EXIT_CODE_PARTIAL_FAILURE)
 
-    except FileNotFoundError as fe:
-        logger.error(fe)
-        sys.exit(EXIT_CODE_FILE_NOT_FOUND)
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)
+    except FileNotFoundError as fe:
+        logger.error(f"File not found: {fe}")
+        sys.exit(FileNotFoundError)
     except Exception as e:
-        logger.error("Error in reading data from api")
-        logger.error(f"Message reads: {e}")
+        logger.error("An Unexpected Error in reading data from api \nError: {e}")
+        sys.exit(errors.EXIT_CODE_UNKNOWN_ERROR)
+
+
+def validate_args(args: argparse.Namespace) -> dict:
+    """
+    Validate the command line arguments.
+
+    Args:
+        args: Parsed command line arguments.
+
+    Returns:
+        dict: A dictionary of validated arguments to be used for the upload function.
+
+    Raises:
+        InvalidArgs: If neither 'id' nor 'file' is provided, or if 'id' is provided without 'budget_value'.
+    """
+    if not (args.id or args.file):
+        raise InvalidArgs(
+            "Either a file or an ID must be provided. For single updates, provide an ID. For bulk updates, provide a file"
+        )
+
+    if args.id and not args.budget_value:
+        raise InvalidArgs("A budget value is necessary to update a single ID")
+
+    _args = {
+        "id": args.id,
+        "file": args.file,
+        "budget_value": args.budget_value,
+        "endpoint": args.endpoint,
+        "budget_metric": args.budget_metric,
+    }
+    validated_args = {k: v for k, v in _args.items() if v}
+    return validated_args
 
 
 if __name__ == "__main__":
