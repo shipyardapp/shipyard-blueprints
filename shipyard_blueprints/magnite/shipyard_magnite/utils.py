@@ -1,13 +1,82 @@
 from shipyard_templates import ShipyardLogger
-from collections import defaultdict, Counter
+from collections import defaultdict
 from shipyard_magnite import errs
-import requests
 import csv
+from shipyard_magnite.dataclasses.budget_item import BudgetItem
+from shipyard_magnite.dataclasses.budgets import Budgets
 
 from typing import Dict, Any, Union, List
 
 logger = ShipyardLogger.get_logger()
 
+
+def open_csv(file_path: str) -> List[Dict]:
+    """
+    Opens a CSV file and returns the data as a list of dictionaries.
+
+    Args:
+        file_path (str): The path to the CSV file.
+
+    Returns:
+        List[Dict]: The data from the CSV file.
+    """
+    with open(file_path, "r") as file:
+        data = [{k: v for k, v in row.items()} for row in csv.DictReader(file)]
+    return data
+
+
+def group_budget_data_by_campaign(budget_data):
+    """useful because it groups the budget data by campaign_id, which is needed to update a campaigns budget at once"""
+    logger.debug(f"Grouping budget data by campaign...")
+    campaigns = defaultdict(list)
+    for budget_line in budget_data:
+        logger.debug(f"Processing line: {budget_line}")
+        try:
+            campaign_id = budget_line.pop("campaign_id")
+            logger.debug(f"Adding line to campaign {campaign_id}")
+            campaigns[campaign_id].append(budget_line)
+        except KeyError:
+            logger.error(f"Missing 'campaign_id' in line: {budget_line}")
+
+    results = dict(campaigns)
+    logger.debug(f"Grouped campaigns: {results}")
+    return results
+
+
+def transform_data_to_budget_item(raw_data):
+    """
+    Transforms a dictionary of data into a BudgetItem object.
+
+    Args:
+        data (Dict): A dictionary of data.
+
+    Returns:
+        BudgetItem: A BudgetItem object.
+    """
+    return BudgetItem(
+        id=raw_data.get("id") or raw_data.get("budget_item_id"),
+        budget_value=raw_data.get("budget_value"),
+        budget_period=raw_data.get("budget_period"),
+        budget_pacing=raw_data.get("budget_pacing"),
+        budget_metric=raw_data.get("budget_metric"),
+        vast_caching_adjustment=raw_data.get("vast_caching_adjustment"),
+    )
+
+
+def transform_data_to_budgets(raw_data):
+    """
+    Transforms a list of dictionaries into a Budgets object.
+
+    Args:
+        data (List[Dict]): A list of dictionaries.
+
+    Returns:
+        Budgets: A Budgets object.
+    """
+    return Budgets(items=[transform_data_to_budget_item(item) for item in raw_data])
+
+
+# The below functions were used prior to using dataclasses for validation and organization. Keeping since it could prove useful in the future if we want to handle the raw data directly.
 VALID_BUDGET_METRICS = {
     "net_cost",
     "gross_cost",
@@ -19,126 +88,6 @@ VALID_BUDGET_METRICS = {
 }
 VALID_BUDGET_PERIODS = {"day", "lifetime", "month", "week", "hour"}
 VALID_BUDGET_PACINGS = {"asap", "smooth", "front_loaded", "even"}
-
-
-def _request(instance, method: str, endpoint: str, **kwargs):
-    """
-    Makes a request to the Magnite API
-
-    Args:
-        method: The HTTP method to use
-        endpoint: The endpoint to hit
-        **kwargs: Additional arguments to pass to the request
-
-    Returns:
-        The response from the API
-    """
-    url = f"{instance.API_BASE_URL}/{endpoint}"
-    logger.debug(f"Attempting to make a {method} request to {url}")
-    response = requests.request(
-        method=method,
-        url=url,
-        headers={"Content-Type": "application/json", "Authorization": instance.token},
-        **kwargs,
-    )
-    logger.debug(f"Response code: {response.status_code}")
-    logger.debug(f"Response data: {response.text}")
-    response.raise_for_status()
-    return response
-
-
-def _make_campaign_budget_payload(
-    budget_value: Union[str, float, int],
-    campaign_data: Dict[str, Any],
-    **kwargs,
-):
-    """
-
-    Args:
-        budget_value:
-        **kwargs:
-
-    Returns:
-
-    """
-    data = {
-        "targeting_spend_profile": {
-            "id": campaign_data.get("targeting_spend_profile").get("id"),
-            "budgets": [
-                {
-                    "id": campaign_data.get("targeting_spend_profile")
-                    .get("budgets")[0]
-                    .get("id"),
-                    "budget_value": budget_value,
-                }
-            ],
-        }
-    }
-    if budget_pacing := kwargs.get("budget_pacing"):
-        data["targeting_spend_profile"]["budgets"][0]["budget_pacing"] = budget_pacing
-    if budget_period := kwargs.get("budget_period"):
-        data["targeting_spend_profile"]["budgets"][0]["budget_period"] = budget_period
-    if budget_metric := kwargs.get("budget_metric"):
-        data["targeting_spend_profile"]["budgets"][0]["budget_period"] = budget_metric
-
-    return data
-
-
-def _make_campaign_budget_payload_from_campaign_data(
-    campaign_data: Dict,
-    budget_data: List[Dict],
-    update_method: str = "UPSERT",
-) -> Union[List[Dict]]:
-    """
-    Prepares a campaign budget payload based on the update method.
-
-    Args:
-        campaign_data (Dict): Existing campaign data containing targeting spend profiles.
-        budget_data (List[Dict]): New budget data to be processed.
-        update_method (str): Update method - one of "UPSERT", "OVERWRITE", or "INSERT".
-        **kwargs: Additional optional arguments.
-
-    Returns:
-        List[Dict] or None: Processed budget data based on the update method.
-    """
-    valid_methods = ["UPSERT", "REPLACE", "INSERT"]
-    validated_budget_data, has_errors = validate_budget_data(budget_data)
-    if update_method not in valid_methods:
-        raise ValueError(f"Invalid update method. Valid methods are {valid_methods}")
-
-    if update_method == "REPLACE":
-        return validated_budget_data, has_errors
-
-    campaign_budget_data = campaign_data.get("targeting_spend_profile", {}).get(
-        "budgets", []
-    )
-    campaign_budget_lookup = {
-        budget.get("id"): budget for budget in campaign_budget_data
-    }
-
-    formatted_budget_data = (
-        [] if update_method == "INSERT" else campaign_budget_data.copy()
-    )
-
-    for budget_item in validated_budget_data:
-        budget_id = budget_item.get("id")
-
-        if not budget_id:
-            formatted_budget_data.append(budget_item)
-        elif budget_id in campaign_budget_lookup:
-            if update_method == "INSERT":
-                logger.warning(
-                    f"Budget item with ID {budget_id} already exists in campaign data. Skipping..."
-                )
-            elif update_method == "UPSERT":
-                campaign_budget_lookup[budget_id].update(budget_item)
-        else:
-            formatted_budget_data.append(budget_item)
-
-    if update_method == "UPSERT":
-        formatted_budget_data.extend(campaign_budget_lookup.values())
-
-    return formatted_budget_data, has_errors
 
 
 def validate_budget_data(budget_data: List[Dict]) -> List[Dict]:
@@ -199,9 +148,9 @@ def validate_budget_data(budget_data: List[Dict]) -> List[Dict]:
         return True
 
     def remove_empty_id(budget_item: Dict) -> Dict:
+        """This is needed because the API does not accept empty strings for IDs. Particullary when using UPSERT method."""
         if budget_item.get("id") == "":
             del budget_item["id"]
-
         return budget_item
 
     if not _check_unique_budget_period(budget_data):
@@ -217,50 +166,67 @@ def validate_budget_data(budget_data: List[Dict]) -> List[Dict]:
         "vast_caching_adjustment",
     }
     valid_budgets = []
-    has_errors = False
+    item_results = []
     for budget_item in budget_data:
+        result = {
+            "status": "Validation Incomplete",
+            "campaign_id": budget_item.get("campaign_id"),
+            "budget_value": budget_item.get("budget_value"),
+            "budget_period": budget_item.get("budget_period"),
+            "budget_pacing": budget_item.get("budget_pacing"),
+            "budget_metric": budget_item.get("budget_metric"),
+            "vast_caching_adjustment": budget_item.get("vast_caching_adjustment"),
+        }
+
         invalid_keys = [key for key in budget_item if key not in valid_keys]
         if invalid_keys:
-            has_errors = True
-
+            result["status"] = "error: invalid keys"
             logger.error(
                 f"Budget item {budget_item} contains invalid keys: {invalid_keys}. Skipping..."
             )
+            item_results.append(result)
             continue
 
         if not _is_valid_budget_metric(budget_item.get("budget_metric")):
-            has_errors = True
+            result["status"] = "error: invalid budget metric"
             logger.error(
                 f"Invalid budget metric in item {budget_item.get('id')}. Skipping..."
             )
+            item_results.append(result)
             continue
 
         if not _is_valid_budget_period(budget_item.get("budget_period")):
-            has_errors = True
+            result["status"] = "error: invalid budget period"
             logger.error(
                 f"Invalid budget period in item {budget_item.get('id')}. Skipping..."
             )
+            item_results.append(result)
             continue
 
         if not _is_valid_budget_pacing(budget_item.get("budget_pacing")):
-            has_errors = True
+            result["status"] = "error: invalid budget pacing"
             logger.error(f"Invalid budget pacing in item {budget_item}. Skipping...")
+            item_results.append(result)
             continue
 
         if not _is_valid_budget_value(budget_item.get("budget_value")):
-            has_errors = True
+            result["status"] = "error: invalid budget value"
             logger.error(f"Invalid budget value in item {budget_item} Skipping...")
+            item_results.append(result)
             continue
 
         if not _validate_vast_caching_adjustment(budget_item):
+            result["status"] = "error: invalid vast caching adjustment"
             has_errors = True
+            item_results.append(result)
             continue
 
         if not _check_budget_period_pacing(budget_item):
-            has_errors = True
+            result["status"] = "error: invalid budget period pacing"
             logger.error(
                 f"Invalid pacing for lifetime budget in item {budget_item.get('id')}. Skipping..."
             )
+            item_results.append(result)
             continue
 
         if budget_item.get("budget_pacing") == "asap":
@@ -269,37 +235,101 @@ def validate_budget_data(budget_data: List[Dict]) -> List[Dict]:
 
         budget_item = remove_empty_id(budget_item)
         valid_budgets.append(budget_item)
+        result["status"] = "success"
+        item_results.append(result)
 
-    return valid_budgets, has_errors
+    return valid_budgets, item_results
 
 
-def open_csv(file_path: str) -> List[Dict]:
+def make_campaign_budget_payload_from_campaign_data(
+    campaign_data: Dict,
+    budget_data: List[Dict],
+    update_method: str = "UPSERT",
+) -> Union[List[Dict]]:
     """
-    Opens a CSV file and returns the data as a list of dictionaries.
+    Prepares a campaign budget payload based on the update method.
 
     Args:
-        file_path (str): The path to the CSV file.
+        campaign_data (Dict): Existing campaign data containing targeting spend profiles.
+        budget_data (List[Dict]): New budget data to be processed.
+        update_method (str): Update method - one of "UPSERT", "OVERWRITE", or "INSERT".
+        **kwargs: Additional optional arguments.
 
     Returns:
-        List[Dict]: The data from the CSV file.
+        List[Dict] or None: Processed budget data based on the update method.
     """
-    with open(file_path, "r") as file:
-        data = [{k: v for k, v in row.items()} for row in csv.DictReader(file)]
+    valid_methods = ["UPSERT", "REPLACE", "INSERT"]
+    validated_budget_data, has_errors = validate_budget_data(budget_data)
+    if update_method not in valid_methods:
+        raise ValueError(f"Invalid update method. Valid methods are {valid_methods}")
+
+    if update_method == "REPLACE":
+        return validated_budget_data, has_errors
+
+    campaign_budget_data = campaign_data.get("targeting_spend_profile", {}).get(
+        "budgets", []
+    )
+    campaign_budget_lookup = {
+        budget.get("id"): budget for budget in campaign_budget_data
+    }
+
+    formatted_budget_data = (
+        [] if update_method == "INSERT" else campaign_budget_data.copy()
+    )
+
+    for budget_item in validated_budget_data:
+        budget_id = budget_item.get("id")
+
+        if not budget_id:
+            formatted_budget_data.append(budget_item)
+        elif budget_id in campaign_budget_lookup:
+            if update_method == "INSERT":
+                logger.warning(
+                    f"Budget item with ID {budget_id} already exists in campaign data. Skipping..."
+                )
+            elif update_method == "UPSERT":
+                campaign_budget_lookup[budget_id].update(budget_item)
+        else:
+            formatted_budget_data.append(budget_item)
+
+    if update_method == "UPSERT":
+        formatted_budget_data.extend(campaign_budget_lookup.values())
+
+    return formatted_budget_data, has_errors
+
+
+def make_campaign_budget_payload(
+    budget_value: Union[str, float, int],
+    campaign_data: Dict[str, Any],
+    **kwargs,
+):
+    """
+
+    Args:
+        budget_value:
+        **kwargs:
+
+    Returns:
+
+    """
+    data = {
+        "targeting_spend_profile": {
+            "id": campaign_data.get("targeting_spend_profile").get("id"),
+            "budgets": [
+                {
+                    "id": campaign_data.get("targeting_spend_profile")
+                    .get("budgets")[0]
+                    .get("id"),
+                    "budget_value": budget_value,
+                }
+            ],
+        }
+    }
+    if budget_pacing := kwargs.get("budget_pacing"):
+        data["targeting_spend_profile"]["budgets"][0]["budget_pacing"] = budget_pacing
+    if budget_period := kwargs.get("budget_period"):
+        data["targeting_spend_profile"]["budgets"][0]["budget_period"] = budget_period
+    if budget_metric := kwargs.get("budget_metric"):
+        data["targeting_spend_profile"]["budgets"][0]["budget_period"] = budget_metric
+
     return data
-
-
-def group_budget_data_by_campaign(budget_data):
-    logger.debug(f"Grouping budget data by campaign...")
-    campaigns = defaultdict(list)
-    for budget_line in budget_data:
-        logger.debug(f"Processing line: {budget_line}")
-        try:
-            campaign_id = budget_line.pop("campaign_id")
-            logger.debug(f"Adding line to campaign {campaign_id}")
-            campaigns[campaign_id].append(budget_line)
-        except KeyError:
-            logger.error(f"Missing 'campaign_id' in line: {budget_line}")
-
-    results = dict(campaigns)
-    logger.debug(f"Grouped campaigns: {results}")
-    return results
