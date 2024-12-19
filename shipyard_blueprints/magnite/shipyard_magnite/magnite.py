@@ -1,4 +1,5 @@
 import json
+import os
 import requests
 import pandas as pd
 from shipyard_templates import DigitalAdvertising, ShipyardLogger, ExitCodeException
@@ -136,7 +137,12 @@ class MagniteClient(DigitalAdvertising):
         """
         try:
             endpoint += f"/{id}"
+            logger.debug(f"Reading data from {endpoint}...")
             response = utils._request(self, "GET", endpoint=endpoint)
+            logger.debug(
+                f"Response: {response.status_code} \n {json.dumps(response.json(), indent=2)}"
+            )
+
             try:
                 return response.json()
             except json.JSONDecodeError as e:
@@ -201,9 +207,8 @@ class MagniteClient(DigitalAdvertising):
             else:
                 df = pd.json_normalize(
                     [campaign_data]
-                )  # Wrap single dictionary in a list
+                )  # Wrap single dictionary in a list``
 
-            # Export to CSV
             df.to_csv(filename, index=False)
             # df = pd.DataFrame(campaign_data)
             # df.to_csv(filename)
@@ -211,24 +216,35 @@ class MagniteClient(DigitalAdvertising):
             with open(filename, "w") as f:
                 json.dump(campaign_data, f)
 
-    def update_campaign_budgets(self, campaign_id, budget_data, update_method):
+    def update_campaign_budgets(self, campaign_id, budget_data):
         # TODO: Support budget_flight_dates
         try:
-            campaign_data = self.get_campaign_by_id(campaign_id)
-            budget_payload, has_errors = utils._make_campaign_budget_payload(
-                campaign_data=campaign_data,
-                budget_data=budget_data,
-                update_method=update_method,
+            logger.debug(
+                f"Attempting to update campaign {campaign_id} with budget data: {budget_data}..."
             )
-            campaign_data["targeting_spend_profile"]["budgets"] = budget_payload
-            print("\n")
-            print(campaign_data)
-            print("\n")
-            utils._request(
+            campaign_data = self.get_campaign_by_id(campaign_id)
+
+            payload = {
+                "targeting_spend_profile": {
+                    "id": campaign_data["targeting_spend_profile"]["id"]
+                }
+            }
+            budgets, has_errors = utils.validate_budget_data(budget_data)
+
+            if has_errors:
+                raise PartialInvalidBudgetPayload(
+                    f"Partially invalid budget data for campaign {campaign_id}"
+                )
+
+            payload["targeting_spend_profile"]["budgets"] = budgets
+
+            logger.debug(f"Payload: {payload}")
+
+            return utils._request(
                 self,
                 "PUT",
                 endpoint=f"campaigns/{campaign_id}",
-                json=json.dumps(campaign_data),
+                json=payload,
             )
 
         except ExitCodeException:
@@ -236,8 +252,62 @@ class MagniteClient(DigitalAdvertising):
         except Exception as e:
             logger.error(f"Error in updating campaign {campaign_id}: {e}")
             raise
-        if has_errors:
-            raise PartialInvalidBudgetPayload(
-                f"Partially invalid budget data for campaign {campaign_id}"
-            )
-   
+
+
+if __name__ == "__main__":
+    from dotenv import load_dotenv
+    import requests
+    from shipyard_magnite import utils
+
+    # from requests import request
+    load_dotenv()
+
+    client = MagniteClient(
+        username=os.getenv("MAGNITE_USERNAME"), password=os.getenv("MAGNITE_PASSWORD")
+    )
+
+    campaign_endpoint = client.API_BASE_URL + "/campaigns"
+    campaign_url = f"{campaign_endpoint}/74255"
+    headers = {"Content-Type": "application/json", "Authorization": client.token}
+    # budgets ={
+    #     "targeting_spend_profile":{
+    #         "id":224960,
+    #         "budgets":[
+    #      {
+    #         "budget_metric":"gross_cost",
+    #         "budget_period":"week",
+    #         "budget_pacing":"smooth",
+    #         "budget_value":"10000"
+    #      },
+    #     #  {
+    #     #     "budget_metric":"gross_cost",
+    #     #     "budget_period":"day",
+    #     #     "budget_pacing":"even",
+    #     #     "budget_value":"10000"
+    #     #  }
+    #   ]},
+    # }
+
+    budgets = {
+        "targeting_spend_profile": {
+            "id": 224960,
+            "budgets": [
+                {
+                    "budget_metric": "gross_cost",
+                    "budget_period": "week",
+                    "budget_pacing": "smooth",
+                    "budget_value": "1000",
+                },
+                {
+                    "budget_metric": "gross_cost",
+                    "budget_period": "day",
+                    "budget_pacing": "even",
+                    "budget_value": "10000",
+                },
+            ],
+        }
+    }
+
+    response = requests.put(campaign_url, headers=headers, json=budgets)
+    print(response.status_code)
+    print(response.json())

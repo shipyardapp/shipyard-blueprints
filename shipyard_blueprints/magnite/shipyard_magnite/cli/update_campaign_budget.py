@@ -15,7 +15,6 @@ def get_args():
     parser.add_argument("--username", required=True)
     parser.add_argument("--password", required=True)
     parser.add_argument("--file", required=True)
-    parser.add_argument("--update-method", required=False, default="UPSERT")
     return parser.parse_args()
 
 
@@ -32,7 +31,6 @@ def main():
                 client.update_campaign_budgets(
                     campaign_id=campaign_id,
                     budget_data=file_data,
-                    update_method=args.update_method,
                 )
             except InvalidCredentialError:
                 raise

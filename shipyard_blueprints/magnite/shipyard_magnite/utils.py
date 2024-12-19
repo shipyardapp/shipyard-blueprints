@@ -33,10 +33,11 @@ def _request(instance, method: str, endpoint: str, **kwargs):
     Returns:
         The response from the API
     """
-
+    url = f"{instance.API_BASE_URL}/{endpoint}"
+    logger.debug(f"Attempting to make a {method} request to {url}")
     response = requests.request(
         method=method,
-        url=f"{instance.API_BASE_URL}/{endpoint}",
+        url=url,
         headers={"Content-Type": "application/json", "Authorization": instance.token},
         **kwargs,
     )
@@ -83,7 +84,7 @@ def _make_campaign_budget_payload(
     return data
 
 
-def _make_campaign_budget_payload(
+def _make_campaign_budget_payload_from_campaign_data(
     campaign_data: Dict,
     budget_data: List[Dict],
     update_method: str = "UPSERT",
@@ -197,6 +198,12 @@ def validate_budget_data(budget_data: List[Dict]) -> List[Dict]:
             return False
         return True
 
+    def remove_empty_id(budget_item: Dict) -> Dict:
+        if budget_item.get("id") == "":
+            del budget_item["id"]
+
+        return budget_item
+
     if not _check_unique_budget_period(budget_data):
         errs.InvalidBudgetPayload("Budget data has conflicting budget periods.")
         return []
@@ -260,6 +267,7 @@ def validate_budget_data(budget_data: List[Dict]) -> List[Dict]:
             # In Magnite, "asap" pacing is an option in the UI but is represented as an empty string in the payload
             budget_item["budget_pacing"] = ""
 
+        budget_item = remove_empty_id(budget_item)
         valid_budgets.append(budget_item)
 
     return valid_budgets, has_errors
@@ -281,11 +289,17 @@ def open_csv(file_path: str) -> List[Dict]:
 
 
 def group_budget_data_by_campaign(budget_data):
+    logger.debug(f"Grouping budget data by campaign...")
     campaigns = defaultdict(list)
     for budget_line in budget_data:
+        logger.debug(f"Processing line: {budget_line}")
         try:
             campaign_id = budget_line.pop("campaign_id")
+            logger.debug(f"Adding line to campaign {campaign_id}")
             campaigns[campaign_id].append(budget_line)
         except KeyError:
             logger.error(f"Missing 'campaign_id' in line: {budget_line}")
-    return dict(campaigns)
+
+    results = dict(campaigns)
+    logger.debug(f"Grouped campaigns: {results}")
+    return results

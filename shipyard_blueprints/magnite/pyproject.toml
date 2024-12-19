@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shipyard-magnite"
-version = "0.2.0a0"
+version = "0.2.0a1"
 description = ""
 authors = ["wrp801 <wespoulsen@gmail.com>"]
 readme = "README.md"
