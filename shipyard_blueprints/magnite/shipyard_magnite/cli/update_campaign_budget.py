@@ -4,7 +4,11 @@ import sys
 from shipyard_templates import ShipyardLogger, ExitCodeException
 from shipyard_templates.errors import EXIT_CODE_UNKNOWN_ERROR
 from shipyard_magnite import MagniteClient, utils
-from shipyard_magnite.errs import EXIT_CODE_UPDATE_ERROR, EXIT_CODE_FILE_NOT_FOUND
+from shipyard_magnite.errs import (
+    EXIT_CODE_UPDATE_ERROR,
+    EXIT_CODE_FILE_NOT_FOUND,
+    EXIT_CODE_PARTIAL_FAILURE,
+)
 from shipyard_magnite.dataclasses.targeting_spend_profile import TargetingSpendProfile
 
 
@@ -24,22 +28,24 @@ def get_args():
 
 
 def process_campaign(client, campaign_id, budget_data):
-    """Process a single campaign's budget."""
+    """
+    Process a single campaign's budget.
+    """
     try:
-        logger.debug(f"Processing campaign ID: {campaign_id}...")
-        budgets = utils.transform_data_to_budgets(budget_data)
+        logger.info(f"Processing campaign ID: {campaign_id}...")
 
+        budgets = utils.transform_data_to_budgets(budget_data)
         valid_budgets = budgets.validate()
         report = budgets.report_validation_results()
 
-        if len(valid_budgets.items) == 0:
+        if not valid_budgets.items:
             logger.error(f"No valid budgets found for campaign ID: {campaign_id}")
             return {"errors": [campaign_id], "report": {campaign_id: report}}
 
-        if len(valid_budgets.items) != len(budgets.items):
+        if len(valid_budgets.items) < len(budgets.items):
             logger.warning(
-                f"Some budgets are invalid for campaign ID: {campaign_id}. "
-                f"Continuing with the following valid budgets:\n"
+                f"Found invalid budgets for campaign ID: {campaign_id}. "
+                f"Proceeding with the following valid budgets:\n"
                 f"{chr(10).join(str(budget) for budget in valid_budgets.items)}"
             )
 
@@ -47,14 +53,26 @@ def process_campaign(client, campaign_id, budget_data):
             "id"
         ]
         spend_profile = TargetingSpendProfile(id=profile_id, budgets=valid_budgets)
-
         client.update_campaign_budgets(campaign_id, spend_profile)
-        logger.info(f"Successfully updated budgets for campaign ID: {campaign_id}")
-        return {"errors": [], "report": {campaign_id: report}}
+
+        if len(valid_budgets.items) == len(budgets.items):
+            logger.info(f"Successfully updated budgets for campaign ID: {campaign_id}")
+        else:
+            logger.warning(
+                f"Partial success: Updated budgets for campaign ID: {campaign_id}. \n"
+                "Note: Some budget items were invalid and excluded from the update."
+            )
+
+        return {
+            "errors": []
+            if len(valid_budgets.items) == len(budgets.items)
+            else [campaign_id],
+            "report": {campaign_id: report},
+        }
 
     except Exception as e:
-        logger.warning(f"Error processing campaign ID: {campaign_id}\nError: {e}")
-        return {"errors": [campaign_id], "report": {campaign_id: f"Error: {e}"}}
+        logger.warning(f"Error processing campaign ID: {campaign_id}: {e}")
+        return {"errors": [campaign_id], "report": {campaign_id: f"Error: {str(e)}"}}
 
 
 def main():
@@ -86,11 +104,12 @@ def main():
         logger.error(f"Unexpected error: {e}")
         sys.exit(EXIT_CODE_UNKNOWN_ERROR)
 
-    logger.info("======= Reports for Successful campaigns =======")
-    for report in reports:
-        for campaign_id, campaign_report in report.items():
-            if campaign_id not in errors:
-                logger.info(f"Campaign ID: {campaign_id}\n{campaign_report}")
+    if len(campaigns) - len(errors) > 0:
+        logger.info("======= Reports for Successful campaigns =======")
+        for report in reports:
+            for campaign_id, campaign_report in report.items():
+                if campaign_id not in errors:
+                    logger.info(f"Campaign ID: {campaign_id}\n{campaign_report}")
     if errors:
         logger.error(f"Error(s) occurred for the following campaign(s): {errors}")
         logger.info("======= Reports for Errored Campaigns =======")
@@ -98,7 +117,14 @@ def main():
             for campaign_id, campaign_report in report.items():
                 if campaign_id in errors:
                     logger.info(f"Campaign ID: {campaign_id}\n{campaign_report}")
-        sys.exit(EXIT_CODE_UPDATE_ERROR)
+
+        if len(errors) == len(campaigns):
+            logger.error(
+                "All campaigns encountered issues—inspect error details to address failures."
+            )
+            sys.exit(EXIT_CODE_UPDATE_ERROR)
+        else:
+            sys.exit(EXIT_CODE_PARTIAL_FAILURE)
     else:
         logger.info("All campaigns updated successfully.")
 
