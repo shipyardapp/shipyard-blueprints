@@ -74,4 +74,3 @@ def transform_data_to_budgets(raw_data):
         Budgets: A Budgets object.
     """
     return Budgets(items=[transform_data_to_budget_item(item) for item in raw_data])
-

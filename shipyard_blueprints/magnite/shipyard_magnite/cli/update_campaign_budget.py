@@ -64,9 +64,9 @@ def process_campaign(client, campaign_id, budget_data):
             )
 
         return {
-            "errors": []
-            if len(valid_budgets.items) == len(budgets.items)
-            else [campaign_id],
+            "errors": (
+                [] if len(valid_budgets.items) == len(budgets.items) else [campaign_id]
+            ),
             "report": {campaign_id: report},
         }
 
