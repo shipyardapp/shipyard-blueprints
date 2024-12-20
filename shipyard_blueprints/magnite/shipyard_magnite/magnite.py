@@ -130,7 +130,7 @@ class MagniteClient(DigitalAdvertising):
             else:
                 df = pd.json_normalize(
                     [campaign_data]
-                )  # Wrap single dictionary in a list
+                )
 
             df.to_csv(filename, index=False)
         elif file_type == "json":
