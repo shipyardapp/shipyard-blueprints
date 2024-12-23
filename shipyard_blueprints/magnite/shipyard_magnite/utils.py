@@ -74,3 +74,22 @@ def transform_data_to_budgets(raw_data):
         Budgets: A Budgets object.
     """
     return Budgets(items=[transform_data_to_budget_item(item) for item in raw_data])
+
+
+def log_campaign_report(reports, errors, description):
+
+    if len(reports) - len(errors) > 0:
+        logger.info(f"======= Reports for Successful {description}(s) =======")
+        for report in reports:
+            for key, report in report.items():
+                if key not in errors:
+                    logger.info(f"{description}: {key}\n{report}")
+    if errors:
+        logger.error(f"Error(s) occurred for the following {description}(s): {errors}")
+        logger.info(f"======= Reports for Errored {description} =======")
+        for report in reports:
+            for key, report in report.items():
+                if key in errors:
+                    logger.info(f"{description}: {key}\n{report}")
+
+    pass

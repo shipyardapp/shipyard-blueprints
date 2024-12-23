@@ -11,6 +11,13 @@ from shipyard_magnite.errs import (
 )
 from shipyard_magnite.dataclasses.targeting_spend_profile import TargetingSpendProfile
 
+"""
+This script updates a campaign with multiple budgets based on the data provided in a CSV file.
+The CSV file is treated as the source of truth for budget information. If the CSV specifies one budget for a campaign (e.g., campaign "abc") but the campaign currently has two budgets, the script will update the budget from the CSV and delete the other.
+This ensures that the campaign's budgets exactly match those defined in the CSV. 
+
+Note: The script does not add budgets to existing ones; it replaces them entirely with the data from the CSV file.
+"""
 
 logger = ShipyardLogger.get_logger()
 
@@ -94,6 +101,18 @@ def main():
             errors.extend(result["errors"])
             reports.append(result["report"])
 
+        utils.log_campaign_report(reports, errors, "Campaign")
+        if errors:
+            if len(errors) == len(campaigns):
+                logger.error(
+                    "All campaigns encountered issues — inspect error details to address failures."
+                )
+                sys.exit(EXIT_CODE_UPDATE_ERROR)
+            else:
+                sys.exit(EXIT_CODE_PARTIAL_FAILURE)
+        else:
+            logger.info("All campaigns updated successfully.")
+
     except ExitCodeException as ec:
         logger.error(ec.message)
         sys.exit(ec.exit_code)
@@ -103,30 +122,6 @@ def main():
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         sys.exit(EXIT_CODE_UNKNOWN_ERROR)
-
-    if len(campaigns) - len(errors) > 0:
-        logger.info("======= Reports for Successful campaigns =======")
-        for report in reports:
-            for campaign_id, campaign_report in report.items():
-                if campaign_id not in errors:
-                    logger.info(f"Campaign ID: {campaign_id}\n{campaign_report}")
-    if errors:
-        logger.error(f"Error(s) occurred for the following campaign(s): {errors}")
-        logger.info("======= Reports for Errored Campaigns =======")
-        for report in reports:
-            for campaign_id, campaign_report in report.items():
-                if campaign_id in errors:
-                    logger.info(f"Campaign ID: {campaign_id}\n{campaign_report}")
-
-        if len(errors) == len(campaigns):
-            logger.error(
-                "All campaigns encountered issues—inspect error details to address failures."
-            )
-            sys.exit(EXIT_CODE_UPDATE_ERROR)
-        else:
-            sys.exit(EXIT_CODE_PARTIAL_FAILURE)
-    else:
-        logger.info("All campaigns updated successfully.")
 
 
 if __name__ == "__main__":

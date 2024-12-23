@@ -63,6 +63,10 @@ class Budgets:
             self.validate()
         return ValidationResult.report(self._validation_results)
 
+    def validation_results(self) -> List[ValidationResult]:
+        """Return the validation results."""
+        return self._validation_results
+
     def to_payload(self) -> List[Dict]:
         """Convert the budget items to a payload for the API."""
         payload = []

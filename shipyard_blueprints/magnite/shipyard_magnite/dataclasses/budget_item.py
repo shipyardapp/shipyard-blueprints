@@ -4,30 +4,30 @@ from shipyard_templates import ShipyardLogger
 
 logger = ShipyardLogger.get_logger()
 
-VALID_BUDGET_METRICS = {
-    "net_cost",
-    "gross_cost",
-    "requests",
-    "revenue",
-    "impressions",
-    "completes",
-    "clicks",
-}
-VALID_BUDGET_PERIODS = {"day", "lifetime", "month", "week", "hour"}
-VALID_BUDGET_PACINGS = {"asap", "smooth", "front_loaded", "even"}
-SUPPORTED_FIELDS = (
-    "id",
-    "budget_value",
-    "budget_period",
-    "budget_pacing",
-    "budget_metric",
-    "vast_caching_adjustment",
-    "budget_item_id",
-)
-
 
 @dataclass
 class BudgetItem:
+    VALID_BUDGET_METRICS = {
+        "net_cost",
+        "gross_cost",
+        "requests",
+        "revenue",
+        "impressions",
+        "completes",
+        "clicks",
+        None,
+    }
+    VALID_BUDGET_PERIODS = {"day", "lifetime", "month", "week", "hour", None}
+    VALID_BUDGET_PACINGS = {"asap", "smooth", "front_loaded", "even", None}
+    SUPPORTED_FIELDS = (
+        "id",
+        "budget_value",
+        "budget_period",
+        "budget_pacing",
+        "budget_metric",
+        "vast_caching_adjustment",
+        "budget_item_id",
+    )
     id: Optional[str] = None
     budget_value: float = 0.0
     budget_period: str = None
@@ -39,13 +39,13 @@ class BudgetItem:
 
     def validate(self) -> Tuple[bool, str]:
         """Validate the individual budget item."""
-        if self.budget_metric not in VALID_BUDGET_METRICS:
+        if self.budget_metric not in self.VALID_BUDGET_METRICS:
             return False, f"Invalid budget metric: {self.budget_metric}"
 
-        if self.budget_period not in VALID_BUDGET_PERIODS:
+        if self.budget_period not in self.VALID_BUDGET_PERIODS:
             return False, f"Invalid budget period: {self.budget_period}"
 
-        if self.budget_pacing not in VALID_BUDGET_PACINGS:
+        if self.budget_pacing not in self.VALID_BUDGET_PACINGS:
             return False, f"Invalid budget pacing: {self.budget_pacing}"
 
         if self.budget_period == "lifetime" and self.budget_pacing not in {
