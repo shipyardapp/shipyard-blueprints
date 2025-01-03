@@ -1,14 +1,11 @@
 import pytest
-import os
 import subprocess
 
 from dotenv import load_dotenv, find_dotenv
-from shipyard_magnite import MagniteClient
 from pytest import MonkeyPatch
-from copy import deepcopy
 from requests.exceptions import HTTPError
 
-load_dotenv(find_dotenv())
+env_file_found = load_dotenv(find_dotenv())
 
 
 @pytest.fixture(scope="module")
@@ -19,6 +16,7 @@ def command():
     ]
 
 
+@pytest.mark.skipif(not env_file_found, reason="No .env file found")
 def test_successful_connection(command):
     result = subprocess.run(command)
     assert result.returncode == 0

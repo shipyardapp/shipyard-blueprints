@@ -4,10 +4,11 @@ from shipyard_magnite import MagniteClient
 
 
 def main():
-    user = os.getenv("MAGNITE_USERNAME")
-    password = os.getenv("MAGNITE_PASSWORD")
-    client = MagniteClient(user, password)
-    sys.exit(client.connect())
+    sys.exit(
+        MagniteClient(
+            os.getenv("MAGNITE_USERNAME"), os.getenv("MAGNITE_PASSWORD")
+        ).connect()
+    )
 
 
 if __name__ == "__main__":
