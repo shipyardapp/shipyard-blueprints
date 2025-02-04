@@ -58,9 +58,9 @@ def main():
     logger = get_logger()
 
     client = asana.Client.access_token(args.access_token)
-    client.headers["Asana-Disable"] = (
-        "new_user_task_lists,new_goal_memberships"  # suppress warnings
-    )
+    client.headers[
+        "Asana-Disable"
+    ] = "new_user_task_lists,new_goal_memberships"  # suppress warnings
     params = {}
     if args.name != "":
         params["name"] = args.name
