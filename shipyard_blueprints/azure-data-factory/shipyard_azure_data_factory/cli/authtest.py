@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "shipyard-azure-data-factory",
+# ]
+# ///
 import os
 import sys
 from shipyard_azure_data_factory import AzureDataFactoryClient

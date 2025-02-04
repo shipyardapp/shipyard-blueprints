@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "shipyard-notion"
+version = "0.1.1"
+description = ""
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "2.31"
+pandas = "1.5.3"
+notion-client = "^2.0.0"
+shipyard-templates = "0.4.1"
+
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.0"
+pytest = "^7.4.2"
+black = "^23.9.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

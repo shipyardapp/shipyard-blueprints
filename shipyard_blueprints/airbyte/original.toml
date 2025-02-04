@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "shipyard-airbyte"
+version = "0.1.6"
+description = "A local client to work with Airbyte Cloud"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+license = "Apache License 2.0"
+readme = "README.md"
+packages = [{include = "shipyard_airbyte"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "2.28.0"
+pytest = "^7.2.2"
+shipyard-templates = "0.2.0"
+shipyard-bp-utils = "^0.1.0"
+
+#[tool.poetry.group.dev.dependencies]
+#shipyard-bp-utils = {path = "../shipyard-bp-utils", develop = true}
+#shipyard-templates = {path = "../../shipyard-templates", develop = true}
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "shipyard-excel"
+version = "0.2.0a0"
+description = "A local client for working with Excel files in Microsoft OneDrive"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+readme = "README.md"
+packages = [
+    { include = "shipyard_microsoft_excel"},
+]
+
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pandas = "^2.0"
+requests = "2.31"
+msal = "^1.28.1"
+shipyard-templates = "0.9.0"
+openpyxl = "^3.1.4"
+shipyard-microsoft-onedrive = "0.2.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.2"
+black = "^24.4.2"
+python-dotenv = "^1.0.1"
+openpyxl = "^3.1.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

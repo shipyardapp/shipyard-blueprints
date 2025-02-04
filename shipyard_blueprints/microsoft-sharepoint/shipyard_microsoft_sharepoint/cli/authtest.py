@@ -1,3 +1,10 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-microsoft-sharepoint",
+#     "shipyard-templates"
+# ]
+# ///
 import os
 import sys
 from shipyard_templates import ShipyardLogger

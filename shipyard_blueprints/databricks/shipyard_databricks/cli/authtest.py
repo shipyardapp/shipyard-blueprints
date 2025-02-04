@@ -1,3 +1,11 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-databricks",
+#     "requests",
+#     "shipyard-templates",
+# ]
+# ///
 import os
 import sys
 

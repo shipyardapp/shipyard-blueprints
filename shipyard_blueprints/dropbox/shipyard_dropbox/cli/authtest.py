@@ -1,3 +1,10 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-dropbox",
+#     "shipyard-templates"
+# ]
+# ///
 import sys
 import os
 from shipyard_dropbox import DropboxClient

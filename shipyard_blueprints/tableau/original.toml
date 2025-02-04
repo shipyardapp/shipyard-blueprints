@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "shipyard-tableau"
+version = "0.2.3"
+
+description = "A local client for connecting and working with Tableau"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+packages = [{include = "shipyard_tableau"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+tableauserverclient="0.19.0"
+shipyard-templates = "^0.8.0"
+requests = "^2.31.0"
+shipyard-bp-utils = "^1.2.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.1"
+python-dotenv = "^1.0.1"
+black = "^24.4.2"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests"
+]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,3 +1,10 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-postgresql",
+#     "shipyard-templates"
+# ]
+# ///
 import os
 import sys
 from shipyard_postgresql import PostgresClient

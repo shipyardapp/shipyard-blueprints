@@ -1,3 +1,10 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-microsoft-onedrive",
+#     "shipyard-templates",
+# ]
+# ///
 import os
 import sys
 
