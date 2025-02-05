@@ -1,27 +1,17 @@
-[tool.poetry]
+[project]
 name = "shipyard-magnite"
 version = "0.2.0a4"
 description = ""
-authors = ["wrp801 <wespoulsen@gmail.com>"]
-readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "requests>=2.32.3",
+    "pandas>=2.0",
+    "shipyard-templates==0.10.0a2",
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-requests = "^2.32.3"
-pandas = "^2.0"
-shipyard-templates = "0.10.0a2"
-
-
-[tool.poetry.group.dev.dependencies]
-python-dotenv = "^1.0.1"
-black = "^24.10.0"
-pytest = "^8.3.3"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.pytest.ini_options]
-testpaths = [
-    "tests"
+[dependency-groups]
+dev = [
+    "python-dotenv>=1.0.1",
+    "black>=24.10.0",
+    "pytest>=8.3.3",
 ]

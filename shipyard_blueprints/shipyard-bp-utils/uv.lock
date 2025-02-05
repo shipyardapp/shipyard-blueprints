@@ -1,0 +1,22 @@
+version = 1
+requires-python = ">=3.9"
+
+[[package]]
+name = "shipyard-shipyard-bp-utils"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "shipyard-templates" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "shipyard-templates", specifier = ">0.6.2,<1.0.0" }]
+
+[[package]]
+name = "shipyard-templates"
+version = "0.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/84/79/1a9628d8410b0040a39fc0054390016401435965d01364f14b37bfdb2ad4/shipyard_templates-0.9.0.tar.gz", hash = "sha256:b26324a7003127bedd70f8ebc87775d91e6b595f5d9c3589833f27e278c760f9", size = 5124 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/20/e4/0ffffe1bf02450156cf96148d0af8d69ddce116149530ab5e64fee3de74b/shipyard_templates-0.9.0-py3-none-any.whl", hash = "sha256:4e9a31d961abe5d89498c1177ac95f18f1c94e3f820600f9398486887a6476b5", size = 9272 },
+]

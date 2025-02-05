@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-email",
+# ]
+# ///
 import os
 import sys
 

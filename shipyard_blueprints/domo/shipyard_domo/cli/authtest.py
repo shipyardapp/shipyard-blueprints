@@ -1,3 +1,10 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-domo",
+#     "shipyard-templates",
+# ]
+# ///
 import os
 import sys
 

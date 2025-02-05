@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "shipyard-sqlserver"
+version = "0.2.1"
+description = "A local client for connecting and working with Sql Server Databases"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+packages = [{include = "shipyard_sqlserver"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pandas = "^2.0"
+shipyard-templates = "0.8.0"
+pyodbc = "^5.0.1"
+sqlalchemy = "^2.0.28"
+shipyard-bp-utils = "1.2.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.2.0"
+python-dotenv = "^1.0.1"
+pytest = "^8.0.2"
+
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests"
+]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

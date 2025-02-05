@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "shipyard-salesforce"
+version = "0.1.1"
+description = ""
+authors = ["JR <johnathan.rodriguez@shipyardapp.com>"]
+readme = "README.md"
+packages = [{ include = "shipyard_salesforce" }]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+shipyard-templates = "0.3.1"
+requests = "^2.31.0"
+pandas = "^2.1.0"
+shipyard-bp-utils = "0.1.1"
+
+#[tool.poetry.group.dev.dependencies]
+#shipyard-templates = { path = "../../shipyard-templates", develop = true }
+#shipyard-bp-utils = { path = "../shipyard-bp-utils", develop = true}
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
+python-dotenv = "^1.0.0"
+pytest-dotenv = "^0.5.2"
+requests-mock = "^1.11.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

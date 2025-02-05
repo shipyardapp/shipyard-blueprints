@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "shipyard-asana"
+version = "0.1.0"
+description = ""
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+readme = "README.md"
+packages = [{include = "shipyard_asana"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+asana = "^3.2.1"
+
+shipyard-templates = "^0.1.4"
+
+
+#[tool.poetry.group.dev.dependencies]
+#shipyard-templates = {path = "../../shipyard-templates", develop = true}
+#sanity-loader = {git = "https://github.com/shipyardapp/sanity-loader.git"}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+python-dotenv = "^1.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "shipyard-domo"
+version = "0.2.1"
+description = "A local client for connecting and working with Domo"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+packages = [{include = "shipyard_domo"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "2.31.0"
+pydomo = "^0.3.0.9"
+shipyard-templates = "0.6.2"
+pandas = "^2.0"
+shipyard-bp-utils = "1.0.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.2"
+python-dotenv = "^1.0.1"
+black = "^24.2.0"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+    "integration"
+]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

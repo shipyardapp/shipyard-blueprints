@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-mode",
+# ]
+# ///
 import os
 import sys
 from shipyard_mode import ModeClient

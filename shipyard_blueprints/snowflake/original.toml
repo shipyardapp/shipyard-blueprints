@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "shipyard-snowflake"
+version = "0.2.8"
+description = "A local client for conecting and working with Snowflake"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+packages = [{include = "shipyard_snowflake"}]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.11"
+pandas = "^2.0"
+# dask = "2022.2.0"
+dask = "2024.1.1"
+psutil = "^5.9.5"
+# snowflake-connector-python = {version = "^3.0.4", extras = ["pandas"]}
+snowflake-connector-python = {version = "^3.7", extras = ["pandas"]}
+
+
+shipyard-bp-utils = "^1.0.1"
+shipyard-templates = "^0.6.1"
+# snowflake-snowpark-python = "1.8.0"
+snowflake-snowpark-python = "1.11.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+python-dotenv = "^1.0.0"
+black = "^23.9.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

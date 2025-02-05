@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "shipyard-databricks-sql"
+version = "0.2.1a3"
+description = "A local client for connecting and working Databricks SQL Warehouses"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+shipyard-templates = "^0.8.1"
+databricks-sql-connector = "^3.1.0"
+pandas = "^2.0"
+databricks-sdk = "^0.16.0"
+shipyard-bp-utils = "^1.2.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.2"
+
+python-dotenv = "^1.0.0"
+black = "^23.11.0"
+pre-commit = "^3.5.0"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests"
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

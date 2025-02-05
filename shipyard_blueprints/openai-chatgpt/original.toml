@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "shipyard-openai-chatgpt"
+version = "0.1.1a1"
+description = ""
+authors = ["johnathan-rodriguez <johnathan.rodriguez@shipyardapp.com>"]
+readme = "README.md"
+packages = [{include = "shipyard_openai_chatgpt"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+openai = "0.28.1"
+pandas = "1.5.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

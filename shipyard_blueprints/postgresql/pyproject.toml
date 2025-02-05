@@ -1,30 +1,19 @@
-[tool.poetry]
+[project]
 name = "shipyard-postgresql"
 version = "0.2.0"
 description = "A local client for connecting and working with Postgresql Databases"
-authors = ["wrp801 <wespoulsen@gmail.com>"]
-license = "Apache 2.0"
-readme = "README.md"
-packages = [{include = "shipyard_postgresql"}]
-
-[tool.poetry.dependencies]
-python = "^3.9"
-SQLAlchemy = "2.0.0"
-pandas = "^2.0"
-psycopg2-binary = "^2.9.9"
-shipyard-templates = "0.8.0a2"
-shipyard-bp-utils = "^1.2"
-
-[tool.poetry.group.dev.dependencies]
-black = "^24.2.0"
-python-dotenv = "^1.0.1"
-pytest = "^8.0.2"
-
-[tool.pytest.ini_options]
-testpaths = [
-    "tests"
+requires-python = ">=3.9"
+dependencies = [
+    "SQLAlchemy==2.0.0",
+    "pandas>=2.0",
+    "psycopg2-binary>=2.9.9",
+    "shipyard-templates==0.8.0a2",
+    "shipyard-bp-utils>=1.2",
 ]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "black>=24.2.0",
+    "python-dotenv>=1.0.1",
+    "pytest>=8.0.2",
+]

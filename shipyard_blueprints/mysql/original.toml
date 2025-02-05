@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "shipyard-mysql"
+version = "0.1.0"
+description = "A local client for connecting and working with MySQL databases"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+packages = [{include = "shipyard_mysql"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+SQLAlchemy = "^2.0"
+mysql-connector-python = "8.0.21"
+shipyard-templates = "0.8.0"
+pandas = "^2.2.0"
+shipyard-bp-utils = "1.2.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+python-dotenv = "^1.0.1"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

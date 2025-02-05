@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "shipyard-s3"
+version = "0.2.0"
+description = "A local client for connecting and working with AWS S3"
+authors = ["wrp801 <wespoulsen@gmail.com>"]
+license = "Apache 2.0"
+readme = "README.md"
+packages = [{include = "shipyard_s3"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+boto3 = "1.34.44"
+shipyard-templates = "^0.8.2"
+shipyard-bp-utils = "^1.2.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+python-dotenv = "^1.0.1"
+black = "^24.2.0"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+    "integration"
+]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-coalesce",
+# ]
+# ///
 import os
 import sys
 from shipyard_coalesce import CoalesceClient
