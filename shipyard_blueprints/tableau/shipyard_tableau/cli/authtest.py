@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-tableau",
+# ]
+# ///
 import os
 import sys
 

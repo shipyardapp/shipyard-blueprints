@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "shipyard-airtable",
+# ]
+# ///
 import os
 import sys
 from shipyard_airtable import AirtableClient

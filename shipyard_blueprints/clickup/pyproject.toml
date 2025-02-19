@@ -1,23 +1,16 @@
-[tool.poetry]
+[project]
 name = "shipyard-clickup"
 version = "0.1.1"
 description = ""
-authors = ["wrp801 <wespoulsen@gmail.com>"]
-readme = "README.md"
-packages = [{ include = "shipyard_clickup" }]
+requires-python = ">=3.9"
+dependencies = [
+    "datetime>=5.5",
+    "requests>=2.32.3",
+    "shipyard-templates>=0.1.5",
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-requests = "2.31.0"
-shipyard-templates = "0.1.5"
-datetime = "^5.1"
-
-#[tool.poetry.group.dev.dependencies]
-#shipyard-templates = { path = "../../shipyard-templates", develop = true }
-
-[tool.poetry.group.dev.dependencies]
-python-dotenv = "^1.0.1"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "python-dotenv>=1.0.1",
+]

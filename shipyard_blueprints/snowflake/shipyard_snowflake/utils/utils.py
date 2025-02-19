@@ -72,7 +72,7 @@ def _decode_rsa(rsa_key: str):
 
 
 def map_snowflake_to_pandas(
-    snowflake_data_types: Optional[Union[List[List], Dict[str, str]]]
+    snowflake_data_types: Optional[Union[List[List], Dict[str, str]]],
 ) -> Union[Dict, None]:
     # TODO: modify this to accept a list of lists (old way) and a JSON representation of datatypes (new way)
     """Helper function to map a snowflake data type to the associated pandas data type

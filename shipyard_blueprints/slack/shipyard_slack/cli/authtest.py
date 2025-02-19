@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-slack",
+# ]
+# ///
 import os
 import sys
 from shipyard_slack.slack import SlackClient

@@ -1,24 +1,15 @@
-[tool.poetry]
+[project]
 name = "shipyard-airtable"
 version = "0.1.2"
 description = "A local client to work with Airtable"
-authors = ["wrp801 <wespoulsen@gmail.com>"]
-license = "Apache 2.0"
-readme = "README.md"
-packages = [{ include = "shipyard_airtable" }]
+requires-python = ">=3.9"
+dependencies = [
+    "pandas>=2.2.3",
+    "shipyard-bp-utils>=1.0.1",
+    "shipyard-templates==0.6.1",
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-pyairtable = "2.2.2"
-shipyard-templates = "0.6.1"
-shipyard-bp-utils = "1.0.1"
-pandas = "^2.2.0"
-
-
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.2.0"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]

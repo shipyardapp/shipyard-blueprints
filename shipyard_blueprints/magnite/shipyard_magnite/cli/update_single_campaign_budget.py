@@ -100,7 +100,6 @@ def main():
                     )
                 )
             else:
-
                 successful.append(
                     ValidationResult(
                         status="Success",

@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-fivetran",
+# ]
+# ///
 import os
 import sys
 from shipyard_fivetran import FivetranClient

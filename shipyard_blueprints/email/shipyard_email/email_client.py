@@ -61,10 +61,11 @@ class EmailClient(Messaging):
         try:
             self.connect_with_fallback()
             return 0
-        except InvalidCredentialsError:
+        except InvalidCredentialsError as e:
             logger.authtest(
-                "Invalid credentials provided. Please check your username and password."
+                f"Invalid credentials provided. Please check your username and password. {e}"
             )
+            logger.error(f"Response")
             return 1
 
     @handle_exceptions

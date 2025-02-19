@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "shipyard-looker",
+# ]
+# ///
 import os
 import sys
 from shipyard_looker import LookerClient

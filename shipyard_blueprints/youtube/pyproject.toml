@@ -1,16 +1,8 @@
-[tool.poetry]
+[project]
 name = "shipyard-youtube"
 version = "0.1.0"
 description = ""
-authors = ["johnathan-rodriguez <johnathan.rodriguez@shipyardapp.com>"]
-readme = "README.md"
-packages = [{include = "shipyard_youtube"}]
-
-[tool.poetry.dependencies]
-python = "^3.9"
-pytube = "^15.0.0"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires-python = ">=3.9"
+dependencies = [
+    "pytube>=15.0.0",
+]

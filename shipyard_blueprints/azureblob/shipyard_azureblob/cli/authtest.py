@@ -1,3 +1,10 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "shipyard-azureblob",
+#     "shipyard-templates",
+# ]
+# ///
 import os
 import sys
 

@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#     "shipyard-airbyte",
+# ]
+# ///
 import os
 import sys
 from shipyard_airbyte import AirbyteClient

@@ -77,7 +77,6 @@ def transform_data_to_budgets(raw_data):
 
 
 def log_campaign_report(reports, errors, description):
-
     if len(reports) - len(errors) > 0:
         logger.info(f"======= Reports for Successful {description}(s) =======")
         for report in reports:
